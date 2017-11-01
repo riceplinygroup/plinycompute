@@ -49,8 +49,9 @@ to a query set.
   Gaussian mixture model (GMM) learning which is used to cluster data using a mixture of high-dimensional Normal
   distributions, and the simplest, $k$-means clustering (chosen because of its ubiquity as a Big Data ML benchmark).
 
-\subsubsection {Experimental Environment}
-All of the experiments reported in this paper were performed using a
+\vspace{5pt}
+\noindent
+\textbf {Experimental Environment.} All of the experiments reported in this paper were performed using a
 cluster that consists of eleven Amazon EC2 \texttt{m2.4xlarge} machines,
 running Ubuntu 16.04. Each machine had eight virtual cores, one SSD
 disk, and 68 GB of RAM. In each PC cluster that we built, one of the eleven machines served as the master
@@ -71,7 +72,7 @@ experiments, data are serialized in Kryo format.
 Since PC is designed to support the construction
 of high-performance tools and libraries, our first benchmarking effort was aimed at determining 
 whether PC is actually useful for that task.  Thus, we asked
-a PhD student (who at the outset knew nothing of PC) 
+a PhD student (who is also an expert programmer but at the outset knew nothing of PC) 
 to use the system to build a small Matlab-like 
 programming language and library for distributed matrix operations.
 We called this implementation \texttt{lilLinAlg}.
@@ -88,9 +89,9 @@ implementation shipped with Spark), and SystemML \cite{boehm2014hybrid, ghoting2
 over the last seven years by a team at IBM, built on top of Spark and Hadoop).
 The student spent about six weeks in this effort.
 
-\subsubsection{\texttt{lilLinAlg} Implementation}
-
-In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
+\vspace{5pt}
+\noindent
+\textbf{Implementation.} In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
 object in the set is a \texttt{MatrixBlock}, storing a contiguous rectangular sub-block of the matrix:
 
 \begin{codesmall}
@@ -127,10 +128,10 @@ a PC page (by default, PC's page size is 256MB).  A typical \texttt{MatrixData} 
 1,000 by 1,000 sub-matrix that is eight megabytes in size.
 
 \texttt{lilLinAlg} uses the \texttt{MatrixBlock} object to implement a set of common distributed matrix
-computations, including \texttt{transpose},
-\texttt{inverse}, \texttt{add}, \texttt{subtract}, \texttt{multiply}, \texttt{transposeMultiply}, 
-\texttt{scaleMultiply}, \texttt{minElement},
-\texttt{maxElement}, \texttt{rowSum}, \texttt{column Sum}, \texttt{duplicateRow}, \texttt{duplicateCol}, 
+computations, including transpose,
+inverse, add, subtract, multiply, transposeMultiply, 
+scaleMultiply, minElement,
+maxElement, rowSum, column Sum, duplicateRow, duplicateCol, 
 and many more.  However, \texttt{lilLinAlg} programmers do not call these operations directly, rather,
 \texttt{lilLinAlg} implements its own Matlab-like DSL.  
 Given a computation in the DSL, \texttt{lilLinAlg} first parses the computation into an abstract syntax tree (AST), and then
@@ -139,16 +140,15 @@ For example, at a \texttt{multiply} node in the compiled AST, \texttt{lilLinAlg}
 will execute a PC code similar to the following:
 
 \begin{codesmall}
-Handle <Computation> query1 = 
-         makeObject <LAMultiplyJoin> ();
+Handle <Computation> query1 = makeObject<LAMultiplyJoin>();
 query1->setInput (0, leftChild->evaluate(instance));
 query1->setInput (1, rightChild->evaluate(instance));
 Handle <Computation> query2 = 
-         makeObject <LAMultiplyAggregate> ();
+  makeObject<LAMultiplyAggregate>();
 query2->setInput(query1);
 \end{codesmall}
 
-\noindent Here, \texttt{LAMultiplyJoin} and \texttt{LAMultiplyJoin} are 
+\noindent Here, \texttt{LAMultiplyJoin} and \texttt{LAMultiplyAggregate} are 
 both user-defined \texttt{Computation} classes that are
 derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} class, respectively; these classes are chosen 
 because distributed matrix multiplication
@@ -156,19 +156,21 @@ is basically a join followed by an aggregation.
 Internally, the \texttt{LAMultiplyJoin}
 and \texttt{LAMultiplyAggregate} invoke the Eigen numerical processing
 library~\cite{eigen} to manipulate \texttt{MatrixBlock} objects.
+
+\eat{
 For example, \texttt{LAMultiplyJoin} must efficiently multiply the sub-matrices stored inside of two matrix blocks.
 To accomplish this, inside of the \texttt{getProjection ()} operation for
 \texttt{LAMultiplyJoin} is a native C++ lambda that contains the following code:
 
-\begin{code}
+\begin{codesmall}
 Handle<MatrixBlock> resultMatrixBlock 
-   = makeObject <MatrixBlock> (...);
+  = makeObject <MatrixBlock> (...);
 Eigen::Map<Eigen::Matrix<double,
-   Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>> 
-   productMatrix(resultMatrixBlock->
-      getRawDataHandle()->c_ptr(), ...);
+  Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>> 
+  productMatrix(resultMatrixBlock->
+  getRawDataHandle()->c_ptr(), ...);
 productMatrix = currentMatrix1 * currentMatrix2;
-\end{code}
+\end{codesmall}
 
 \noindent This code first makes a new \texttt{MatrixBlock} object that will store the result of the multiplication.
  It then creates an 
@@ -178,25 +180,25 @@ sequence of calls
 returns a \texttt{double} pointer that references the location of the contiguous block of \texttt{double}s inside of
 the \texttt{resultMatrixBlock} object.
 The Eigen package then works with those raw bytes directly,
-and the overloaded \texttt{*} operator will write its result to that location.
+and the overloaded \texttt{*} operator will write its result to that location.}
 
 \texttt{lilLinAlg}'s DSL looks a lot like Matlab and allows very short and easy-to-read codes.
 For example, 
 a least squares linear regression over a large input matrix can be easily coded as
 
-\begin{code}
+\begin{codesmall}
 X = load(myMatrix.data); 
 y = load(myResponses.data); 
 beta = (X '* X)^-1 %*% (X '* y)
-\end{code}
+\end{codesmall}
 
 \noindent In the above DSL expression, \texttt{'*} represents a transpose-then-multiply computation,
 \texttt{\^{}-1} represents an inverse computation, and \texttt{ \%*\%}
 represents a multiply computation. 
 
-\subsubsection {Experiments}
-
-Our experimental benchmark consisted of three different computations:
+\vspace{5pt}
+\noindent
+\textbf {Experiments.} Our experimental benchmark consisted of three different computations:
 a Gram matrix computation (given a matrix $\textbf{X}$, compute
 $\textbf{X}^T \textbf{X}$), least squares linear regression (given a matrix of features $\textbf{X}$ and
 responses $\textbf{y}$, compute 
@@ -207,7 +209,7 @@ $\textbf{x}'$ and matrix $\textbf{X}$, find the $i$-th row in the matrix that mi
 $d_{\textbf{A}}^2(\textbf{x}_i, \textbf{x}') = 
 (\textbf{x}_i - \textbf{x}')^T\textbf{A}(\textbf{x}_i - \textbf{x}')$).  
 For each computation we used three different data dimensionalities: ten, $10^2$, and $10^3$.  This refers to
-the number of features or entries in each data point. 
+the number of features in each data point. 
 For
 all three computations, 
 $10^6$ data points were used. 
@@ -243,9 +245,9 @@ we do not count the time required to load data from client into the system
 (for example, 
 for \texttt{lilLinAlg}, we do not count the time required to load data from text and into PC).
 
-\subsubsection {Results and Discussion}
-
-Experimental results are given in 
+\vspace{5pt}
+\noindent
+\textbf{Results and Discussion.} Experimental results are given in 
 Table \ref{fig:LR}. 
 This table shows that for every one of the higher-dimensional computations, the 
 \texttt{lilLinAlg} implementation was the fastest.  Often, it was considerably faster.
@@ -253,7 +255,7 @@ Looking only at the nearest neighbor computation (where the latest version of Sp
 along with Spark's \texttt{mllib}) \texttt{lilLinAlg} was five times faster than \texttt{mllib}
 and thirteen times faster than SciDB.  
 
-For the smallest, ten-dimensional computations, there was some variability in the results.
+For the ten-dimensional computations, there was some variability in the results.
 For two of the three computations, 
 SystemML was the fastest.  However, in all three of the ten-dimensional computations, SystemML chose
 \emph{not} to distribute the underlying computation, as it was small enough to be efficiently extracted
@@ -300,14 +302,13 @@ PC is a young system and so it is still missing some key functionality that woul
 \texttt{lilLinAlg}'s performance even more.  For example, PC cannot make use of pre-partitioning of the data stored in a set. 
 If the
 \texttt{MatrixBlock} objects making up a distributed
-matrix could be pre-partitioned based upon the row/column at load time, it 
-would mean that the expensive join for an operation
-such a multiply could completely avoid a runtime partitioning of the data, which requires shuffling each input matrix.
+matrix could be pre-partitioned based upon the row/column at load time, the expensive join for an operation
+such as multiplication could avoid a runtime partitioning of the data, which requires shuffling each input matrix.
 Thus, it is not unreasonable to suggest that as PC matures, it will be even faster.
 
 \subsection{Big Object-Oriented Data}
 
-Programming with objects is attractive as a programming paradigm, but (as we have argued in this paper)
+Programming with objects is attractive as a programming paradigm, but
 often costly in terms of performance, particularly
 for distributed computing.  One answer is to simply disallow complex objects.  The 
 developers of Apache Spark, for example, have attempted to move away from object programming
@@ -316,11 +317,11 @@ and towards a relational model of programming (with Datasets and Dataframes)
 Our solution is to allow objects, but to move away from allowing a managed environment to control 
 issues such as allocation, deallocation, and data placement.  This is the approach taken in the design and implementation
 of the PC object model.  Thus, the question we address in this particular set of experiments is: can the PC 
-object model facilitate efficient computations of heavily nested, complex objects?
+object model facilitate computations of heavily nested, complex objects?
 
-\subsubsection{Data Representation}
-
-To do this, we implement two different complex object computations on top of PC and on top of Spark.
+\vspace{5pt}
+\noindent
+\textbf{Data Representation.} To do this, we implement two different complex object computations on top of PC and on top of Spark.
 Both of these computations are over large datasets that store an instance of the TPC-H database \cite{council2008tpc}.
 But rather than storing the dataset relationally, we denormalized the data into a set of nested objects. 
 The simplest objects used in the denormalized TPC-H schema are 
@@ -369,15 +370,16 @@ class Customer : public Object {
    /* seven more members... */};
 \end{codesmall}
 
-\subsubsection{Implementation and Experiments}
-We then run two computations over the resulting set of \texttt{Customer} objects.  
+\vspace{5pt}
+\noindent
+\textbf{Implementation and Experiments.} We then run two computations over the resulting set of \texttt{Customer} objects.  
 The first computation is the \emph{parts per supplier per customer} computation where we
 compute, for each supplier,
 the complete list of \texttt{partkey}s that the supplier has sold to each of the supplier's customer's.
 For each supplier, the result is a an object that contains the supplier's name (as a \texttt{String}) and
 an object of type \texttt{Map <String, Handle <Vector <int}\texttt{>}\texttt{>}\texttt{>}.  In this
 object, the \texttt{String} is the name of the customer, and the \texttt{Vector} stores the list of
-\texttt{partkey}s sold to that customer.
+\texttt{partID}s sold to that customer.
 
 To run this computation on PC, we use two different PC \texttt{Comp- utation} classes.  The first, 
 \texttt{Customer}\-\texttt{MultiSelection}, transforms each 
@@ -385,16 +387,14 @@ To run this computation on PC, we use two different PC \texttt{Comp- utation} cl
 \texttt{SupplierInfo} objects. Each \texttt{SupplierInfo} contains
 the name of a supplier
 and a \texttt{Handle} to a \texttt{Map} whose key is the name of the customer and whose value is the list
-of \texttt{partkey}s that the supplier has sold to the customer.
+of \texttt{partID}s that the supplier has sold to the customer.
 The second \texttt{Computation}, called
 \texttt{CustomerSupplier- PartGroupBy},
 groups all of those \texttt{SupplierInfo} objects according to the name of the supplier, computing, for each
-supplier, the map from customer name to \texttt{Vector} of \texttt{partkey}s.
+supplier, the map from customer name to \texttt{Vector} of \texttt{partID}s.
 
 On Spark we implemented an algorithmically equivalent
-carefully-tuned code that in the
-end was not dis-similar from the PC
-version.  We used
+carefully-tuned code.  We used
 Spark version
 2.1.0.
 Note that since the objects are all highly nested, it was not possible to develop a satisfactory
@@ -408,36 +408,38 @@ In this computation,
 for a given
 \texttt{Customer} object, we go through all of the associated 
 \texttt{Order} objects and obtain the complete list of
-\texttt{partid}s for each order.  All duplicate \texttt{partid}s are
-removed from this list, and then the Jaccard similarity between the resulting \texttt{partid} list and a special, query
-list are computed.  This is done for all of the \texttt{Customer} objects, and the $k$ \texttt{partid} lists with the 
+\texttt{partID}s for each order.  All duplicate \texttt{partID}s are
+removed from this list, and then the Jaccard similarity between the resulting \texttt{partID} list and a special, query
+list are computed.  This is done for all of the \texttt{Customer} objects, and the $k$ \texttt{partID} lists with the 
 closest similarity to the query list are returned.
 In PC,
 the result of the computation is a list of $k$ objects containing the Jaccard similarity, the integral \texttt{custkey}, and
-a \texttt{Vector <int>} that stores the complete list of unique \texttt{partid}s sold to that customer.
+a \texttt{Vector <int>} that stores the complete list of unique
+\texttt{partID}s sold to that customer.
+
+
 In PC, the C++ code required to drive this computation is as follows:
-\begin{code}
-Handle<Vector<int>> listOfPartIDs = 
-    makeObject<Vector<int>
-       (199, 22, 34, 567, 1200, 37, 46, 459);
-Handle<Computation> myReader = 
-    makeObject<ObjectReader<Customer>>
-       ("TPCH_db", "tpch_bench_set1");
+
+\begin{codesmall}
+Handle<Vector<int>> listOfPartIDs = makeObject<Vector<int>
+    (199, 22, 34, 567, 1200, 37, 46, 459);
+Handle<Computation> myReader = makeObject<ObjectReader
+    <Customer>>("TPCH_db", "tpch_bench_set1");
 Handle<Computation> myTopK = 
     makeObject<TopJaccard>(k, *listOfPartIDs);
 myTopK->setInput(myReader);
-Handle<Computation> myWriter = 
-    makeObject<Writer<TopKQueue<double, 
-      Handle<AllParts>>>>("TPCH_db", "result");
+Handle<Computation> myWriter = makeObject<Writer<TopKQueue
+    <double,Handle<AllParts>>>>("TPCH_db", "result");
 myWriter->setInput(myTopK);
 pcContext.executeComputations (myWriter);
-\end{code}
+\end{codesmall}
 
 \noindent The one query-specific \texttt{Computation} object that was implemented for the top-$k$ 
 closest customer part sets computation is the \texttt{TopJaccard} class, which
 is responsible for extracting a value to drive the top-$k$ computation (in this case, the Jaccard similarity) as well
 as the object to be associated with that value (in this case, the \texttt{custkey} and the list of 
-\texttt{partid}s sold to that customer).
+\texttt{partID}s sold to that customer).
+
 
 For both PC and for Spark, and for both computations, we created 
 TPC-H dataset of various sizes: 2.4 million,
@@ -460,7 +462,15 @@ For PC, we run only one version of the computation, where the various \texttt{Cu
 PC's storage system.  Since all datasets are small enough to be cached in RAM, there is no I/O time to
 retrieve data.
 
-\subsubsection{Results and Discussion}
+\vspace{5pt}
+\noindent
+\textbf{Results and Discussion.} Results are in Table \ref{fig:TPC}.  The difference in speed between the PC implementation and the Spark implementation
+is significant.
+When Spark data
+are stored in
+a hot HDFS, the two computations are $6\times$ to $66\times$ faster in PC.  
+This is an apples-to-apples comparison, because in both systems, the data are being fetched from system storage, where they
+can be buffered in OS buffer cache or PC buffer pool respectively.
 
 \begin{table*}[h!]
 \small
@@ -488,13 +498,7 @@ Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \end{center}
 \end{table*}
 
-Results are in Table \ref{fig:TPC}.  The difference in speed between the PC implementation and the Spark implementation
-is significant.
-When Spark data
-are stored in
-a hot HDFS, the two computations are $6\times$ to $66\times$ faster in PC.  
-This is an apples-to-apples comparison, because in both systems, the data are being fetched from system storage, where they
-can be buffered in OS buffer cache or PC buffer pool respectively.
+
 
 If the Spark data are already
 fully deserialized and stored as an RDD in memory, then PC is still 
@@ -525,11 +529,13 @@ less significant on that computation.
 Finally, we consider three common machine learning algorithms: LDA,
 GMM and $k$-means. 
 
-\subsubsection {Implementations}
-
-
+\vspace{5pt}
 \noindent
-\textbf{Latent Dirichlet Allocation.}
+\textbf {Implementations.}
+
+\vspace{5pt}
+\noindent
+\texttt{Latent Dirichlet Allocation.}
 The first algorithm we implemented was a Gibbs sampler for
 Latent Dirichlet Allocation, or LDA.  LDA is a common text mining algorithm.
 While LDA implementations are common, we
@@ -581,7 +587,7 @@ The required statistical computations use the
 
 \vspace{5pt}
 \noindent
-\textbf{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a dataset are modeled
+\texttt{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a dataset are modeled
 as having been produced by a set of Gaussians (multi-dimensional Normal distributions). Learning a GMM using
 the expectation maximization (EM) algorithm is one of the classical ML algorithms.
 EM is particularly interesting for a distributed benchmark because in theory, the running time should be dominated
@@ -602,17 +608,16 @@ compute the soft assignment and avoid underflow, whereas \texttt{mllib} uses thr
 
 \vspace{5pt}
 \noindent
-\textbf{$k$-Means.} Our final ML benchmark algorithm is $k$-means.  
-While not a particularly interesting computation, it is a now-classic
+\texttt{$k$-Means.} $k$-means is a now-classic
 benchmark for Big Data ML.  We specifically developed our PC $k$-means implementation to closely match
 the implementation in Spark's \texttt{mllib}.
 Both implementations use the standard trick, where, to find the centroid closest to a given point,
 a lower bound $||a - b||_2 \geq  abs(||a||_2 - ||b||_2)$ is
 first computed to avoid unnecessary distance computations. 
 
-\subsubsection {Experiments}
-
-On the aforementioned eleven-node cluster, 
+\vspace{5pt}
+\noindent
+\textbf {Experiments.} On the aforementioned eleven-node cluster, 
 we ran all ML experiments using PC and Spark 2.1.0.
 
 For LDA,  we
@@ -627,23 +632,33 @@ For GMM, we generated
 random data for three test cases: $10^7$ data
 points with 100 dimensions, and $10^6$ data points with 300 and 500
 dimensions, respectively. For each test case, the same random data was used
-for comparing PC and Spark performance. For $k$-means, we
+for comparing PC and Spark performance. 
+
+For $k$-means, we
 generate random data for $10^9$ data
 points with ten dimensions, $10^8$ data points with 100 dimensions,  and $10^7$
 data points with 1000
-dimensions. Again, the same data is used on both PC and
+dimensions. 
+
+Again, the same data is used on both PC and
 Spark platforms.
 Ten Gaussians are used for GMM, and ten clusters for $k$-means.
 
-For each experiment, we carefully tune Spark
-partition size, executor heap size and the number of cores to obtain maximum performance.
-Input data for Spark are serialized
-using Kryo, and read through a binary format (Parquet for the Dataset API,
-and an Object file for the RDD API).
-
-\subsubsection {Results and Discussion}
-
-LDA Results (per iteration) are illustrated in Table~\ref{fig:LDA}.
+\vspace{5pt}
+\noindent
+\textbf {Results and Discussion.} LDA Results (per iteration) are
+illustrated in Table~\ref{fig:LDA}. While Spark performed well, the 
+amount of work required to arrive at a good solution 
+was significant, representing about a week of tuning.  First, among other things, our Spark expert had to force a 
+broadcast join.  Then, it was necessary to force Spark to
+persist the result of one of the joins for later use.  Finally, it was necessary to hand-code a 
+Multinomial sampler (avoiding the use of \texttt{breeze}) to obtain an implementation that was competitive with PC.
+This last bit of tuning (of course) can't be blamed on Spark, but the experience overall is illustrative: forcing 
+a particular join and forcing a particular persist are \emph{workload specific} optimizations.  They may work for one
+workload but be a poor choice for another, and require a tool end-user to actually change library code to achieve
+performance.  In contrast, like a database system, PC is fully declarative in-the-large.
+Decisions such as using a broadcast join instead of a full hash
+join as well as which intermediate results to materialize (and which to pipeline or discard) are fully automated.
 
 \begin{table*}[h!]
 \small
@@ -660,18 +675,7 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \end{center}
 \end{table*}
 
-While Spark performed well, the 
-amount of work required to arrive at a good solution 
-was significant, representing about a week of tuning.  First, among other things, our Spark expert had to force a 
-broadcast join.  Then, it was necessary to force Spark to
-persist the result of one of the joins for later use.  Finally, it was necessary to hand-code a 
-Multinomial sampler (avoiding the use of \texttt{breeze}) to obtain an implementation that was competitive with PC.
-This last bit of tuning (of course) can't be blamed on Spark, but the experience overall is illustrative: forcing 
-a particular join and forcing a particular persist are \emph{workload specific} optimizations.  They may work for one
-workload but be a poor choice for another, and require a tool end-user to actually change library code to achieve
-performance.  In contrast, like a database system, PC is fully declarative in-the-large.
-Decisions such as using a broadcast join instead of a full hash
-join as well as which intermediate results to materialize (and which to pipeline or discard) are fully automated.
+
 
 The results for GMM are illustrated in Table~\ref{fig:Gmm}. Here, PC achieved a 
 $3\times$ speedup compared with Spark \texttt{mllib}'s GMM implementation
@@ -681,7 +685,7 @@ some of the issues surrounding Java vs. C++.
 \begin{table}[h!]
 \small
 \begin{center}
-\begin{tabular}{|c||c|c|c||}
+\begin{tabular}{|c||c|c|c|}
 \hline
 Dimensionality & $100$ & $300$ & $500$ \\
 Number of points & $10^7$ & $10^6$ & $10^6$ \\
@@ -705,14 +709,14 @@ had performance similar to the RDD implementation for
 $10^7$ data points and $10^8$ data
 points, but much slower for $10^9$ data points. It turns out that 
 the Spark \texttt{mllib} Dataset implementation first reads the data 
-from a parquet file in the libSVM format, string the data in a Dataset.  But then, the data
+from a parquet file in the libSVM format, storing the data in a Dataset.  But then, the data
 are converted into an RDD for processing, likely due to the relatively inflexible Dataset API.
 This conversion becomes a bottleneck for the largest datasets.
 
 \begin{table*}[h!]
 \small
 \begin{center}
-\begin{tabular}{|c||c|c|c||c|c|c||}
+\begin{tabular}{|c||c|c|c||c|c|c|}
 \hline
 & \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c||}{Average
                                          Iteration Latency} \\
@@ -730,13 +734,12 @@ Spark \texttt{mllib} Dataset API &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
 \end{center}
 \end{table*}
 
-
-\subsubsection{Experiments: Final Thoughts}
-
-The central hypothesis in this paper was that ``declarative in the large, high-performance in the small'' can result
-in an excellent platform for tool and library development.  We believe that these experiments have showed that.  The
-most convincing benchmark was likely the first one, where 1.5 person-months of engineering time resulted in a tool
-(the \texttt{lilLinAlg} tool for distributed linear algebra) that 
+\vspace{5pt}
+\noindent
+\textbf{Experiments: Final Thoughts.} The central hypothesis in this paper was that ``declarative in the large, high-performance in the small'' can result
+in an excellent platform for tool and library development.  We believe that these experiments have shown that.  The
+most convincing benchmark was likely the first one, where 1.5
+person-months of engineering time resulted in the \texttt{lilLinAlg} tool that 
 was faster than other competing systems with many years of development time behind then.  One of those systems (SciDB)
 was implemented natively in C++, while the others (Spark's \texttt{mllib} as well as \texttt{SystemML}) used Hadoop and Spark.  
 Other benchmarks showed similar advantages to PC, with complex object manipulations being 
@@ -791,7 +794,7 @@ not the programming language itself.
 \begin{table*}[h!]
 \small
 \begin{center}
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c||c|c|}
 \hline
 Applications & SLOC on PlinyCompute & SLOC on Spark\\
 \hline
@@ -811,7 +814,7 @@ $k$-means &695  &670 (Scala)\\
 \begin{table}[h!]
 \small
 \begin{center}
-\begin{tabular}{|c||c|c|c||}
+\begin{tabular}{|c||c|c|c|}
 \hline
 Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
 \hline
@@ -821,10 +824,9 @@ Eigen &123 ms  &3:57\\
 \texttt{breeze}-native &179 ms  &3:40\\
 \hline
 \end{tabular}
-\caption{Single thread matrix multiplication benchmark tested in
+\caption{Matrix multiplication benchmarked in
   \texttt{m2.4xlarge} instance by setting thread number  to one for all
-  packages. It shows that
-  Java is as fast as C++ through invoking native code. (for
+  packages. (for
   $1000\times1000$ matrix multiplication, processing times are recorded in
   milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
   recorded in hh:mm:ss format.)}
