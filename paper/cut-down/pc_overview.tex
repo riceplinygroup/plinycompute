@@ -265,7 +265,7 @@ Note that the programmer does \emph{not} specify an ordering for the joins, and 
 analyzes the lambda term returned by \texttt{getSelection ()} and
 makes such decisions automatically.
 
-In general, a programmer can choose to expose the details of a computation to PC, but making extensive use of PC's lambda
+In general, a programmer can choose to expose the details of a computation to PC, by making extensive use of PC's lambda
 calculus, or not.  A programmer could, for example, hide the entire selection predicate within a native C++ lambda.
 If the programmer chose to do this, PC would be unable to optimize the compute plan---the system relies on the willingness of the 
 programmer to expose intent via the lambda term construction function.
@@ -356,7 +356,7 @@ the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
 To produce the output vector list (called \texttt{WDNm\_1}), the vectors
 \texttt{dep}, \texttt{emp}, and \texttt{sup} should be simply copied
 (via a shallow copy similar with pointer assignment) from \texttt{In}.
-In addition, the compiled code referred to by \texttt{Join\_2212.att_acc\_1} will be executed via a vectorized application to the input
+In addition, the compiled code referred to by \texttt{Join\_2212.att\_acc\_1} will be executed via a vectorized application to the input
 vector \texttt{dep}.  The result will then be put into a new vector called 
 \texttt{WDNm\_1.name1}.
 The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
