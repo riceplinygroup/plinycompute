@@ -56,8 +56,9 @@ C\#.
 \subsection {Experimental Environment}
 
 All of the experiments reported in this paper were performed using a
-cluster that consists of eleven Amazon EC2 \texttt{m2.4xlarge} machines,
-running Ubuntu 16.04. Each machine had eight virtual cores, one SSD
+cluster that consists of eleven Amazon EC2 \texttt{m2.4xlarge}
+machines running Linux Ubuntu operating systems. 
+Each machine had eight virtual cores, one SSD
 disk, and 68 GB of RAM. In each PC cluster that we built, one of the eleven machines served as the master
 node and the rest ten machines served as worker nodes.
 
@@ -564,7 +565,7 @@ and the topic-probability-per-document vectors.  In our experiments, there are a
 700 million such triples, and each vector is around 1KB.  Hence, the many-to-one join between them results in
 700GB of data.  If the platform does not manage this carefully, performance will suffer.
 
-The full PC LDA implementation requires fifteen different \texttt{Computation} object, as shown in 
+The full PC LDA implementation requires fifteen different \texttt{Computation} objects, as shown in 
 in Figure~\ref{fig:lda-query-graph}.  Each iteration requires a 
 three-way \texttt{JoinComp}, three \texttt{MultiSelectionComp}s, and three
 \texttt{AggregateComp}s, among others. 
@@ -582,7 +583,7 @@ sampling from both Multinomial and Dirichlet distributions).
 
 We wished to compared out LDA implementation with an algorithmically equivalent Spark implementation.  Unfortunately,
 Spark \texttt{mllib}'s LDA implementation is based on expectation
-maximization and online variational Bayes.
+maximization (EM) and online variational Bayes.
 Therefore, we had a Spark expert 
 carefully implement an algorithmically
 equivalent word-based, non-collapsed LDA Gibbs sampler on top of Spark.  His implementation used both
@@ -594,7 +595,7 @@ The required statistical computations use the
 
 \vspace{5pt}
 \noindent
-\textbf{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a dataset are modeled
+\textbf{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a dataset is modeled
 as having been produced by a set of Gaussians (multi-dimensional Normal distributions). Learning a GMM using
 the expectation maximization (EM) algorithm is one of the classical ML algorithms.
 EM is particularly interesting for a distributed benchmark because in theory, the running time should be dominated
@@ -610,7 +611,7 @@ to the model happens; the result is broadcasted in a new \texttt{AggregateComp} 
 
 It turns out that an algorithmically equivalent implementation exists in Spark \texttt{mllib}.
 Both implementations even use the same random initialization algorithm.
-There are only slight differences between the two; for example, PC computes uses the standard ``log space'' trick to
+There are only slight differences between the two; for example, PC computation uses the standard ``log space'' trick to
 compute the soft assignment and avoid underflow, whereas \texttt{mllib} uses thresholding.  
 
 \vspace{5pt}
