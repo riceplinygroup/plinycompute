@@ -62,7 +62,7 @@ Each machine had eight virtual cores, one SSD
 disk, and 68 GB of RAM. In each PC cluster that we built, one of the eleven machines served as the master
 node and the rest ten machines served as worker nodes.
 
-Since Apache Spark is most widely-used Big Data system both for applications programming and for tool and library
+Since Apache Spark is one of the most widely-used Big Data system both for applications programming and for tool and library
 development, most
 (though not all) of our comparisons were with Spark (version
 2.1.0). The configuration of the Spark cluster such as
@@ -504,7 +504,7 @@ Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \end{center}
 \end{table}
 
-Results are in Table \ref{fig:TPC}.  The difference in speed between the PC implementation and the Spark implementation
+Results are shown in Table \ref{fig:TPC}.  The difference in speed between the PC implementation and the Spark implementation
 is significant.
 When Spark data
 are stored in
@@ -717,7 +717,7 @@ had performance similar to the RDD implementation for
 $10^7$ data points and $10^8$ data
 points, but much slower for $10^9$ data points. It turns out that 
 the Spark \texttt{mllib} Dataset implementation first reads the data 
-from a parquet file in the libSVM format, string the data in a Dataset.  But then, the data
+from a parquet file in the libSVM format, storing the data in a Dataset.  But then, the data
 are converted into an RDD for processing, likely due to the relatively inflexible Dataset API.
 This conversion becomes a bottleneck for the largest datasets.
 

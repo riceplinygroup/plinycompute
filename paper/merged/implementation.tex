@@ -29,7 +29,7 @@ the centralized server that manages PC's storage subsystem;
 \item The \emph{TCAP optimizer} which is responsible for optimizing
   programs that have been compiled into PC's domain-specific TCAP
   language (as in 
-Section \ref{sec:optimizer} of the paper);
+Sec~\ref{sec:optimizer} of the paper);
 \item The \emph{distributed query scheduler} that is responsible for accepting optimized TCAP computations.
 It dynamically transforms those computations into a set of \texttt{JobStage}s,
 such as:
@@ -67,7 +67,7 @@ the front-end process) via zero-copy access. Compared with distributed
 computation framework such as Spark~\cite{zaharia2010spark} and Flink~\cite{alexandrov2014stratosphere, carbone2015apache}, which rely on
 external storage systems such as HDFS~\cite{borthakur2008hdfs} and Alluxio~\cite{li2014tachyon}, a significant
 performance advantage of having a buffer pool is that data can be cached in memory
-across different applications, rather than needs to load from external
+across different applications, rather than having to be load from external
 storages (which often requires data movement) each time.
 \item And finally, the \emph{message proxy} which is responsible for communicating with the worker backend process, and which acts as a bridge between the
 worker backend process and the master server, the local catalog, and the local storage server.
@@ -76,7 +76,7 @@ worker backend process and the master server, the local catalog, and the local s
 
 Because worker backend processes are the only processes that are actually allowed to run user code (and because user code is that code that actually processes
 user-supplied data) it means that the worker backend processes are
-where all computations in PC are actually performed.  One or more computation in PC corresponds 
+where all computations in PC are actually performed.  One or more computations in PC correspond 
 to a set of the 
 \texttt{JobStage}s, that are created by the master server's distributed query scheduler, 
 for executing the computations and required communications
@@ -131,7 +131,7 @@ from the producing stage, so that they can be sent over the network and used at 
 Once the pipe sinks have been allocated,
 the system begins assigning input pages to each of the pipelining 
 threads.  Each input page was itself produced as the result of a
-previous \texttt{JobStage}, or else created by user, both of which needs to be
+previous \texttt{JobStage}, or else created by users, both of which needs to be
 loaded from the storage.  Hence all pages are themselves organized using the PC object model.  Thus, each input
 page will itself contain a \texttt{Vector <Handle <Object}\texttt{>}\texttt{>},
 or another standard PC container type.  During the producing stage, vectors of PC \texttt{Handle}s are repeatedly
@@ -187,7 +187,9 @@ In PC, all of the ``magic'' parameters such as the number of hash partitions $M$
 the number of pipelining threads $N$, 
 the number of combining threads for each remote node $K$, 
 the combiner page size, and the aggregation page size are all automatically 
-determined at run-time to maximize memory utilization, network utilization and CPU utilization. 
+determined at run-time to maximize memory utilization, network
+utilization and CPU utilization. The details are omitted here and will
+be discussed in a separate paper.
 
 \subsection{Hash Partition Join}
 
