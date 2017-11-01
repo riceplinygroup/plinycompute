@@ -6,7 +6,7 @@ The PC software consists of
 (3) the execution engine, and (4) various distributed services.  In the next few sections of the paper, 
 we discuss the first three software components in detail.
 
-PC is a distributed system, and a PC compute cluster has a \emph{master node} and one or more \emph{worker nodes}.
+PC is a distributed system, and a PC runtime has a \emph{master node} and one or more \emph{worker nodes}.
 Running on the master node are the managers for the various distributed services provided by PC, primarily 
 the \emph{catalog manager} and the \emph{distributed storage manager}.  Also running on the master
 node is the software responsible for powering the distributed execution engine: the \emph{TCAP optimizer} and
@@ -34,7 +34,7 @@ dominate the time needed to complete typical big data processing tasks
 \cite{ousterhout2015making, shi2015clash}.
 To avoid these potential pitfalls while at the same time giving the user a high degree of flexibility,
 PC requires programmers to store and manipulate data using the \emph{PC object model}.
-The PC object model is an API for storing and manipulating objects, and has been co-designed with PC's memory management system and computational engine to provide
+The PC object model is an API for storing and manipulating objects, and has been co-designed with PC's memory management system and execution engine to provide
 maximum performance.  
 
 In PC's C++ binding, individual PC \texttt{Object}s correspond to C++ objects, and so the C++ compiler specifies the memory layout.
@@ -42,7 +42,7 @@ However, where PC \texttt{Object}s are stored in RAM and on disk, and how they a
 tightly controlled by PC itself.
 
 The PC object model provides a fully object-oriented interface, and yet manages to avoid many of the costs associated with complex object manipulation
-by following the \emph{page as a heap} principle.  
+by following the \emph{page-as-a-heap} principle.  
 All PC \texttt{Object}s are allocated and manipulated in-place, on a system-
 (or user-) allocated page.  There is
 no distinction between the in-memory representation of data and the on-disk (or in-network) representation of
@@ -68,10 +68,10 @@ public:
 \end{codesmall}
 
 \noindent
-To load such data into a PC compute cluster, we might write the following code:
+To load such data into a PC runtime, we might write the following code:
 
 \begin{codesmall}
-makeObjectAllocatorBlock (1024 * 1204);
+makeObjectAllocatorBlock (1024 * 1024);
 Handle <Vector <Handle <DataPoint>>> myVec = 
      makeObject <Vector <Handle <DataPoint>>> ();
 Handle <DataPoint> storeMe = makeObject <DataPoint> ();
@@ -106,7 +106,7 @@ then all of the memory associated with the \texttt{Vector} of \texttt{DataPoint}
 freed, since PC \texttt{Object}s are reference counted.  This can
 be expensive, however, since the PC \texttt{Object} infrastructure must traverse a potentially large graph of \texttt{Handle} objects to perform the deallocation.  
 Recognizing that low-level data manipulations dominate big data
-compute times~\cite{ousterhout2015making, shi2015clash}, PlinyCompute gives a programmer control
+computation times~\cite{ousterhout2015making, shi2015clash}, PlinyCompute gives a programmer control
 over most aspects of memory management. If the 
 programmer had used: 
 
@@ -124,15 +124,15 @@ but the benefit is nearly zero-cost memory management within the block.
 PC gives the developer the ability to manage the tradeoff.
 This illustrates another key principle behind the design of
 PlinyCompute: \emph{Since PC is targeted towards tool and library
-  development, PC assumes the programmer knows what s/he is doing.  In
+  development, PC assumes the programmer is capable.  In
   the small, PC gives the programmer all of the tools s/he needs to make things fast}.
 
 Finally, we note that the PC object model is not used exclusively 
 for application programming.  The PC object model
-is used \emph{internally}, with PC's computational engine as well.
+is used \emph{internally}, integrated with PC's execution engine as well.
 For example, aggregation is implemented using PC's built-in
 \texttt{Map} class.  Each thread maintains
-a \texttt{Map} object that aggregates its local data to; those are
+a \texttt{Map} object that the thread aggregates its local data to; those are
 merged into maps that are sent to various workers around the PC
 cluster.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization.
@@ -204,7 +204,7 @@ The standard arithmetic operations: \texttt{+}, \texttt{-}, \texttt{*}, etc.
 \end{enumerate}
 
 For an example of all of this, consider performing a join over three
-sets of PC \texttt{Object}s stored in the PC Cluster.  
+sets of PC \texttt{Object}s stored in the PC runtime.  
 Joins are specified in PC 
 by implementing a \texttt{JoinComp} object. One of the methods that must be overridden to build a specific join is \texttt{JoinComp :: getSelection ()}
 which returns a lambda term
@@ -225,7 +225,7 @@ Lambda <bool> getSelection (Handle <Dep> arg1,
 This method creates a lambda term taking three arguments \texttt{arg1, arg2, arg3}.  This lambda terms describe a computation that
 checks to see if \texttt{arg1->deptName} is the same as the value
 returned from \texttt{arg2->getDeptName ()}, and
-that \texttt{arg1->deptName} is the same as the value returned from \texttt{arg3}\-\texttt{->getDept ()}. 
+that \texttt{arg1->dept Name} is the same as the value returned from \texttt{arg3}\-\texttt{->getDept ()}. 
 Note that the programmer does \emph{not} specify an ordering for the joins, and does \emph{not} specify specific join algorithms or variations.  Rather, PC
 analyzes the lambda term returned by \texttt{getSelection ()} and
 makes such decisions automatically.
@@ -250,7 +250,7 @@ In this Section, we discuss how TCAP programs are executed by PC.
 \subsection{Vectorized or Compiled?}
 Volcano-style, record-by-record iteration \cite{graefe1990encapsulation} has fallen out of favor over the last decade, largely replaced by
 two competing paradigms for processing data
-in high-performance, data-oriented computing.  The first is \emph{vectorized} processing \cite{abadi2009column, boncz2005monetdb, zukowski2005monetdb, idreos2012monetdb}, where a column of values are pushed
+in high-performance, data-intensive computing.  The first is \emph{vectorized} processing \cite{abadi2009column, boncz2005monetdb, zukowski2005monetdb, idreos2012monetdb}, where a column of values are pushed
 through a simple computation in sequence, so as to play to the strength of a modern CPU, with few cache misses and no virtual
 function calls.  The second is \emph{code generation} \cite{neumann2011efficiently, nagel2014code, bress2017generating, klonatos2014building, ahmad2009dbtoaster}, where a system analyzes the computation
 and then generates code---either C/C++ code, or byte code for a framework such as LLVM \cite{lattner2004llvm, lattner2002llvm}.
@@ -347,7 +347,7 @@ WDNm_1(dep,emp,sup,nm1) <= APPLY(In(dep),
 
 WDNm_2(dep,emp,sup,nm1,nm2) <= APPLY(WDNm_1(emp), 
    WDNm_1(dep,emp,sup,nm1), 'Join_2212',
-      'method_call_2', [('type', 'methodCall'), 
+      'method_call_2', [('type', 'methodCall_2'), 
           ('methodName', 'getDeptName')]);
 
 WBl_1(dep,emp,sup,bl) <= APPLY(WDNm_2(nm1,nm2),
@@ -404,7 +404,7 @@ In PC,
 each vectorized pipeline stage (such as \texttt{Join\_2212.mem ber\_1}) is executed as fully-compiled native code, with no virtual function
 calls.
 In PC's C++ binding, this is accomplished by using the C++ language's extensive \emph{template metaprogramming} 
-capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generic functionality.
+capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generics functionality.
 When a C++ template class or
 function is instantiated with a type, %the instantiated template 
 the C++ compiler actually generates optimized native code for that specific new type, at compile time.  
@@ -512,7 +512,7 @@ public:
           return makeLambdaFromMethod 
               (aggMe, fromMe);
    }
-}
+};
 \end{codesmall}
 
 \noindent 
