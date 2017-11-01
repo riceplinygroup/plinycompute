@@ -14,7 +14,7 @@ following questions:
 \vspace{2pt}
 \noindent
 (2) Can the PC object model be used to build 
-object-oriented computations that efficiently manipulate highly nested and complex objects?
+computations that efficiently manipulate highly nested and complex objects?
 
 \vspace{2pt}
 \noindent
@@ -28,7 +28,7 @@ object-oriented computations that efficiently manipulate highly nested and compl
 \noindent
 (1) We constructed a scalable, distributed
 linear algebra library
-called \texttt{lilLinAlg} on top of PC, and evaluated \texttt{lilLinAlg}'s performance for running three
+called \texttt{lilLinAlg} on top of PC, and evaluated its performance for three
 computations: distributed Gram matrix construction, 
 distributed least squares linear regression, and distributed nearest neighbor search.
 
@@ -80,13 +80,14 @@ nine years), Spark \texttt{mllib} \cite{meng2016mllib}
 implementation shipped with Spark), and SystemML \cite{boehm2014hybrid, ghoting2011systemml, boehm2016systemml}
 (a matrix and machine learning implementation developed
 over the last seven years by a team at IBM, built on top of Spark and Hadoop).
-The student spent about six weeks in this effort.
+The expert spent about six weeks in this effort.
 
 \vspace{5pt}
 \noindent
 \textbf{Implementation.} In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
-object in the set is a \texttt{MatrixBlock}, storing a contiguous rectangular sub-block of the matrix:
-
+object in the set is a \texttt{MatrixBlock}, as explained in
+Sec.~\ref{sec:pc-object1}, storing a contiguous rectangular sub-block of the matrix.
+\eat{
 \begin{codesmall}
 class MatrixBlock : public Object {
 private:
@@ -117,7 +118,9 @@ private:
 \end{codesmall}
 
 \noindent \texttt{MatrixMeta} stores the location of the block in the overall matrix, and
-\texttt{MatrixData} stores the actual contents of the matrix.
+\texttt{MatrixData} stores the actual contents of the matrix. }
+
+
 \texttt{lilLinAlg} uses the \texttt{MatrixBlock} object to implement a set of common distributed matrix
 computations, including transpose,
 inverse, add, subtract, multiply, transposeMultiply, 
@@ -144,7 +147,7 @@ both user-defined \texttt{Computation} classes that are
 derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} class, respectively; these classes are chosen 
 because distributed matrix multiplication
 is basically a join followed by an aggregation.
-Internally, the \texttt{LAMultiplyJoin}
+Internally, the \texttt{LAMultiply Join}
 and \texttt{LAMultiplyAggregate} invoke the Eigen numerical processing
 library~\cite{eigen} to manipulate \texttt{MatrixBlock} objects.
 
@@ -162,12 +165,12 @@ beta = (X '* X)^-1 %*% (X '* y)
 \texttt{\^{}-1} represents an inverse computation, and \texttt{ \%*\%}
 represents a multiply computation. 
 
-\begin{table*}[t]
+\begin{table*}[h]
 \small
 \begin{center}
 \begin{tabular}{|c||c|c|c||c|c|c||c|c|c||}
 \hline
-& \multicolumn{3}{c||}{Gram Matrix} & \multicolumn{3}{c||}{Linear Regression} & \multicolumn{3}{c||}{Nearest Neighbor} \\
+& \multicolumn{3}{c||}{Gram Matrix} & \multicolumn{3}{c||}{Linear Regression} & \multicolumn{3}{c|}{Nearest Neighbor} \\
 \hline
 Dimensionality & $10$ & $100$ & $1000$& $10$ & $100$ & $1000$& $10$ & $100$ & $1000$ \\
 \hline
@@ -323,7 +326,7 @@ private:
 \noindent Then,
 \texttt{Order} objects have a nested list of \texttt{Lineitem} objects, and \texttt{Customer} objects have a nested
 list of all of the
-\texttt{Lineitem} objects for a given customer:
+\texttt{Lineitem} objects:
 
 \begin{codesmall}
 class Customer : public Object {
@@ -336,7 +339,7 @@ class Customer : public Object {
 \vspace{5pt}
 \noindent
 \textbf{Implementation and Experiments.} We then run two computations over the resulting set of \texttt{Customer} objects.  
-The first computation is the \emph{parts per supplier per customer} computation where we
+The first computation is the \emph{customers per supplier} computation where we
 compute, for each supplier,
 the complete list of \texttt{partkey}s that the supplier has sold to each of the supplier's customer's.
 For each supplier, the result is a an object that contains the supplier's name (as a \texttt{String}) and
@@ -525,6 +528,49 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 \vspace{-20pt}
 \end{table}
 
+\begin{table}[t]
+\small
+\begin{center}
+\begin{tabular}{|c||c|c|c|}
+\hline
+Dimensionality & $100$ & $300$ & $500$ \\
+Number of points & $10^9$ & $10^8$ & $10^7$ \\
+\hline
+\hline
+PlinyCompute &00:37 & 00:09 & 00:06 \\
+Spark \texttt{mllib} RDD API &01:02 & 00:28 & 00:23 \\
+Spark \texttt{mllib} Dataset API&01:43 & 00:25 & 00:22 \\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark for $k$-means. Times in MM:SS, averaged over five iterations.}
+\label{fig:KMeans}
+\end{center}
+\vspace{-20pt}
+\end{table}
+
+\eat{
+\begin{table*}[h]
+\small
+\begin{center}
+\begin{tabular}{|c||c|c|c||c|c|c|}
+\hline
+& \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c|}{Average
+                                         Iteration Latency} \\
+\hline
+Dimensionality & $10$ & $100$ & $1000$ & $10$ & $100$ & $1000$\\
+Number of points & $10^9$ & $10^8$ & $10^7$ & $10^9$ & $10^8$ & $10^7$\\
+\hline
+PlinyCompute &3:59 & 1:12 & 00:57 &00:37 & 00:09 & 00:06\\
+Spark \texttt{mllib} RDD API &9:06  &4:18 &3:20 &01:02 & 00:28 & 00:23\\
+Spark \texttt{mllib} Dataset API &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark for $k$-means. Times in MM:SS, averaged over five iterations.}
+\label{fig:KMeans}
+\end{center}
+\vspace{-20pt}
+\end{table*}
+}
 
 \vspace{5pt}
 \noindent
@@ -534,7 +580,8 @@ the expectation maximization (EM) algorithm is one of the classical ML algorithm
 EM is particularly interesting for a distributed benchmark because in theory, the running time should be dominated
 by linear algebra operations (such as repeated vector-matrix multiplications).
 
-Our PC implementation uses GSL \cite{gsl} along with a single \texttt{AggregateComp} object, which contains inside of it the current
+Our PC implementation uses GSL \cite{gsl} along with a single
+\texttt{Aggreg ateComp} object, which contains inside of it the current
 version of the learned GMM model.  As this  \texttt{AggregateComp} is executed, a soft assignment of each
 data point to each Gaussian is performed, and updates to each of the Gaussians
 are accumulated.  
@@ -574,27 +621,6 @@ data points with 1000
 dimensions. 
 
 
-\begin{table*}[t]
-\small
-\begin{center}
-\begin{tabular}{|c||c|c|c||c|c|c|}
-\hline
-& \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c||}{Average
-                                         Iteration Latency} \\
-\hline
-Dimensionality & $10$ & $100$ & $1000$ & $10$ & $100$ & $1000$\\
-Number of points & $10^9$ & $10^8$ & $10^7$ & $10^9$ & $10^8$ & $10^7$\\
-\hline
-PlinyCompute &3:59 & 1:12 & 00:57 &00:37 & 00:09 & 00:06\\
-Spark \texttt{mllib} RDD API &9:06  &4:18 &3:20 &01:02 & 00:28 & 00:23\\
-Spark \texttt{mllib} Dataset API &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
-\hline
-\end{tabular}
-\caption{PlinyCompute vs. Spark for $k$-means. Times in MM:SS, averaged over five iterations.}
-\label{fig:KMeans}
-\end{center}
-\vspace{-20pt}
-\end{table*}
 
 Again, the same data is used on both PC and
 Spark platforms.
@@ -623,7 +649,7 @@ $3\times$ speedup compared with Spark \texttt{mllib}'s GMM implementation
 some of the issues surrounding Java vs. C++.  
 
 
-\begin{table}[t]
+\begin{table}[H]
 \small
 \begin{center}
 \begin{tabular}{|c||c|c|}
@@ -633,8 +659,8 @@ Applications & PlinyCompute & Spark\\
 \texttt{lilLinAlg} &3505& 3130 (Scala)\\
 \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
 top-$k$ Jaccard &793 & 966 (Java)\\
-LDA &1038  &343 (Scala with \texttt{breeze})\\
-GMM&932 & 474 (Scala with \texttt{breeze})\\
+LDA &1038  &343 (Scala/\texttt{breeze})\\
+GMM&932 & 474 (Scala/\texttt{breeze})\\
 $k$-means &695  &670 (Scala)\\
 \hline
 \end{tabular}
@@ -650,12 +676,13 @@ $4\times$ speedup compared with the Spark \texttt{mllib} RDD implementation.
 
 \vspace{5pt}
 \noindent
-\textbf{Experiments: Final Thoughts.} The central hypothesis in this paper was that ``declarative in the large, high-performance in the small'' can result
-in an excellent platform for tool and library development.  We believe that these experiments have shown that.  The
+\textbf{Experiments: Final Thoughts.} The central hypothesis of this
+work was: ``declarative in the large, high-performance in the small'' can result
+in an excellent platform for tool and library development.  We believe these experiments have shown that.  The
 most convincing benchmark was likely the first one, where 1.5
 person-months of engineering time resulted in the \texttt{lilLinAlg} tool that 
 was faster than other competing systems with many years of development time.  One of those systems (SciDB)
-was implemented natively in C++, while the others (Spark's \texttt{mllib} as well as \texttt{SystemML}) used Hadoop and Spark.  
+was implemented in C++, while the others (Spark's \texttt{mllib} as well as \texttt{SystemML}) used Hadoop and Spark.  
 Other benchmarks showed similar advantages to PC.
 
 We close the benchmarks with two final questions.  First: PC may be faster, but is it significantly more difficult to develop
@@ -672,7 +699,7 @@ to the fact that Scala has a nicer interface to numerical routines (via \texttt{
 than does GSL, which was used in those
 implementations.
 
-\begin{table}[t]
+\begin{table}[H]
 \small
 \begin{center}
 \begin{tabular}{|c||c|c|c|}

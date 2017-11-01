@@ -6,7 +6,7 @@
 %key functionalities.
 
 \subsection{Using PC Objects}
-
+\label{sec:pc-object1}
 Arguably, the choice of how individual data items are to be represented and manipulated
 in a data analytics or management system is one of the most
 %consequential%
@@ -33,7 +33,7 @@ For example, imagine that the goal is implementing a distributed linear algebra 
 smaller sub-matrices.  A sub-matrix may be stored via our current, C++ binding, using the following object:
 
 \begin{codesmall}
-class SubMatrix : public Object {
+class MatrixBlock : public Object {
 public:
 	int chunkRow, chunkColumn;
 	int chunkWidth, chunkHeight;
@@ -44,7 +44,7 @@ public:
 or, a sparse sub-matrix may be stored as:
 
 \begin{codesmall}
-class SparseSubMatrix : public Object {
+class SparseMatrixBlock : public Object {
 public:
 	int chunkRow, chunkColumn;
 	int chunkWidth, chunkHeight;
@@ -104,8 +104,7 @@ A \texttt{Handle} to an object is returned from a dynamic allocation to the curr
 Such as the following statement:
 
 \begin{codesmall}
-Handle <SparseSubMatrix> mySubMatrix 
-     = makeObject <SparseSubMatrix> ();
+Handle <MatrixBlock> mySubMatrix = makeObject <MatrixBlock> ();
 \end{codesmall}
 
 Internally, PC \texttt{Handle} objects contain two pieces of data: an \emph{offset pointer} that tells how far
@@ -180,10 +179,11 @@ allocated.
 \noindent
 \textbf{Inactive allocation block.} Each thread also has one or more
 \emph{inactive}, \emph{managed} blocks.  These are previously-active blocks of memory that contain one or more objects that are reachable
-from some \texttt{Handle} that is currently in RAM.  When the number of reachable objects in an inactive, managed block drops to zero, it is automatically
+from some \texttt{Handle} that is currently in RAM.  When the number
+of reachable objects in such a block drops to zero, it is automatically
 deallocated.
 When a user (or the PC system software) calls 
-\texttt{makeObjectAllocationBlock ()}, the newly created allocation block becomes the active block, and if the previously-active allocation block has any
+\texttt{makeObjectAlloc ationBlock ()}, the newly created allocation block becomes the active block, and if the previously-active allocation block has any
 reachable objects on it, it becomes an inactive, managed block.
 
 \vspace{5pt}
@@ -227,8 +227,8 @@ Handle <Vector <double>> data =
 for (int i = 0; i < 1000; i++)
      data->push_back (i * 1.0);
 makeObjectAllocatorBlock (1024 * 1204); 
-Handle <SubMatrix> myMatrix = 
-     makeObject <SubMatrix> ();
+Handle <MatrixBlock> myMatrix = 
+     makeObject <MatrixBlock> ();
 myMatrix->value = data; // deep copy of data happens!!
 \end{codesmall}
 
