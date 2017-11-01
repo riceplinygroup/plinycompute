@@ -97,7 +97,7 @@ $k$-means &10 &60GB & 8 & 50GB\\
 Since PC is designed to support the construction
 of high-performance tools and libraries, our first benchmarking effort was aimed at determining 
 whether PC is actually useful for that task.  Thus, we asked
-a PhD student (who at the outset knew nothing of PC) 
+a PhD student (who was expert programer but at the outset knew nothing of PC) 
 to use the system to build a small Matlab-like 
 programming language and library for distributed matrix operations.
 We called this implementation \texttt{lilLinAlg}.
@@ -285,7 +285,7 @@ distributed fashion across multiple machines calls into question the viability o
 \begin{center}
 \begin{tabular}{|c||c|c|c||c|c|c||c|c|c|}
 \hline
-& \multicolumn{3}{c||}{Gram Matrix} & \multicolumn{3}{c||}{Linear Regression} & \multicolumn{3}{c||}{Nearest Neighbor} \\
+& \multicolumn{3}{c||}{Gram Matrix} & \multicolumn{3}{c||}{Linear Regression} & \multicolumn{3}{c|}{Nearest Neighbor} \\
 \hline
 Dimensionality & $10$ & $100$ & $1000$& $10$ & $100$ & $1000$& $10$ & $100$ & $1000$ \\
 \hline
@@ -724,7 +724,7 @@ This conversion becomes a bottleneck for the largest datasets.
 \begin{center}
 \begin{tabular}{|c||c|c|c||c|c|c|}
 \hline
-& \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c||}{Average
+& \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c|}{Average
                                          Iteration Latency} \\
 \hline
 Dimensionality & $10$ & $100$ & $1000$ & $10$ & $100$ & $1000$\\
