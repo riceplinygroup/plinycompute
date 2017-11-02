@@ -6,7 +6,7 @@ The PC software consists of
 (3) the execution engine, and (4) various distributed services.  In the next few sections of the paper, 
 we discuss the first three software components in detail.
 
-When PC runs on a compute cluster it has a \emph{master node} and one or more \emph{worker nodes}.
+When PC runs on a distributed cluster it has a \emph{master node} and one or more \emph{worker nodes}.
 Running on the master node are the managers for the various distributed services provided by PC, primarily 
 the \emph{catalog manager} and the \emph{distributed storage manager}.  Also running on the master
 node is the software responsible for powering the distributed execution engine: the \emph{TCAP optimizer} and
@@ -144,11 +144,14 @@ may either be of simple types, or they may be
 PC \texttt{Object}s. 
 
 The PC toolkit consists of a set of
-operations: 
+operations that can be used to compose a query graph: 
 \texttt{SelectionComp} (equivalent to relational selection and projection), \texttt{JoinComp} (equivalent to a join of arbitrary arity and arbitrary predicate), 
 \texttt{Aggregate Comp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
-Each of these is an abstract type descending from PC's \texttt{Computation} class.
+Each of these is an abstract type descending from PC's
+\texttt{Computation} class.
 
+\vspace{5pt}
+\noindent
 Where PC differs from other systems is that a programmer customizes these operations by writing code that composes together various C++ codes 
 using a 
 domain-specific lambda calculus.
@@ -235,6 +238,11 @@ In general, a programmer can choose to expose the details of a computation to PC
 calculus, or not.  A programmer could, for example, hide the entire selection predicate within a native C++ lambda.
 If the programmer chose to do this, PC would be unable to optimize the compute plan---the system relies on the willingness of the 
 programmer to expose intent via the lambda term construction function.
+
+\vspace{5pt}
+A complete example of using PC APIs, which is based on the lambda
+calculus as described in this section, can be found in
+Section~\ref{sec:example} in Appendix.
 
 \section{Execution Engine}
 \label{sec:engine}
