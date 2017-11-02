@@ -268,7 +268,7 @@ Further, generating LLVM code for complex operations over user-defined types
 in a high-level language 
 is akin to writing a full-fledged compiler. 
 
-PC uses a hybrid approach, where the PC execution engine is vectorized, but where the code for the individual vectorized operations (called \emph{pipeline stages})
+PC uses a hybrid approach, where the PC execution engine is vectorized, but the code for the individual vectorized operations (called \emph{pipeline stages})
 is fully compiled.  PC's C++ binding relies on template metaprogramming (see Section 5.3)
 to convert the user-supplied lambda terms 
 (see Secion 4) into efficient pipeline stages over vectors of PC \texttt{Object}s or simple types.
