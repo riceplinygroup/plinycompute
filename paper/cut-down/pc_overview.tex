@@ -11,8 +11,9 @@ Running on the master node are the managers for the various distributed services
 the \emph{catalog manager} and the \emph{distributed storage manager}.  Also running on the master
 node is the software responsible for powering the distributed execution engine: the \emph{TCAP optimizer} and
 the \emph{distributed query scheduler}.  
-When a user of PC requests a computation, the computation is compiled into TCAP on the user's process, then optimized
-by the master node's TCAP optimizer and executed by the master node's distributed query scheduler.
+When a user of PC requests to execute a graph of computations, the
+computations are compiled into a TCAP program on the user's process, then optimized
+by the master node's TCAP optimizer and executed by the distributed query scheduler.
 
 Each worker node runs two processes: the \emph{worker front-end process} and the \emph{worker backend process}.
 Dual processes are used because the backend process
@@ -139,12 +140,12 @@ cluster.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization.
 
 \section{PlinyCompute's Lambda Calculus}
-A PC programmer specifies a distributed computation by providing a graph of high-level operations over sets of data---those data
+A PC programmer specifies a distributed computation by providing a graph of high-level computations over sets of data---those data
 may either be of simple types, or they may be
 PC \texttt{Object}s. 
 
 The PC toolkit consists of a set of
-operations that can be used to compose a query graph: 
+computations that can be used to compose a query graph: 
 \texttt{SelectionComp} (equivalent to relational selection and projection), \texttt{JoinComp} (equivalent to a join of arbitrary arity and arbitrary predicate), 
 \texttt{Aggregate Comp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
 Each of these is an abstract type descending from PC's
@@ -152,11 +153,12 @@ Each of these is an abstract type descending from PC's
 
 \vspace{5pt}
 \noindent
-Where PC differs from other systems is that a programmer customizes these operations by writing code that composes together various C++ codes 
+Where PC differs from other systems is that a programmer customizes these computations by writing code that composes together various C++ codes 
 using a 
 domain-specific lambda calculus.
 For example, to implement a \texttt{SelectionComp} over PC \texttt{Object}s of type \texttt{DataPoint}, a programmer
-must implement the lambda term construction function \texttt{getSelection (Handle <DataPoint>)} which returns a lambda term
+must implement the lambda term construction function
+\texttt{getSelection (Handle <DataPoin t>)} which returns a lambda term
 describing how \texttt{DataPoint} objects
 should be processed.
 
