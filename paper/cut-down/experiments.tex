@@ -650,7 +650,10 @@ join as well as which intermediate results to materialize (and which to pipeline
 The results for GMM are illustrated in Table~\ref{fig:Gmm}. Here, PC achieved a 
 $3\times$ speedup compared with Spark \texttt{mllib}'s GMM implementation
 (using RDD APIs) for all cases.  We will discuss the significance of this finding in the next subsection, where we discuss
-some of the issues surrounding Java vs. C++.  
+some of the issues surrounding Java vs. C++. 
+
+As illustrated in Table~\ref{fig:KMeans}, for $k$-means, PC achieved a $2\times$ to
+$4\times$ speedup compared with the Spark \texttt{mllib} RDD implementation. 
 
 
 \begin{table}[H]
@@ -674,9 +677,31 @@ $k$-means &695  &670 (Scala)\\
 \vspace{-20pt}
 \end{table}
 
+\begin{table}[H]
+\small
+\begin{center}
+\begin{tabular}{|c||c|c|c|}
+\hline
+Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
+\hline
+GSL &1033 ms &26:18  \\
+Eigen &123 ms  &3:57\\
+\texttt{breeze}-native &179 ms  &3:40\\
+\hline
+\end{tabular}
+\caption{Matrix multiplication benchmarked in
+  \texttt{m2.4xlarge} instance by setting thread number  to one for all
+  packages. (for
+  $1000\times1000$ matrix multiplication, processing times are recorded in
+  milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
+  recorded in hh:mm:ss format.)}
+\label{fig:matrixMult}
+\end{center}
+\vspace{-20pt}
+\end{table}
 
-As illustrated in Table~\ref{fig:KMeans}, for $k$-means, PC achieved a $2\times$ to
-$4\times$ speedup compared with the Spark \texttt{mllib} RDD implementation.
+
+
 
 \vspace{5pt}
 \noindent
@@ -703,29 +728,7 @@ to the fact that Scala has a nicer interface to numerical routines (via \texttt{
 than does GSL, which was used in those
 implementations.
 
-\begin{table}[H]
-\small
-\begin{center}
-\begin{tabular}{|c||c|c|c|}
-\hline
-Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
-\hline
-\hline
-GSL &1033 ms &26:18  \\
-Eigen &123 ms  &3:57\\
-\texttt{breeze}-native &179 ms  &3:40\\
-\hline
-\end{tabular}
-\caption{Matrix multiplication benchmarked in
-  \texttt{m2.4xlarge} instance by setting thread number  to one for all
-  packages. (for
-  $1000\times1000$ matrix multiplication, processing times are recorded in
-  milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
-  recorded in hh:mm:ss format.)}
-\label{fig:matrixMult}
-\end{center}
-\vspace{-20pt}
-\end{table}
+
 
 Our last question is: PC may be faster, but how much of that is related to ``declarative in the large, high performance in 
 the small?"   Isn't C++ simply faster than Java, and might that explain a lot of the advantage realized by PC?  We begin
