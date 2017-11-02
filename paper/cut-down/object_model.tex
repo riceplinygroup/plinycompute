@@ -251,7 +251,7 @@ If a thread copies a \texttt{Handle} object referencing an object housed on anot
 the reference count will not be changed because from the copying thread's point-of-view, the allocation block is not managed.
 This can, in theory, result in a problematic case where one thread has a \texttt{Handle} to an object that has been deallocated on the other thread (since
 the reference count on the home thread will not be updated to reflect
-the off-thread reference).  But in practice, this is not
+the off-thread reference).  But in practice, this is not a
 problem.  Parallel and distributed processing is transparent to PC application
 programmers, so most cross-thread references happen as the result of computations staged by the 
 PC execution engine.  The PC execution engine uses pages carefully so as to ensure that 

@@ -56,7 +56,7 @@ In computer systems design, this is often referred to as
   grossman2002region}, and is often the fastest way to manage
 memory. 
 
-To illustrate use of the PC object model from a user's perspective,
+To illustrate the use of the PC object model from a user's perspective,
 imagine that we wish to perform a computation over a number of feature vectors.  
 Using the PC object model's C++ binding, we might represent each data point using the 
 \texttt{DataPoint} class:
@@ -152,7 +152,6 @@ Each of these is an abstract type descending from PC's
 \texttt{Computation} class.
 
 \vspace{5pt}
-\noindent
 Where PC differs from other systems is that a programmer customizes these computations by writing code that composes together various C++ codes 
 using a 
 domain-specific lambda calculus.
@@ -244,7 +243,7 @@ programmer to expose intent via the lambda term construction function.
 \vspace{5pt}
 A complete example of using PC APIs, which is based on the lambda
 calculus as described in this section, can be found in
-Section~\ref{sec:example} in Appendix.
+Section~\ref{sec:example} in the Appendix.
 
 \section{Execution Engine}
 \label{sec:engine}
