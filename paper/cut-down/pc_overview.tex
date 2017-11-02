@@ -68,7 +68,7 @@ public:
 \end{codesmall}
 
 \noindent
-To load such data into a distributed PC runtime, we might write the following code:
+To load such data into a distributed PC cluster, we might write the following code:
 
 \begin{codesmall}
 makeObjectAllocatorBlock (1024 * 1024);
@@ -135,7 +135,7 @@ For example, aggregation is implemented using PC's built-in
 a \texttt{Map} object that the thread aggregates its local data to; those are
 merged into maps that are sent to various workers around the
 distributed PC
-runtime.  All sends and receives of these \texttt{Map} objects happen
+cluster.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization.
 
 \section{PlinyCompute's Lambda Calculus}
@@ -205,7 +205,7 @@ The standard arithmetic operations: \texttt{+}, \texttt{-}, \texttt{*}, etc.
 \end{enumerate}
 
 For an example of all of this, consider performing a join over three
-sets of PC \texttt{Object}s stored in the PC runtime.  
+sets of PC \texttt{Object}s stored in the PC cluster.  
 Joins are specified in PC 
 by implementing a \texttt{JoinComp} object. One of the methods that must be overridden to build a specific join is \texttt{JoinComp :: getSelection ()}
 which returns a lambda term

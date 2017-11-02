@@ -86,14 +86,14 @@ because all object allocations have taken place exclusively to the current alloc
 
 In order to guarantee zero-cost data movement,
 one rule that a PC programmer must follow is that any object that will
-be loaded into the distributed PC runtime must either be of a ``simple'' type (a simple type
+be loaded into the distributed PC cluster must either be of a ``simple'' type (a simple type
 must contain no raw C-style pointers and no 
 virtual functions, and a \texttt{memmove}
 must suffice to copy the object), or else it must descend from PC's \texttt{Object} class, which serves as the base for all complex object types.
 Complex objects are those that include containers (\texttt{Vector}, \texttt{Map}) or pointer-like \texttt{Handle} objects.  Descending from PC's \texttt{Object} class
 ensures that the resulting class type has a set of virtual functions
 that allow it to be manipulated in and transferred across the
-distributed PC runtime, 
+distributed PC cluster, 
 such as a virtual deep copy function.  
 
 \subsection{PC Handles}
@@ -143,7 +143,7 @@ type code retrieves a process-specific pointer to that class' \texttt{vTable} ob
 Obtaining a pointer to a class' \texttt{vTable} object is not straightforward.
 A user may run code on his/her machine that creates
 a PC \texttt{Object}, and then ships that PC \texttt{Object} into the distributed
-PC runtime.  At the other end, it arrives at a PC worker process that has never seen that type of object before and hence
+PC cluster.  At the other end, it arrives at a PC worker process that has never seen that type of object before and hence
 does not have access to a \texttt{vTable} pointer for that class.
 PC addresses this issue by requiring that all classes deriving from PC's \texttt{Object} base class be registered with the catalog
 manager before they are loaded into the distributed storage system.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
@@ -160,7 +160,7 @@ and returned to the requester.
 In this way, PC provides something akin to the automated,
 dynamic loading of classes (via JVM \texttt{.class} files) that is
 provided by most big data systems.  
-Objects of arbitrary type can be loaded into the distributed PC runtime and be
+Objects of arbitrary type can be loaded into the distributed PC cluster and be
 processed using dynamically loaded native code, as long
 as the object type is registered first.
 
