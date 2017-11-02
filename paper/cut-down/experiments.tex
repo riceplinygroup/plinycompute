@@ -495,6 +495,7 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \caption{PlinyCompute vs. Spark for LDA. Times in MM:SS, averaged over five iterations.}
 \label{fig:LDA}
 \end{center}
+\vspace{-20pt}
 \end{table*}
 
 \vspace{5pt}
@@ -650,7 +651,6 @@ performance.  In contrast, like a database system, PC is fully declarative in-th
 Decisions such as using a broadcast join instead of a full hash
 join as well as which intermediate results to materialize (and which to pipeline or discard) are fully automated.
 
-
 The results for GMM are illustrated in Table~\ref{fig:Gmm}. Here, PC achieved a 
 $3\times$ speedup compared with Spark \texttt{mllib}'s GMM implementation
 (using RDD APIs) for all cases.  We will discuss the significance of this finding in the next subsection, where we discuss
@@ -659,50 +659,6 @@ some of the issues surrounding Java vs. C++.
 As illustrated in Table~\ref{fig:KMeans}, for $k$-means, PC achieved a $2\times$ to
 $4\times$ speedup compared with the Spark \texttt{mllib} RDD implementation. 
 
-
-\begin{table}[H]
-\small
-\begin{center}
-\begin{tabular}{|c||c|c|}
-\hline
-Applications & PlinyCompute & Spark\\
-\hline
-\texttt{lilLinAlg} &3505& 3130 (Scala)\\
-\texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
-top-$k$ Jaccard &793 & 966 (Java)\\
-LDA &1038  &343 (Scala/\texttt{breeze})\\
-GMM&932 & 474 (Scala/\texttt{breeze})\\
-$k$-means &695  &670 (Scala)\\
-\hline
-\end{tabular}
-\caption{Lines of source code (LOC) comparison.}
-\label{fig:LOC}
-\end{center}
-\vspace{-20pt}
-\end{table}
-
-\begin{table}[H]
-\small
-\begin{center}
-\begin{tabular}{|c||c|c|c|}
-\hline
-Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
-\hline
-GSL &1033 ms &26:18  \\
-Eigen &123 ms  &3:57\\
-\texttt{breeze}-native &179 ms  &3:40\\
-\hline
-\end{tabular}
-\caption{Matrix multiplication benchmarked in
-  \texttt{m2.4xlarge} instance by setting thread number  to one for all
-  packages. (for
-  $1000\times1000$ matrix multiplication, processing times are recorded in
-  milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
-  recorded in hh:mm:ss format.)}
-\label{fig:matrixMult}
-\end{center}
-\vspace{-20pt}
-\end{table}
 
 
 
@@ -749,7 +705,7 @@ JIT compilation and generational garbage collectors.
 
 In fact, there is some good evidence that Spark and Java may have had some significant
 built-in \emph{advantages} vs. our C++ implementations.
-Out of curiosity, we ran a simple micro-benchmark on an amazon AWS \texttt{m2.4xlarge} machine, where we compared the various
+Out of curiosity, we ran a simple micro-benchmark on an amazon EC2 \texttt{m2.4xlarge} machine, where we compared the various
 packages for statistical/scientific computing used throughout these experiments.
 In this benchmark, we run a single-thread matrix multiplication
 to compare Java \texttt{breeze} (used in all Spark implementations) 
@@ -763,4 +719,51 @@ Achieving excellent performance on complex, distributed computations is never a 
 of ``use C++, not Java''~\cite{ousterhout2015making, shi2015clash}.  Many factors go into having a superior implementation, and those tend to even things out,
 as some of those factors 
 go \emph{against} PC.  We argue that the reason that PC was consistently faster
-than its competitors are the design principles underlying the system---which was enabled by the choice of language.
+than its competitors are the design principles underlying the
+system---which was enabled by the choice of language.
+
+\begin{table}[H]
+\small
+\begin{center}
+\begin{tabular}{|c||c|c|}
+\hline
+Applications & PlinyCompute & Spark\\
+\hline
+\texttt{lilLinAlg} &3505& 3130 (Scala)\\
+\texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
+top-$k$ Jaccard &793 & 966 (Java)\\
+LDA &1038  &343 (Scala/\texttt{breeze})\\
+GMM&932 & 474 (Scala/\texttt{breeze})\\
+$k$-means &695  &670 (Scala)\\
+\hline
+\end{tabular}
+\caption{Lines of source code (LOC) comparison.}
+\label{fig:LOC}
+\end{center}
+\vspace{-20pt}
+\end{table}
+
+\begin{table}[H]
+\small
+\begin{center}
+\begin{tabular}{|c||c|c|c|}
+\hline
+Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
+\hline
+GSL &1033 ms &26:18  \\
+Eigen &123 ms  &3:57\\
+\texttt{breeze}-native &179 ms  &3:40\\
+\hline
+\end{tabular}
+\caption{Matrix multiplication benchmarked in
+  \texttt{m2.4xlarge} instance by setting thread number  to one for all
+  packages. (for
+  $1000\times1000$ matrix multiplication, processing times are recorded in
+  milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
+  recorded in hh:mm:ss format.)}
+\label{fig:matrixMult}
+\end{center}
+\vspace{-20pt}
+\end{table}
+
+
