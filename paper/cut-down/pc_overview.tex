@@ -82,8 +82,8 @@ for (int i = 0; i < 100; i++)
      storeMe->data->push_back (1.0 * i);
 
 myVec->push_back (storeMe);
-pcContext.createSet <DataPoint> ("Mydb", "Myset");
-pcContext.sendData <DataPoint> ("Mydb", "Myset", myVec);
+pcClient.createSet <DataPoint> ("Mydb", "Myset");
+pcClient.sendData <DataPoint> ("Mydb", "Myset", myVec);
 \end{codesmall}
 
 \noindent
