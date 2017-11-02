@@ -19,12 +19,13 @@ Platform & \makecell{num\\executors} & \makecell{executor \\mem} & \makecell{exe
 \hline
 \texttt{lilLinAlg} &10 & 60GB & 8 & 50GB \\
 TPC-H &10 & 50GB & 7 & 50GB \\
-LDA &20 & 30.5GB* &4 & 55GB\\
+LDA &20 & 26.5GB$*$ &4 & 55GB\\
 GMM&80 & 70GB & 1 & 55GB\\
 $k$-means &10 &60GB & 8 & 50GB\\
 \hline
 \end{tabular}
-\caption{Workload-specific Spark Configurations for Different Experiments.}
+\caption{Workload-specific Spark Configurations for Different
+  Experiments. A $*$ indicates additional 4GB off heap memory is used.}
 \label{fig:sparkConf}
 \end{center}
 \end{table}
