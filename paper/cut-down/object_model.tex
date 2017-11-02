@@ -234,7 +234,7 @@ myMatrix->value = data; // deep copy of data happens!!
 
 At the second \texttt{makeObjectAllocatorBlock}, the original allocation block, holding the list of \texttt{double}s pointed to by \texttt{data}, becomes
 inactive.  The submatrix \texttt{myMatrix} is allocated to the new active block.  
-Hence, the assignment of \texttt{data} to \texttt{myMatrix->value} is cross-allocation block, and a deep copy automatically happens to ensure that
+Hence, the assignment of \texttt{data} to \texttt{myMatrix->valu e} is cross-allocation block, and a deep copy automatically happens to ensure that
 the current block is zero-cost copy-able.  
 
 Such cross-block assignments require deep copies and are
