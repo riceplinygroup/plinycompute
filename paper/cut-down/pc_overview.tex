@@ -6,7 +6,7 @@ The PC software consists of
 (3) the execution engine, and (4) various distributed services.  In the next few sections of the paper, 
 we discuss the first three software components in detail.
 
-PC is a distributed system, and a PC runtime has a \emph{master node} and one or more \emph{worker nodes}.
+When PC runs on a compute cluster it has a \emph{master node} and one or more \emph{worker nodes}.
 Running on the master node are the managers for the various distributed services provided by PC, primarily 
 the \emph{catalog manager} and the \emph{distributed storage manager}.  Also running on the master
 node is the software responsible for powering the distributed execution engine: the \emph{TCAP optimizer} and
@@ -223,7 +223,7 @@ Lambda <bool> getSelection (Handle <Dep> arg1,
 \end{codesmall}
 
 \noindent
-This method creates a lambda term taking three arguments \texttt{arg1, arg2, arg3}.  This lambda terms describe a computation that
+This method creates a lambda term taking three arguments \texttt{arg1, arg2, arg3}.  This lambda term describes a computation that
 checks to see if \texttt{arg1->deptName} is the same as the value
 returned from \texttt{arg2->getDeptName ()}, and
 that \texttt{arg1->dept Name} is the same as the value returned from \texttt{arg3}\-\texttt{->getDept ()}. 
@@ -268,25 +268,12 @@ Further, generating LLVM code for complex operations over user-defined types
 in a high-level language 
 is akin to writing a full-fledged compiler. 
 
-
 PC uses a hybrid approach, where the PC execution engine is vectorized, but where the code for the individual vectorized operations (called \emph{pipeline stages})
-are fully compiled.  
-In PC, a user does not specify the graph of pipeline stages directly.  Rather,
-the programmer expresses her/his intent at a high-level, by building a graph of high-level operations.  These operations 
-are not associated with any specific 
-physical implementation.
-For example, PC supplies an abstract $n$-way join called a \texttt{JoinComp}.
-
-Operations are customized when a user supplies a set of 
-\emph{lambda term
-construction functions}.  To customize an operation, a user writes member functions
-that return \emph{lambda terms}, which are possibly complex terms in a lambda calculus that 
-wrap C++ code.  Those lambda terms express the programmer's intent, hence PC does not rely on analysis of C++ to build an optimized
-execution plan \cite{alexandrov2015implicit}. 
-
-It is these lambda terms that are compiled into a DAG of pipeline stages over
-lists of PC \texttt{Object}s or simple types,
-which is then optimized (that is, operations are automatically
+is fully compiled.  PC's C++ binding relies on template metaprogramming (see Section 5.3)
+to convert the user-supplied lambda terms 
+(see Secion 4) into efficient pipeline stages over vectors of PC \texttt{Object}s or simple types.
+The operations in this DAG are then
+optimized (that is, operations are automatically
 re-ordered to form an optimal plan) using classical relational
 methods \cite{chaudhuri1998overview, graefe1995cascades, jarke1984query}. After optimization, the pipeline stages are fit together to produce a set of interconnected pipelines.  Input data are broken into lists of 
 data vectors (called, appropriately, \emph{vector lists}), and fed into the various pipelines.
@@ -315,8 +302,8 @@ vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors 
 
 \subsection{TCAP and Vectorized Execution} \label{sec:vectorized}
 
-As mentioned in Section \ref{sec:engine}, PC's vectorized execution engine repeatedly pushes 
-so-called \emph{vector lists}, which is a list of vectors, through a series of pipeline stages.  Each pipeline stage
+PC's vectorized execution engine repeatedly pushes 
+so-called \emph{vector lists} through a series of pipeline stages.  Each pipeline stage
 takes as input a vector list,
 and produces a 
 new vector list that consists of zero or more vectors from the input
@@ -370,7 +357,7 @@ from the input to the output, (3) the name of the computation that the operation
 that the operation is to execute, plus (5) a key-value map that stores specific information about the operation that may be used 
 later during optimization.
 
-Specifically, in this case, the first \texttt{APPLY} in the TCAP computation describes the following.  It describes a pipeline stage that
+Specifically, in this case, the first \texttt{APPLY} in the TCAP computation describes a pipeline stage that
 takes as input 
 a vector list called \texttt{Input}, which is made of the constituent vectors, referred to using 
 the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
@@ -385,7 +372,7 @@ will be called \texttt{WDNm\_1}.
 
 Next, this TCAP program
 specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the
-method call \texttt{getDept Name()} on the attribute \texttt{emp}; this is 
+method call \texttt{getDeptName()} on the attribute \texttt{emp}; this is 
 done via application of the compiled code referred to by \texttt{Join
   \_2212.method\_call\_2}.  
 The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}

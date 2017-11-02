@@ -100,8 +100,8 @@ such as a virtual deep copy function.
 
 To support linked data structures, dynamic allocation, and runtime polymorphism, it is necessary for a 
 system to provide pointer-like functionality.  This is provided by PC's built-in \texttt{Handle} type.  
-A \texttt{Handle} to an object is returned from a dynamic allocation to the current allocation block.
-Such as the following statement:
+A \texttt{Handle} to an object is returned from a dynamic allocation to the current allocation block,
+such as the following statement:
 
 \begin{codesmall}
 Handle<MatrixBlock>mySubMatrix=makeObject<MatrixBlock>();
@@ -213,7 +213,7 @@ zero-cost data movement---an allocation block should be
 transferable across processes and machines immediately usable with no pre- or post-processing---one
 potential problem is dangling \texttt{Handle}s.  Specifically: What happens when there is a \texttt{Handle} located in one allocation block that points to a PC
 \texttt{Object} located in another allocation block?  The \texttt{Handle} may be valid, but when the \texttt{Handle}'s allocation block is moved to a new process where
-the target block is not located, the\texttt{Handle} cannot be dereferenced without a runtime error. 
+the target block is not located, the \texttt{Handle} cannot be dereferenced without a runtime error. 
 PC simply prevents this situation from ever happening. Whenever an assignment operation on \texttt{Handle} that is physically located
 in the active allocation block results in that
 \texttt{Handle} pointing outside of the block, a deep copy of the target of the assignment
