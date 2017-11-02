@@ -415,7 +415,7 @@ PC's storage system.
 
 \begin{figure}
 \centering
-\includegraphics[width=0.36\textwidth]{lda-query-graph.pdf}
+\includegraphics[width=0.35\textwidth]{lda-query-graph.pdf}
   \caption{\label{fig:lda-query-graph} PC LDA's \texttt{Computation} objects and input-output dependencies. Computations
     connected by dash lines will only run once, during  
     initialization. Computations connected by solid lines will run iteratively.}
@@ -492,8 +492,9 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \caption{PlinyCompute vs. Spark for LDA. Times in MM:SS, averaged over five iterations.}
 \label{fig:LDA}
 \end{center}
-\vspace{-20pt}
 \end{table*}
+
+\vspace{5pt}
 
 The full PC LDA implementation requires fifteen different
 \texttt{Comp- utation} objects, as shown 
