@@ -224,7 +224,7 @@ Lambda <bool> getSelection (Handle <Dep> arg1,
 	return makeLambdaFromMember (arg1, deptName) == 
 	       makeLambdaFromMethod (arg2, getDeptName) &&
 	       makeLambdaFromMember (arg1, deptName) == 
-               makeLambdaFromMethod (arg3, getDept);   }
+               makeLambdaFromMethod (arg3, getDept);  }
 \end{codesmall}
 
 \noindent
@@ -334,7 +334,7 @@ To see how this works through an example, consider a variant of the \texttt{getS
 Lambda <bool> getSelection (Handle <Dep> arg1, 
      Handle <Emp> arg2, Handle <Sup> arg3) {
 	return makeLambdaFromMember (arg1, deptName) == 
-	       makeLambdaFromMethod (arg2, getDeptName);  }
+	       makeLambdaFromMethod (arg2, getDeptName); }
 \end{codesmall}
 
 \noindent PC compiles the lambda term resulting from a call to \texttt{getSelection()} into the following TCAP code:
