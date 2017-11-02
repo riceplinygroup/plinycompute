@@ -113,7 +113,10 @@ The system consists of four main components:
 
 \vspace {3pt}
 \noindent
-(2) The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
+(2) The \emph{PC API and TCAP compiler}.  In the large, PC codes are
+declarative and look a lot like classical relational calculus
+\cite{codd1971data}.  For example, to specify a join over five sets of
+objects, a PC programmer does not build a join directed acyclic graph (DAG) over the five inputs, as in a standard
 dataflow platform such as Spark.  Rather, a programmer 
 supplies two \emph{lambda term construction functions}: one that constructs a lambda term describing the selection
 predicate over those five input sets, 
