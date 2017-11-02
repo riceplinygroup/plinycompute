@@ -49,8 +49,9 @@ analytical computations.
 \vspace{5pt}
 \noindent
 \textbf {Experimental Environment.} All of the experiments reported in this paper were performed using a
-cluster that of eleven Amazon EC2 \texttt{m2.4xlarge} machines,
-running Ubuntu 16.04. Each machine had eight virtual cores, one SSD
+cluster that of eleven Amazon EC2 \texttt{m2.4xlarge} machines. All are
+running Ubuntu 16.04, except linear algebra experiments on SciDB, which
+requires to use Ubuntu 14.04. Each machine had eight virtual cores, one SSD
 disk, and 68 GB of RAM. In each PC cluster that we built, one of the eleven machines served as the master
 node and the rest ten machines served as worker nodes.
 
@@ -58,7 +59,7 @@ Since Apache Spark is most widely-used Big Data system both for applications pro
 development, most
 (though not all) of our comparisons were with Spark  (version
 2.1.0) and HDFS. The configuration of the Spark cluster are carefully tuned for each
-experiment. We do not clear the OS buffer cache, so HDFS data can be
+experiment, details are listed in Sec.~\ref{sec:spark} in Appendix. We do not clear the OS buffer cache, so HDFS data can be
 buffered/cached in the OS buffer cache. 
 
 \subsection {Distributed Linear Algebra}
@@ -86,7 +87,10 @@ The expert spent about six weeks in this effort.
 \noindent
 \textbf{Implementation.} In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
 object in the set is a \texttt{MatrixBlock}, as explained in
-Sec.~\ref{sec:pc-object1}, storing a contiguous rectangular sub-block of the matrix.
+Sec.~\ref{sec:pc-object1}, storing a contiguous rectangular sub-block
+of the matrix.
+
+%%%REMOVE FOLLOWING TO BE CONSISTENT WITH OVERVIEW
 \eat{
 \begin{codesmall}
 class MatrixBlock : public Object {
@@ -533,7 +537,7 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 \begin{center}
 \begin{tabular}{|c||c|c|c|}
 \hline
-Dimensionality & $100$ & $300$ & $500$ \\
+Dimensionality & $10$ & $100$ & $1000$ \\
 Number of points & $10^9$ & $10^8$ & $10^7$ \\
 \hline
 \hline
