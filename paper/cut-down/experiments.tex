@@ -59,7 +59,7 @@ Since Apache Spark is one of the most widely-used Big Data system both for appli
 development, most
 (though not all) of our comparisons were with Spark  (version
 2.1.0) and HDFS. The configuration of the Spark cluster are carefully tuned for each
-experiment, details are listed in Sec.~\ref{sec:spark} in Appendix. We do not clear the OS buffer cache, so HDFS data can be
+experiment, details are listed in Section~\ref{sec:spark} in Appendix. We do not clear the OS buffer cache, so HDFS data can be
 buffered/cached in the OS buffer cache. 
 
 \subsection {Distributed Linear Algebra}
@@ -87,7 +87,7 @@ The expert spent about six weeks in this effort.
 \noindent
 \textbf{Implementation.} In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
 object in the set is a \texttt{MatrixBlock}, as explained in
-Sec.~\ref{sec:pc-object1}, storing a contiguous rectangular sub-block
+Section~\ref{sec:pc-object1}, storing a contiguous rectangular sub-block
 of the matrix.
 
 %%%REMOVE FOLLOWING TO BE CONSISTENT WITH OVERVIEW
