@@ -87,11 +87,11 @@ pcContext.sendData <DataPoint> ("Mydb", "Myset", myVec);
 
 \noindent
 Here, the programmer starts out by creating a one megabyte \emph{allocation block} where all new objects will be written,
-and then allocates data directly to that allocation block via a call to \texttt{makeObject ()}.  Each call to  \texttt{makeObject ()}
+and then allocates data directly to that allocation block via a call to \texttt{makeObject()}.  Each call to  \texttt{makeObject()}
 returns a PC's pointer-like object, called a \texttt{Handle}.  PC \texttt{Handle}s use offsets rather than absolute memory
 addresses, so they can be moved from process to process.  
 
-When the data are dispatched via \texttt{sendData ()},
+When the data are dispatched via \texttt{sendData()},
 the occupied
 portion of the allocation block is transferred in its entirety with
 no pre-processing and zero CPU cost, aside from the cycles required to perform the data transfer.  
@@ -163,7 +163,7 @@ should be processed.
 Novice PC programmers sometimes incorrectly assume that the lambda construction functions operate on the data themselves, and
 hence are called once for every data object in an input set---for example, 
 that
-\texttt{getSelection ()} would be repeatedly invoked to filter each \texttt{DataPoint} in an input set.  
+\texttt{getSelection()} would be repeatedly invoked to filter each \texttt{DataPoint} in an input set.  
 This is incorrect, however.
 A programmer is not supplying a computation over input data; rather, a programmer is supplying an expression in the lambda calculus that 
 specifies \emph{how to construct the computation}.
@@ -176,16 +176,16 @@ include:
 
 \begin{enumerate}
 
-\item \texttt{makeLambdaFromMember ()}, which returns 
+\item \texttt{makeLambdaFromMember()}, which returns 
 a lambda abstraction taking as input a \texttt{Handle} to a PC \texttt{Object}, and returns a function returning one of the pointed-to object's member variables;
 
 \item 
-\texttt{makeLambdaFromMethod ()}, which is similar, but returns a function calling a method on the pointed-to variable;
+\texttt{makeLambdaFromMethod()}, which is similar, but returns a function calling a method on the pointed-to variable;
 
-\item \texttt{makeLambda ()}, which returns a function calling
+\item \texttt{makeLambda()}, which returns a function calling
 a native C++ lambda;
 
-\item \texttt{makeLambdaFromSelf ()}, which returns the identity function.
+\item \texttt{makeLambdaFromSelf()}, which returns the identity function.
 
 \end{enumerate}
 
@@ -210,10 +210,10 @@ The standard arithmetic operations: \texttt{+}, \texttt{-}, \texttt{*}, etc.
 For an example of all of this, consider performing a join over three
 sets of PC \texttt{Object}s stored in the PC cluster.  
 Joins are specified in PC 
-by implementing a \texttt{JoinComp} object. One of the methods that must be overridden to build a specific join is \texttt{JoinComp :: getSelection ()}
+by implementing a \texttt{JoinComp} object. One of the methods that must be overridden to build a specific join is \texttt{JoinComp :: getSelection()}
 which returns a lambda term
 that specifies how to compute if a particular combination of input objects is accepted by the join.  Consider the following
-\texttt{getSelection ()} for a three-way join over objects of type \texttt{Dept}, \texttt{Emp}, and \texttt{Sup}:
+\texttt{getSelection()} for a three-way join over objects of type \texttt{Dept}, \texttt{Emp}, and \texttt{Sup}:
 
 
 \begin{codesmall} 
@@ -228,10 +228,10 @@ Lambda <bool> getSelection (Handle <Dep> arg1,
 \noindent
 This method creates a lambda term taking three arguments \texttt{arg1, arg2, arg3}.  This lambda term describes a computation that
 checks to see if \texttt{arg1->deptName} is the same as the value
-returned from \texttt{arg2->getDeptName ()}, and
-that \texttt{arg1->dept Name} is the same as the value returned from \texttt{arg3}\-\texttt{->getDept ()}. 
+returned from \texttt{arg2->getDeptName()}, and
+that \texttt{arg1->deptN ame} is the same as the value returned from \texttt{arg3}\-\texttt{->getDept()}. 
 Note that the programmer does \emph{not} specify an ordering for the joins, and does \emph{not} specify specific join algorithms or variations.  Rather, PC
-analyzes the lambda term returned by \texttt{getSelection ()} and
+analyzes the lambda term returned by \texttt{getSelection()} and
 makes such decisions automatically.
 
 In general, a programmer can choose to expose the details of a computation to PC, by making extensive use of PC's lambda
@@ -298,12 +298,12 @@ assmebled into an optimized plan.
   \end{center}
   \caption{Execution of the first four stages of a pipeline constructed from the example TCAP program.  The first two stages extract new vectors from 
 existing vectors of objects, first via a call to
-\texttt{Join\_2122.att\_acc\_1 ()}, which extracts
+\texttt{Join\_2122.att\_acc\_1()}, which extracts
 \texttt{Dep.deptName} from each item in the vector \texttt{dep}
 of \texttt{Dep} objects, producing a new vector called \texttt{nm1}. Then,
-via a call to \texttt{Join\_2122.method\_call\_2 ()}, which invokes \texttt{Dep :: getDeptName ()} on each of the \texttt{Emp} objects
+via a call to \texttt{Join\_2122.method\_call\_2()}, which invokes \texttt{Dep :: getDeptName()} on each of the \texttt{Emp} objects
 in the vector \texttt{emp}, producing a new vector called \texttt{nm2}.  A bit vector \texttt{bl} is formed by checking the equality of those two 
-vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors are filtered.}
+vectors via a call to \texttt{Join\_2122.==\_3()}, and then all of the vectors are filtered.}
   \label{fig:TCAP}
 \end{figure}
 
@@ -326,7 +326,7 @@ The TCAP language describes both the pipeline stages required to perform a PC co
 will be produced during the PC computation, and how each of the pipeline stages adds or removes vectors from the vector lists that are pushed through
 the computation.
 
-To see how this works through an example, consider a variant of the \texttt{getSelection ()}:
+To see how this works through an example, consider a variant of the \texttt{getSelection()}:
 
 \begin{codesmall} 
 Lambda <bool> getSelection (Handle <Dep> arg1, 
@@ -335,7 +335,7 @@ Lambda <bool> getSelection (Handle <Dep> arg1,
 	       makeLambdaFromMethod (arg2, getDeptName);  }
 \end{codesmall}
 
-\noindent PC compiles the lambda term resulting from a call to \texttt{getSelection ()} into the following TCAP code:
+\noindent PC compiles the lambda term resulting from a call to \texttt{getSelection()} into the following TCAP code:
 
 \begin{codesmall}
 WDNm_1(dep,emp,sup,nm1) <= APPLY(In(dep), 
