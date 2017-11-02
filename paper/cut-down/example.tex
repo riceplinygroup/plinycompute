@@ -102,7 +102,7 @@ myAgg->setInput (myReader);
 Handle <Computation> myWriter =  makeObject <Writer
      <Centroid>> ("myDB", "myOutSet");
     myWriter->setInput (myAgg);
-pcContext.executeComputations (myWriter);
+pcClient.executeComputations (myWriter);
 \end{codesmall}
 
 \noindent After execution, the set of updated centroids would be stored in \texttt{myDB.mySet}.
