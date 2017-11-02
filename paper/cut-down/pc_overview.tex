@@ -369,15 +369,15 @@ later during optimization.
 
 Specifically, in this case, the first \texttt{APPLY} in the TCAP computation describes a pipeline stage that
 takes as input 
-a vector list called \texttt{Input}, which is made of the constituent vectors, referred to using 
+a vector list called \texttt{In}, which is made of the constituent vectors, referred to using 
 the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
 To produce the output vector list (called \texttt{WDNm\_1}), the vectors
 \texttt{dep}, \texttt{emp}, and \texttt{sup} should be simply copied
 (via a shallow copy similar with pointer assignment) from \texttt{In}.
 In addition, the compiled code referred to by \texttt{Join\_2212.att\_acc\_1} will be executed via a vectorized application to the input
 vector \texttt{dep}.  The result will then be put into a new vector called 
-\texttt{WDNm\_1.name1}.
-The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
+\texttt{WDNm\_1.nm1}.
+The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.nm1})
 will be called \texttt{WDNm\_1}.  
 
 Next, this TCAP program
