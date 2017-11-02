@@ -10,7 +10,7 @@ using a combination of methods from relational query optimization and classical 
 PC's optimizer is currently implemented
 in Prolog; a series of transformations are fired iteratively to improve the plan until the plan cannot be improved further.
 For an example of the sort of optimization present in PC, consider the task of removing redundant method calls.  Imagine that a user
-supplies a \texttt{SelectionComp} with the following \texttt{getSelection ()}:
+supplies a \texttt{SelectionComp} with the following \texttt{getSelection()}:
 
 \begin{codesmall} 
 Lambda <bool> getSelection (Handle  <Emp> emp) {
@@ -46,12 +46,12 @@ JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43',[]);
 \end{codesmall}
 
 \noindent
-This TCAP program first calls the method \texttt{getSalary ()} on \texttt{In::emp} to produce a new vector list \texttt{JK2\_2}, storing the result
+This TCAP program first calls the method \texttt{getSalary()} on \texttt{In::emp} to produce a new vector list \texttt{JK2\_2}, storing the result
 of the method call in \texttt{JK2\_1.mt1}.  After comparing \texttt{JK2\_2.bl1} to \texttt{50000}, the result of the method call is dropped.
 The method is then called once again on \texttt{JK2\_2.emp} and the result compared with \texttt{100000} to produce \texttt{JK2\_4}, at which 
 point the two boolean vectors are ``anded'' and the result is filtered.
 
-Obviously, there is a redundancy here as the method \texttt{getSalary ()} will be called twice.
+Obviously, there is a redundancy here as the method \texttt{getSalary()} will be called twice.
 If \texttt{getSalary} simply accesses a data member, the additional
 call is costless.  But in the general case, a method call may run an arbitrary
 computation.  Hence, the second call should automatically be removed as being redundant 
