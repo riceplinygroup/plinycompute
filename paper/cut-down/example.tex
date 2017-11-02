@@ -73,7 +73,7 @@ The declaration \texttt{AggregateComp <Centroid, long, Avg, DataPoint>} means th
 aggregated into objects of type \texttt{Centroid}.  To process each data point, the aggregation will use the lambdas constructed by
 \texttt{getKeyProjection} and \texttt{get ValueProjection}.  
 In this case, for example,
-\texttt{getKeyProjec tion} builds a lambda which simply invokes the native C++ lambda given in the code---this
+\texttt{getKeyProjec tion} builds a lambda, which simply invokes the native C++ lambda given in the code---this
 native C++ lambda returns the identity of the centroid closest to the data point.
 
 To build a computation using this aggregation class, a programmer would need to specify the \texttt{Centroid} class (the result of this aggregation):

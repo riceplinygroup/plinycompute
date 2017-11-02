@@ -24,21 +24,23 @@ Lambda <bool> getSelection (Handle  <Emp> emp) {
 
 \begin{codesmall}
 JK2_1(emp,mt1) <= APPLY(In(emp), In(emp), 'Sel_43',
-'method_call_1',[('type', 'methodCall'),('methodName',
-'getSalary')]);
+  'method_call_1',[('type', 'methodCall'),('methodName',
+  'getSalary')]);
 
 JK2_2(emp,bl1) <= APPLY(JK2_1(mt1), JK2_1(emp), 
-'Sel_43','>_1',[('type','const_comparison'),('op','>')]);
+  'Sel_43','>_1',[('type','const_comparison'),
+   ('op','>')]);
 
 JK2_3(emp,bl1,mt2) <= APPLY(JK2_2(emp), JK2_2(emp,bl1), 
-'Sel_v3', 'method_call_2',[('type','methodCall'), 
-('methodName', 'getSalary')]);
+  'Sel_v3', 'method_call_2',[('type','methodCall'), 
+  ('methodName', 'getSalary')]);
 
 JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt2), JK2_3(emp,bl1), 
-'Sel_43','<_1',[('type','const comparison'),('op','<')]);
+  'Sel_43','<_1',[('type','const comparison'),
+  ('op','<')]);
 
 JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), JK2_4(emp), 
-'Sel_43', '&&_1',[('type','bool_and')]);
+  'Sel_43', '&&_1',[('type','bool_and')]);
 
 JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43',[]);
 \end{codesmall}
@@ -50,7 +52,8 @@ The method is then called once again on \texttt{JK2\_2.emp} and the result compa
 point the two boolean vectors are ``anded'' and the result is filtered.
 
 Obviously, there is a redundancy here as the method \texttt{getSalary ()} will be called twice.
-If \texttt{getSalary} simply accesses a data member, the additional call is costless.  But in the general case a method call may run an arbitrary
+If \texttt{getSalary} simply accesses a data member, the additional
+call is costless.  But in the general case, a method call may run an arbitrary
 computation.  Hence, the second call should automatically be removed as being redundant 
 (by definition, all method calls evaluated during computation should
 be purely functional, and so they must return the same value when called a second time).
@@ -80,17 +83,19 @@ TCAP program is:
 
 \begin{codesmall}
 JK2_1(emp,mt1) <= APPLY(In(emp), In(emp),'Sel_43', 
-'method_call_1',[('type','methodCall'),('methodName',
-'getSalary')]);
+  'method_call_1',[('type','methodCall'),
+  ('methodName','getSalary')]);
 
 JK2_2(emp,mt1,bl1) <= APPLY(JK2_1(mt1),JK2_1(emp,mt1), 
-'Sel_43','>_1',[('type','const comparison'),('op','>')]);
+  'Sel_43','>_1',[('type','const comparison'),
+  ('op','>')]);
 
 JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt1),JK2_3(emp,bl1),
-'Sel_43','<_1',[('type','const comparison'),('op','<')]);
+  'Sel_43','<_1',[('type','const comparison'),
+  ('op','<')]);
 
 JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), JK2_4(emp), 
-'Sel_43','&&_1',[('type', 'bool_and')]);
+  'Sel_43','&&_1',[('type', 'bool_and')]);
 
 JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp),'Sel_43',[]);
   

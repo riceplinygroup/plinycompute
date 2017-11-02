@@ -6,7 +6,7 @@
 
 In this section, we describe our experimental evaluation of PC.
 The aim is to answer
-following questions:
+the following questions:
 
 \vspace{5pt}
 \noindent
@@ -42,19 +42,20 @@ analytical computations.
 \vspace{2pt}
 \noindent
 (3) We also implemented three
-  iterative machine learning algorithms on top of PC: Latent Dirichlet Allocation (LDA) which is used for
+  iterative machine learning algorithms on top of PC: Latent Dirichlet Allocation (LDA), which is used for
   textual topic mining;
-  Gaussian mixture model (GMM) learning which is used to cluster data using a mixture of high-dimensional Normal
+  Gaussian mixture model (GMM) learning, which is used to cluster data using a mixture of high-dimensional Normal
   distributions, and the simplest, $k$-means clustering.
 
 \vspace{5pt}
 \noindent
 \textbf {Experimental Environment.} All of the experiments reported in this paper were performed using a
-cluster that of eleven Amazon EC2 \texttt{m2.4xlarge} machines. Each machine
+cluster of eleven Amazon EC2 \texttt{m2.4xlarge} machines. Each machine
 ran Ubuntu 16.04, except the linear algebra experiments on
 SciDB~\cite{brown2010overview, stonebraker2011architecture}
 with version 14.8, which
-was supported on Ubuntu 12.04~\cite{SciDBOS}. Each machine had eight virtual cores, one SSD
+was supported on Ubuntu 12.04~\cite{SciDBOS}. Each machine had eight
+virtual cores, 200GB SSD
 disk, and 68 GB of RAM. In each PC cluster that we built, one of the eleven machines served as the master
 node and the rest ten machines served as worker nodes.
 
@@ -62,7 +63,7 @@ Since Apache Spark is one of the most widely-used Big Data system both for appli
 development, most
 (though not all) of our comparisons were with Spark  (version
 2.1.0) and HDFS. The configuration of the Spark cluster are carefully tuned for each
-experiment, details are listed in Section~\ref{sec:spark} in Appendix. We do not clear the OS buffer cache, so HDFS data can be
+experiment, details are listed in Section~\ref{sec:spark} in the Appendix. We do not clear the OS buffer cache, so HDFS data can be
 buffered/cached in the OS buffer cache. 
 
 \subsection {Distributed Linear Algebra}
@@ -207,9 +208,8 @@ given a query vector
 $\textbf{x}'$ and matrix $\textbf{X}$, find the $i$-th row in the matrix that minimizes 
 $d_{\textbf{A}}^2(\textbf{x}_i, \textbf{x}') = 
 (\textbf{x}_i - \textbf{x}')^T\textbf{A}(\textbf{x}_i - \textbf{x}')$).  
-For each computation we used three different data dimensionalities: ten, $10^2$, and $10^3$.  This refers to
-the number of features in each data point. 
-$10^6$ data points were used. 
+For each computation we used $10^6$ data points and three different
+data dimensionalities: ten, $10^2$, and $10^3$, as number of features in each data point. 
 
 In addition to \texttt{lilLinAlg}, 
 for the Gram matrix and linear regression computations, SystemML V0.9 on Hadoop was used.
@@ -228,7 +228,7 @@ systems for best performance. For example, we tuned Spark block size and reparti
 size for every experiment. In SystemML, we also carefully chose to
 use the parallel for loop, which boosted performance significantly.
 For fairness, for each of the distributed linear algebra tools, 
-we do not count the time required to load data from client into the system
+we do not count the time required to load data from the client to the cluster
 (for example, 
 for \texttt{lilLinAlg}, we do not count the time required to load data from text and into PC).
 
@@ -386,7 +386,7 @@ removed from this list, and then the Jaccard similarity between the resulting \t
 list are computed.  This is done for all of the \texttt{Customer} objects, and the $k$ \texttt{partID} lists with the 
 closest similarity to the query list are returned.
 In PC,
-the result of the computation is a list of $k$ objects containing the Jaccard similarity, the integral \texttt{custkey}, and
+the result of the computation is a list of $k$ objects containing the Jaccard similarity, the integer \texttt{custkey}, and
 a \texttt{Vector <int>} that stores the complete list of unique
 \texttt{partID}s sold to that customer.
 
@@ -610,7 +610,7 @@ the implementation in Spark's \texttt{mllib}.
 we ran all ML experiments using PC and Spark 2.1.0.
 For LDA,  we
 created a semi-synthetic document database with 2.5 million documents from
-20 Newsgroups dataset by concatenating random pairs of newsgroup postings
+20-Newsgroups dataset by concatenating random pairs of newsgroup postings
 end-on-end. There are more than 739
 million \texttt{(docID, wordID, count)} triples in the dataset.
 We use a dictionary size
@@ -720,7 +720,7 @@ Other benchmarks showed similar advantages to PC.
 
 We close the benchmarks with two final questions.  First: PC may be faster, but is it significantly more difficult to develop
 for than a platform that uses a managed runtime?  PC certainly gives a programmer more flexibility, and with that can come
-certain costs---un-knowledgeable developers may find PC difficult to code for.  But, by at least one metric--source
+certain costs---less knowledgeable developers may find PC difficult to code for.  But, by at least one metric--source
 lines of code (SLOC)---PC is \emph{not}
 any more difficult as a development target than Spark.
 Table~\ref{fig:LOC} shows the SLOC counts for the various implementations described here, comparing to their Spark counterparts.
@@ -749,7 +749,7 @@ JIT compilation and generational garbage collectors.
 
 In fact, there is some good evidence that Spark and Java may have had some significant
 built-in \emph{advantages} vs. our C++ implementations.
-Out of curiosity, we ran a simple micro-benchmark on an AWS \texttt{m2.4xlarge} machine, where we compared the various
+Out of curiosity, we ran a simple micro-benchmark on an amazon AWS \texttt{m2.4xlarge} machine, where we compared the various
 packages for statistical/scientific computing used throughout these experiments.
 In this benchmark, we run a single-thread matrix multiplication
 to compare Java \texttt{breeze} (used in all Spark implementations) 
@@ -760,7 +760,7 @@ better performance than GSL.
 Thus, in one way, our C++ implementations were at a significant disadvantage.
 
 Achieving excellent performance on complex, distributed computations is never a simple matter
-of ``use C++, not Java''.  Many factors go into having a superior implementation, and those tend to even things out,
+of ``use C++, not Java''~\cite{ousterhout2015making, shi2015clash}.  Many factors go into having a superior implementation, and those tend to even things out,
 as some of those factors 
 go \emph{against} PC.  We argue that the reason that PC was consistently faster
 than its competitors are the design principles underlying the system---which was enabled by the choice of language.
