@@ -50,8 +50,6 @@ def startPseudoCluster():
                 time.sleep(9)
                 each_line = each_line.split(':')
                 port = int(each_line[1])
-                subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port', str(port), '--node-name', 'worker', '--node-type', 'worker'])
-
 
     except subprocess.CalledProcessError as e:
         print (bcolors.FAIL + "[ERROR] in starting peudo cluster" + bcolors.ENDC)
