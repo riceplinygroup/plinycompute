@@ -88,14 +88,6 @@ semi-structured data in storage formats such as Arvo, Parquet, RC and so
 on from/to external storage such HDFS, using standard
 serialization/deserialization methods).
 
-Google Spanner~\cite{bacon2017spanner} is a distributed
-database system with a SQL query processor. It implements a
-dialect of SQL, which uses arrays and structures to
-support nested data as a first class citizen. To integrate
-with user applications, the relational data described needs to
-be translated to protocol buffers or user languages. PC takes a fundamentally different approach, as all code is 
-object-oriented rather an a mix of SQL and other high (or medium) level languages.
-
 Tensorflow~\cite{abadi2016tensorflow} is a
 distributed computing framework mainly designed for deep learning. It
 mainly supports processing of numerical data with a
