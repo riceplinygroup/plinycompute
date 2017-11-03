@@ -487,7 +487,7 @@ and the topic-probability-per-document vectors.  In our experiments, there are a
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
 \hline
-PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\join hint} & \makecell{Spark 3: also with \\forced persist} & \makecell{Spark 3: also hand-\\coded multinomial} \\
+PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\join hint} & \makecell{Spark 3: also with \\forced persist} & \makecell{Spark 4: also hand-\\coded multinomial} \\
 \hline
 02:05 & 50:20 & 17:30 & 09:26 & 05:26 \\
 \hline
@@ -766,9 +766,10 @@ Eigen &123 ms  &3:57\\
 \vspace{-20pt}
 \end{table}
 
-\eat{
+
 \section{Conclusion}
 This paper describes PlinyCompute, a system for development of
 high-performance, data-intensive, distributed computing tools and
-libraries. Through extensive benchmarking, we show that implementing non-trivial, library-style computations on top of PC can result in a speedup of 2$\times$ to
- more than  50$\times$ or more compared to equivalent implementations on Spark.}
+libraries. Through extensive benchmarking, we show that implementing
+complex object manipulation and library-style computations on top of PC can result in a speedup of 2$\times$ to
+ more than  50$\times$ or more compared to equivalent implementations on Spark.
