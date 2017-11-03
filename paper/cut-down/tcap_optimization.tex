@@ -46,7 +46,8 @@ JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43',[]);
 \end{codesmall}
 
 \noindent
-This TCAP program first calls the method \texttt{getSalary()} on \texttt{In::emp} to produce a new vector list \texttt{JK2\_2}, storing the result
+This TCAP program first calls the method \texttt{getSalary()} on
+\texttt{In:: emp} to produce a new vector list \texttt{JK2\_2}, storing the result
 of the method call in \texttt{JK2\_1.mt1}.  After comparing \texttt{JK2\_2.bl1} to \texttt{50000}, the result of the method call is dropped.
 The method is then called once again on \texttt{JK2\_2.emp} and the result compared with \texttt{100000} to produce \texttt{JK2\_4}, at which 
 point the two boolean vectors are ``anded'' and the result is filtered.
