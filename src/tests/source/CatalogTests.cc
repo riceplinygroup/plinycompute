@@ -176,11 +176,6 @@ int main(int numArgs, const char *args[]) {
     command = "0";
   }
 
-  // start a catalog client
-  //    pdb::CatalogClient catClient(
-  //        conf->getPort(), conf->getServerAddress(),
-  //        make_shared<pdb::PDBLogger>("clientCatalogLog"));
-
   pdb::PDBClient pdbClient(conf->getPort(), conf->getServerAddress(),
                            make_shared<pdb::PDBLogger>("pdbClientLog"), false,
                            false);
@@ -195,11 +190,6 @@ int main(int numArgs, const char *args[]) {
   pdb::StorageClient storageClient(conf->getPort(), conf->getServerAddress(),
                                    make_shared<pdb::PDBLogger>("clientLog"),
                                    true);
-
-  //    pdb::DistributedStorageManagerClient distributedStorageClient(
-  //        conf->getPort(),
-  //        conf->getServerAddress(),
-  //        make_shared<pdb::PDBLogger>("distributedStorageManager"));
 
   string errMsg;
 
@@ -221,10 +211,8 @@ int main(int numArgs, const char *args[]) {
 
   } else if (command.compare("retrieve-type") == 0) {
 
-    //        std::string typeName = vm["type-name"].as<std::string>();
     int typeId = vm["type-id"].as<int>();
 
-    //        cout << "Retrieving type " << typeName << endl;
     cout << "Retrieving typeId " << typeId << endl;
 
     // Local allocator
@@ -235,17 +223,6 @@ int main(int numArgs, const char *args[]) {
     string soFileObject = "temp.so";
 
     string soBytes;
-    //        if (!catClient.getSharedLibraryByName(typeId, typeName,
-    //        soFileObject,
-    //        (*putResultHere), typeMetadata, soBytes, errMsg)) {
-    //        if (!pdbClient.getSharedLibrary(typeId, soFileObject)) {
-    //            std::cout << "Not able to retrieve type data: " + errMsg <<
-    //            std::endl;
-    //            std::cout << "Please change the parameters: type-id." <<
-    //            std::endl;
-    //        } else {
-    //            std::cout << "Type properly retrieved." << errMsg << endl;
-    //        }
 
     cout << "Done.\n";
 
@@ -288,13 +265,12 @@ int main(int numArgs, const char *args[]) {
   } else if (command.compare("remove-db") == 0) {
     std::string databaseName = vm["db-name"].as<std::string>();
 
-    //        if (!storageClient.removeDatabase (databaseName, errMsg)) {
-    //            std :: cout << "Not able to remove database: " + errMsg <<
-    //            std::endl;
-    //        } else {
-    //            std :: cout << "Database and its metadata successfully
-    //            removed.\n";
-    //        }
+    if (!pdbClient.removeDatabase (databaseName, errMsg)) {
+        std :: cout << "Not able to remove database: " + errMsg <<
+        std::endl;
+    } else {
+        std :: cout << "Database and its metadata successfully removed.\n";
+    }
     cout << "Done.\n";
 
   } else if (command.compare("retrieve-db") == 0) {
@@ -383,7 +359,7 @@ int main(int numArgs, const char *args[]) {
     pdb::Handle<pdb::CatalogPrintMetadata> printObject =
         pdb::makeObject<CatalogPrintMetadata>("", "", "0");
 
-    //        cout << "timestamp=" << printObject->getItemName() << endl;
+        cout << printObject->getMetadataToPrint().c_str() << endl;
 
     cout << "Done.\n";
   }
