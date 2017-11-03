@@ -68,8 +68,6 @@ do
                 echo -e "Waits 5 seconds before registering node metadata..."
                 sleep 5
                 
-                $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker
-                        
         fi
 done
 

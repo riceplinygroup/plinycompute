@@ -1808,32 +1808,8 @@ bool CatalogServer::addNodeMetadata(Handle<CatalogNodeMetadata> &nodeMetadata,
   pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem,
                                    metadataCategory, errMsg);
 
-  // after it registered the node metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
-  if (isMasterCatalogServer) {
-
-    // get the results of each broadcast
-    map<string, pair<bool, string>> updateResults;
-    errMsg = "";
-
-    broadcastCatalogUpdate(metadataObject, updateResults, errMsg);
-
-    for (auto &item : updateResults) {
-      PDB_COUT << "Node IP: " << item.first
-               << ((item.second.first == true)
-                       ? " updated correctly!"
-                       : " couldn't be updated due to error: ")
-               << item.second.second << endl;
-    }
-  } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
-                "registered locally!"
-             << endl;
-  }
-
+  PDB_COUT << "Node metadata was properly registered in the Catalog!" << endl;
+  
   return true;
 }
 

@@ -63,7 +63,6 @@ do
                 ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $masterIp $ip_addr &" &
                 sleep $PDB_SSH_SLEEP
                 ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-server
-                $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker                
                 
         fi
 done
