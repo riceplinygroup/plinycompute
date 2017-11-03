@@ -204,9 +204,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
         PDB_COUT << "received CatTypeNameSearch message" << endl;
 
-        // in practice, we can do better than simply locking the whole catalog,
-        // but good
-        // enough for now...
         const LockGuard guard{workingMutex};
         const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -238,9 +235,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatSharedLibraryRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good
-            // enough for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -314,9 +308,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           typeId = allTypeNames[typeName];
         }
 
-        // in practice, we can do better than simply locking the whole catalog,
-        // but good enough
-        // for now...
         const LockGuard guard{workingMutex};
         PDB_COUT << "Triggering Handler CatalogServer "
                     "CatSharedLibraryByNameRequest for typeName="
@@ -575,9 +566,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatSetObjectTypeRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good enough
-            // for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -614,9 +602,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatCreateDatabaseRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good enough
-            // for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -642,8 +627,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
       make_shared<SimpleRequestHandler<CatCreateSetRequest>>([&](
           Handle<CatCreateSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-        // in practice, we can do better than simply locking the whole
-        // catalog, but good enough for now...
         const LockGuard guard{workingMutex};
         const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -671,9 +654,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatDeleteDatabaseRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good
-            // enough for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -699,9 +679,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
       make_shared<SimpleRequestHandler<CatDeleteSetRequest>>([&](
           Handle<CatDeleteSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-        // in practice, we can do better than simply locking the whole catalog,
-        // but good enough
-        // for now...
         const LockGuard guard{workingMutex};
         const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -731,9 +708,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatAddNodeToDatabaseRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good
-            // enough for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -763,9 +737,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatAddNodeToSetRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good
-            // enough for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -795,9 +766,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatRemoveNodeFromDatabaseRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good
-            // enough for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
             // ask the catalog server for the type ID and then the name of the
@@ -827,9 +795,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           [&](Handle<CatRemoveNodeFromSetRequest> request,
               PDBCommunicatorPtr sendUsingMe) {
 
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good
-            // enough for now...
             const LockGuard guard{workingMutex};
             const UseTemporaryAllocationBlock block{1024 * 1024};
 
@@ -858,8 +823,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
       make_shared<SimpleRequestHandler<CatRegisterType>>(
           [&](Handle<CatRegisterType> request, PDBCommunicatorPtr sendUsingMe) {
             PDB_COUT << "Got a CatRegisterType request" << std::endl;
-            // in practice, we can do better than simply locking the whole
-            // catalog, but good enough for now...
+
             const LockGuard guard{workingMutex};
             PDB_COUT << "Got lockGuard" << std::endl;
             const UseTemporaryAllocationBlock block{1024 * 1024};
