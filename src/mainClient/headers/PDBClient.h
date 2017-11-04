@@ -167,6 +167,9 @@ public:
   printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
                        std::string &errMsg);
 
+  /* Lists all metadata registered in the catalog. */
+  string listAllRegisteredMetadata(std::string &errMsg);
+
   /* Lists the Databases registered in the catalog. */
   string listRegisteredDatabases(std::string &errMsg);
 

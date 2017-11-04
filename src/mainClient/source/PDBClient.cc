@@ -185,13 +185,15 @@ bool PDBClient::registerType(std::string fileContainingSharedLib,
 string PDBClient::printCatalogMetadata(
     pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch, std::string &errMsg) {
 
-  return string("");
-
-  // return catalogClient.printCatalogMetadata (
-  //      itemToSearch,
-  //    errMsg) ;
+   return catalogClient.printCatalogMetadata (
+      itemToSearch,
+      errMsg) ;
 }
 
+string PDBClient::listAllRegisteredMetadata(std::string &errMsg) {
+   return catalogClient.listAllRegisteredMetadata(errMsg);
+}
+ 
 string PDBClient::listRegisteredDatabases(std::string &errMsg) {
   return catalogClient.listRegisteredDatabases(errMsg);
 }
