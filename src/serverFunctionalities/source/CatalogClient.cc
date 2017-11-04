@@ -656,6 +656,12 @@ string CatalogClient::listUserDefinedTypes(std::string &errMsg) {
   return printCatalogMetadata(category, errMsg);
 }
 
+string CatalogClient::listAllRegisteredMetadata(std::string &errMsg) {
+
+  string category = "all";
+  return printCatalogMetadata(category, errMsg);
+}
+
 // sends a request to the Catalog Serve to close the SQLite handler
 bool CatalogClient::closeCatalogSQLite(std::string &errMsg) {
   return simpleRequest<CatalogCloseSQLiteDBHandler, SimpleRequestResult, bool>(

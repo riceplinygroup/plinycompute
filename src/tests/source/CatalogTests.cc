@@ -354,14 +354,24 @@ int main(int numArgs, const char *args[]) {
 
   } else if (command.compare("print-catalog") == 0) {
     //        std::string timeStamp = vm["timestamp"].as<std::string>();
-
+ string toPrint = pdbClient.listUserDefinedTypes(errMsg);
+        cout << "\n\n" << toPrint << endl;
     // creates an object to send request for printing all metadata
     pdb::Handle<pdb::CatalogPrintMetadata> printObject =
-        pdb::makeObject<CatalogPrintMetadata>("", "", "0");
+        pdb::makeObject<CatalogPrintMetadata>("", "0", "udts");
 
+        toPrint = pdbClient.printCatalogMetadata(printObject, errMsg);
         cout << printObject->getMetadataToPrint().c_str() << endl;
+        cout << "\n\n" << toPrint << endl;
 
-    cout << "Done.\n";
+        cout << "\n\nPrint all catalog " << endl;
+
+printObject =
+        pdb::makeObject<CatalogPrintMetadata>("", "0", "all");
+
+        toPrint = pdbClient.listAllRegisteredMetadata(errMsg);
+        cout << "\n\n" << toPrint << endl;
+        
   }
 }
 

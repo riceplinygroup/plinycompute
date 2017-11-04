@@ -334,7 +334,7 @@ public:
   /**
    * Prints all metadata registered in the catalog
    */
-  void printsAllCatalogMetadata();
+  void printsAllCatalogMetadata(std::string &outputString, std::string &errMsg);
 
   /* Lists the Databases registered in the catalog. */
   void listRegisteredDatabases(std::string &outputString, std::string &errMsg);

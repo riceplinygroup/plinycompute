@@ -204,6 +204,9 @@ public:
   /* Sends a request to the Catalog Server to close the SQLite DB Handler */
   bool closeCatalogSQLite(std::string &errMsg);
 
+  /* Lists all metadata registered in the catalog. */
+  string listAllRegisteredMetadata(std::string &errMsg);
+
   /* Lists the Databases registered in the catalog. */
   string listRegisteredDatabases(std::string &errMsg);
 

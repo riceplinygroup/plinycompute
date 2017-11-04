@@ -1716,18 +1716,25 @@ bool CatalogServer::printCatalog(
   string resultToPrint;
   string errorMsg;
 
-  if (categoryToPrint.compare("databases") == 0)
-    pdbCatalog->listRegisteredDatabases(resultToPrint, errorMsg);
+  if (categoryToPrint.compare("all") == 0) {
+      pdbCatalog->listNodesInCluster(resultToPrint, errorMsg);
+      pdbCatalog->listRegisteredDatabases(resultToPrint, errorMsg);
+      pdbCatalog->listUserDefinedTypes(resultToPrint, errorMsg);
+  } else {
 
-  if (categoryToPrint.compare("sets") == 0)
-    pdbCatalog->listRegisteredSetsForADatabase(resultToPrint, itemKey,
-                                               errorMsg);
+      if (categoryToPrint.compare("databases") == 0)
+        pdbCatalog->listRegisteredDatabases(resultToPrint, errorMsg);
 
-  if (categoryToPrint.compare("nodes") == 0)
-    pdbCatalog->listNodesInCluster(resultToPrint, errorMsg);
+      if (categoryToPrint.compare("sets") == 0)
+        pdbCatalog->listRegisteredSetsForADatabase(resultToPrint, itemKey,
+                                                   errorMsg);
 
-  if (categoryToPrint.compare("udts") == 0)
-    pdbCatalog->listUserDefinedTypes(resultToPrint, errorMsg);
+      if (categoryToPrint.compare("nodes") == 0)
+        pdbCatalog->listNodesInCluster(resultToPrint, errorMsg);
+
+      if (categoryToPrint.compare("udts") == 0)
+        pdbCatalog->listUserDefinedTypes(resultToPrint, errorMsg);
+  }
 
   metadataToPrint->setMetadataToPrint(resultToPrint);
 
@@ -1737,12 +1744,6 @@ bool CatalogServer::printCatalog(
   // PDB_COUT << "************VTablePtrs************" << endl;
   // VTableMap::listVtableEntries();
   // cout << "************End************" << endl;
-  return true;
-}
-
-// invokes a method to prints all metadata in the catalog
-bool CatalogServer::printCatalog() {
-  pdbCatalog->printsAllCatalogMetadata();
   return true;
 }
 
