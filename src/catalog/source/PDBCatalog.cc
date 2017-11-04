@@ -637,8 +637,6 @@ void PDBCatalog::listNodesInCluster(std::string &outputString,
     outputString += (*registeredNodesMetadata)[i].printShort() + "\n";
   }
 
-  outputString += ")\n";;
-
 }
 
 /* Lists the Databases registered in the catalog. */
@@ -651,8 +649,6 @@ void PDBCatalog::listRegisteredDatabases(std::string &outputString,
   for (int i = 0; i < (*registeredDatabasesMetadata).size(); i++) {
     outputString += (*registeredDatabasesMetadata)[i].printShort() + "\n";
   }
-
-  outputString += ")\n";;
 
 }
 
@@ -669,8 +665,6 @@ void PDBCatalog::listRegisteredSetsForADatabase(std::string databaseName,
     outputString += (*registeredSetsMetadata)[i].printShort() + "\n";
   }
 
-  outputString += ")\n";;
-
 }
 
 /* Lists the user-defined types registered in the catalog. */
@@ -685,7 +679,6 @@ void PDBCatalog::listUserDefinedTypes(std::string &outputString,
     outputString +=
         (*registeredUserDefinedTypesMetadata)[i].printShort() + "\n";
   }
-  outputString += ")\n";;
 
 }
 
