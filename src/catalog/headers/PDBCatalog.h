@@ -143,9 +143,8 @@ public:
    * @param errorMessage error message
    * @return true on success
    */
-  template <class CatalogMetadataType, class CatalogStandardMetadataType>
+  template <class CatalogMetadataType>
   bool addMetadataToCatalog(Handle<CatalogMetadataType> &metadataValue,
-                            CatalogStandardMetadataType &metadataItem,
                             int &metadataCategory, string &errorMessage);
 
   /**
