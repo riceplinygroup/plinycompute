@@ -981,10 +981,10 @@ void PDBCatalog::deleteTempSoFiles(string filePath) {
   }
 }
 
-template <class CatalogMetadataType, class CatalogStandardMetadataType>
+template <class CatalogMetadataType>
 bool PDBCatalog::addMetadataToCatalog(
     pdb::Handle<CatalogMetadataType> &metadataValue,
-    CatalogStandardMetadataType &metadataItem, int &metadataCategory,
+    int &metadataCategory,
     string &errorMessage) {
 
   auto begin = std::chrono::high_resolution_clock::now();
@@ -1510,19 +1510,20 @@ void PDBCatalog::getListOfNodes(
 /* Explicit instantiation for adding Node Metadata to the catalog */
 template bool PDBCatalog::addMetadataToCatalog(
     pdb::Handle<CatalogNodeMetadata> &metadataValue,
-    CatalogStandardNodeMetadata &metadataItem, int &catalogType,
+    int &catalogType,
     string &errorMessage);
 
 /* Explicit instantiation for adding Set Metadata to the catalog */
 template bool
-PDBCatalog::addMetadataToCatalog(pdb::Handle<CatalogSetMetadata> &metadataValue,
-                                 CatalogStandardSetMetadata &metadataItem,
-                                 int &catalogType, string &errorMessage);
+PDBCatalog::addMetadataToCatalog(
+    pdb::Handle<CatalogSetMetadata> &metadataValue,
+    int &catalogType, 
+    string &errorMessage);
 
 /* Explicit instantiation for adding Database Metadata to the catalog */
 template bool PDBCatalog::addMetadataToCatalog(
     pdb::Handle<CatalogDatabaseMetadata> &metadataValue,
-    CatalogStandardDatabaseMetadata &metadataItem, int &catalogType,
+    int &catalogType,
     string &errorMessage);
 
 /* Explicit instantiation for updating Node Metadata in the catalog */

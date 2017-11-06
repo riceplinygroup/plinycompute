@@ -1250,25 +1250,16 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
            << std::to_string(typeIdentifier) << endl;
 
   Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
-  CatalogStandardSetMetadata metadataItem = CatalogStandardSetMetadata();
-
-  // populates object metadata
-  metadataItem.setItemKey(setUniqueId);
-  metadataItem.setItemName(setName);
 
   // gets the Database Id
   int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
   string dbId = pdbCatalog->itemName2ItemId(catalogType, databaseName);
 
-  metadataItem.setDBId(dbId);
-  metadataItem.setDBName(databaseName);
 
   catalogType = PDBCatalogMsgType::CatalogPDBRegisteredObject;
 
   string typeId = std::to_string(typeIdentifier);
 
-  metadataItem.setTypeId(typeId);
-  metadataItem.setTypeName(typeNameStr);
   //*****************New metadata*****************
   // creates Strings
   String setKeyCatalog = String(setUniqueId);
@@ -1298,7 +1289,7 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
   // adds metadata to the catalog if this is a new item,
   // otherwise updates existing metadata
   if (isSetRegistered(dbName, setName) == false) {
-    pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem, catalogType,
+    pdbCatalog->addMetadataToCatalog(metadataObject, catalogType,
                                      errMsg);
   } else {
     pdbCatalog->updateMetadataInCatalog(metadataObject, catalogType, errMsg);
@@ -1462,17 +1453,14 @@ bool CatalogServer::addDatabase(std::string databaseName, std::string &errMsg) {
   Handle<CatalogDatabaseMetadata> metadataObject =
       makeObject<CatalogDatabaseMetadata>();
 
-  CatalogStandardDatabaseMetadata metadataItem =
-      CatalogStandardDatabaseMetadata();
 
   // populates object metadata
-  metadataItem.setItemName(databaseName);
   String dbName = String(databaseName);
   metadataObject->setItemName(dbName);
 
   // adds Metadata into the Catalog
   if (isDatabaseRegistered(databaseName) == false) {
-    pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem, catalogType,
+    pdbCatalog->addMetadataToCatalog(metadataObject, catalogType,
                                      errMsg);
   } else {
     pdbCatalog->updateMetadataInCatalog(metadataObject, catalogType, errMsg);
@@ -1766,11 +1754,10 @@ bool CatalogServer::addNodeMetadata(Handle<CatalogNodeMetadata> &nodeMetadata,
   int metadataCategory = PDBCatalogMsgType::CatalogPDBNode;
   Handle<CatalogNodeMetadata> metadataObject =
       makeObject<CatalogNodeMetadata>();
-  CatalogStandardNodeMetadata metadataItem = CatalogStandardNodeMetadata();
 
   *metadataObject = *nodeMetadata;
 
-  pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem,
+  pdbCatalog->addMetadataToCatalog(metadataObject,
                                    metadataCategory, errMsg);
 
   PDB_COUT << "Node metadata was properly registered in the Catalog!" << endl;
@@ -1793,12 +1780,9 @@ bool CatalogServer::addDatabaseMetadata(
   Handle<CatalogDatabaseMetadata> metadataObject =
       makeObject<CatalogDatabaseMetadata>();
 
-  CatalogStandardDatabaseMetadata metadataItem =
-      CatalogStandardDatabaseMetadata();
-
   *metadataObject = *dbMetadata;
 
-  pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem,
+  pdbCatalog->addMetadataToCatalog(metadataObject,
                                    metadataCategory, errMsg);
 
   // after it registered the Database metadata in the local catalog, if this is
@@ -1894,14 +1878,13 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
 
   int metadataCategory = PDBCatalogMsgType::CatalogPDBSet;
   Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
-  CatalogStandardSetMetadata metadataItem = CatalogStandardSetMetadata();
 
   *metadataObject = *setMetadata;
 
   auto beforeaddMetaToCat = std::chrono::high_resolution_clock::now();
 
   PDB_COUT << "Adding set metadata for set " << setName << endl;
-  pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem,
+  pdbCatalog->addMetadataToCatalog(metadataObject, 
                                    metadataCategory, errMsg);
 
   auto afteraddMetToCat = std::chrono::high_resolution_clock::now();
