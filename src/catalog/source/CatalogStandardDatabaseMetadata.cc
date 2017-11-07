@@ -205,31 +205,12 @@ string CatalogStandardDatabaseMetadata::printShort() {
   string spaces("");
   output = "   \nDB ";
   output.append(getItemId().c_str()).append(":").append(getItemKey().c_str());
-  //.append(" has (").append(to_string(getListOfSets().size())).append(") sets:
-  //[ ");
-  //            for (int i=0; i < getListOfSets().size(); i++){
-  //                if (i>0) output.append(",
-  //                ").append(spaces).append((*getListOfSets())[i].c_str());
-  //                else output.append((*getListOfSets())[i].c_str());
-  //            }
-  //            output.append(" ]");
-  //            for (auto &item : (*nodesInDB)){
-  //                output.append("\n -Set:
-  //                ").append(item.first.c_str()).append(" is stored in
-  //                (").append(to_string(item.second.size())).append(") Nodes: [
-  //                ");
-  //                for (int i=0; i < item.second.size(); i++){
-  //                    if (i>0) output.append(",
-  //                    ").append(spaces).append(item.second[i].c_str());
-  //                    else output.append(item.second[i].c_str());
-  //                }
-  //            }
-  //            output.append(" ]");
 
   int i = 0;
   output.append("\n is stored in (")
       .append(to_string(nodesInDB.size()))
       .append(")nodes: [ ");
+
   for (auto &item : nodesInDB) {
     if (i > 0)
       output.append(", ").append(spaces).append(item.first);
@@ -242,6 +223,7 @@ string CatalogStandardDatabaseMetadata::printShort() {
       .append(to_string(setsInDB.size()))
       .append(")sets: [ ");
   i = 0;
+
   for (auto &item : setsInDB) {
     if (i > 0)
       output.append(", ").append(spaces).append(item.first.c_str());
