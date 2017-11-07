@@ -345,7 +345,7 @@ class Customer : public Object {
 
 \vspace{5pt}
 \noindent
-\textbf{Implementation and Experiments.} We then run two computations over the resulting set of \texttt{Customer} objects.  
+\textbf{Implementation and Experiments.} We then ran two computations over the resulting set of \texttt{Customer} objects.  
 The first computation is the \emph{customers per supplier} computation where we
 compute, for each supplier,
 the complete list of \texttt{partkey}s that the supplier has sold to each of the supplier's customer's.
@@ -374,9 +374,9 @@ Note that since the objects are all highly nested, it was not possible to develo
 Dataset or Dataframe implementation, and so our Spark implementation made use of Spark's RDD interface.  All
 implementation was done in Java.  Since Spark makes use of lazy evaluation, it is not possible to collect a timing
 for this computation unless we actually \emph{do} something with the result.  So in both the PC and the Spark computations
-we add a final count of the number of customers in each \texttt{Map} in each \texttt{SupplierInfo} object.
+we added a final count of the number of customers in each \texttt{Map} in each \texttt{SupplierInfo} object.
 
-The second computation run over the denormalizd TPC-H schema is the \emph{top-k closest customer part sets} computation.
+The second computation ran over the denormalizd TPC-H schema is the \emph{top-k closest customer part sets} computation.
 In this computation, 
 for a given
 \texttt{Customer} object, we go through all of the associated 
@@ -412,7 +412,7 @@ an RDD storing \texttt{Customer} objects (thus ensuring full deserialization) be
 All data were
 serialized using Kryo, and parameters such as data partition size and parallelism are fully tuned to obtain
 optimal performance. 
-For PC, we run only one version of the computation, where the various \texttt{Customer} objects are stored in
+For PC, we ran only one version of the computation where the various \texttt{Customer} objects are stored in
 PC's storage system.
 
 

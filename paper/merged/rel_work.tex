@@ -16,8 +16,7 @@ high-level programming languages such as Java and Scala  ~\cite{dean2008mapreduc
   alexandrov2014stratosphere, klonatos2014building,
   crotty2015tupleware, armbrust2015spark} which rely on a managed
 runtime such as the JVM for object (de-)allocation and memory and virtual function call management. Numerous papers
-have looked at the problem of mitigating the costs incurred
-works propose techniques aiming at
+have looked at the problem of mitigating the costs incurred, and propose techniques aiming at
 reducing the overhead incurred by the managed runtime.  Ideas examined include
 code generation, garbage collector (GC) tuning, and the
 use of off-heap memory and structured objects.
@@ -32,7 +31,6 @@ overheads. DryadLinq~\cite{yu2008dryadlinq} allows a user to express
 distributed data flow
 computations in a high-level language like C\# and strongly typed .NET
 objects, and it compiles those computations into .NET assembler.
-the cluster. 
 % Chris note: comparing with a relational system seems out of place
 % Hyper~\cite{neumann2011efficiently} is a relational system,
 % and it proposes a code
@@ -78,7 +76,7 @@ memory manager and receives a corresponding set of byte arrays as memory segment
 Each operation will then have its own memory pool that it can manually
 manage. 
 Apache SparkSQL~\cite{armbrust2015spark} serializes 
-relational table into byte arrays and stores the serialized bytes
+relational tables into byte arrays and stores the serialized bytes
 in a main-memory columnar storage. Spark Tungsten~\cite{tungsten}
 optimizes the Spark execution backend by grouping execution
 data (such as hashed aggregation data) 
