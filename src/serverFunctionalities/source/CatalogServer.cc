@@ -100,17 +100,16 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         bool res =
             getFunctionality<CatalogServer>().addNodeMetadata(request, errMsg);
 
-        // make the response
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle<SimpleRequestResult> response =
             makeObject<SimpleRequestResult>(res, errMsg);
 
-        // return the result
+        // sends result to requester
         res = sendUsingMe->sendObject(response, errMsg);
         return make_pair(res, errMsg);
       }));
 
-  // handles a request to register or update metadata of a Database in the
+  // handles a request to register or update metadata for a Database in the
   // catalog
   forMe.registerHandler(
       CatalogDatabaseMetadata_TYPEID,
@@ -139,12 +138,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                   request, errMsg);
             }
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -164,14 +162,12 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         bool res =
             getFunctionality<CatalogServer>().addSetMetadata(request, errMsg);
 
-        // make the response
         const UseTemporaryAllocationBlock tempBlock{1024};
 
-        // adds metadata
         Handle<SimpleRequestResult> response =
             makeObject<SimpleRequestResult>(res, errMsg);
 
-        // return the result
+        // sends result to requester
         res = sendUsingMe->sendObject(response, errMsg);
         return make_pair(res, errMsg);
       }));
@@ -189,10 +185,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
         PDB_COUT << "--->Testing CatalogPrintMetadata handler with timeStamp "
                  << itemToPrint->getTimeStamp().c_str() << endl;
-        bool res = getFunctionality<CatalogServer>().printCatalog(itemToPrint);
 
-        // return the result
-        res = sendUsingMe->sendObject(itemToPrint, errMsg);
+        getFunctionality<CatalogServer>().printCatalog(itemToPrint);
+
+        // sends result to requester
+        bool res = sendUsingMe->sendObject(itemToPrint, errMsg);
         return make_pair(res, errMsg);
       }));
 
@@ -217,12 +214,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                         std::to_string(typeID)
                  << endl;
 
-        // make the result
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle<CatTypeSearchResult> response =
             makeObject<CatTypeSearchResult>(typeID);
 
-        // return the result
+        // sends result to requester
         std::string errMsg;
         bool res = sendUsingMe->sendObject(response, errMsg);
         return make_pair(res, errMsg);
@@ -270,7 +266,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               memmove(response->c_ptr(), (*putResultHere).data(),
                       (*putResultHere).size());
 
-              // sends the bytes to the caller
+              // sends result to requester
               res = sendUsingMe->sendObject(response, errMsg);
             }
 
@@ -296,15 +292,12 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         string typeName = request->getTypeLibraryName();
         int16_t typeId = 0;
         // if typeName is empty we are searching by typeId, hence retrieves the
-        // typeId from the
-        // request object
+        // typeId from the request object
         if (typeName.empty() == true) {
           typeId = request->getTypeLibraryId();
         } else {
           // if a typeName is provided, we are searching by that name, so first
-          // we have to
-          // retrieve
-          // the typeID, given the provided typeName
+          // we have to retrieve the typeID, given the provided typeName
           typeId = allTypeNames[typeName];
         }
 
@@ -327,7 +320,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         // if this is the Master catalog retrieves .so bytes from local catalog
         // copy
         if (this->isMasterCatalogServer == true) {
-          // Allocates 128Mb for sending .so libraries
+          // Allocates 150Mb for sending .so libraries
           const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
           Handle<CatalogUserTypeMetadata> response =
@@ -339,8 +332,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                    << endl;
 
           // if the type is not registered in the Master Catalog just return
-          // with a typeID =
-          // -1
+          // with a typeID = -1
           if (allTypeCodes.count(typeId) == 0) {
 
             const UseTemporaryAllocationBlock tempBlock{1024};
@@ -361,8 +353,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << "  for typeId=" + std::to_string(typeId) << endl;
 
             // the type was found in the catalog, retrieves metadata and bytes
-            // of the Shared
-            // Library
+            // of the Shared Library
             res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                 typeName, response, returnedBytes, errMsg);
 
@@ -376,8 +367,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             PDB_COUT << "ItemKey=" + string(response->getItemKey()) << endl;
 
             // copies the bytes of the Shared Library to the object to be sent
-            // back to the
-            // caller
+            // back to the caller
             response->setLibraryBytes(returnedBytes);
 
             setLib = std::chrono::high_resolution_clock::now();
@@ -390,18 +380,16 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               res = sendUsingMe->sendObject(response, errMsg);
             } else {
               PDB_COUT << "     Sending metadata and bytes to caller!" << endl;
-              // sends result to caller
+              // sends result to requester
               res = sendUsingMe->sendObject(response, errMsg);
             }
           }
         } else {
           // if this is not the Master catalog, retrieves .so bytes from the
-          // remote master
-          // catalog
+          // remote master catalog
           if (allTypeCodes.count(typeId) == 0) {
             // process the case where the type is not registered in this local
-            // catalog
-            // Allocates 150Mb for sending .so libraries
+            // catalog, allocates 150Mb for sending .so libraries
             const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
             Handle<CatalogUserTypeMetadata> response =
@@ -416,13 +404,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << endl;
 
             // uses a dummyObjectFile since this is just making a remote call to
-            // the Catalog
-            // Master Server and what matters is the returned bytes.
+            // the Catalog Master Server and what matters is the returned bytes.
             string dummyObjectFile = string("temp.so");
 
             // retrieves from remote catalog the Shared Library bytes in
-            // "returnedBytes"
-            // and metadata in the "response" object
+            // "returnedBytes" and metadata in the "response" object
             res = catalogClientConnectionToMasterCatalogServer
                       .getSharedLibraryByTypeName(typeId, typeName,
                                                   dummyObjectFile, response,
@@ -434,10 +420,8 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << std::to_string(returnedBytes.size()) << endl;
 
             // if the library was successfully retrieved, go ahead and resolve
-            // vtable fixing
-            // in the local catalog, given the library and metadata retrieved
-            // from the
-            // remote Master Catalog
+            // vtable fixing in the local catalog, given the library and
+            // metadata retrieved from the remote Master Catalog
             if (res == true) {
               res = getFunctionality<CatalogServer>().addObjectType(
                   typeId, returnedBytes, errMsg);
@@ -446,7 +430,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             addObject = std::chrono::high_resolution_clock::now();
 
             if (!res) {
-              // if there was an error report it back to the caller
               PDB_COUT << "     before sending response Vtable not fixed!!!!!!"
                        << endl;
 
@@ -481,7 +464,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               objectToBeSent->setItemName(newTypeName);
               objectToBeSent->setItemKey(newTypeName);
 
-              // sends object
+              // sends result to requester
               res = sendUsingMe->sendObject(objectToBeSent, errMsg);
             } // end retrieval fail/successful
           } else {
@@ -498,8 +481,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << " for typeId=" << std::to_string(typeId) << endl;
 
             // retrieves from local catalog the Shared Library bytes in
-            // "returnedBytes" and
-            // metadata in the "response" object
+            // "returnedBytes" and metadata in the "response" object
             res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                 typeName, response, returnedBytes, errMsg);
 
@@ -517,7 +499,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << string(response->getItemName()) << endl;
 
             if (!res) {
-              // sends error response to caller
+                // sends result to requester
               const UseTemporaryAllocationBlock tempBlock{1024};
               res = sendUsingMe->sendObject(response, errMsg);
             } else {
@@ -579,7 +561,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << " and setName=" << string(request->getSetName())
                      << " is " << std::to_string(typeID) << endl;
 
-            // make the response and send to caller
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<CatTypeNameSearchResult> response;
             if (typeID >= 0)
@@ -589,7 +570,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               response = makeObject<CatTypeNameSearchResult>(
                   "", false, "could not find requested type");
 
-            // return the result
+            // sends result to requester
             std::string errMsg;
             bool res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
@@ -611,12 +592,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             bool res = getFunctionality<CatalogServer>().addDatabase(
                 request->dbToCreate(), errMsg);
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -637,12 +617,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         bool res = getFunctionality<CatalogServer>().addSet(
             request->whichType(), info.first, info.second, errMsg);
 
-        // make the response
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle<SimpleRequestResult> response =
             makeObject<SimpleRequestResult>(res, errMsg);
 
-        // return the result
+        // sends result to requester
         res = sendUsingMe->sendObject(response, errMsg);
         return make_pair(res, errMsg);
       }));
@@ -663,12 +642,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             bool res = getFunctionality<CatalogServer>().deleteDatabase(
                 request->dbToDelete(), errMsg);
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -689,12 +667,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         bool res = getFunctionality<CatalogServer>().deleteSet(
             info.first, info.second, errMsg);
 
-        // make the response
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle<SimpleRequestResult> response =
             makeObject<SimpleRequestResult>(res, errMsg);
 
-        // return the result
+        // sends result to requester
         res = sendUsingMe->sendObject(response, errMsg);
         return make_pair(res, errMsg);
       }));
@@ -717,13 +694,12 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             bool res = getFunctionality<CatalogServer>().addNodeToDB(
                 request->nodeToAdd(), request->whichDB(), errMsg);
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
 
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -747,12 +723,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                 request->nodeToAdd(), request->whichDB(), request->whichSet(),
                 errMsg);
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -776,12 +751,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             bool res = getFunctionality<CatalogServer>().removeNodeFromDB(
                 request->nodeToRemove(), request->whichDB(), errMsg);
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -807,12 +781,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                 request->nodeToRemove(), request->whichDB(),
                 request->whichSet(), errMsg);
 
-            // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -845,12 +818,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             }
             free(memory);
 
-            // create the response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<SimpleRequestResult> response =
                 makeObject<SimpleRequestResult>(res, errMsg);
 
-            // return the result
+            // sends result to requester
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
@@ -868,12 +840,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
         pdbCatalog->closeSQLiteHandler();
 
-        // make the response
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle<SimpleRequestResult> response =
             makeObject<SimpleRequestResult>(true, errMsg);
 
-        // return the result
+        // sends result to requester
         bool res = sendUsingMe->sendObject(response, errMsg);
         return make_pair(res, errMsg);
       }));
@@ -1042,9 +1013,8 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromMasterCatalog,
     int16_t typeCode;
 
     // if the type received is -1 this is a type not registered and we set the
-    // new typeID by
-    // increasing by 1, otherwise we use the typeID received from the Master
-    // Catalog
+    // new typeID increasing by 1, otherwise we use the typeID received from
+    // the Master Catalog
     if (typeIDFromMasterCatalog == -1)
       typeCode = 8192 + allTypeNames.size();
     else
@@ -1056,11 +1026,9 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromMasterCatalog,
     allTypeNames[typeName] = typeCode;
     allTypeCodes[typeCode] = typeName;
 
-    // and update the catalog file
     vector<string> typeNames;
     vector<int> typeCodes;
 
-    // get the two vectors to add
     for (auto &pair : allTypeNames) {
       typeNames.push_back(pair.first);
       typeCodes.push_back(pair.second);
@@ -1153,10 +1121,8 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
   }
 
   // after it updated the database metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the update to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // update to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // map to capture the results of broadcasting the Set deletion
     map<string, pair<bool, string>> updateResults;
@@ -1165,8 +1131,7 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
         makeObject<CatDeleteSetRequest>(databaseName, setName);
 
     // first, broadcasts the metadata of the removed set to all copies of the
-    // catalog
-    // in the cluster, removing this Set
+    // catalog in the cluster, removing this Set
     broadcastCatalogDelete(setToRemove, updateResults, errMsg);
 
     for (auto &item : updateResults) {
@@ -1181,8 +1146,7 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
     map<string, pair<bool, string>> updateSetResults;
 
     // second, broadcasts the metadata of the DB to which this set has been
-    // removed from,
-    // updating all distributed copies of the catalog
+    // removed from, updating all distributed copies of the catalog
     broadcastCatalogUpdate(dbMetadataObject, updateSetResults, errMsg);
 
     for (auto &item : updateSetResults) {
@@ -1260,7 +1224,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
 
   string typeId = std::to_string(typeIdentifier);
 
-  //*****************New metadata*****************
   // creates Strings
   String setKeyCatalog = String(setUniqueId);
   String setNameCatalog = String(setName);
@@ -1339,17 +1302,14 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
   auto broadCast2 = afterUpdateMeta;
 
   // after it updated the database metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the update to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // update to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // map to capture the results of broadcasting the Set insertion
     map<string, pair<bool, string>> updateResults;
 
     // first, broadcasts the metadata of the new set to the distributed copies
-    // of the catalog
-    // updating metaddata of the new Set
+    // of the catalog updating metaddata of the new Set
     broadcastCatalogUpdate(metadataObject, updateResults, errMsg);
     broadCast1 = std::chrono::high_resolution_clock::now();
 
@@ -1365,8 +1325,7 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
     map<string, pair<bool, string>> updateSetResults;
 
     // second, broadcasts the metadata of the DB to which this set has been
-    // added,
-    // updating the distributed copies of the catalog
+    // added, updating the distributed copies of the catalog
     broadcastCatalogUpdate(dbMetadataObject, updateSetResults, errMsg);
     broadCast2 = std::chrono::high_resolution_clock::now();
 
@@ -1467,10 +1426,8 @@ bool CatalogServer::addDatabase(std::string databaseName, std::string &errMsg) {
   }
 
   // after it registered the database metadata in the local catalog, if this is
-  // the master
-  // catalog iterate over all nodes in the cluster and broadcast the update to
-  // the
-  // distributed copies of the catalog
+  // the master catalog iterate over all nodes in the cluster and broadcast the
+  // update to the distributed copies of the catalog
   if (isMasterCatalogServer) {
 
     // get the results of each broadcast
@@ -1534,10 +1491,8 @@ bool CatalogServer::deleteDatabase(std::string databaseName,
   }
 
   // after it deleted the database metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the update to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // update to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
@@ -1616,6 +1571,7 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
   if (pdbCatalog->getMetadataFromCatalog(
           false, emptyString, _udfsValues, errMsg,
           PDBCatalogMsgType::CatalogPDBRegisteredObject) == false)
+
     PDB_COUT << errMsg << endl;
 
   for (int i = 0; i < (*_udfsValues).size(); i++) {
@@ -1631,14 +1587,12 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
   if (pdbCatalog->getMetadataFromCatalog(
           false, emptyString, _allDatabases, errMsg,
           PDBCatalogMsgType::CatalogPDBDatabase) == false)
+
     PDB_COUT << errMsg << endl;
 
   for (int i = 0; i < (*_allDatabases).size(); i++) {
-
     string _dbName = (*_allDatabases)[i].getItemKey().c_str();
-
     for (int j = 0; j < (*(*_allDatabases)[i].getListOfSets()).size(); j++) {
-
       string _setName = (*(*_allDatabases)[i].getListOfSets())[j].c_str();
       string _typeName = (*(*_allDatabases)[i].getListOfTypes())[j].c_str();
 
@@ -1664,6 +1618,7 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
   if (pdbCatalog->getMetadataFromCatalog(
           false, emptyString, _allNodesInCluster, errMsg,
           PDBCatalogMsgType::CatalogPDBNode) == false)
+
     PDB_COUT << errMsg << endl;
 
   for (int i = 0; i < (*_allNodesInCluster).size(); i++) {
@@ -1694,7 +1649,7 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
 
 // invokes a method to retrieve metadata that has changed since a given
 // timestamp
-bool CatalogServer::printCatalog(
+void CatalogServer::printCatalog(
     Handle<CatalogPrintMetadata> &metadataToPrint) {
 
   string itemKey = metadataToPrint->getItemName().c_str();
@@ -1726,13 +1681,6 @@ bool CatalogServer::printCatalog(
 
   metadataToPrint->setMetadataToPrint(resultToPrint);
 
-  // pdbCatalog->getModifiedMetadata(metadataToPrint);
-  // cout << "************Objects************" << endl;
-  // VTableMap::listVtableLabels();
-  // PDB_COUT << "************VTablePtrs************" << endl;
-  // VTableMap::listVtableEntries();
-  // cout << "************End************" << endl;
-  return true;
 }
 
 // add metadata about a Node in the cluster
@@ -1786,10 +1734,8 @@ bool CatalogServer::addDatabaseMetadata(
                                    metadataCategory, errMsg);
 
   // after it registered the Database metadata in the local catalog, if this is
-  // the master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
+  // the master catalog iterate over all nodes in the cluster and broadcast the
+  // insert to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
@@ -1826,10 +1772,8 @@ bool CatalogServer::updateDatabaseMetadata(
   pdbCatalog->updateMetadataInCatalog(metadataObject, metadataCategory, errMsg);
 
   // after it updates the Database metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // insert to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
@@ -1892,10 +1836,8 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
   auto afterBroadCatUpdate = afteraddMetToCat;
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // insert to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
@@ -2027,10 +1969,8 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
   auto afterUpdateDB = std::chrono::high_resolution_clock::now();
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // insert to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     PDB_COUT << "About to broadcast addition of node to set in the cluster: "
              << endl;
@@ -2146,10 +2086,8 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
   }
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
+  // mastervcatalog iterate over all nodes in the cluster and broadcast the
+  // insert to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     PDB_COUT << "About to broadcast addition of node to set in the cluster: "
              << endl;
@@ -2158,8 +2096,7 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
     map<string, pair<bool, string>> updateSetResults;
 
     // second, broadcasts the metadata of the DB to which this set has been
-    // added,
-    // updating all distributed copies of the catalog in the cluster
+    // added, updating all distributed copies of the catalog in the cluster
     if (broadcastCatalogUpdate(dbMetadataObject, updateSetResults, errMsg)) {
       PDB_COUT << " Broadcasting DB updated Ok. " << endl;
     } else {
@@ -2236,17 +2173,14 @@ bool CatalogServer::removeNodeFromSet(std::string nodeIP,
   }
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master
-  // catalog iterate over all nodes in the cluster and broadcast the insert to
-  // the
-  // distributed copies of the catalog
+  // master catalog iterate over all nodes in the cluster and broadcast the
+  // insert to the distributed copies of the catalog
   if (isMasterCatalogServer) {
     // map to capture the results of broadcasting the Set insertion
     map<string, pair<bool, string>> updateResults;
 
     // first, broadcasts the metadata of the new set to all local copies of the
-    // catalog
-    // in the cluster, inserting the new item
+    // catalog in the cluster, inserting the new item
     broadcastCatalogUpdate(dbMetadataObject, updateResults, errMsg);
 
     for (auto &item : updateResults) {
@@ -2261,8 +2195,7 @@ bool CatalogServer::removeNodeFromSet(std::string nodeIP,
     map<string, pair<bool, string>> updateSetResults;
 
     // second, broadcasts the metadata of the DB to which this set has been
-    // added,
-    // updating all local copies of the catalog in the cluster
+    // added, updating all local copies of the catalog in the cluster
     broadcastCatalogUpdate(dbMetadataObject, updateSetResults, errMsg);
 
     for (auto &item : updateSetResults) {
@@ -2308,7 +2241,6 @@ bool CatalogServer::broadcastCatalogUpdate(
     CatalogClient clusterCatalogClient =
         CatalogClient(nodePort, nodeIP, catalogLogger);
 
-    // TODO new mechanism for identifying the master node not based on the name!
     if (string(item.second.getNodeType().c_str()).compare("master") != 0) {
 
       auto beforeRegGeneric = std::chrono::high_resolution_clock::now();
@@ -2365,7 +2297,6 @@ bool CatalogServer::broadcastCatalogDelete(
     CatalogClient clusterCatalogClient =
         CatalogClient(nodePort, nodeIP, catalogLogger);
 
-    // TODO new mechanism for identifying the master node not based on the name!
     if (string(item.second.getNodeType().c_str()).compare("master") != 0) {
 
       // sends the request to a node in the cluster
@@ -2409,8 +2340,10 @@ bool CatalogServer::isNodeRegistered(string nodeIP) {
   return pdbCatalog->keyIsFound(catalogType, nodeIP, result);
 }
 
-// checks if this is a Master Catalog
-bool CatalogServer::getIsMasterCatalogServer() { return isMasterCatalogServer; }
+// checks if this is the Master Catalog
+bool CatalogServer::getIsMasterCatalogServer() {
+  return isMasterCatalogServer;
+}
 
 // sets this as a Master (true) or Worker (false) Catalog
 void CatalogServer::setIsMasterCatalogServer(bool isMasterCatalogServerIn) {
@@ -2420,13 +2353,17 @@ void CatalogServer::setIsMasterCatalogServer(bool isMasterCatalogServerIn) {
 /* Explicit instantiation to broadcast Catalog Updates for a Node */
 template bool CatalogServer::broadcastCatalogUpdate(
     Handle<CatalogNodeMetadata> metadataToSend,
-    map<string, pair<bool, string>> &broadcastResults, string &errMsg);
+    map<string, pair<bool, string>> &broadcastResults,
+    string &errMsg);
 
 /* Explicit instantiation to broadcast Catalog Updates for a Database */
 template bool CatalogServer::broadcastCatalogUpdate(
     Handle<CatalogDatabaseMetadata> metadataToSend,
-    map<string, pair<bool, string>> &broadcastResults, string &errMsg);
+    map<string, pair<bool, string>> &broadcastResults,
+    string &errMsg);
+
 /* Explicit instantiation to broadcast Catalog Updates for a Set */
 template bool CatalogServer::broadcastCatalogUpdate(
     Handle<CatalogSetMetadata> metadataToSend,
-    map<string, pair<bool, string>> &broadcastResults, string &errMsg);
+    map<string, pair<bool, string>> &broadcastResults,
+    string &errMsg);

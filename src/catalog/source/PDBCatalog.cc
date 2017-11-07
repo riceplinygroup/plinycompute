@@ -227,8 +227,7 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
   }
 
   // Creates a location folder for storing the sqlite file containing metadata
-  // for this PDB
-  // instance.
+  // for this PDB instance.
   // If location exists, only opens it.
   if (mkdir(catalogPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
     PDB_COUT << "Catalog folder " << catalogPath
@@ -260,8 +259,7 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
   catalogContents = makeObject<Map<String, Handle<Vector<Object>>>>();
 
   // Populates a map to convert strings from PDBObject names to SQLite table
-  // names
-  // in order to create query strings
+  // names in order to create query strings
   mapsPDBOjbect2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBNode, "pdb_node"));
   mapsPDBOjbect2SQLiteTable.insert(
@@ -276,8 +274,7 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
       make_pair(PDBCatalogMsgType::CatalogPDBRegisteredObject, "data_types"));
 
   // Populates a map to convert strings from Vector<PDBOjbect> names to SQLite
-  // table names
-  // in order to create query strings
+  // table names in order to create query strings
   mapsPDBArrayOjbect2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBNode, "pdb_node"));
   mapsPDBArrayOjbect2SQLiteTable.insert(
@@ -321,13 +318,19 @@ void PDBCatalog::closeSQLiteHandler() {
   sqlite3_close_v2(sqliteDBHandler);
 }
 
-void PDBCatalog::setCatalogVersion(string version) { catalogVersion = version; }
+void PDBCatalog::setCatalogVersion(string version) {
+  catalogVersion = version;
+}
 
-string PDBCatalog::getCatalogVersion() { return catalogVersion; }
+string PDBCatalog::getCatalogVersion() {
+  return catalogVersion;
+}
 
-bool PDBCatalog::getSerializedCatalog(string fileName, string version,
-                                      string &returnedBytes,
-                                      string &errorMessage) {
+bool PDBCatalog::getSerializedCatalog(
+  string fileName,
+  string version,
+  string &returnedBytes,
+  string &errorMessage) {
 
   errorMessage = "";
 
@@ -364,15 +367,13 @@ void PDBCatalog::open() {
 
     query = std::chrono::high_resolution_clock::now();
     // These two SQLite flags optimize insertions/deletions/updates to the
-    // tables by buffering
-    // data prior to writing to disk
+    // tables by buffering data prior to writing to disk
     sqlite3_exec(sqliteDBHandler, "PRAGMA synchronous=OFF", NULL, NULL, NULL);
     sqlite3_exec(sqliteDBHandler, "PRAGMA journal_mode=memory", NULL, NULL,
                  NULL);
 
     // Create tables if they don't exist, they are created with primary key to
-    // prevent
-    // duplicates
+    // prevent duplicates
     catalogSqlQuery(
         "CREATE TABLE IF NOT EXISTS data_types (itemID TEXT PRIMARY KEY, "
         "itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
@@ -400,10 +401,10 @@ void PDBCatalog::open() {
     // Loads into memory all metadata so the CatalogServer can access them
     loadsMetadataIntoMemory();
 
-    PDB_COUT << "Database catalog successfully open." << endl;
+    PDB_COUT << "Catalog database successfully open." << endl;
 
   } else {
-    // cout << "EXISTS!!! " << endl;
+    PDB_COUT << "Error opening catalog database." << endl;
   }
 
   auto end = std::chrono::high_resolution_clock::now();
@@ -440,71 +441,96 @@ void PDBCatalog::loadsMetadataIntoMemory() {
   string emptyString("");
 
   // retrieves metadata from the SQLite DB and populates containers
-  if (getMetadataFromCatalog(false, emptyString, registeredNodesMetadata,
+  if (getMetadataFromCatalog(false,
+                             emptyString,
+                             registeredNodesMetadata,
                              errorMessage,
                              PDBCatalogMsgType::CatalogPDBNode) == false)
-    this->logger->debug(errorMessage);
+
+      this->logger->debug(errorMessage);
 
   (*catalogContents)[String("nodes")] =
       unsafeCast<Vector<Object>>(registeredNodesMetadata);
 
-  if (getMetadataFromCatalog(false, emptyString, registeredSetsMetadata,
+  if (getMetadataFromCatalog(false,
+                             emptyString,
+                             registeredSetsMetadata,
                              errorMessage,
                              PDBCatalogMsgType::CatalogPDBSet) == false)
-    this->logger->debug(errorMessage);
+
+      this->logger->debug(errorMessage);
 
   (*catalogContents)[String("sets")] =
       unsafeCast<Vector<Object>>(registeredSetsMetadata);
 
-  if (getMetadataFromCatalog(false, emptyString, registeredDatabasesMetadata,
+  if (getMetadataFromCatalog(false,
+                             emptyString,
+                             registeredDatabasesMetadata,
                              errorMessage,
                              PDBCatalogMsgType::CatalogPDBDatabase) == false)
-    this->logger->debug(errorMessage);
+
+      this->logger->debug(errorMessage);
 
   (*catalogContents)[String("dbs")] =
       unsafeCast<Vector<Object>>(registeredDatabasesMetadata);
 
-  if (getMetadataFromCatalog(
-          false, emptyString, registeredUserDefinedTypesMetadata, errorMessage,
-          PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
+  if (getMetadataFromCatalog(false,
+                             emptyString,
+                             registeredUserDefinedTypesMetadata,
+                             errorMessage,
+                             PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
 
     (*catalogContents)[String("udfs")] =
         unsafeCast<Vector<Object>>(registeredUserDefinedTypesMetadata);
 
     // populates maps
+    // retrieves databases metadata
     for (int i = 0; i < (*registeredDatabasesMetadata).size(); i++) {
-      this->logger->debug(
-          "RETRIEVING db " +
-          string((*registeredDatabasesMetadata)[i].getItemKey()) + " | " +
-          string((*registeredDatabasesMetadata)[i].getItemName()));
+      PDB_COUT << "Retrieving db "
+               << string((*registeredDatabasesMetadata)[i].getItemKey())
+               << " | "
+               << string((*registeredDatabasesMetadata)[i].getItemName())
+               << endl;
+
       registeredDatabases.insert(
           make_pair((*registeredDatabasesMetadata)[i].getItemName().c_str(),
                     (*registeredDatabasesMetadata)[i]));
     }
+
+    // retrieves sets metadata
     for (int i = 0; i < (*registeredSetsMetadata).size(); i++) {
-      this->logger->debug("RETRIEVING set " +
-                          string((*registeredSetsMetadata)[i].getItemKey()) +
-                          " | " +
-                          string((*registeredSetsMetadata)[i].getItemName()));
+      PDB_COUT << "Retrieving set "
+               << string((*registeredSetsMetadata)[i].getItemKey())
+               << " | "
+               << string((*registeredSetsMetadata)[i].getItemName())
+               << endl;
+
       registeredSets.insert(
           make_pair((*registeredSetsMetadata)[i].getItemKey().c_str(),
                     (*registeredSetsMetadata)[i]));
     }
+
+    // retrieves nodes metadata
     for (int i = 0; i < (*registeredNodesMetadata).size(); i++) {
-      this->logger->debug("RETRIEVING node " +
-                          string((*registeredNodesMetadata)[i].getItemKey()) +
-                          " | " +
-                          string((*registeredNodesMetadata)[i].getNodeIP()));
-      registeredNodes.insert(
+      PDB_COUT << "Retrieving node "
+               << string((*registeredNodesMetadata)[i].getItemKey())
+               << " | "
+               << string((*registeredNodesMetadata)[i].getNodeIP())
+               << endl;
+
+       registeredNodes.insert(
           make_pair((*registeredNodesMetadata)[i].getItemKey().c_str(),
                     (*registeredNodesMetadata)[i]));
     }
+
+    // retrieves user-defined types metadata
     for (int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); i++) {
-      this->logger->debug(
-          "RETRIEVING TYPE " +
-          string((*registeredUserDefinedTypesMetadata)[i].getObjectID()) +
-          " | " +
-          string((*registeredUserDefinedTypesMetadata)[i].getItemName()));
+      PDB_COUT << "Retrieving node "
+               << string((*registeredUserDefinedTypesMetadata)[i].getObjectID())
+               << " | "
+               << string((*registeredUserDefinedTypesMetadata)[i].getItemName())
+               << endl;
+
       registeredUserDefinedTypes.insert(make_pair(
           (*registeredUserDefinedTypesMetadata)[i].getItemName().c_str(),
           (*registeredUserDefinedTypesMetadata)[i]));
@@ -528,8 +554,8 @@ void PDBCatalog::loadsMetadataIntoMemory() {
 
 void PDBCatalog::getModifiedMetadata(
     Handle<CatalogPrintMetadata> &itemMetadata) {
-  string errorMessage;
 
+  string errorMessage;
   string dateAsString = itemMetadata->getTimeStamp().c_str();
 
   Handle<Vector<CatalogNodeMetadata>> _registeredNodesMetadata =
@@ -568,6 +594,7 @@ void PDBCatalog::getModifiedMetadata(
           << " | "
           << string((*_registeredUserDefinedTypesMetadata)[i].getObjectID())
           << endl;
+
       registeredUserDefinedTypes.insert(make_pair(
           (*_registeredUserDefinedTypesMetadata)[i].getItemName().c_str(),
           (*_registeredUserDefinedTypesMetadata)[i]));
@@ -629,9 +656,10 @@ void PDBCatalog::printsAllCatalogMetadata(std::string &outputString, std::string
 /* Lists the Nodes registered in the catalog. */
 void PDBCatalog::listNodesInCluster(std::string &outputString,
                                     std::string &errMsg) {
-    outputString +=  "\nI. Nodes in Cluster (" +
-          std::to_string((int)(*registeredNodesMetadata).size()) +
-          ")\n";
+
+    outputString += "\nI. Nodes in Cluster ("
+                 +  std::to_string((int)(*registeredNodesMetadata).size())
+                 +  ")\n";
 
   for (int i = 0; i < (*registeredNodesMetadata).size(); i++) {
     outputString += (*registeredNodesMetadata)[i].printShort() + "\n";
@@ -642,9 +670,10 @@ void PDBCatalog::listNodesInCluster(std::string &outputString,
 /* Lists the Databases registered in the catalog. */
 void PDBCatalog::listRegisteredDatabases(std::string &outputString,
                                          std::string &errMsg) {
-  outputString +=  "\nII. Databases (" +
-      std::to_string((int)(*registeredDatabasesMetadata).size()) +
-      ")\n";
+
+  outputString += "\nII. Databases ("
+               +  std::to_string((int)(*registeredDatabasesMetadata).size())
+               +  ")\n";
 
   for (int i = 0; i < (*registeredDatabasesMetadata).size(); i++) {
     outputString += (*registeredDatabasesMetadata)[i].printShort() + "\n";
@@ -657,9 +686,9 @@ void PDBCatalog::listRegisteredSetsForADatabase(std::string databaseName,
                                                 std::string &outputString,
                                                 std::string &errMsg) {
 
-  outputString +=  "\nSets (" +
-        std::to_string((int)(*registeredSetsMetadata).size()) +
-        ")\n";
+  outputString += "\nSets ("
+               +  std::to_string((int)(*registeredSetsMetadata).size())
+               +  ")\n";
 
   for (int i = 0; i < (*registeredSetsMetadata).size(); i++) {
     outputString += (*registeredSetsMetadata)[i].printShort() + "\n";
@@ -671,9 +700,9 @@ void PDBCatalog::listRegisteredSetsForADatabase(std::string databaseName,
 void PDBCatalog::listUserDefinedTypes(std::string &outputString,
                                       std::string &errMsg) {
 
-    outputString +=  "\nIII. User-defined types (" +
-          std::to_string((int)(*registeredUserDefinedTypesMetadata).size()) +
-          ")\n";
+    outputString += "\nIII. User-defined types ("
+                 +  std::to_string((int)(*registeredUserDefinedTypesMetadata).size())
+                 +  ")\n";
 
   for (int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); i++) {
     outputString +=
@@ -696,9 +725,9 @@ bool PDBCatalog::getMetadataFromCatalog(
 
   string queryString = "SELECT itemID, itemInfo, timeStamp from " +
                        mapsPDBArrayOjbect2SQLiteTable[metadataCategory];
+
   // if empty string then retrieves all items in the table, otherwise only the
-  // item with the
-  // given key
+  // item with the given key
   if (onlyModified == true)
     queryString.append(" where timeStamp > ").append(key).append("");
   else if (key != "")
@@ -715,11 +744,12 @@ bool PDBCatalog::getMetadataFromCatalog(
       res = sqlite3_step(statement);
 
       if (res == SQLITE_ROW) {
-
-        // retrieve the serialized record
+        // retrieves the serialized record
         int numBytes = sqlite3_column_bytes(statement, 1);
+
         PDB_COUT << "entry " << sqlite3_column_text(statement, 0)
                  << " timestamp " << sqlite3_column_int(statement, 2) << endl;
+
         Record<CatalogMetadataType> *recordBytes =
             (Record<CatalogMetadataType> *)malloc(numBytes);
 
@@ -758,9 +788,13 @@ bool PDBCatalog::getMetadataFromCatalog(
 }
 
 bool PDBCatalog::registerUserDefinedObject(
-    int16_t typeCode, pdb::Handle<CatalogUserTypeMetadata> &objectToRegister,
-    const string &objectBytes, const string &typeName, const string &fileName,
-    const string &tableName, string &errorMessage) {
+  int16_t typeCode,
+  pdb::Handle<CatalogUserTypeMetadata> &objectToRegister,
+  const string &objectBytes,
+  const string &typeName,
+  const string &fileName,
+  const string &tableName,
+  string &errorMessage) {
 
   bool isSuccess = false;
 
@@ -1192,8 +1226,7 @@ bool PDBCatalog::deleteMetadataInCatalog(
 
   pthread_mutex_lock(&(registerMetadataMutex));
   // gets the key and index for this item in order to update the sqlite table
-  // and
-  // update the container in memory
+  // and update the container in memory
   String metadataKey = metadataValue->getItemKey();
   int metadataIndex = std::atoi(metadataValue->getItemId().c_str());
 
@@ -1461,6 +1494,7 @@ bool PDBCatalog::catalogSqlStep(sqlite3_stmt *stmt, string &errorMsg) {
 void PDBCatalog::getListOfDatabases(
     Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog,
     const string &keyToSearch) {
+
   String searchForKey(keyToSearch);
   this->logger->debug("keyToSearch=" + keyToSearch);
   this->logger->debug("searchForKey=" + string(searchForKey));
@@ -1541,7 +1575,8 @@ template bool PDBCatalog::updateMetadataInCatalog(
     pdb::Handle<CatalogDatabaseMetadata> &metadataValue, int &catalogType,
     string &errorMessage);
 
-/* Explicit instantiation for updating User-defined Type Metadata in the catalog
+/* Explicit instantiation for updating User-defined Type Metadata in the
+ * catalog
  */
 template bool PDBCatalog::updateMetadataInCatalog(
     pdb::Handle<CatalogUserTypeMetadata> &metadataValue, int &catalogType,
