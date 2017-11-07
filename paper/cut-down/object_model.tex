@@ -74,7 +74,7 @@ makeObjectAllocationBlock (ptr, blockSize);
 
 After such a call, \emph{all subsequent PC Object allocations by the thread creating the object allocation block will be performed directly to the memory
 region starting at location} \texttt{ptr}.
-Typically, when it runs a computation, PC's execution engine will obtain a page from its memory pool to buffer output data, calling
+Typically, when it runs a computation, PC's execution engine will obtain a page from its buffer pool to buffer output data, calling
 PC's
 \texttt{makeObjectAllocationBlock()} function with a pointer to the page where output data are to be written.  
 When an action taken by the execution engine or user-supplied code causes an
@@ -218,7 +218,7 @@ PC simply prevents this situation from ever happening. Whenever an assignment op
 in the active allocation block results in that
 \texttt{Handle} pointing outside of the block, a deep copy of the target of the assignment
 is automatically performed.  This deep copy happens recursively, so any \texttt{Handle}s in the copied object that point outside of the active allocation block
-have \emph{their} targets deep copied to the active block.  For example, consider the following code:
+have \emph{their} targets deep-copied to the active block.  For example, consider the following code:
 
 \begin{codesmall}
 makeObjectAllocatorBlock (1024 * 1204);

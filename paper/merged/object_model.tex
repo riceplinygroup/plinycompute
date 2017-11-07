@@ -73,7 +73,7 @@ makeObjectAllocationBlock (ptr, blockSize);
 
 After such a call, \emph{all subsequent PC Object allocations by the thread creating the object allocation block will be performed directly to the memory
 region starting at location} \texttt{ptr}.
-Typically, when it runs a computation, PC's execution engine will obtain a page from its memory pool to buffer output data, calling
+Typically, when it runs a computation, PC's execution engine will obtain a page from its buffer pool to buffer output data, calling
 PC's
 \texttt{makeObjectAllocationBlock ()} function with a pointer to the page where output data are to be written.  
 When an action taken by the execution engine or user-supplied code causes an
@@ -84,12 +84,15 @@ No serialization or deserialization or any sort of post-processing of the page a
 because all object allocations have taken place exclusively to the current allocation block.  
 
 In order to guarantee zero-cost data movement,
-one rule that a PC programmer must follow is that any object that will be loaded into the cloud must either be of a ``simple'' type (a simple type
-must contain no raw C-style pointers and no member variables that contain pointers, including no 
+one rule that a PC programmer must follow is that any object that will
+be loaded into a distributed PC cluster must either be of a ``simple'' type (a simple type
+must contain no raw C-style pointers and no 
 virtual functions, and a \texttt{memmove}
 must suffice to copy the object), or else it must descend from PC's \texttt{Object} class, which serves as the base for all complex object types.
 Complex objects are those that include containers (\texttt{Vector}, \texttt{Map}) or pointer-like \texttt{Handle} objects.  Descending from PC's \texttt{Object} class
-ensures that the resulting class type has a set of virtual functions that allow it to be manipulated in the cloud, 
+ensures that the resulting class type has a set of virtual functions
+that allow it to be manipulated in and transferred across the
+distributed PC cluster, 
 such as a virtual deep copy function.  
 
 \subsection{PC Handles}
@@ -101,7 +104,7 @@ For example, a PC programmer
 can issue the statement:
 
 \begin{code}
-Handle <SparseSubMatrix> mySubMatrix = makeObject <SparseSubMatrix> ();
+Handle <MatrixBlock> mySubMatrix = makeObject <MatrixBlock> ();
 \end{code}
 
 Internally, PC \texttt{Handle} objects contain two pieces of data: an \emph{offset pointer} that tells how far
@@ -112,11 +115,12 @@ object that is pointed to.
 PC uses an offset pointer rather than a classical, C-style pointer in order to support
 zero-cost data movement.  
 A \texttt{Handle} may begin its life allocated
-to one page, which may be stored on disk, then sent across a network to another process.  At the new process, the pointer
-must function correctly without being repaired or otherwise modified to match the address space of the new process, which can be costly.  
+to one page, which may be stored on disk, then sent across a network
+to another process.  
 An actual C-style pointer
 cannot survive translation from one process to another, as the program will be mapped to a different location in memory.
-In contrast, as long as the target of an offset pointer is stored in the same page, an offset pointer will be valid if the
+In contrast, at the new process, the \texttt{Handle} pointer
+can function correctly. As long as the target of an offset pointer is stored in the same page, an offset pointer will be valid if the
 page is copied in its entirety, including all \texttt{Handle}s and their targets.
 
 \subsection{Dynamic Dispatch}
@@ -146,23 +150,22 @@ A user may run code on his/her machine that creates
 a PC \texttt{Object}, and then ship that PC \texttt{Object} into the cloud.  At the other end, it arrives at a PC process that has never seen that type of object before and hence
 does not have access to a \texttt{vTable} pointer for that class.
 PC addresses this issue by requiring that all classes deriving from PC's \texttt{Object} base class be registered with the PC catalog
-server before they are loaded into the cloud.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
+server before they are loaded into the distributed storage subsystem.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
 the catalog server.  This library exposes a special
 \texttt{getVTablePtr ()} function that returns a C-style raw pointer to the \texttt{vTable} for the class contained
-in the \texttt{.so} file (creating such
-a shared library file is relatively easy for the user, as the \texttt{getVTablePtr ()} function can be created using a macro provided by PC).
+in the \texttt{.so} file.
 
 Whenever there is a \texttt{vTable} pointer lookup, the request first goes to the PC process' \texttt{vTable} lookup table.  When this 
 lookup fails (because the process has not yet seen a \texttt{vTable} pointer for that class
 type) the request then goes to the PC cluster's catalog server, which responds to the process with a copy of the appropriate \texttt{.so} file.  This 
 \texttt{.so} file is then 
 dynamically loaded into the process' address space, \texttt{getVTablePtr ()} is called, 
-and the resulting \texttt{vTable} pointer inserted into the lookup table, and then copied into the PC \texttt{Object} that is being referenced.  
+and the located \texttt{vTable} pointer is loaded into the lookup table, and then copied into the PC \texttt{Object} that is being referenced.  
 
 In this way, PC provides something akin to the automated,
 dynamic loading of classes (via Java Virtual Machine \texttt{.class} files) that is
 provided by most big data systems.  
-Objects of arbitrary type can be loaded into a cloud-based PC system and be processed using dynamically-loaded native code, as long
+Objects of arbitrary type can be loaded into the distributed PC cluster and be processed using dynamically-loaded native code, as long
 as the object type is registered first.
 
 \subsection{Allocation, Deallocation, and Cross-Block Assignment}
@@ -191,7 +194,8 @@ been loaded into RAM from disk or across the network for processing
 during a distributed computation.  Such blocks are paged in and out of the
 buffer pool in much the same way as a relational database would page data in and out.
 Rather than the PC object model being responsible for managing such blocks, PC's execution engine manages such blocks.
-Further, since managed blocks are only managed by their ``home'' thread, a managed block is effectively un-managed when viewed from
+Further, since managed blocks are only managed by the ``home'' thread where
+they are created, a managed block is effectively un-managed when viewed from
 any other thread.
 
 \end{enumerate}
@@ -202,8 +206,7 @@ the number of \texttt{Handle} objects that currently reference the object.
 Un-managed blocks (and objects inside of such blocks) are not reference-counted.
 
 When the reference count on an object in a managed block goes to zero, it is automatically
-deallocated (at least, this is the default behavior; it is possible for a programmer to override this behavior for speed, if desired, as we describe in the
-next full section of the paper).  
+deallocated (at least, this is the default behavior; it is possible for a programmer to override this behavior for speed, if desired, as we describe in Section~\ref{sec:allocation}).  
 Once the number of reachable objects on an inactive, managed allocation block falls to zero, the block is automatically deallocated.  
 In that sense, PC resembles a smart-pointer based memory management system.  
 
@@ -216,7 +219,7 @@ PC simply prevents this situation from ever happening. Whenever an assignment op
 in the active allocation block results in that
 \texttt{Handle} that is physically located in the active allocation block pointing outside of the block, a deep copy of the target of the assignment
 is automatically performed.  This deep copy happens recursively, so any \texttt{Handle}s in the copied object that point outside of the active allocation block
-have \emph{their} targets deep copied to the active block.  For example, consider the following code:
+have \emph{their} targets deep-copied to the active block.  For example, consider the following code:
 
 \begin{code}
 makeObjectAllocatorBlock (1024 * 1204);
@@ -224,7 +227,7 @@ Handle <Vector <double>> data = makeObject <Vector <double>> ();
 for (int i = 0; i < 1000; i++)
      data->push_back (i * 1.0);
 makeObjectAllocatorBlock (1024 * 1204); 
-Handle <SubMatrix> myMatrix = makeObject <SubMatrix> ();
+Handle <MatrixBlock> myMatrix = makeObject <MatrixBlock> ();
 myMatrix->value = data; // deep copy of data happens!!
 \end{code}
 
@@ -233,9 +236,8 @@ inactive.  The submatrix \texttt{myMatrix} is allocated to the new active block.
 Hence, the assignment of \texttt{data} to \texttt{myMatrix->value} is cross-allocation block, and a deep copy automatically happens to ensure that
 the current block is zero-cost copy-able and movable.  
 
-The reader may question whether this actually saves anything.  After
-all, the list of \texttt{double}s is still deep copied, just not at serialization time.
-This is true, but in practice, such cross-block assignments are rare, and a programmer who understands the cost can often avoid them, making sure to allocate
+Such cross-block assignments require deep copies and are expensive,
+but in practice, such they are rare, and a programmer who understands the cost can often avoid them, making sure to allocate
 data that must be kept together to the same block.
 Again, this is in-keeping with PC's design philosophy: trust the ability of the programmer to do the right thing, in the small.
 
@@ -251,8 +253,10 @@ and a block can only be managed by a single thread.
 If a thread copies a \texttt{Handle} object referencing an object housed on another thread's managed block, 
 the reference count will not be changed because from the copying thread's point-of-view, the allocation block is not managed.
 This can, in theory, result in a problematic case where one thread has a \texttt{Handle} to an object that has been deallocated on the other thread (since
-the reference count on the home thread will not be updated to reflect the off-thread reference).  But in practice, it tends not to be a problem.  PC application
-programmers typically do not write explicitly multi-threaded code, so most cross-thread references happen as the result of computations staged by the 
+the reference count on the home thread will not be updated to reflect
+the off-thread reference).  But in practice, it tends not to be a
+problem.  Parallel and distributed processing is transparent to PC application
+programmers, and they typically do not write explicitly multi-threaded code, so most cross-thread references happen as the result of computations staged by the 
 PC execution engine.  The PC execution engine typically uses pages carefully so as to ensure that 
 it is not possible for pages to be unpinned while references to them can still exist.
 
