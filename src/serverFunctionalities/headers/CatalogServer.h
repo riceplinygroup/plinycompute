@@ -143,7 +143,7 @@ public:
 
   /* Print the content of the catalog metadata that have changed since a given
    * timestamp */
-  bool printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint);
+  void printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint);
 
   /* Print the contents of the catalog metadata */
   bool printCatalog();
@@ -180,8 +180,8 @@ public:
                               string &errMsg);
 
   /* Broadcasts a metadata item to all available nodes in a cluster, when an
-   * delete has occurred
-   * returns a map with the results from updating each node in the cluster
+   * delete has occurred returns a map with the results from updating each
+   * node in the cluster
    */
   template <class Type>
   bool broadcastCatalogDelete(Handle<Type> metadataToSend,

@@ -174,7 +174,9 @@ bool CatalogClient::shutDownServer(std::string &errMsg) {
 
 // returns true if this Catalog Client points to the Master Catalog (false
 // otherwise)
-bool CatalogClient::getPointsToMasterCatalog() { return pointsToCatalogMaster; }
+bool CatalogClient::getPointsToMasterCatalog() {
+  return pointsToCatalogMaster;
+}
 
 // sets if this Catalog Client points to the Master Catalog (true), or not
 // (false)
@@ -683,8 +685,7 @@ bool CatalogClient::closeCatalogSQLite(std::string &errMsg) {
 }
 
 // templated method to send a request to the Catalog Server to register Metadata
-// about an Item in
-// the Catalog
+// about an Item in the Catalog
 template <class Type>
 bool CatalogClient::registerGenericMetadata(pdb::Handle<Type> metadataItem,
                                             std::string &errMsg) {
@@ -709,8 +710,7 @@ bool CatalogClient::registerGenericMetadata(pdb::Handle<Type> metadataItem,
 }
 
 // templated method to send a request to the Catalog Server to delete Metadata
-// about an Item in the
-// Catalog
+// about an Item in the Catalog
 template <class Type>
 bool CatalogClient::deleteGenericMetadata(pdb::Handle<Type> metadataItem,
                                           std::string &errMsg) {
@@ -735,19 +735,29 @@ bool CatalogClient::deleteGenericMetadata(pdb::Handle<Type> metadataItem,
 
 /* Explicit instantiation to register various types of Metadata */
 template bool
-CatalogClient::registerGenericMetadata(Handle<CatalogNodeMetadata> metadataItem,
-                                       string &errMsg);
-template bool CatalogClient::registerGenericMetadata(
-    Handle<CatalogDatabaseMetadata> metadataItem, string &errMsg);
+CatalogClient::registerGenericMetadata(
+        Handle<CatalogNodeMetadata> metadataItem,
+        string &errMsg);
+
 template bool
-CatalogClient::registerGenericMetadata(Handle<CatalogSetMetadata> metadataItem,
-                                       string &errMsg);
+CatalogClient::registerGenericMetadata(
+        Handle<CatalogDatabaseMetadata> metadataItem,
+        string &errMsg);
+
+template bool
+CatalogClient::registerGenericMetadata(
+        Handle<CatalogSetMetadata> metadataItem,
+        string &errMsg);
 
 /* Explicit instantiation to delete various types of Metadata */
-template bool CatalogClient::deleteGenericMetadata(
-    Handle<CatDeleteDatabaseRequest> metadataItem, string &errMsg);
 template bool
-CatalogClient::deleteGenericMetadata(Handle<CatDeleteSetRequest> metadataItem,
-                                     string &errMsg);
+CatalogClient::deleteGenericMetadata(
+        Handle<CatDeleteDatabaseRequest> metadataItem,
+        string &errMsg);
+
+template bool
+CatalogClient::deleteGenericMetadata(
+        Handle<CatDeleteSetRequest> metadataItem,
+        string &errMsg);
 }
 #endif
