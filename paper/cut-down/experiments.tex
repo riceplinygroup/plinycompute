@@ -10,7 +10,7 @@ the following questions:
 
 \vspace{5pt}
 \noindent
-(1) How useful is PC for this task for the construction of high-performance Big Data tools and libraries?
+(1) How useful is PC for the construction of high-performance Big Data tools and libraries?
 
 \vspace{2pt}
 \noindent
@@ -404,7 +404,7 @@ closest customer part sets'' computation, $k$ was chosen to be $\frac{1024}{2.4 
 of the data.
 
 For both Spark computations, we performed two runs at each dataset size.
-For the first, we stored the data in HDFS, and measure the time to execute the query starting with a
+For the first, we stored the data in HDFS, and measured the time to execute the query starting with a
 read from HDFS.
 For the second, we made sure that the data were de-serialized and stored in RAM by Spark.
 To do this, we applied a \texttt{distinct().count()} operation to
@@ -643,7 +643,8 @@ amount of work required to arrive at a good solution
 was significant, representing about a week of tuning.  First, among other things, our Spark expert had to force a 
 broadcast join.  Then, it was necessary to force Spark to
 persist the result of one of the joins for later use.  Finally, it was necessary to hand-code a 
-Multinomial sampler (avoiding the use of \texttt{breeze}) to obtain an implementation that was competitive with PC.
+Multinomial sampler (avoiding the use of \texttt{breeze} for
+multinomial sampling) to obtain an implementation that was competitive with PC.
 This last bit of tuning (of course) can't be blamed on Spark, but the experience overall is illustrative: forcing 
 a particular join and forcing a particular persist are \emph{workload specific} optimizations.  They may work for one
 workload but be a poor choice for another, and require a tool end-user to actually change library code to achieve
