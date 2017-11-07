@@ -273,22 +273,6 @@ int main(int numArgs, const char *args[]) {
     }
     cout << "Done.\n";
 
-  } else if (command.compare("retrieve-db") == 0) {
-    std::string databaseName = vm["db-name"].as<std::string>();
-
-    cout << "*********** Printing DB metadata for: "
-         << ((databaseName.compare("") == 0) ? "All" : databaseName) << endl;
-
-    //        if (!catClient.printCatalogMetadata(databaseName, errMsg)) {
-    //                std :: cout << "Not able to print metadata due to error: "
-    //                + errMsg << std
-    //                :: endl;
-    //        } else {
-    //                std :: cout << "List metadata.\n";
-    //        }
-    //
-    //        cout << "Done.\n";
-
   } else if (command.compare("list-catalog") == 0) {
     // Test to retrieve a serialized version of the catalog
 
