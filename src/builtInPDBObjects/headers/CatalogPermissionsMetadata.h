@@ -44,18 +44,13 @@ class CatalogPermissionsMetadata : public Object {
 public:
     ENABLE_DEEP_COPY
 
-    // TODO: methods for adding, revoking permissions, etc.
     CatalogPermissionsMetadata() {
-        // TODO Auto-generated constructor stub
     }
 
     ~CatalogPermissionsMetadata() {
-        // TODO Auto-generated destructor stub
     }
 };
 
 } /* namespace pdb */
-
-//#include "CatalogPermissionsMetadata.cc"
 
 #endif /* CATALOG_PERMISSIONS_METADATA_H_ */

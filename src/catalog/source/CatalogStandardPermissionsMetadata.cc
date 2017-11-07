@@ -24,11 +24,8 @@
 
 #include "CatalogStandardPermissionsMetadata.h"
 
-// TODO: methods for adding, revoking permissions, etc.
 CatalogStandardPermissionsMetadata::CatalogStandardPermissionsMetadata() {
-  // TODO Auto-generated constructor stub
 }
 
 CatalogStandardPermissionsMetadata::~CatalogStandardPermissionsMetadata() {
-  // TODO Auto-generated destructor stub
 }

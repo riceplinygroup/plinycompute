@@ -82,13 +82,13 @@ public:
                                   CatalogStandardSetMetadata &catalogSet) {
     out << "\nCatalogSet Metadata" << endl;
     out << "-------------------" << endl;
-    //        out << "      DB Id: " << catalogSet.getDBId() << endl;
-    //        out << "    DB name: " << catalogSet.getDBName() << endl;
-    //        out << "     Set Id: " << catalogSet.getItemId() << endl;
-    //        out << "    Set Key: " << catalogSet.getItemKey() << endl;
-    //        out << "   Set Name: " << catalogSet.getItemName() << endl;
-    //        out << "    Type Id: " << catalogSet.getObjectTypeId() << endl;
-    //        out << "  Type Name: " << catalogSet.getObjectTypeName() << endl;
+    out << "      DB Id: " << catalogSet.getDBId() << endl;
+    out << "    DB name: " << catalogSet.getDBName() << endl;
+    out << "     Set Id: " << catalogSet.getItemId() << endl;
+    out << "    Set Key: " << catalogSet.getItemKey() << endl;
+    out << "   Set Name: " << catalogSet.getItemName() << endl;
+    out << "    Type Id: " << catalogSet.getObjectTypeId() << endl;
+    out << "  Type Name: " << catalogSet.getObjectTypeName() << endl;
     out << "-------------------\n" << endl;
     return out;
   }

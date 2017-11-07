@@ -32,12 +32,15 @@ class CatSharedLibraryByNameRequest : public Object {
 
 public:
     CatSharedLibraryByNameRequest(){};
+
     CatSharedLibraryByNameRequest(int16_t identifierIn, String NameIn)
         : identifier(identifierIn), objectTypeName(NameIn) {}
+
     CatSharedLibraryByNameRequest(const CatSharedLibraryByNameRequest& objectToCopy) {
         objectTypeName = objectToCopy.objectTypeName;
         identifier = objectToCopy.identifier;
     }
+
     ~CatSharedLibraryByNameRequest(){};
 
     String getTypeLibraryName() {
@@ -47,7 +50,6 @@ public:
     int16_t getTypeLibraryId() {
         return identifier;
     }
-
 
     ENABLE_DEEP_COPY
 
