@@ -1,6 +1,6 @@
 
 \section{Experiments}
-
+\label{sec:experiments}
 \subsection{Overview}
 
 In this section, we describe our experimental evaluation of PC.
@@ -742,6 +742,49 @@ Spark \texttt{mllib} Dataset API &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
 \end{table}
 
 
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c||c|c|}
+\hline
+Applications & SLOC on PlinyCompute & SLOC on Spark\\
+\hline
+\texttt{lilLinAlg} &3505& 3130 (Scala)\\
+TPC-H \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
+TPC-H top-$k$ Jaccard &793 & 966 (Java)\\
+LDA &1038  &343 (Scala with \texttt{breeze})\\
+GMM&932 & 474 (Scala with \texttt{breeze})\\
+$k$-means &695  &670 (Scala)\\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark: lines of source code comparison.}
+\label{fig:LOC}
+\end{center}
+\end{table}
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{|c||c|c|c|}
+\hline
+Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
+\hline
+\hline
+GSL &1033 ms &26:18  \\
+Eigen &123 ms  &3:57\\
+\texttt{breeze}-native &179 ms  &3:40\\
+\hline
+\end{tabular}
+\caption{Single thread matrix multiplication benchmark tested in
+  \texttt{m2.4xlarge} instance by setting thread number  to one for all
+  packages. It shows that
+  Java is as fast as C++ through invoking native code. (for
+  $1000\times1000$ matrix multiplication, processing times are recorded in
+  milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
+  recorded in hh:mm:ss format.)}
+\label{fig:matrixMult}
+\end{center}
+\end{table}
+
+
 \subsubsection{Experiments: Final Thoughts}
 
 The central hypothesis in this paper was that ``declarative in the large, high-performance in the small'' can result
@@ -799,44 +842,3 @@ go \emph{against} PC.  We argue that the reason that PC was consistently faster
 than its competitors are the design principles underlying the system---which indeed was enabled by the choice of language---and 
 not the programming language itself.
 
-\begin{table}[h!]
-\begin{center}
-\begin{tabular}{|c||c|c|}
-\hline
-Applications & SLOC on PlinyCompute & SLOC on Spark\\
-\hline
-\texttt{lilLinAlg} &3505& 3130 (Scala)\\
-TPC-H \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
-TPC-H top-$k$ Jaccard &793 & 966 (Java)\\
-LDA &1038  &343 (Scala with \texttt{breeze})\\
-GMM&932 & 474 (Scala with \texttt{breeze})\\
-$k$-means &695  &670 (Scala)\\
-\hline
-\end{tabular}
-\caption{PlinyCompute vs. Spark: lines of source code comparison.}
-\label{fig:LOC}
-\end{center}
-\end{table}
-
-\begin{table}[h!]
-\begin{center}
-\begin{tabular}{|c||c|c|c|}
-\hline
-Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
-\hline
-\hline
-GSL &1033 ms &26:18  \\
-Eigen &123 ms  &3:57\\
-\texttt{breeze}-native &179 ms  &3:40\\
-\hline
-\end{tabular}
-\caption{Single thread matrix multiplication benchmark tested in
-  \texttt{m2.4xlarge} instance by setting thread number  to one for all
-  packages. It shows that
-  Java is as fast as C++ through invoking native code. (for
-  $1000\times1000$ matrix multiplication, processing times are recorded in
-  milliseconds, and for $10000\times10000$ matrix multiplication, processing times are
-  recorded in hh:mm:ss format.)}
-\label{fig:matrixMult}
-\end{center}
-\end{table}

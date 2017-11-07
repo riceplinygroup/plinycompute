@@ -1,17 +1,46 @@
 
 \section{Overview of PlinyCompute}
 
-We give an overview of PlinyCompute, focusing on the core components of the
+The PC software consists of 
+(1) the PC object model, (2) the PC API and TCAP compiler (TCAP is a domain-specific language executed by PC),
+(3) the execution engine, and (4) various distributed services. We give an overview of PlinyCompute, focusing on the core components of the
 system: the PC object model, 
 the PC API and TCAP compiler, and execution engine, and we concretize these ideas by
-describing the implementation of a simple $k$-means clustering algorithm.
+describing the implementation of a simple $k$-means clustering
+algorithm.
+
+\subsection{The PC runtime}
+
+When PC runs on a distributed cluster it has a \emph{master node} and one or more \emph{worker nodes}.
+Running on the master node are the managers for the various distributed services provided by PC, primarily 
+the \emph{catalog manager} and the \emph{distributed storage manager}.  Also running on the master
+node is the software responsible for powering the distributed execution engine: the \emph{TCAP optimizer} and
+the \emph{distributed query scheduler}.  
+When a user of PC requests to execute a graph of computations, the
+computations are compiled into a TCAP program on the user's process, then optimized
+by the master node's TCAP optimizer and executed by the distributed query scheduler.
+
+Each worker node runs two processes: the \emph{worker front-end process} and the \emph{worker backend process}.
+Dual processes are used because the backend process
+executes potentially unsafe native user code.
+If
+user code happens to crash the worker backend process, the worker 
+front-end process can re-fork the worker
+backend process.  
+
+The worker front-end process interfaces with the master node, providing a local catalog manager and a local storage server (including
+a local buffer pool)
+and crucially, it acts as a proxy, forwarding requests to perform various computations to the worker backend process, where
+computations are actually run.
+
+
 
 \subsection{The PC Object Model}
 
 There is growing evidence that the CPU costs associated with manipulating data, especially data (de-)serialization and memory 
 (de-)allocation,  
 dominate the time needed to complete typical big data processing tasks
-\cite{ousterhout2015making, shi2015clash}.
+\cite{ousterhout2015making, shi2015clash, SikdarSoCC2017}.
 To avoid these potential pitfalls while at the same time giving the user a high degree of flexibility,
 PC requires programmers to store and manipulate data using the \emph{PC object model}.
 The PC object model is an API for storing and manipulating objects, and has been co-designed with PC's memory management system and execution engine to provide
@@ -28,17 +57,14 @@ All PC \texttt{Object}s are allocated and manipulated in-place, on a system-
 no distinction between the in-memory representation of data and the on-disk (or in-network) representation of
 data. Thus there is no (de-)serialization cost to move data to/from disk and network, and memory management costs are very low. Depending upon choices made by the
 programmer, ``deallocating'' a page of objects
-may mean simply writing over the page with a new page of objects.  
+may mean simply unpinning the page and allowing it to be returned to the buffer pool, where it will be recycled and written over with a new set of objects.  
 In computer systems design, this is often referred to as
 \emph{region-based allocation} \cite{tofte1997region,
   grossman2002region}, and is often the fastest way to manage
 memory. 
-TCAP processing follows this strategy by pinning a page from the buffer
-pool for object creation and manipulation, and unpinning the page once
-it finishes manipulating on the objects allocated in that page.
 
 To illustrate the use of the PC object model from a user's perspective,
-imagine that we wish to perform a computation over a number of one-dimensional feature vectors.  
+imagine that we wish to perform a computation over a number of feature vectors.  
 Using the PC object model's C++ binding, we might represent each data point using the 
 \texttt{DataPoint} class:
 
@@ -63,24 +89,23 @@ for (int i = 0; i < 100; i++)
      storeMe->data->push_back (1.0 * i);
 
 myVec->push_back (storeMe);
-pcContext.createSet <DataPoint> ("Mydb", "Myset");
-pcContext.sendData <DataPoint> ("Mydb", "Myset", myVec);
+pcClient.createSet <DataPoint> ("Mydb", "Myset");
+pcClient.sendData <DataPoint> ("Mydb", "Myset", myVec);
 \end{codesmall}
 
 \noindent
 Here, the programmer starts out by creating a one megabyte \emph{allocation block} where all new objects will be written,
 and then allocates data directly to that allocation block via a call to \texttt{makeObject ()}.  Each call to  \texttt{makeObject ()}
 returns a PC's pointer-like object, called a \texttt{Handle}.  PC \texttt{Handle}s use offsets rather than an absolute memory
-address, so they can be moved from process to process and remain valid.  
+addresses, so they can be moved from process to process and remain valid.  
 
 When the data are dispatched via \texttt{sendData ()},
 the occupied
 portion of the allocation block is transferred in its entirety with
-no pre-processing and almost zero CPU cost, aside from the cycles required to perform the data transfer.  
+no pre-processing and zero CPU cost, aside from the cycles required to perform the data transfer.  
 This illustrates the principle of \emph{zero cost data movement}.
 
-To achieve high performance, all memory management except buffer pool
-page management is taken care of by the PC object model.
+Object allocation and deallocation is handled by PC object model.
 If the next line of code executed were:
 \texttt{
 myVec = nullptr;}
@@ -108,7 +133,7 @@ but the benefit is nearly zero-CPU-cost memory management within the block.
 PC gives the developer the ability to manage the tradeoff.
 This illustrates another key principle behind the design of
 PlinyCompute: \emph{Since PC is targeted towards tool and library
-  development, PC assumes the programmer knows what s/he is doing.  In
+  development, PC assumes the programmer is capable.  In
   the small, PC gives the programmer all of the tools s/he needs to make things fast}.
 
 Finally, we note that the PC object model is not used exclusively or
@@ -119,76 +144,26 @@ For example, aggregation is implemented using PC's built-in
 a \texttt{Map} object that the thread aggregates its local data to; those are
 merged into maps that are sent to various workers around the PC
 cluster.  All sends and receives of these \texttt{Map} objects happen
-without (de-)serialization, with almost zero CPU cost, aside from the CPU
-cycles needed to transmit the bytes.
+without (de-)serialization.
 
-
-
-\subsection{PlinyCompute's Computational Engine}
-\label{sec:engine}
-
-Volcano-style, record-by-record iteration \cite{graefe1990encapsulation} has fallen out of favor over the last decade, largely replaced by
-two competing paradigms for processing data
-in high-performance, data-oriented computing.  The first is \emph{vectorized} processing \cite{abadi2009column, boncz2005monetdb, zukowski2005monetdb, idreos2012monetdb}, where a column of values are pushed
-through a simple computation in sequence, so as to play to the strength of a modern CPU, with few cache misses and no virtual
-function calls.  The second is \emph{code generation} \cite{neumann2011efficiently, nagel2014code, bress2017generating, klonatos2014building, ahmad2009dbtoaster}, where a system analyzes the computation
-and then generates code---either C/C++ code, or byte code for a framework such as LLVM \cite{lattner2004llvm, lattner2002llvm}.
-
-While PlinyCompute certainly leverages ideas from both camps, we argue that the ``vectorized vs. generated'' argument is relevant mostly for 
-relational systems with a data-oriented, domain-specific language (such as SQL).  
-The data manipulations directly specified by an SQL programmer are likely to be limited, 
-consisting of comparison between attributes, simple arithmetic, and logical operations.
-Applying classical vectorization to PC,
-which requires an execution plan to be constructed consisting entirely of calls to a toolkit of
-vector-based operations shipped with the system, is
-unrealistic when most/all computations are over user-defined types.  Code generation---at least as described in the database literature---is also
-unrealistic in such an environment.  Generating LLVM code for complex operations over user-defined types 
-in a high-level language 
-is akin to writing a full-fledged compiler. 
-
-
-PC uses a hybrid approach, where the PC execution engine is vectorized, but where the code for the individual vectorized operations (called \emph{pipeline stages})
-are fully compiled.  
-In PC, a user does not specify the graph of pipeline stages directly.  Rather,
-the programmer expresses her/his intent at a high-level, by building a graph of high-level operations.  These operations tend to be much higher
-level than those provided by other platforms, and, like in a relational database engine, are not associated with any specific 
-physical implementation.
-For example, PC supplies an abstract $n$-way join called a \texttt{JoinComp}.
-
-Operations are customized when a user supplies a set of 
-\emph{lambda term
-construction functions}.  To customize an operation, a user writes one or more member functions
-that return \emph{lambda terms}, which are possibly complex terms in a lambda calculus that 
-wrap C++ code.  Those lambda terms express the programmer's intent, hence PC does not rely on analysis of C++ to build an optimized
-execution plan \cite{alexandrov2015implicit}. 
-
-It is these lambda terms that are compiled into a DAG of pipeline stages over
-lists of PC \texttt{Object}s or simple types,
-which is then optimized (that is, operations are automatically
-re-ordered to form an optimal plan) using classical relational
-methods \cite{chaudhuri1998overview, graefe1995cascades, jarke1984query}. After optimization, the pipeline stages are fit together to produce a set of interconnected pipelines.  Input data are broken into lists of 
-data vectors (called, appropriately, \emph{vector lists}), and fed into the various pipelines.
-Optimization of the DAG of pipeline stages
-is possible because the programmer expresses intent via the lambda calculus \cite{barendregt1984lambda, moggi1989computational}---we do not rely in inspection of opaque user
-code \cite{alexandrov2015implicit}, which is often going to be unrealistic.  Thus, PC's hybrid approach is vectorized, 
-but it is \emph{also} compiled---the opaque C++ code in a user-supplied computation is compiled into pipeline stages that are assembled into an 
-optimized plan.
 
 \subsection{PlinyCompute's Lambda Calculus}
-A PC programmer specifies a distributed computation by providing a graph of high-level operations over sets of data---those data
+\label{sec:lambda}
+A PC programmer specifies a distributed computation by providing a graph of high-level computations over sets of data---those data
 may either be of simple types, or they may be
 PC \texttt{Object}s. The PC toolkit consists of a set of
-operations 
+computations 
 that are not unlike the operations provided by systems such as Spark and Flink, though they are less numerous and generally higher-level:
 \texttt{SelectionComp} (equivalent to relational selection and projection), \texttt{JoinComp} (equivalent to a join of arbitrary arity and arbitrary predicate), 
 \texttt{AggregateComp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
 Each of these is an abstract type descending from PC's \texttt{Computation} class.
 
-Where PC differs from other systems is that a programmer customizes these operations by writing code that composes together various C++ codes 
+Where PC differs from other systems is that a programmer customizes these computations by writing code that composes together various C++ codes 
 using a 
 domain-specific lambda calculus.
 For example, to implement a \texttt{SelectionComp} over PC \texttt{Object}s of type \texttt{DataPoint}, a programmer
-must implement the lambda term construction function \texttt{getSelection (Handle <DataPoint>)} which returns a lambda term
+must implement the lambda term construction function
+\texttt{getSelection (Handle <DataPoint>)} and \texttt{getProjection (Handle <DataPoint>)} which returns a lambda term
 describing how \texttt{DataPoint} objects
 should be processed.
 
@@ -247,7 +222,8 @@ operations: \texttt{\&\&}, \texttt{||}, \texttt{!}, etc.;
 The standard arithmetic operations: \texttt{+}, \texttt{-}, \texttt{*}, etc.  
 \end{enumerate}
 
-For an example of all of this, consider performing a join over three sets of PC \texttt{Object}s stored in the cloud.  
+For an example of all of this, consider performing a join over three
+sets of PC \texttt{Object}s stored in the PC cluster.  
 Joins are specified in PC 
 by implementing a \texttt{JoinComp} object. One of the methods that must be overridden to build a specific join is \texttt{JoinComp :: getSelection ()}
 which returns a lambda term
@@ -280,7 +256,6 @@ programmer to expose intent via the lambda term construction function.
   \begin{center}
     \includegraphics[width=6in]{TCAP}
   \end{center}
-\vspace{-10 pt}
   \caption{Execution of the first four stages of a pipeline constructed from the example TCAP program.  The first two stages extract new vectors from 
 existing vectors of PC \texttt{Object}s, first via a call to \texttt{Join\_2122.att\_acc\_1 ()}, which extracts \texttt{Dep.deptName} from each item in the vector
 \texttt{dep} 
@@ -288,29 +263,100 @@ of \texttt{Dep} objects, producing a new vector called \texttt{nm1}. Then, secon
 via a call to \texttt{Join\_2122.method\_call\_2 ()}, which invokes \texttt{Dep :: getDeptName ()} on each of the \texttt{Emp} objects
 in the vector \texttt{emp}, producing a new vector called \texttt{nm2}.  A bit vector \texttt{bl} is formed by checking the equality of those two 
 vectors via a call to \texttt{Join\_2122.==\_3 ()}, and finally all of the vectors are filtered.}
-\vspace{-15 pt}
   \label{fig:TCAP}
 \end{figure}
 
+\subsection{PlinyCompute's Execution Engine}
+\label{sec:engine}
+PC's execution engine is tasked with optimizing and executing TCAP programs (pronounced ``tee-cap'').  
+PC's TCAP compiler
+calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in a
+user-supplied graph of computations,
+and compiles all of those lambda terms into a DAG of small, atomic operations---a TCAP program.
+A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
+will discuss in Section:~\ref{sec:optimizer}.
+In this section, we discuss how TCAP programs are executed by PC.
 
-\subsection{TCAP and Vectorized Execution} \label{sec:vectorized}
+\subsubsection{Vectorized or Compiled?}
+\label{sec:vectorized}
+
+Volcano-style, record-by-record iteration \cite{graefe1990encapsulation} has fallen out of favor over the last decade, largely replaced by
+two competing paradigms for processing data
+in high-performance, data-oriented computing.  The first is \emph{vectorized} processing \cite{abadi2009column, boncz2005monetdb, zukowski2005monetdb, idreos2012monetdb}, where a column of values are pushed
+through a simple computation in sequence, so as to play to the strength of a modern CPU, with few cache misses and no virtual
+function calls.  The second is \emph{code generation} \cite{neumann2011efficiently, nagel2014code, bress2017generating, klonatos2014building, ahmad2009dbtoaster}, where a system analyzes the computation
+and then generates code---either C/C++ code, or byte code for a framework such as LLVM \cite{lattner2004llvm, lattner2002llvm}.
+
+While PlinyCompute certainly leverages ideas from both camps, we argue that the ``vectorized vs. generated'' argument is relevant mostly for 
+relational systems with a data-oriented, domain-specific language (such as SQL).  
+The data manipulations directly specified by an SQL programmer are likely to be limited, 
+consisting of comparison between attributes, simple arithmetic, and logical operations.
+Applying classical vectorization to PC,
+which requires an execution plan to be constructed consisting entirely of calls to a toolkit of
+vector-based operations shipped with the system, is
+unrealistic when most/all computations are over user-defined types.  Code generation---at least as described in the database literature---is also
+unrealistic in such an environment.  Generating LLVM code for complex operations over user-defined types 
+in a high-level language 
+is akin to writing a full-fledged compiler. 
 
 
-PC calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in an
-input graph, and compiles all of those lambda terms into a DAG of pipeline stages.  
-This entire computation is represented using a text-based internal representation that we call
-\emph{TCAP} (pronounced ``tee-cap'').  A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
-will discuss subsequently.
+PC uses a hybrid approach, where the PC execution engine is vectorized, but the code for the individual vectorized operations (called \emph{pipeline stages})
+is fully compiled.  
 
-As mentioned in Section \ref{sec:engine}, PC's vectorized execution engine repeatedly pushes 
-so-called \emph{vector lists} through a series of pipeline stages.  A vector list is (not surprisingly) a list of vectors, where each pipeline stage
+In PC, a user does not specify the graph of pipeline stages directly.  Rather,
+the programmer expresses her/his intent at a high-level, by building a graph of high-level computations.  These computations tend to be higher
+level than those provided by other platforms, and, like in a relational database engine, are not associated with any specific 
+physical implementation.
+For example, PC supplies an abstract $n$-way join called a \texttt{JoinComp}.
+
+Operations are customized when a user supplies a set of 
+\emph{lambda term
+construction functions} as described in Section~\ref{sec:lambda}.  To customize an computation, a user writes one or more member functions
+that return \emph{lambda terms}, which are possibly complex terms in a lambda calculus that 
+wrap C++ code.  Those lambda terms express the programmer's intent, hence PC does not rely on analysis of C++ to build an optimized
+execution plan \cite{alexandrov2015implicit}. 
+
+PC's C++ binding relies on template metaprogramming (see
+Section~\ref{sec:template}) to convert the user-supplied lambda terms
+into a TCAP program, where each TCAP operation represents a pipeline
+stage over vectors of PC \texttt{Object}s or simple types. 
+
+The TCAP program is then optimized (that is, operations are automatically
+re-ordered to form an optimal plan) using classical relational
+methods \cite{chaudhuri1998overview, graefe1995cascades,
+  jarke1984query}. After optimization, the pipeline stages are fit
+together to produce a set of interconnected pipelines.  Input data are broken into lists of 
+data vectors (called, appropriately, \emph{vector lists}), and fed into the various pipelines.
+Optimization of the DAG of pipeline stages
+is possible because the programmer expresses intent via the lambda calculus \cite{barendregt1984lambda, moggi1989computational}---we do not rely on inspection of opaque user
+code \cite{alexandrov2015implicit}, which is often going to be unrealistic.  Thus, PC's hybrid approach is vectorized, 
+but it is \emph{also} compiled---the opaque C++ code in a user-supplied computation is compiled into pipeline stages that are assembled into an 
+optimized plan.
+
+
+
+
+\subsubsection{TCAP and Vectorized Execution} \label{sec:vectorized}
+
+As mentioned in Section \ref{sec:vectorized}, PC's vectorized execution engine repeatedly pushes 
+so-called \emph{vector lists} through a pipeline that runs a series of
+pipeline stages.  Each pipeline stage
 takes as input a vector list,
 and produces a 
-new vector list that consists of zero or more vectors from the input vector list, as well as a new vector or vectors, appended at the end of the list.
-Pipeline stages are constructed in such a way that there are no virtual function calls on a per-row basis, aside from any virtual function calls that may be
-present (explicitly or perhaps implicitly in the form of memory management) in the user's code.
+new vector list that consists of zero or more vectors from the input
+vector list, as well as one or more new vectors, appended at the end
+of the list.
+
+Pipeline stages are constructed in such a way that the overhead of a
+vritual function call can be amortized on a vector list of objects, aside from any virtual function calls that may be
+present (explicitly or perhaps implicitly in the form of memory
+management) in the user's code.
+The number of objects in a vector can be tuned to fit the L1 or
+L2 cache size, depending on the object sizes and virtual function call
+overhead. All vectors in a vector list should have the same number of objects.
+
 The TCAP language describes both the pipeline stages required to perform a PC computation, as well as the schema for each of the vector lists that
-will be produced during the PC computation, and how each of the pipeline stages add or remove vectors from the vector lists that are pushed through
+will be produced during the PC computation, and how each of the pipeline stages adds or removes vectors from the vector lists that are pushed through
 the computation.
 
 To see how this works through an example, consider a variant of the \texttt{getSelection ()}:
@@ -348,23 +394,23 @@ later during optimization.
 
 Specifically, in this case, the first \texttt{APPLY} in the TCAP computation describes the following.  It describes a pipeline stage that
 takes as input 
-a vector list called \texttt{Input}, which is made of the constituent vectors, referred to using 
+a vector list called \texttt{In}, which is made of the constituent vectors, referred to using 
 the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
 To produce the output vector list (called \texttt{WDNm\_1}), the vectors
 \texttt{dep}, \texttt{emp}, and \texttt{sup} should be simply copied (via a shallow copy) from \texttt{In}.
 In addition, the compiled code referred to by \texttt{Join\_2212.att\_acc\_1} will be executed via a vectorized application to the input
 vector \texttt{dep}.  The result will then be put into a new vector called 
-\texttt{WDNm\_1.name1}.
-The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
+\texttt{WDNm\_1.nm1}.
+The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.nm1})
 will be called \texttt{WDNm\_1}.  
 
-Next, this TCAP program
+The TCAP program also
 specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the
-method call \texttt{getDept Name()} on the attribute \texttt{emp}; this is 
-done via application of the compiled code referred to by \texttt{Join
-  \_2212.method\_call\_2}.  
+method call \texttt{getDeptNa me()} on the attribute \texttt{emp}; this is 
+done via application of the compiled code referred to by
+\texttt{Join\_2212.met hod\_call\_2}.  
 The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
-and \texttt{nm1} are simply shallow-copied to the output vector set.
+and \texttt{nm1} are simply shallow-copied to the output vector list.
 
 After this an equality check is performed to create \texttt{WBl\_1.bl}
 (a vector of booleans) and then the result is filtered based upon this
@@ -372,13 +418,13 @@ column.
 
 
 Note that in each TCAP operation, the key-value map is only informational and does not affect its execution.  However, this
-information can be vital during optimization.  As we will discuss subsequently, 
+information can be vital during optimization.  For example, as we will discuss in Section~\ref{sec:optimizer}, 
 multiple calls to the same method can be detected using information stored in TCAP key-value maps, and the redundant calls eliminated.
 
-\subsection{Template Metaprogramming}
-
+\subsubsection{Template Metaprogramming}
+\label{sec:template}
 In PC,
-each vectorized pipeline stage (such as \texttt{Join\_2212.member\_1}) is executed as fully-compiled native code, with no virtual function
+each vectorized pipeline stage (such as \texttt{Join\_2212.att\_acc\_1}) is executed as fully-compiled native code, with no virtual function
 calls.
 In PC's C++ binding, this is accomplished by using the C++ language's extensive \emph{template metaprogramming} 
 capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generics functionality.
@@ -415,7 +461,7 @@ whose two type parameters \texttt{LHSType} and \texttt{RHSType} are inferred fro
 the output types of the two input lambda terms. 
 The \texttt{==} template returns an object of type \texttt{EqualsLambda} \texttt{<LHSType,} \texttt{RHSType>}, which
 itself has an operation returning a pointer to the pipeline stage \texttt{Join\_2212.==\_3} referred to in the TCAP.
-As expected, this stage processes in an input vector list,
+As expected, this stage repeatedly takes in an input vector list,
 creating a new vector of booleans, containing the truth values of the equality check of each \texttt{LHSType} from the left
 input vector and each \texttt{RHSType} from the right input vector.
 Using C++'s template metaprogramming facilities, this 
@@ -518,15 +564,9 @@ myAgg->centroids = ... // initialize the model
 myAgg->setInput (myReader);
 Handle <Computation> myWriter =  makeObject <Writer <Centroid>> ("myDB", "myOutSet");
     myWriter->setInput (myAgg);
-pcContext.executeComputations (myWriter);
+pcClient.executeComputations (myWriter);
 \end{code}
 
 \noindent After execution, the set of updated centroids would be stored in \texttt{myDB.mySet}.
 Performing this computation in a loop, where the centroids are repeatedly updated until convergence, completes the implementation.
-
-In our experience, for many applications such as Linear Algebra
-Library, TPCH queries, or KMeans, PC codes require similar work in
-terms of lines of source code to develop compared with equivalent codes using Spark's Scala binding, for
-example, but require much lower effort to develop than using
-object-oriented, C++ code without a declarative interface.
 

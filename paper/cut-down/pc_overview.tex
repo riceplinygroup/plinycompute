@@ -385,7 +385,7 @@ method call \texttt{getDeptName()} on the attribute \texttt{emp}; this is
 done via application of the compiled code referred to by \texttt{Join
   \_2212.method\_call\_2}.  
 The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
-and \texttt{nm1} are simply shallow-copied to the output vector set.
+and \texttt{nm1} are simply shallow-copied to the output vector list.
 
 Then an equality check is performed to create \texttt{WBl\_1.bl}
 (a vector of booleans) and the result is filtered based upon this
@@ -399,7 +399,7 @@ information can be vital during optimization.
 \subsection{Template Metaprogramming}
 
 In PC,
-each vectorized pipeline stage (such as \texttt{Join\_2212.mem ber\_1}) is executed as fully-compiled native code, with no virtual function
+each vectorized pipeline stage (such as \texttt{Join\_2212.att\_acc\_1}) is executed as fully-compiled native code, with no virtual function
 calls.
 In PC's C++ binding, this is accomplished by using the C++ language's extensive \emph{template metaprogramming} 
 capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generics functionality.
