@@ -130,7 +130,7 @@ processing induces four types of pages, each of which has a different lifetime d
 
 \begin{enumerate}
 
-\item The first page type is an \emph{input page} that store the base data that will be processed by the pipeline.
+\item The first page type is an \emph{input page} that stores the base data that will be processed by the pipeline.
 To push vector lists into a pipeline, PC first loads a page containing a PC container (such as a PC \texttt{Vector}) of 
 input data from the buffer pool, and then repeatedly creates vectors of \texttt{Handle}s to the objects on
 the page (the little `v' is intentional; these vectors are \emph{not} PC \texttt{Object}s themselves, as we do not want them to be allocated

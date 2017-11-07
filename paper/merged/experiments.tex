@@ -5,7 +5,7 @@
 
 In this section, we describe our experimental evaluation of PC.
 The aim is to answer
-following questions:
+the following questions:
 
 \begin {enumerate}
 \item PC has been designed to facilitate the construction of high-performance Big Data tools and libraries by programmer
@@ -40,7 +40,7 @@ to a query set.
 \item Finally, we also implemented three widely used
   iterative machine learning algorithms on top of PC: Latent Dirichlet Allocation (LDA) which is used for
   textual topic mining;
-  Gaussian mixture model (GMM) learning which is used to cluster data using a mixture of high-dimensional Normal
+  Gaussian mixture model (GMM) learning, which is used to cluster data using a mixture of high-dimensional Normal
   distributions, and the simplest, $k$-means clustering (chosen because of its ubiquity as a Big Data ML benchmark).
 \end {enumerate}
 
@@ -184,7 +184,7 @@ Handle <Computation> query2 = makeObject <LAMultiplyAggregate> ();
 query2->setInput(query1);
 \end{codesmall}
 
-\noindent Here, \texttt{LAMultiplyJoin} and \texttt{LAMultiplyJoin} are 
+\noindent Here, \texttt{LAMultiplyJoin} and \texttt{LAMultiplyAggregate} are 
 both user-defined \texttt{Computation} classes that are
 derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} class, respectively; these classes are chosen 
 because distributed matrix multiplication
@@ -272,7 +272,7 @@ size for every experiment. In SystemML, we also carefully chose to
 use the parallel for loop (\texttt{parfor}), which boosted performance significantly.
 
 For fairness, for each of the distributed linear algebra tools, 
-we do not count the time required to load data from client into the system
+we do not count the time required to load data from the client into the system
 (for example, 
 for \texttt{lilLinAlg}, we do not count the time required to load data from text and into PC).
 
@@ -445,7 +445,7 @@ removed from this list, and then the Jaccard similarity between the resulting \t
 list are computed.  This is done for all of the \texttt{Customer} objects, and the $k$ \texttt{partID} lists with the 
 closest similarity to the query list are returned.
 In PC,
-the result of the computation is a list of $k$ objects containing the Jaccard similarity, the integral \texttt{custkey}, and
+the result of the computation is a list of $k$ objects containing the Jaccard similarity, the integer \texttt{custkey}, and
 a \texttt{Vector <int>} that stores the complete list of unique \texttt{partID}s sold to that customer.
 In PC, the C++ code required to drive this computation is as follows:
 \begin{code}
@@ -484,7 +484,7 @@ All data were
 serialized using Kryo, and parameters such as data partition size and parallelism are fully tuned to obtain
 optimal performance. 
 
-For PC, we run only one version of the computation, where the various \texttt{Customer} objects are stored in
+For PC, we ran only one version of the computation, where the various \texttt{Customer} objects are stored in
 PC's storage system.  Since all datasets are small enough to be cached in RAM, there is no I/O time to
 retrieve data.
 
@@ -810,7 +810,7 @@ up to $66 \times$ faster on PC than on Spark, and ML computations generally bein
 
 We close the benchmarks with two final questions.  First: PC may be faster, but is it significantly more difficult to develop
 for than a platform that uses a managed runtime?  PC certainly gives a programmer more flexibility, and with that can come
-certain costs---un-knowledgeable developers may find PC difficult to code for.  But, by at least one metric--source
+certain costs---less knowledgeable developers may find PC difficult to code for.  But, by at least one metric--source
 lines of code (SLOC)---PC is \emph{not}
 any more difficult as a development target than Spark.
 Table~\ref{fig:LOC} shows the SLOC counts for the various implementations described here, comparing to their Spark counterparts.
@@ -848,7 +848,7 @@ better performance than GSL.
 Thus, in one way, our C++ implementations were at a significant disadvantage compared to Java.
 
 The point is that achieving excellent performance on complex, distributed computations is never a simple matter
-of ``use C++, not Java''.  Many factors go into having a superior implementation, and those tend to even things out,
+of ``use C++, not Java''~\cite{ousterhout2015making, shi2015clash}.  Many factors go into having a superior implementation, and those tend to even things out,
 as some of those factors 
 go \emph{against} PC.  We argue that the reason that PC was consistently faster
 than its competitors are the design principles underlying the system---which indeed was enabled by the choice of language---and 

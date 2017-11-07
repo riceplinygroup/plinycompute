@@ -54,7 +54,8 @@ The method is then called once again on \texttt{JK2\_2.emp} and the result compa
 point the two boolean vectors are ``anded'' and the result is filtered.
 
 Obviously, there is a redundancy here as the method \texttt{getSalary ()} will be called twice.
-If \texttt{getSalary} simply accesses a data member, the additional call is costless.  But in the general case a method call may run an arbitrary
+If \texttt{getSalary} simply accesses a data member, the additional
+call is costless.  But in the general case, a method call may run an arbitrary
 computation.  Hence, the second call should automatically be removed as being redundant 
 (by definition, all method calls evaluated during computation should
 be purely functional, and so they must return the same value when called a second time).

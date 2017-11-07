@@ -104,8 +104,9 @@ distributed aggregation, and a distributed hash-partition join.
 The workflow of PC's distributed aggregation implementation is
 shown in Figure ~\ref{fig:aggregation}.
 The most unique aspect of distributed aggregation in PC is the way in which it is tightly coupled with the PC \texttt{Object} model.  All data structures used
-to power distributed aggregation are themselves PC \texttt{Objects}, and hence they all provide for zero-cost data movement, avoiding
-serialization and deserialization overhead when shuffling data.
+to power distributed aggregation are themselves PC \texttt{Objects},
+and hence they all provide efficient data shuffling with zero
+serialization and deserialization costs.
 
 Distributed aggregation in PC is broken into two different job stages.
 In the first, there is a \texttt{PipelineJob Stage} working as a \emph{producing stage},
@@ -184,7 +185,7 @@ This communication is referred to as a \emph{shuffle}.
 Compression is used to reduce the shuffle data size and save on network cost.
 When a worker node receives a page during the shuffle, one of a pool of \emph{scanning threads} will look at the 
 \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>}\texttt{>} object contained in the page, and then add a pointer to the page
-to the each of the queues associated with the $M$ \emph{aggregation threads}.  These are the threads
+to each of the queues associated with the $M$ \emph{aggregation threads}.  These are the threads
 that are tasked with final processing of all of the various hash partitions.
 Each aggregation thread is responsible for aggregating exactly 
 one hash partition, and so $M$ is the total number of hash partitions processed by a given backend worker process.
