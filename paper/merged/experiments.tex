@@ -57,7 +57,11 @@ C\#.
 
 All of the experiments reported in this paper were performed using a
 cluster that consists of eleven Amazon EC2 \texttt{m2.4xlarge}
-machines running Linux Ubuntu operating systems. 
+machines. Each machine
+ran Ubuntu 16.04, except the linear algebra experiments on
+SciDB~\cite{brown2010overview, stonebraker2011architecture}
+with version 14.8, which
+was supported on Ubuntu 12.04~\cite{SciDBOS}.
 Each machine had eight virtual cores, one SSD
 disk, and 68 GB of RAM. In each PC cluster that we built, one of the eleven machines served as the master
 node and the rest ten machines served as worker nodes.
@@ -65,29 +69,35 @@ node and the rest ten machines served as worker nodes.
 Since Apache Spark is one of the most widely-used Big Data system both for applications programming and for tool and library
 development, most
 (though not all) of our comparisons were with Spark (version
-2.1.0). The configuration of the Spark cluster such as
-executor memory, number of cores for each executor, number of
-executors and so on are carefully tuned for each
+2.1.0). The configuration of the Spark cluster such as number of executors,
+executor memory, number of cores for each executor, driver memory and so on are carefully tuned for each
 experiment, as shown in Table~\ref{fig:sparkConf}. We do not clear the OS buffer cache, so HDFS data can be buffered or
 cached in the OS buffer cache. For each experiment we read HDFS data
 via a binary format (Parquet for the Spark Dataset API,
 and a Java Object file for the Spark RDD API).  In all of the
-experiments, data are serialized in Kryo format. 
+experiments, data were serialized in Kryo format. 
 
-\begin{table}[h!]
+Other Spark parameters such as parallelsim,
+partition number, and so on were all carefully tuned for each experiment. More details
+are omitted due to space limitation.
+
+
+
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|}
 \hline
-Configuration & Number of Executors & Memory per Executor & Cores per Executor& Driver Memory\\
+Platform & \makecell{num executors} & \makecell{executor mem} & \makecell{executor cores}& \makecell{driver mem}\\
 \hline
 \texttt{lilLinAlg} &10 & 60GB & 8 & 50GB \\
 TPC-H &10 & 50GB & 7 & 50GB \\
-LDA &20 & 26.5GB + 4GB off-heap &4 & 55GB\\
+LDA &20 & 26.5GB$*$ &4 & 55GB\\
 GMM&80 & 70GB & 1 & 55GB\\
 $k$-means &10 &60GB & 8 & 50GB\\
 \hline
 \end{tabular}
-\caption{Workload-specific Spark Configurations for Different Experiments.}
+\caption{Workload-specific Spark Configurations for Different
+  Experiments. A star ($*$) indicates additional 4GB off heap memory is used.}
 \label{fig:sparkConf}
 \end{center}
 \end{table}
@@ -157,7 +167,8 @@ a PC page (by default, PC's page size is 256MB).  A typical \texttt{MatrixData} 
 computations, including \texttt{transpose},
 \texttt{inverse}, \texttt{add}, \texttt{subtract}, \texttt{multiply}, \texttt{transposeMultiply}, 
 \texttt{scaleMultiply}, \texttt{minElement},
-\texttt{maxElement}, \texttt{rowSum}, \texttt{columnSum}, \texttt{duplicateRow}, \texttt{duplicateCol}, 
+\texttt{maxElement}, \texttt{rowSum}, \texttt{columnSum},
+\texttt{duplicateRow}, \texttt{duplicat eCol}, 
 and many more.  However, \texttt{lilLinAlg} programmers do not call these operations directly, rather,
 \texttt{lilLinAlg} implements its own Matlab-like DSL.  
 Given a computation in the DSL, \texttt{lilLinAlg} first parses the computation into an abstract syntax tree (AST), and then
@@ -248,7 +259,7 @@ For \texttt{lilLinAlg}, this consisted mainly of efforts to choose the correct p
 \texttt{MatrixBlock} objects.  The task was balancing the ability to fully distribute the computations
 (which requires a large number of small \texttt{MatrixBlock} objects) versus making sure that the computations
 themselves were efficient (which requires large \texttt{MatrixBlock} objects).  We settled on 
-a four MB page size for ten dimensions, a 16 MB page
+a 4 MB page size for ten dimensions, a 16 MB page
 size for $10^2$ dimensions, and a 64 MB page size for $10^3$ dimensions. 
 PC's query optimizer dynamically decided to use a
 broadcast join to implement matrix operations when one input to the join is smaller than 
@@ -258,7 +269,7 @@ gigabytes.  Otherwise, it uses a full hash partition join.
 For the runs on the other three platforms, we also carefully tuned the
 systems for best performance. For example, we tuned Spark block size and repartition
 size for every experiment. In SystemML, we also carefully chose to
-use the parallel for loop, which boosted performance significantly.
+use the parallel for loop (\texttt{parfor}), which boosted performance significantly.
 
 For fairness, for each of the distributed linear algebra tools, 
 we do not count the time required to load data from client into the system
@@ -323,7 +334,7 @@ If the
 \texttt{MatrixBlock} objects making up a distributed
 matrix could be pre-partitioned based upon the row/column at load time, it 
 would mean that the expensive join for an operation
-such a multiply could completely avoid a runtime partitioning of the data, which requires shuffling each input matrix.
+such as multiply could completely avoid a runtime partitioning of the data, which requires shuffling each input matrix.
 Thus, it is not unreasonable to suggest that as PC matures, it will be even faster.
 
 \subsection{Big Object-Oriented Data}
@@ -392,7 +403,7 @@ class Customer : public Object {
 
 \subsubsection{Implementation and Experiments}
 We then run two computations over the resulting set of \texttt{Customer} objects.  
-The first computation is the \emph{parts per supplier per customer} computation where we
+The first computation is the \emph{customers per supplier} computation where we
 compute, for each supplier,
 the complete list of \texttt{partkey}s that the supplier has sold to each of the supplier's customer's.
 For each supplier, the result is a an object that contains the supplier's name (as a \texttt{String}) and
@@ -429,17 +440,17 @@ In this computation,
 for a given
 \texttt{Customer} object, we go through all of the associated 
 \texttt{Order} objects and obtain the complete list of
-\texttt{partid}s for each order.  All duplicate \texttt{partid}s are
-removed from this list, and then the Jaccard similarity between the resulting \texttt{partid} list and a special, query
-list are computed.  This is done for all of the \texttt{Customer} objects, and the $k$ \texttt{partid} lists with the 
+\texttt{partID}s for each order.  All duplicate \texttt{partID}s are
+removed from this list, and then the Jaccard similarity between the resulting \texttt{partID} list and a special, query
+list are computed.  This is done for all of the \texttt{Customer} objects, and the $k$ \texttt{partID} lists with the 
 closest similarity to the query list are returned.
 In PC,
 the result of the computation is a list of $k$ objects containing the Jaccard similarity, the integral \texttt{custkey}, and
-a \texttt{Vector <int>} that stores the complete list of unique \texttt{partid}s sold to that customer.
+a \texttt{Vector <int>} that stores the complete list of unique \texttt{partID}s sold to that customer.
 In PC, the C++ code required to drive this computation is as follows:
 \begin{code}
 Handle<Vector<int>> listOfPartIDs = 
-    makeObject<Vector<int>>(199, 22, 34, 567, 1200, 37, 46, 459);
+    makeObject<Vector<int>>(199, 22, 34, 567, 1200, 37, 46, 459, ...);
 Handle<Computation> myReader = 
     makeObject<ObjectReader<Customer>>("TPCH_db", "tpch_bench_set1");
 Handle<Computation> myTopK = makeObject<TopJaccard>(k, *listOfPartIDs);
@@ -454,7 +465,7 @@ pcContext.executeComputations (myWriter);
 closest customer part sets computation is the \texttt{TopJaccard} class, which
 is responsible for extracting a value to drive the top-$k$ computation (in this case, the Jaccard similarity) as well
 as the object to be associated with that value (in this case, the \texttt{custkey} and the list of 
-\texttt{partid}s sold to that customer).
+\texttt{partID}s sold to that customer).
 
 For both PC and for Spark, and for both computations, we created 
 TPC-H dataset of various sizes: 2.4 million,
@@ -464,7 +475,7 @@ closest customer part sets'' computation, $k$ was chosen to be $\frac{1024}{2.4 
 of the data.
 
 For both Spark computations, we performed two runs at each dataset size.
-For the first, we stored the data in HDFS, and measure the time to execute the query starting with a
+For the first, we stored the data in HDFS, and measured the time to execute the query starting with a
 read from HDFS.
 For the second, we made sure that the data were de-serialized and stored in RAM by Spark.
 To do this, we applied a \texttt{distinct().count()} operation to
@@ -581,7 +592,7 @@ sampling from both Multinomial and Dirichlet distributions).
     initialization. Computations connected by solid lines will run iteratively.}
 \end{figure}
 
-We wished to compared out LDA implementation with an algorithmically equivalent Spark implementation.  Unfortunately,
+We wished to compared our LDA implementation with an algorithmically equivalent Spark implementation.  Unfortunately,
 Spark \texttt{mllib}'s LDA implementation is based on expectation
 maximization (EM) and online variational Bayes.
 Therefore, we had a Spark expert 
@@ -631,7 +642,7 @@ we ran all ML experiments using PC and Spark 2.1.0.
 
 For LDA,  we
 created a semi-synthetic document database with 2.5 million documents from
-20 Newsgroups dataset by concatenating random pairs of newsgroup postings
+20-Newsgroups dataset by concatenating random pairs of newsgroup postings
 end-on-end. There are more than 739
 million \texttt{(docID, wordID, count)} triples in the dataset.
 We use a dictionary size
@@ -663,7 +674,7 @@ LDA Results (per iteration) are illustrated in Table~\ref{fig:LDA}.
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
 \hline
-PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\join hint} & \makecell{Spark 3: also with \\forced persist} & \makecell{Spark 3: also hand-\\coded multinomial} \\
+PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\join hint} & \makecell{Spark 3: also with \\forced persist} & \makecell{Spark 4: also hand-\\coded multinomial} \\
 \hline
 02:05 & 50:20 & 17:30 & 09:26 & 05:26 \\
 \hline
@@ -678,7 +689,8 @@ amount of work required to arrive at a good solution
 was significant, representing about a week of tuning.  First, among other things, our Spark expert had to force a 
 broadcast join.  Then, it was necessary to force Spark to
 persist the result of one of the joins for later use.  Finally, it was necessary to hand-code a 
-Multinomial sampler (avoiding the use of \texttt{breeze}) to obtain an implementation that was competitive with PC.
+Multinomial sampler (avoiding the use of \texttt{breeze} for
+multinomial sampling) to obtain an implementation that was competitive with PC.
 This last bit of tuning (of course) can't be blamed on Spark, but the experience overall is illustrative: forcing 
 a particular join and forcing a particular persist are \emph{workload specific} optimizations.  They may work for one
 workload but be a poor choice for another, and require a tool end-user to actually change library code to achieve

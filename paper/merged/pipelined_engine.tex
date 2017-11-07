@@ -93,7 +93,7 @@ directly on the output page.  Any allocations triggered by the construction of t
 \textbf{Avoiding Unwanted In-Place Allocations.}
 It is just as important to avoid unwanted allocations on an output page.  Depending upon the user-supplied
 allocation policy, such allocations will either result
-in holes on the page when it is shipped into the cloud and hence a lower data density (if no-reuse is specified), 
+in holes on the page when it is shipped into the distributed PC cluster and hence a lower data density (if no-reuse is specified), 
 or else they will result in the utilization of CPU cycles to 
 reclaim and reuse the memory. 
 
