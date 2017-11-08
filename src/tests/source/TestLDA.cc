@@ -75,7 +75,6 @@
 
 using namespace pdb;
 int main(int argc, char* argv[]) {
-    std::ofstream term("/dev/tty", std::ios_base::out);
 
     /* Read in the parameters */
     if (argc != 8 && argc != 6) {
@@ -89,12 +88,12 @@ int main(int argc, char* argv[]) {
     masterIp = argv[1];
 
     int iter = std::stoi(argv[2]);
-    term << "The number of iterations: " << iter << std::endl;
+    std::cout << "The number of iterations: " << iter << std::endl;
 
     int numWord = std::stoi(argv[3]);
-    term << "The dictionary size: " << numWord << std::endl;
+    std::cout << "The dictionary size: " << numWord << std::endl;
     int numTopic = std::stoi(argv[4]);
-    term << "The number of topics: " << numTopic << std::endl;
+    std::cout << "The number of topics: " << numTopic << std::endl;
 
     bool whetherToAddData = true;
     if (strcmp(argv[5], "N") == 0) {
@@ -107,7 +106,7 @@ int main(int argc, char* argv[]) {
     if (whetherToAddData) {
         if (strcmp(argv[6], "N") == 0) {
             numDoc = std::stoi(argv[7]);
-            term << "The number of documents: " << numDoc << std::endl;
+            std::cout << "The number of documents: " << numDoc << std::endl;
         } else {
             whetherAddFromFile = true;
             inFileName = argv[7];
@@ -164,20 +163,18 @@ int main(int argc, char* argv[]) {
     }
 
     if (whetherToAddData == true) {
-        // Step 1. Create Database and Set
 
-        // now, create a new database
+        /* Create the Database and Sets */
         if (!pdbClient.createDatabase("LDA_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
+	    std::cout << "Not able to create database: " + errMsg;
             exit(-1);
         }
 
-        // now, create a new set in that database
         pdbClient.removeSet("LDA_db", "LDA_input_set", errMsg);
         if (!pdbClient.createSet<LDADocument>("LDA_db",
                                          "LDA_input_set",
                                          errMsg)) {
-            cout << "Not able to create set: " + errMsg;
+	    std::cout << "Not able to create set: " + errMsg;
             exit(-1);
         }
 
@@ -185,19 +182,23 @@ int main(int argc, char* argv[]) {
         if (!pdbClient.createSet<int>("LDA_db",
                                  "LDA_meta_data_set",
                                  errMsg)) {
-            cout << "Not able to create set: " + errMsg;
+	    std::cout << "Not able to create set: " + errMsg;
             exit(-1);
         }
 
-
-        // Step 2. Add data
         int blockSize = 8;
+
+	/* Add synthetic data */
         if (!whetherAddFromFile && numDoc > 0) {
 
             pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
             pdb::Handle<pdb::Vector<pdb::Handle<LDADocument>>> storeMe =
                 pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>>();
 
+	    /* 
+	     * Add the data for documents. 
+	     * Format: (docID, wordID, count)
+	     */
             for (int docNum = 0; docNum < numDoc; docNum++) {
 
                 int wordsSoFar = 0;
@@ -221,7 +222,6 @@ int main(int argc, char* argv[]) {
                         }
 
                     } catch (pdb::NotEnoughSpace& n) {
-                        std::cout << "Sending " << storeMe->size() << " data objects.\n";
                         if (!pdbClient.sendData<LDADocument>(
                                 std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
                                 storeMe,
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            // just in case the last few entries did not get sent
+            /* Handle the last few entries */
             if (storeMe->size() > 0) {
                 if (!pdbClient.sendData<LDADocument>(
                         std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
             }
 
-            // now we create one entry per word
+            /* Add the data for the dictionary. One wordID per entry. */
             pdb::Handle<pdb::Vector<pdb::Handle<int>>> storeMeToo =
                 pdb::makeObject<pdb::Vector<pdb::Handle<int>>>();
             for (int i = 0; i < numWord; i++) {
@@ -264,10 +264,10 @@ int main(int argc, char* argv[]) {
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
             }
 
-            // to write back all buffered records
             pdbClient.flushData(errMsg);
-        }  // If not add from file
+        }
 
+	/* Add data from the input file */
         else {
             int blockSize = 8;
             std::ifstream inFile(inFileName);
@@ -276,6 +276,7 @@ int main(int argc, char* argv[]) {
             bool rollback = false;
             bool end = false;
 
+	    /* Read in the documents from the input file */
             while (!end) {
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
                 pdb::Handle<pdb::Vector<pdb::Handle<LDADocument>>> storeMe =
@@ -295,7 +296,6 @@ int main(int argc, char* argv[]) {
                         myData->setWord(wordID);
                         myData->setCount(countNum);
                         storeMe->push_back(myData);
-                        //           std::cout << "Count number: " << countNum << endl;
                     }
                     if (!pdbClient.sendData<LDADocument>(
                             std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
 
             inFile.close();
 
-            // now we create one entry per word
+	    /* Add the data for the dictionary. One wordID per entry. */
             pdb::Handle<pdb::Vector<pdb::Handle<int>>> storeMeToo =
                 pdb::makeObject<pdb::Vector<pdb::Handle<int>>>();
             for (int i = 0; i < numWord; i++) {
@@ -340,6 +340,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    /* Create sets to store the intermediate data that will be used between iterations */
     std::string myNextReaderForTopicsPerWordSetName =
         std::string("TopicsPerWord") + std::to_string(0);
     std::string myNextReaderForTopicsPerDocSetName =
@@ -353,7 +354,7 @@ int main(int argc, char* argv[]) {
     if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextReaderForTopicsPerDocSetName,
                                              errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+	std::cout << "Not able to create set: " + errMsg;
         exit(-1);
     }
 
@@ -361,7 +362,7 @@ int main(int argc, char* argv[]) {
     if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextReaderForTopicsPerWordSetName,
                                              errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+	std::cout << "Not able to create set: " + errMsg;
         exit(-1);
     }
 
@@ -369,7 +370,7 @@ int main(int argc, char* argv[]) {
     if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextWriterForTopicsPerDocSetName,
                                              errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+	std::cout << "Not able to create set: " + errMsg;
         exit(-1);
     }
 
@@ -377,12 +378,13 @@ int main(int argc, char* argv[]) {
     if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextWriterForTopicsPerWordSetName,
                                              errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+	std::cout << "Not able to create set: " + errMsg;
         exit(-1);
     }
 
-    // connect to the query clientpdbClient
-    // Some meta data
+    /* Main LDA Program */
+
+    /* Prior data */
     pdb::makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
 
     auto total_begin = std::chrono::high_resolution_clock::now();
@@ -392,10 +394,9 @@ int main(int argc, char* argv[]) {
     alpha->fill(1.0);
     beta->fill(1.0);
 
-    // Initialization for LDA
-    Vector<Handle<Computation>> tempOut;
+    /* Initialization */
 
-    // Initialize the topic mixture probabilities for each doc
+    /* Initialize the topic mixture probabilities for each document */
     Handle<Computation> myInitialScanSet =
         makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
     Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
@@ -403,7 +404,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
     myDocTopicProb->setInput(myDocID);
 
-    // Initialize the (wordID, topic prob vector)
+    /* Initialize the (wordID, topic prob vector) */
     Handle<Computation> myMetaScanSet = makeObject<ScanIntSet>("LDA_db", "LDA_meta_data_set");
     Handle<Computation> myWordTopicProb = makeObject<LDAInitialWordTopicProbSelection>(numTopic);
     myWordTopicProb->setInput(myMetaScanSet);
@@ -411,132 +412,116 @@ int main(int argc, char* argv[]) {
     Handle<Computation> input1 = myDocTopicProb;
     Handle<Computation> input2 = myWordTopicProb;
 
-    // Start LDA iterations
-    //    auto begin = std :: chrono :: high_resolution_clock :: now();
+    /* Main training loops */
     for (int n = 0; n < iter; n++) {
 
-        auto iter_begin = std::chrono::high_resolution_clock::now();
-
-        term << "*****************************************" << std::endl;
-        term << "I am in iteration : " << n << std::endl;
-        term << "*****************************************" << std::endl;
-
-        // first we set up the join that will assign all of the words in the corpus to topics
+        /* [1] Set up the join that will assign all of the words in the corpus to topics */
         Handle<Computation> myDocWordTopicJoin = makeObject<LDADocWordTopicJoin>(numWord);
         myDocWordTopicJoin->setInput(0, myInitialScanSet);
         myDocWordTopicJoin->setInput(1, input1);
         myDocWordTopicJoin->setInput(2, input2);
 
-        // do an identity selection, since a join can't have two outputs
+        /* Do an identity selection */
         Handle<Computation> myIdentitySelection = makeObject<LDADocWordTopicAssignmentIdentity>();
         myIdentitySelection->setInput(myDocWordTopicJoin);
 
-        // now we set up the sequence of actions that re-compute the topic probabilities for each
-        // doc
-        // get the set of topics assigned for each doc
+        /* [2] Set up the sequence of actions that re-compute the topic probabilities for each document */
+
+        /* Get the set of topics assigned for each doc */
         Handle<Computation> myDocWordTopicCount = makeObject<LDADocAssignmentMultiSelection>();
         myDocWordTopicCount->setInput(myIdentitySelection);
 
-        // aggregate them
+        /* Aggregate the topics */
         Handle<Computation> myDocTopicCountAgg = makeObject<LDADocTopicAggregate>();
         myDocTopicCountAgg->setInput(myDocWordTopicCount);
-        // and get the new set of doc probabilities
+
+        /* Get the new set of doc-topic probabilities */
         Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
         myDocTopicProb->setInput(myDocTopicCountAgg);
 
-        // now we set up the sequence of actions that re-compute the word probs for each topic
-        // get the set of words assigned for each topic in each doc
+        /* [3] Set up the sequence of actions that re-compute the word probs for each topic */
+
+        /* Get the set of words assigned for each topic in each doc */
         Handle<Computation> myTopicWordCount = makeObject<LDATopicAssignmentMultiSelection>();
         myTopicWordCount->setInput(myIdentitySelection);
 
-        // agg them
+        /* Aggregate them */
         Handle<Computation> myTopicWordCountAgg = makeObject<LDATopicWordAggregate>();
         myTopicWordCountAgg->setInput(myTopicWordCount);
-        // use those aggs to get per-topic probabilities
+
+        /* Use those aggregations to get per-topic probabilities */
         Handle<Computation> myTopicWordProb =
             makeObject<LDATopicWordProbMultiSelection>(*beta, numTopic);
         myTopicWordProb->setInput(myTopicWordCountAgg);
 
-        // and see what the per-word probabilities are
+        /* Get the per-word probabilities */
         Handle<Computation> myWordTopicProb = makeObject<LDAWordTopicAggregate>();
         myWordTopicProb->setInput(myTopicWordProb);
 
-        // now, we get the writers
+        /* 
+	 * [4] Write the intermediate results doc-topic probability and word-topic probability to sets
+	 *     Use them in the next iteration
+	 */
         std::string myWriterForTopicsPerWordSetName =
             std::string("TopicsPerWord") + std::to_string((n + 1) % 2);
         Handle<Computation> myWriterForTopicsPerWord =
             makeObject<WriteTopicsPerWord>("LDA_db", myWriterForTopicsPerWordSetName);
         myWriterForTopicsPerWord->setInput(myWordTopicProb);
 
-        // now, we get the writers
         std::string myWriterForTopicsPerDocSetName =
             std::string("TopicsPerDoc") + std::to_string((n + 1) % 2);
         Handle<Computation> myWriterForTopicsPerDoc =
             makeObject<WriteIntDoubleVectorPairSet>("LDA_db", myWriterForTopicsPerDocSetName);
         myWriterForTopicsPerDoc->setInput(myDocTopicProb);
 
+	/* Excute the computations */
         if (!pdbClient.executeComputations(
                 errMsg, myWriterForTopicsPerWord, myWriterForTopicsPerDoc)) {
             std::cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
 
-        // clear the set that have been read in this iteration by old readers
-        auto clear_begin = std::chrono::high_resolution_clock::now();
+	/* [5] Prepare sets for the next iteration */
+
+        /* Clear the sets that have been read in this iteration by old readers */
         std::string myReaderForTopicsPerWordSetName =
             std::string("TopicsPerWord") + std::to_string(n % 2);
         std::string myReaderForTopicsPerDocSetName =
             std::string("TopicsPerDoc") + std::to_string(n % 2);
         if (!pdbClient.clearSet(
                 "LDA_db", myReaderForTopicsPerWordSetName, "pdb::IntDoubleVectorPair", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
+	    std::cout << "Not able to create set: " + errMsg;
             exit(-1);
         }
         if (!pdbClient.clearSet(
                 "LDA_db", myReaderForTopicsPerDocSetName, "pdb::IntDoubleVectorPair", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
+	    std::cout << "Not able to create set: " + errMsg;
             exit(-1);
         }
-        auto clear_end = std::chrono::high_resolution_clock::now();
-        // finally, create the new readers
+
+        /* Finally, create the new readers */
         input2 = makeObject<ScanTopicsPerWord>("LDA_db", myWriterForTopicsPerWordSetName);
         input1 = makeObject<ScanIntDoubleVectorPairSet>("LDA_db", myWriterForTopicsPerDocSetName);
         myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
-        auto iter_end = std::chrono::high_resolution_clock::now();
-        term << "Time Duration for clear-set " << n << ": "
-             << std::chrono::duration_cast<std::chrono::duration<float>>(clear_end - clear_begin)
-                    .count()
-             << " secs." << std::endl;
-        if (n == 0) {
-            term << "Time Duration for iteration " << n << ": "
-                 << std::chrono::duration_cast<std::chrono::duration<float>>(iter_end - total_begin)
-                        .count()
-                 << " secs." << std::endl;
-        } else {
-            term << "Time Duration for iteration " << n << ": "
-                 << std::chrono::duration_cast<std::chrono::duration<float>>(iter_end - iter_begin)
-                        .count()
-                 << " secs." << std::endl;
-        }
     }
 
     auto end = std::chrono::high_resolution_clock::now();
-    int totOut = 0;
+
+    /* Output the results as topic-word probability */
     std::string myWriterForTopicsPerWordSetName =
         std::string("TopicsPerWord") + std::to_string(iter % 2);
     SetIterator<LDATopicWordProb> initTopicProbResult =
             pdbClient.getSetIterator<LDATopicWordProb>("LDA_db", myWriterForTopicsPerWordSetName);
+    std::cout << "LDA results: (Word ID, Topic Probability)" << std::endl;
     for (auto& a : initTopicProbResult) {
-        //    		std :: cout << "Word ID: " << a->getKey () << " Topic probabilities: ";
-        //		a->getVector().print();
-        //  		std :: cout << std::endl;
-        totOut++;
+    	std :: cout << "Word ID: " << a->getKey () << " Topic Probability: ";
+        a->getVector().print();
+        std :: cout << std::endl;
     }
 
-    term << "Time Duration: "
+    std::cout << "Time Duration: "
          << std::chrono::duration_cast<std::chrono::duration<float>>(end - total_begin).count()
          << " secs." << std::endl;
-    term << "The total number of output I have: " << totOut << std::endl;
 }
 
 #endif
