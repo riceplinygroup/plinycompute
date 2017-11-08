@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PartitionedFile.h
- * Author: Jia
- *
- * Created on November 16, 2015, 9:44 AM
- */
-
 #ifndef PARTITIONEDFILE_H
 #define PARTITIONEDFILE_H
 
