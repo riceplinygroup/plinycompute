@@ -32,15 +32,27 @@
 
 namespace pdb {
 
-/*
- * This class encapsulates the analyzer for TCAP string
- * You can use this class transform a TCAP string into a physical plan: a
- * sequence of
- * AbstractJobStage instances
- * This class must be used in the same allocation block with the invoker of
- * method analyze() to
- * avoid problematic shallow copy.
- */
+
+// This class encapsulates the analyzer for TCAP string
+// You can use this class transform a TCAP string into a physical plan: a
+// sequence of
+// AbstractJobStage instances
+// This class must be used in the same allocation block with the invoker of
+// method analyze() to
+// avoid problematic shallow copy.
+
+//it analyzes the TCAP program as a DAG based on a cost model using a greedy algorithm.
+//The goal is to minimize the volume of intermediate data.
+//The approach is to monitor and collect storage statistics at runtime and select a source
+//that has the lowest cost, and then go through the DAG from the source until it meets a pipeline breaker.
+
+//Then it generates the corresponding JobStages:
+// -- TupleSetJobStage: a pipeline
+// -- AggregationJobStage: to perform the final aggregation on shuffled data
+// -- BroadcastJoinBuildHTJobStage: to perform hash table building for broadcast join
+// -- HashPartitionedJoinBuildHTJobStage: to perform hash table building for partitioned join
+
+
 
 class TCAPAnalyzer {
 

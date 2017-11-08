@@ -41,11 +41,25 @@
 
 namespace pdb {
 
+
 class PipelineStage;
 typedef std::shared_ptr<PipelineStage> PipelineStagePtr;
 
 
-// this class encapsulates the pipeline stage
+// this class encapsulates the pipeline stage, which we call TupleSetJobStage
+// A TupleSetJobStage can have multiple different sources and different sinks
+
+// Supported sources:
+// -- VectorTupleSetIterator
+// -- MapTupleSetIterator
+// -- JoinTupleSetIterator
+
+// Supported sinks:
+// -- ShuffleSink for aggregation
+// -- BroadcastSink for broadcast join
+// -- HashPartitionSink for hash partitioned join
+// -- UserSetSink for data materialization 
+
 class PipelineStage {
 
 private:
