@@ -48,6 +48,13 @@ namespace pdb {
 // -- BroadcastJoinBuildHTJobStage
 // -- HashPartitionJoinBuildHTJobStage
 
+//Once the QuerySchedulerServer receives a request (A TCAP program), 
+//it analyzes the TCAP program as a DAG based on a cost model using a greedy algorithm.
+//The goal is to minimize intermediate data.
+//The scheduling is dynamic and lazy, and only one the JobStages scheduled last time 
+//were executed, it will schedule later stages, to maximize the information needed.
+//The JobStages will be dispatched to all workers for execution.
+
 
 class QuerySchedulerServer : public ServerFunctionality {
 

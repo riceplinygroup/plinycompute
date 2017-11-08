@@ -25,6 +25,11 @@
 
 namespace pdb {
 
+/*
+ * This server works in frontend as a message proxy to transfer message 
+ * from QuerySchedulerServer to HermesExecutionServer.
+ */
+
 class FrontendQueryTestServer : public ServerFunctionality {
 
 public:

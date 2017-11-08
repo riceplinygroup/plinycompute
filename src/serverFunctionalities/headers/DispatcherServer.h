@@ -34,13 +34,17 @@
 #include <unordered_map>
 #include <vector>
 
-/**
- * The DispatcherServer partitions and then forwards a Vector of pdb::Objects received from a
- * DispatcherClient
- * to the proper storage servers
- */
+
 
 namespace pdb {
+
+// The DispatcherServer partitions and then forwards a Vector of pdb::Objects received from a
+// DispatcherClient to the proper storage servers
+// So far, there are two dispatching policies are supported:
+// -- Random Policy: the received Vector will be sent to any storage node determined randomly
+// -- Round-Robin Policy: the first received Vector will be sent to the first storage node, 
+//    and so on.
+
 
 class DispatcherServer : public ServerFunctionality {
 
