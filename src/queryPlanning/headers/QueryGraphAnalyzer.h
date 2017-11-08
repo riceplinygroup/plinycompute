@@ -26,10 +26,24 @@
 
 namespace pdb {
 
-/*
- * This class encapsulates the analyzer to user query graph
- * The user query graph should not have loops
- */
+
+// This class encapsulates the analyzer to user query graph
+// This class is also called a TCAP compiler, 
+// and it translates a user query graph into a TCAP program.
+
+// A TCAP program has following format:
+// $TargetTupleSetName($tupleNamesToKeep, $newTupleName) <=
+// $TCAPOperatorName($SourceTupleSetName($tupleNamesToApply),
+//                   $SourceTupleSetName($tupleNamesToKeep),
+//                   $ComputationName,
+//                   $LambdaName)            
+
+// Currently supported TCAP operators include:
+// Apply, Aggregate, Join, ScanSet, WriteSet, HashLeft, HashRight
+// HashOne, Flatten, Filter and so on.
+
+// Note that the user query graph should not have loops
+
 class QueryGraphAnalyzer {
 
 public:
