@@ -15,9 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by Joseph Hwang on 9/22/16.
-//
 
 #ifndef OBJECTQUERYMODEL_DISPATCHERCLIENT_H
 #define OBJECTQUERYMODEL_DISPATCHERCLIENT_H
@@ -30,6 +27,10 @@
 #include "CatalogClient.h"
 
 namespace pdb {
+
+// this class serves as a dispatcher client to talk with the DispatcherServer
+// to send Vector<Objects> from clients to the distributed storage server. 
+
 
 class DispatcherClient : public ServerFunctionality {
 

@@ -25,6 +25,11 @@
 
 namespace pdb {
 
+
+// This functionality talks with the DistributedStorageManagerServer instance
+// to execute storage-related user requests.
+
+
 class DistributedStorageManagerClient : public ServerFunctionality {
 
 public:
@@ -45,21 +50,21 @@ public:
                    std::string& errMsg,
                    size_t pageSize = DEFAULT_PAGE_SIZE);
 
-    // createTempSet added by Jia (only go through storage)
+    // create a temp set that only goes through storage
     bool createTempSet(const std::string& databaseName,
                        const std::string& setName,
                        const std::string& typeName,
                        std::string& errMsg,
                        size_t pageSize = DEFAULT_PAGE_SIZE);
 
-    // templated createSet added by Jia
+    // templated createSet
     template <class DataType>
     bool createSet(const std::string& databaseName,
                    const std::string& setName,
                    std::string& errMsg,
                    size_t pageSize = DEFAULT_PAGE_SIZE);
 
-    // storage cleanup added by Jia
+    // storage cleanup to flush buffered data to disk
     bool flushData(std::string& errMsg);
 
     bool removeDatabase(const std::string& databaseName, std::string& errMsg);
@@ -68,19 +73,20 @@ public:
                    const std::string& setName,
                    std::string& errMsg);
 
-    // clearSet added by Jia
+    // clean up all set by removing both in-memory and on-disk data
     bool clearSet(const std::string& databaseName,
                   const std::string& setName,
                   const std::string& typeName,
                   std::string& errMsg);
 
-    // removeTempSet added by Jia (only go through storage)
+    // remove a temp set that only goes through storage
     bool removeTempSet(const std::string& databaseName,
                        const std::string& setName,
                        const std::string& typeName,
                        std::string& errMsg);
 
-    // export set added by Jia
+    // export set to files with user specified format
+    // the exported set is partitioned over all storage nodes on the specified directory
     // Note that the objects in set must be instances of ExportableObject
     bool exportSet(const std::string& databaseName,
                    const std::string& setName,

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/**
- * Author: Jia
- * Sept 12, 2016
- */
-
-
 #ifndef HERMES_EXECUTION_SERVER_H
 #define HERMES_EXECUTION_SERVER_H
 
@@ -36,6 +30,24 @@
 namespace pdb {
 
 // this server functionality is supposed to run in backend
+// a HermesExecutionServer runs in backend for distributed query execution.
+// the QuerySchedulerServer split a query job into mulitple JobStages and dispatch
+// those JobStages to HermesExecutionServer for execution.
+
+// There are four different types of JobStages in total:
+// -- TupleSetJobStage: this encapsulates a pipeline of computations;
+// -- AggregationJobStage: this encapsulates the final aggregation execution that
+//    receives data from a shuffled set, and build multiple hash tables over the data;
+// -- BroadcastJoinBuildHTJobStage: this encapsulates the execution of hash table building
+//    for broadcast join;
+// -- PartitionedJoinBuildHTJobStage: this encapsulates the execution of hash table 
+//    building for hash partitioned join.
+
+// HermesExecutionServer executes each of those JobStages and 
+// stores intermediate data in local storage.
+
+
+
 class HermesExecutionServer : public ServerFunctionality {
 
 public:

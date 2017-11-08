@@ -46,7 +46,33 @@ namespace pdb {
 class PangeaStorageServer;
 typedef std::shared_ptr<PangeaStorageServer> PangeaStorageServerPtr;
 
-//this class encapsulates the PangeaStorageServer functionality.
+//this class encapsulates the PangeaStorageServer functionality
+//It should be installed on each Worker node, and managed by DistributedStorageManager and Dispatcher.
+//It includes a PageCache as a buffer pool, and a group of PartitionedFile instances to serve as user-level file system.
+//The organization of user data has two levels: Database and UserSet, and one database can have multiple user sets.
+
+//As a local server, it handles user requests for following storage services:
+//-- StorageCleanup: to force a flush of all pages
+//-- StorageAddDatabase: to add a database
+//-- StorageAddSet: to add a user set
+//-- StorageAddTempSet: to add a temp set, that is transient and not need registration with catalog
+//-- StorageRemoveDatabase: to remove a database
+//-- StorageRemoveUserSet: to remove a user set
+//-- StorageClearSet: to remove data from a set
+//-- StorageRemoveTempSet: to remove a temp set
+//-- StorageAddObjectInLoop: to add large objects in loop, and add one large object each time
+//-- StorageAddData: to add a Vector<Object> to a set
+//-- StorageGetData: to return data from a set
+//-- StorageCollectStats: to collect stats for this local storage
+//-- StoragePinPage: to pin a page in one set
+//-- StoragePinBytes: to pin bytes of specified length in one set
+//-- StorageUnpinPage: to unpin a page from one set
+//-- StorageGetSetPages: to trigger a parallel scan over a set
+
+
+
+
+
 class PangeaStorageServer : public ServerFunctionality {
 
 public:

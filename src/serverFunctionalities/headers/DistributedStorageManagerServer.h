@@ -25,10 +25,26 @@
 
 namespace pdb {
 
+// This ServerFunctionality runs on the Master server, and talks with
+// the PangeaStorageServer deployed on each Worker server to serve
+// storage-related requests. Include following:
+// -- DistributedStorageAddDatabase: to add a database over the cluster
+// -- DistributedStorageClearSet: to remove data (both in-memory or on-disk data) from a set
+// -- DistributedStorageAddTempSet: to add a temp set (invisible to catalog) over the cluster
+// -- DistributedStorageAddSet: to add a user set over the cluster
+// -- DistributedStorageRemoveDatabase: to remove a database from the cluster
+// -- DistributedStorageRemoveTempSet: to remove a temp set (invisible to catalog) 
+//    from the cluster
+// -- DistributedStorageRemoveSet: to remove a user set over the cluster
+// -- DistributedStorageCleanup: to flush buffered data to disk for all storage nodes
+// -- DistributedStorageExportSet: to export a set to user specified format
+// -- SetScan: to scan all pages in a set from the client (One thread)
+
+
+
 class DistributedStorageManagerServer : public BroadcastServer {
 
 public:
-    // A new constructor added by Jia to take a Configuration parameter
     DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf);
 
 

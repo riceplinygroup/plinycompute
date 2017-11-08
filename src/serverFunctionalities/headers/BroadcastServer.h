@@ -31,7 +31,6 @@ namespace pdb {
 class BroadcastServer : public ServerFunctionality {
 
 public:
-    // added by Jia to add a new constructor that requires a configuration parameter
     BroadcastServer(PDBLoggerPtr logger, ConfigurationPtr conf);
 
     BroadcastServer(PDBLoggerPtr logger);
