@@ -93,7 +93,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             std::cout << "HashPartitionedJoinBuildHTJobStage: print inactive blocks:" << std::endl;
             std::cout << out << std::endl;
 #endif
-            // getAllocator().cleanInactiveBlocks((size_t)(1048576));
             PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
             if (communicatorToBackend->connectToLocalServer(
                     getFunctionality<PangeaStorageServer>().getLogger(),
@@ -572,7 +571,7 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                     result->setNumPages(0);
                     result->setPageSize(
                         getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
-                    PDB_COUT << "Stage is done without data. " << std::endl;
+                    PDB_COUT << "Stage is done without input. " << std::endl;
                     // return the results
                     if (!sendUsingMe->sendObject(result, errMsg)) {
                         return std::make_pair(false, errMsg);
@@ -585,6 +584,26 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 }
                 std::cout << "number of pages in set " << inSetName << " is "
                           << inputSet->getNumPages() << std::endl;
+                if (inputSet->getNumPages() == 0) {
+                    PDB_COUT << "FrontendQueryTestServer: input set doesn't have any pages in this machine"
+                             << std::endl;
+                    // TODO: move data from other servers
+                    // temporarily, we simply return;
+                    // now, we send back the result
+                    Handle<SetIdentifier> result =
+                        makeObject<SetIdentifier>(request->getSinkContext()->getDatabase(),
+                                                  request->getSinkContext()->getSetName());
+                    result->setNumPages(0);
+                    result->setPageSize(
+                        inputSet->getPageSize());
+                    PDB_COUT << "Stage is done without data. " << std::endl;
+                    // return the results
+                    if (!sendUsingMe->sendObject(result, errMsg)) {
+                        return std::make_pair(false, errMsg);
+                    }
+                    return std::make_pair(true, std::string("execution complete"));
+
+                } 
                 sourceContext->setDatabaseId(inputSet->getDbID());
                 sourceContext->setTypeId(inputSet->getTypeID());
                 sourceContext->setSetId(inputSet->getSetID());
@@ -1029,6 +1048,9 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 errMsg = "FATAL ERROR in handling SetScan request: set doesn't exist";
                 std::cout << errMsg << std::endl;
                 return std::make_pair(false, errMsg);
+            } else {
+                std::cout << "To scan set " << whichDatabase << ":" << whichSet << 
+                    " with " << loopingSet->getNumPages() << " pages." << std::endl;
             }
             loopingSet->setPinned(true);
             vector<PageIteratorPtr>* pageIters = loopingSet->getIterators();
@@ -1131,6 +1153,7 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 return std::make_pair(false, "could not send done message: " + errMsg);
             }
             // we got to here means success!!  We processed the query, and got all of the results
+            std::cout << "We have finished scanning this set" << std::endl;
             return std::make_pair(true, std::string("query completed!!"));
         }));
 }
