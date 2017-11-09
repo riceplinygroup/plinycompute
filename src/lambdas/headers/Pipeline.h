@@ -189,7 +189,15 @@ public:
     void run() {
         // this is where we are outputting all of our results to
         MemoryHolderPtr myRAM = std::make_shared<MemoryHolder>(getNewPage());
-
+        // Jia Note: this is not perfect to always create a container in every new page, but 
+        // doing this can avoid a memory copy
+        if (myRAM->location == nullptr) {
+            std::cout << "ERROR: insufficient memory in heap" << std::endl;
+            return;
+        }
+        if (myRAM->outputSink == nullptr) {
+            myRAM->outputSink = dataSink->createNewOutputContainer();
+        }
 
         // and here is the chunk
         TupleSetPtr curChunk;
@@ -211,6 +219,9 @@ public:
                 if (myRAM->location == nullptr) {
                     std::cout << "ERROR: insufficient memory in heap" << std::endl;
                     return;
+                }
+                if (myRAM->outputSink == nullptr) {
+                    myRAM->outputSink = dataSink->createNewOutputContainer();
                 }
                 // then try again
                 try {
@@ -250,6 +261,9 @@ public:
                     if (myRAM->location == nullptr) {
                         std::cout << "ERROR: insufficient memory in heap" << std::endl;
                         return;
+                    }
+                    if (myRAM->outputSink == nullptr) {
+                         myRAM->outputSink = dataSink->createNewOutputContainer();
                     }
                     // then try again
                     try {
