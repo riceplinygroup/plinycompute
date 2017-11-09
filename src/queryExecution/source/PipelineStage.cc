@@ -477,8 +477,7 @@ void PipelineStage::executePipelineWork(int i,
 
     // handle probing
     std::map<std::string, ComputeInfoPtr> info;
-    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr) /*&&
-        (sourceContext->getSetType() == UserSetType)*/) {
+    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr)) {
         Handle<Map<String, String>> hashSetsToProbe = this->jobStage->getHashSets();
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin();
              mapIter != hashSetsToProbe->end();
