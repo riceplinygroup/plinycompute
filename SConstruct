@@ -631,7 +631,6 @@ common_env.Program('bin/TestMatrix', ['build/tests/TestMatrix.cc'] + all)
 
 #Testing
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
-#pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, [
   'bin/CatalogTests',
   'bin/pdb-cluster',
@@ -642,6 +641,7 @@ common_env.Depends(pdbTest, [
   'bin/test79', 
   'bin/test78',
   'bin/test90', 
+  'bin/TestLDA',
   'libraries/libCartesianJoin.so', 
   'libraries/libChrisSelection.so', 
   'libraries/libEmployeeSelection.so',
@@ -668,7 +668,32 @@ common_env.Depends(pdbTest, [
   'libraries/libWriteSumResultSet.so',
   'libraries/libWriteDoubleSet.so',
   'libraries/libOptimizedEmployeeGroupBy.so',
-  'libraries/libScanOptimizedSupervisorSet.so'
+  'libraries/libScanOptimizedSupervisorSet.so',
+  'libraries/libWriteIntDoubleVectorPairSet.so',
+  'libraries/libScanIntSet.so',
+  'libraries/libLDADocument.so',
+  'libraries/libScanLDADocumentSet.so',
+  'libraries/libLDADocIDAggregate.so',
+  'libraries/libLDAInitialTopicProbSelection.so',
+  'libraries/libLDAInitialWordTopicProbSelection.so',
+  'libraries/libLDADocWordTopicJoin.so',
+  'libraries/libLDADocAssignmentMultiSelection.so',
+  'libraries/libLDADocTopicAggregate.so',
+  'libraries/libLDADocTopicProbSelection.so',
+  'libraries/libIntDoubleVectorPair.so',
+  'libraries/libLDATopicAssignmentMultiSelection.so',
+  'libraries/libLDATopicWordAggregate.so',
+  'libraries/libLDATopicWordProbMultiSelection.so',
+  'libraries/libLDAWordTopicAggregate.so',
+  'libraries/libWriteTopicsPerWord.so',
+  'libraries/libDocAssignment.so',
+  'libraries/libTopicAssignment.so',
+  'libraries/libLDATopicWordProb.so',
+  'libraries/libWriteLDADocWordTopicAssignment.so',
+  'libraries/libLDADocWordTopicAssignment.so',
+  'libraries/libLDADocWordTopicAssignmentIdentity.so',
+  'libraries/libScanTopicsPerWord.so',
+  'libraries/libScanIntDoubleVectorPairSet.so'
 ])
 
 
