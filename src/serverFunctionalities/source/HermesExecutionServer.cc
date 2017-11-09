@@ -15,10 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/**
- * Author: Jia
- * Sept 12, 2016
- */
 
 #ifndef HERMES_EXECUTION_SERVER_CC
 #define HERMES_EXECUTION_SERVER_CC
