@@ -477,8 +477,8 @@ void PipelineStage::executePipelineWork(int i,
 
     // handle probing
     std::map<std::string, ComputeInfoPtr> info;
-    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr) &&
-        (sourceContext->getSetType() == UserSetType)) {
+    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr) /*&&
+        (sourceContext->getSetType() == UserSetType)*/) {
         Handle<Map<String, String>> hashSetsToProbe = this->jobStage->getHashSets();
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin();
              mapIter != hashSetsToProbe->end();
@@ -503,11 +503,26 @@ void PipelineStage::executePipelineWork(int i,
         }
     } else {
         std::cout << "info contains nothing for this stage" << std::endl;
+        if (this->jobStage->isProbing() == true) {
+            std::cout << "this stage needs probing hash tables" << std::endl;
+        } else {
+            std::cout << "this stage doesn't need probing hash tables" << std :: endl;
+        }
+        if (this->jobStage->getHashSets() != nullptr) {
+            std::cout << "we have hash tables prepared for the stage" << std::endl;
+        } else {
+            std::cout << "we don't have hash tables prepared for the stage" << std :: endl;
+        }
+        if (sourceContext->getSetType() == UserSetType) {
+            std::cout << "this stage has a UserSetType source" << std::endl;
+        } else {
+            std::cout << "this stage doesn't have a UserSetType source" << std :: endl;
+        }
     }
 
-    PDB_COUT << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std::endl;
-    PDB_COUT << "target specifier: " << this->jobStage->getTargetTupleSetSpecifier() << std::endl;
-    PDB_COUT << "target computation: " << this->jobStage->getTargetComputationSpecifier()
+    std::cout << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std::endl;
+    std::cout << "target specifier: " << this->jobStage->getTargetTupleSetSpecifier() << std::endl;
+    std::cout << "target computation: " << this->jobStage->getTargetComputationSpecifier()
              << std::endl;
 
     Handle<JoinComp<Object, Object, Object>> join = nullptr;
