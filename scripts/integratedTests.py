@@ -66,7 +66,7 @@ print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
-numTotal = 4
+numTotal = 5
 numErrors = 0
 numPassed = 0
 
@@ -178,6 +178,33 @@ except subprocess.CalledProcessError as e:
 
 else:
     print (bcolors.OKBLUE + "[PASSED] G2-distributed selection and join mixed test" + bcolors.ENDC)
+    numPassed = numPassed + 1
+
+subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
+print (bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+time.sleep(5)
+
+
+print("#################################")
+print("RUN LDA TEST ON G-2 PIPELINE")
+print("#################################")
+
+try:
+    #start pseudo cluster
+    startPseudoCluster()
+
+    #run bin/TestLDA
+    print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
+    subprocess.check_call(['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100'])
+
+except subprocess.CalledProcessError as e:
+    print (bcolors.FAIL + "[ERROR] in running distributed selection and join mixed test" + bcolors.ENDC)
+    print (e.returncode)
+    numErrors = numErrors + 1
+
+else:
+    print (bcolors.OKBLUE + "[PASSED] G2-distributed LDA test" + bcolors.ENDC)
     numPassed = numPassed + 1
 
 
