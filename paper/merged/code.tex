@@ -1,17 +1,25 @@
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
 
 \lstnewenvironment{code}
   {\lstset{
-        aboveskip=5pt,
-        belowskip=5pt,
+        aboveskip=10pt,
+        belowskip=10pt,
         %aboveskip=9pt,
         %belowskip=9pt,
+        xleftmargin=15pt,        
         escapechar=!,
         mathescape=true,
         language=C++,
-        basicstyle=\linespread{0.94}\ttfamily\small,
-	morekeywords={createSet, sendData, makeLambdaFromMember,
+        %basicstyle=\linespread{0.94}\ttfamily\small,
+        basicstyle=\linespread{0.94}\ttfamily\footnotesize,
+	    morekeywords={createSet, sendData, makeLambdaFromMember,
 		execute, setInput, setOutput, makeLambda, makeLambdaFromMethod, 
-		Handle, Vector, Map, pair, makeObjectAllocatorBlock, push_back, Object, makeObject},	
+		Handle, Vector, Map, pair, makeObjectAllocatorBlock, push_back, Object, makeObject},
+        keywordstyle=\color{blue}\ttfamily,
+        stringstyle=\color{mauve}\ttfamily,
+        commentstyle=\color{dkgreen}\ttfamily,			
         showstringspaces=true}
         \vspace{0pt}%
         \noindent\minipage{0.47\textwidth}}
@@ -21,17 +29,21 @@
 
 \lstnewenvironment{codesmall}
   {\lstset{
-        aboveskip=5pt,
-        belowskip=5pt,
+        aboveskip=10pt,
+        belowskip=10pt,
         %aboveskip=9pt,
         %belowskip=9pt,
+        xleftmargin=15pt,        
         escapechar=!,
         mathescape=true,
         language=C++,
         basicstyle=\linespread{0.94}\ttfamily\footnotesize,
-	morekeywords={createSet, sendData, makeLambdaFromMember,
+	    morekeywords={createSet, sendData, makeLambdaFromMember,
 		hash, join, APPLY, FILTER, execute, setInput, setOutput, makeLambda, makeLambdaFromMethod, 
-		Handle, Vector, Map, pair, makeObjectAllocatorBlock, push_back, Object, makeObject},	
+		Handle, Vector, Map, pair, makeObjectAllocatorBlock, push_back, Object, makeObject},
+        keywordstyle=\color{blue}\ttfamily,
+        stringstyle=\color{mauve}\ttfamily,
+        commentstyle=\color{dkgreen}\ttfamily,            			
         showstringspaces=true}
         \vspace{0pt}%
         \noindent\minipage{0.47\textwidth}}
