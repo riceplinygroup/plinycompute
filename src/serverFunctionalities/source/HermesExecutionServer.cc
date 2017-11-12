@@ -1212,7 +1212,7 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                           numThreads,
                                                           backendCircularBufferSize,
                                                           nodeId);
-        if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner)) {
+        if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
           success = false;
           errMsg = "Error: A job is already running!";
           std::cout << errMsg << std::endl;
