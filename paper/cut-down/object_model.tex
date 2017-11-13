@@ -69,14 +69,14 @@ by using a ``page-as-a-heap'' memory allocation model.
 The PC object model provides a call of the form:
 
 \begin{codesmall}
-makeObjectAllocationBlock (ptr, blockSize);
+makeObjectAllocatorBlock (ptr, blockSize);
 \end{codesmall}
 
 After such a call, \emph{all subsequent PC Object allocations by the thread creating the object allocation block will be performed directly to the memory
 region starting at location} \texttt{ptr}.
 Typically, when it runs a computation, PC's execution engine will obtain a page from its buffer pool to buffer output data, calling
 PC's
-\texttt{makeObjectAllocationBlock()} function with a pointer to the page where output data are to be written.  
+\texttt{makeObjectAllocatorBlock()} function with a pointer to the page where output data are to be written.  
 When an action taken by the execution engine or user-supplied code causes an
 out-of-memory execution, it means that the page is full.  At that point, the execution engine can take appropriate computation-specific 
 action, such as creating 
@@ -173,7 +173,7 @@ allocated.
 \noindent
 \textbf{Active allocation block.} Each thread running in a PC process has exactly one \emph{active} allocation block, that is currently receiving allocations (all calls to
 \texttt{makeObject} cause memory allocations to happen using that block).  Such an allocation block is created via a call to 
-\texttt{makeObjectAllocationBlock()}.  User code typically creates and manipulates objects in this block.
+\texttt{makeObjectAllocatorBlock()}.  User code typically creates and manipulates objects in this block.
 
 \vspace{5pt}
 \noindent
@@ -183,7 +183,7 @@ from some \texttt{Handle} that is currently in RAM.  When the number
 of reachable objects in such a block drops to zero, it is automatically
 deallocated.
 When a user (or the PC system software) calls 
-\texttt{makeObjectAlloc ationBlock()}, the newly created allocation block becomes the active block, and if the previously-active allocation block has any
+\texttt{makeObjectAlloc atorBlock()}, the newly created allocation block becomes the active block, and if the previously-active allocation block has any
 reachable objects on it, it becomes an inactive, managed block.
 
 \vspace{5pt}
