@@ -1,6 +1,6 @@
 
 \section{Experiments}
-\label{sec:experiments}
+\label{sec:exp}
 \subsection{Overview}
 
 In this section, we describe our experimental evaluation of PC.
@@ -128,39 +128,41 @@ The student spent about six weeks in this effort.
 \subsubsection{\texttt{lilLinAlg} Implementation}
 
 In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
-object in the set is a \texttt{MatrixBlock}, storing a contiguous rectangular sub-block of the matrix:
+object in the set is a \texttt{MatrixBlock}, similar with the class described in
+Section~\ref{sec:pc-object1}, storing a contiguous rectangular sub-block of the matrix:
 
-\begin{code}
-class MatrixBlock : public Object {
-private:
-    MatrixMeta meta;
-    MatrixData data;
-};
-\end{code}
+%\begin{code}
+%class MatrixBlock : public Object {
+%private:
+%    MatrixMeta meta;
+%    MatrixData data;
+%};
+%\end{code}
+%
+%\noindent where \texttt{MatrixMeta} and \texttt{MatrixData} are defined as:
+%
+%\begin{code}
+%class MatrixMeta : public Object {
+%private:
+%    int blockRowIndex; // row index of this block
+%    int blockColIndex; // col index of this block
+%    int totalRows; // total number of rows in matrix 
+%    int totalCols; // total number of cols in matrix
+%};
+%
+%class MatrixData : public Object {
+%private:
+%    Handle<Vector <double>> rawData;
+%    int rowNums; // number of rows in this block
+%    int colNums; // number of cols in this block
+%};
+%\end{code}
+%
+%\noindent \texttt{MatrixMeta} stores the location of the block in the overall matrix, and
+%\texttt{MatrixData} stores the actual contents of the matrix.
 
-\noindent where \texttt{MatrixMeta} and \texttt{MatrixData} are defined as:
-
-\begin{code}
-class MatrixMeta : public Object {
-private:
-    int blockRowIndex; // row index of this block
-    int blockColIndex; // col index of this block
-    int totalRows; // total number of rows in matrix 
-    int totalCols; // total number of cols in matrix
-};
-
-class MatrixData : public Object {
-private:
-    Handle<Vector <double>> rawData;
-    int rowNums; // number of rows in this block
-    int colNums; // number of cols in this block
-};
-\end{code}
-
-\noindent \texttt{MatrixMeta} stores the location of the block in the overall matrix, and
-\texttt{MatrixData} stores the actual contents of the matrix.
-The actual data stored in a \texttt{MatrixData} object should be small enough to fit completely in 
-a PC page (by default, PC's page size is 256MB).  A typical \texttt{MatrixData} object stores a
+The actual data stored in a \texttt{MatrixBlock} object should be small enough to fit completely in 
+a PC page (by default, PC's page size is 256MB).  A typical \texttt{MatrixBlock} object stores a
 1,000 by 1,000 sub-matrix that is eight megabytes in size.
 
 \texttt{lilLinAlg} uses the \texttt{MatrixBlock} object to implement a set of common distributed matrix
