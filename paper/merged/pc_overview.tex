@@ -3,13 +3,7 @@
 
 The PC software consists of 
 (1) the PC object model, (2) the PC API and TCAP compiler (TCAP is a domain-specific language executed by PC),
-(3) the execution engine, and (4) various distributed services. We give an overview of PlinyCompute, focusing on the core components of the
-system: the PC object model, 
-the PC API and TCAP compiler, and execution engine, and we concretize these ideas by
-describing the implementation of a simple $k$-means clustering
-algorithm.
-
-\subsection{The PC runtime}
+(3) the execution engine, and (4) various distributed services. In the next few sections of the paper, we discuss the first three software components in detail.
 
 When PC runs on a distributed cluster it has a \emph{master node} and one or more \emph{worker nodes}.
 Running on the master node are the managers for the various distributed services provided by PC, primarily 
@@ -35,7 +29,7 @@ computations are actually run.
 
 
 
-\subsection{The PC Object Model}
+\section{Overview of the PC Object Model}
 
 There is growing evidence that the CPU costs associated with manipulating data, especially data (de-)serialization and memory 
 (de-)allocation,  
@@ -147,7 +141,7 @@ cluster.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization.
 
 
-\subsection{PlinyCompute's Lambda Calculus}
+\section{PlinyCompute's Lambda Calculus}
 \label{sec:lambda}
 A PC programmer specifies a distributed computation by providing a graph of high-level computations over sets of data---those data
 may either be of simple types, or they may be
@@ -266,7 +260,7 @@ vectors via a call to \texttt{Join\_2122.==\_3 ()}, and finally all of the vecto
   \label{fig:TCAP}
 \end{figure}
 
-\subsection{PlinyCompute's Execution Engine}
+\section{PlinyCompute's Execution Engine}
 \label{sec:engine}
 PC's execution engine is tasked with optimizing and executing TCAP programs (pronounced ``tee-cap'').  
 PC's TCAP compiler
@@ -475,98 +469,4 @@ objects itself contains a virtual function call.
 In this way, each pipeline stage in the graph described by a TCAP program is generated using template metaprogramming.
 Actually pushing a vector list through a stage requires no per-data-object virtual function calls, and the pipeline stages
 are generated specifically for the types pushed through the pipeline.
-
-\subsection{$k$-Means Example}
-
-Now that we have described PlinyCompute at a high level, we turn to an example of what PlinyCompute looks like to a programmer.
-
-Imagine that a user wished to use PC to build a high-performance library implementation of a $k$-means algorithm.
-Once the programmer had defined the basic type over which the clustering is to be performed (such as the
-\texttt{DataPoint} class), 
-a programmer would likely next define a simple class that allows the averaging of vectors:
-
-\begin{code}
-class Avg : public Object {
-	long cnt = 1;
-	Handle <Vector <double>> data = nullptr;
-	Avg &operator + (Avg &addMe) {/* add addMe into this */}
-};
-\end{code}
-
-\noindent
-The programmer might next add a method to the \texttt{DataPoint} class that converts the \texttt{DataPoint} object to an \texttt{Avg} object:
-
-\begin{code}
-Avg DataPoint :: fromMe () {
-	Avg returnVal;
-	returnVal.data = data;
-	return returnVal;
-}
-\end{code}
-
-\noindent
-And also add a method to the \texttt{DataPoint} class that accepts a set of centroids, computes the Euclidean distance to
-each, and returns the closest:
-
-\begin{code}
-long DataPoint :: getClose (Vector <Vector <double>> &centroids) {...}
-\end{code}
-
-\noindent
-Next, a programmer using PC would define an \texttt{AggregateComp} class using PC's lambda calculus, since, after all, the $k$-means algorithm is essentially 
-an aggregation:
-
-\begin{code}
-class GetNewCentroids : public AggregateComp <Centroid, long, Avg, DataPoint> {
-
-public:
-   Vector <Vector <double>> centroids;
-
-   Lambda <long> getKeyProjection (Handle <DataPoint> aggMe) override {
-      return makeLambda (aggMe, [&] (Handle <DataPoint> &aggMe) 
-         {return aggMe->getClose (centroids);});
-   }
-   Lambda <Avg> getValueProjection (Handle <DataPoint> aggMe) override {
-      return makeLambdaFromMethod (aggMe, fromMe);
-   }
-};
-\end{code}
-
-\noindent 
-The declaration \texttt{AggregateComp <Centroid, long, Avg, DataPoint>} means that this computation aggregates
-\texttt{DataPoint} objects.  For each data point, it will extract a key of type \texttt{long}, a value of type \texttt{Avg}, which will be
-aggregated into objects of type \texttt{Centroid}.  To process each data point, the aggregation will use the lambdas constructed by
-\texttt{getKeyProjection} and \texttt{getValueProjection}.  
-In this case, for example,
-\texttt{getKeyProjection} builds a lambda, which simply invokes the native C++ lambda given in the code---this
-native C++ lambda returns the identity of the centroid closest to the data point.
-
-To build a computation using this aggregation class, a programmer would need to specify the \texttt{Centroid} class (the result of this aggregation):
-
-\begin{code}
-class Centroid : public Object {
-	long centroidId; 
-	Avg data;
-public:
-	long &getKey () {return centroidId;}
-	Avg &getVal () {return data;}
-};
-\end{code}
-
-\noindent
-And then build up a computation using these pieces:
-
-\begin{code}
-Handle <Computation> myReader = 
-    makeObject <ObjectReader <DataPoint>> ("myDB", "mySet");
-Handle <Computation> myAgg = makeObject <GetNewCentroids> ();
-myAgg->centroids = ... // initialize the model
-myAgg->setInput (myReader);
-Handle <Computation> myWriter =  makeObject <Writer <Centroid>> ("myDB", "myOutSet");
-    myWriter->setInput (myAgg);
-pcClient.executeComputations (myWriter);
-\end{code}
-
-\noindent After execution, the set of updated centroids would be stored in \texttt{myDB.mySet}.
-Performing this computation in a loop, where the centroids are repeatedly updated until convergence, completes the implementation.
 
