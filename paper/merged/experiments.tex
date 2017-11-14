@@ -413,11 +413,11 @@ class Customer : public Object {
 We then run two computations over the resulting set of \texttt{Customer} objects.  
 The first computation is the \emph{customers per supplier} computation where we
 compute, for each supplier,
-the complete list of \texttt{partkey}s that the supplier has sold to each of the supplier's customer's.
+the complete list of \texttt{partID}s that the supplier has sold to each of the supplier's customer's.
 For each supplier, the result is an object that contains the supplier's name (as a \texttt{String}) and
 an object of type \texttt{Map <String, Handle <Vector <int}\texttt{>}\texttt{>}\texttt{>}.  In this
 object, the \texttt{String} is the name of the customer, and the \texttt{Vector} stores the list of
-\texttt{partkey}s sold to that customer.
+\texttt{partID}s sold to that customer.
 
 To run this computation on PC, we use two different PC \texttt{Computation} classes.  The first, 
 \texttt{Customer}\-\texttt{MultiSelection}, transforms each 
@@ -425,11 +425,11 @@ To run this computation on PC, we use two different PC \texttt{Computation} clas
 \texttt{SupplierInfo} objects. Each \texttt{SupplierInfo} contains
 the name of a supplier
 and a \texttt{Handle} to a \texttt{Map} whose key is the name of the customer and whose value is the list
-of \texttt{partkey}s that the supplier has sold to the customer.
+of \texttt{partID}s that the supplier has sold to the customer.
 The second \texttt{Computation}, called
 \texttt{CustomerSupplierPartGroupBy},
 groups all of those \texttt{SupplierInfo} objects according to the name of the supplier, computing, for each
-supplier, the map from customer name to \texttt{Vector} of \texttt{partkey}s.
+supplier, the map from customer name to \texttt{Vector} of \texttt{partID}s.
 
 On Spark we implemented an algorithmically equivalent
 carefully-tuned code that in the
