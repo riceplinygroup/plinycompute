@@ -519,6 +519,11 @@ int main(int argc, char* argv[]) {
         std :: cout << std::endl;
     }
 
+    int code = system("scripts/cleanupSoFiles.sh");
+    if (code < 0) {
+        std::cout << "Can't cleanup so files" << std::endl;
+    }
+
     std::cout << "Time Duration: "
          << std::chrono::duration_cast<std::chrono::duration<float>>(end - total_begin).count()
          << " secs." << std::endl;
