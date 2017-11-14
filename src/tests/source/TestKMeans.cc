@@ -20,45 +20,44 @@
 
 /* K-means clustering */
 
+#include "Lambda.h"
+#include "PDBClient.h"
 #include "PDBDebug.h"
 #include "PDBString.h"
 #include "Query.h"
-#include "Lambda.h"
-#include "PDBClient.h"
 
 #include "Sampler.h"
 
-#include "WriteKMeansSet.h"
 #include "KMeansAggregate.h"
-#include "KMeansDataCountAggregate.h"
-#include "ScanKMeansDoubleVectorSet.h"
-#include "ScanDoubleArraySet.h"
 #include "KMeansAggregateOutputType.h"
 #include "KMeansCentroid.h"
 #include "KMeansDataCountAggregate.h"
-#include "KMeansSampleSelection.h"
 #include "KMeansNormVectorMap.h"
+#include "KMeansSampleSelection.h"
+#include "ScanDoubleArraySet.h"
+#include "ScanKMeansDoubleVectorSet.h"
 #include "WriteKMeansDoubleVectorSet.h"
+#include "WriteKMeansSet.h"
 
-#include "Set.h"
 #include "DataTypes.h"
 #include "KMeansDoubleVector.h"
+#include "Set.h"
 #include "SumResult.h"
 #include "WriteSumResultSet.h"
 
-#include <ctime>
-#include <time.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <chrono>
-#include <fcntl.h>
 #include <cstddef>
-#include <iostream>
+#include <ctime>
+#include <fcntl.h>
 #include <fstream>
+#include <iostream>
 #include <math.h>
 #include <random>
 #include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 #include <vector>
 
 using namespace pdb;
@@ -67,680 +66,476 @@ using namespace pdb;
 #define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
-#ifndef KMEANS_CONVERGE_THRESHOLD
-#define KMEANS_CONVERGE_THRESHOLD 0.00001
-#endif
+int main(int argc, char *argv[]) {
 
-int main(int argc, char* argv[]) {
+  bool printResult = true;
+  bool clusterMode = false;
 
-    bool printResult = true;
-    bool clusterMode = false;
+  const std::string blue("\033[1;34m");
+  const std::string reset("\033[0m");
 
-    const std::string blue("\033[1;34m");
-    const std::string reset("\033[0m");
-
-    /* Read in the parameters */
-    if (argc <= 5) {
-        double eps = 1.0;
-        while ((1.0 + (eps / 2.0)) != 1.0) {
-            eps = eps / 2.0;
-        }
-        std::cout << "EPSILON=" << eps << std::endl;
-        return 0;
+  /* Read in the parameters */
+  if (argc < 9) {
+    std::cout << "Insufficient parameters! Will use default values for missing "
+                 "parameters."
+              << std::endl;
+    std::cout
+        << "Usage: #printResult[Y/N] #clusterMode[Y/N] #masterIp #addData[Y/N] "
+           "#numOfIteration #numOfCluster #convergeThreshold #dataFile"
+        << std::endl;
+  }
+  if (argc > 1) {
+    if (strcmp(argv[1], "N") == 0) {
+      printResult = false;
     }
-    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
-         << std::endl;
-    if (argc > 1) {
-        if (strcmp(argv[1], "N") == 0) {
-            printResult = false;
-            std::cout << "You successfully disabled printing result." << std::endl;
-        } else {
-            printResult = true;
-            std::cout << "Will print result." << std::endl;
-        }
-    } else {
-        std::cout << "Will print result. If you don't want to print result, you can add N as the first "
-                "parameter to disable result printing."
-             << std::endl;
+  }
+
+  if (argc > 2) {
+    if (strcmp(argv[2], "Y") == 0) {
+      clusterMode = true;
     }
+  }
 
-    if (argc > 2) {
-        if (strcmp(argv[2], "Y") == 0) {
-            clusterMode = true;
-            std::cout << "You successfully set the test to run on cluster." << std::endl;
-        } else {
-            clusterMode = false;
-        }
-    } else {
-        std::cout << "Will run on local node. If you want to run on cluster, you can add any character "
-                "as the second parameter to run on the cluster configured by "
-                "$PDB_HOME/conf/serverlist."
-             << std::endl;
+  std::string masterIp = "localhost";
+  if (argc > 3) {
+    masterIp = argv[3];
+  }
+
+  bool whetherToAddData = true;
+  if (argc > 4) {
+    if (strcmp(argv[4], "N") == 0) {
+      whetherToAddData = false;
     }
+  }
 
-    int numOfMb = 256;  // by default we add 64MB data
-    if (argc > 3) {
-        numOfMb = atoi(argv[3]);
-    }
-    numOfMb = 256;  // Force it to be 64 by now.
+  std::cout << "The K-means paramers: " << std::endl;
+  std::cout << std::endl;
 
+  int iter = 1;
+  int k = 3;
+  double threshold = 0.00001;
 
-    std::cout << "To add data with size: " << numOfMb << "MB" << std::endl;
+  if (argc > 5) {
+    iter = std::stoi(argv[5]);
+  }
+  std::cout << "The number of iterations: " << iter << std::endl;
 
-    std::string masterIp = "localhost";
-    if (argc > 4) {
-        masterIp = argv[4];
-    }
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+  if (argc > 6) {
+    k = std::stoi(argv[6]);
+  }
+  std::cout << "The number of clusters: " << k << std::endl;
 
-    bool whetherToAddData = true;
-    if (argc > 5) {
-        if (strcmp(argv[5], "N") == 0) {
-            whetherToAddData = false;
-        }
-    }
+  std::cout << "The dimension of each data point: " << NUM_KMEANS_DIMENSIONS
+            << std::endl;
 
-    std::cout << "The K-means paramers are: " << std::endl;
-    std::cout << std::endl;
+  if (argc > 7) {
+    threshold = std::stof(argv[7]);
+  }
+  std::cout << "The converging threshould: " << threshold << std::endl;
 
-    int iter = 1;
-    int k = 3;
-    int dim = 3;
-    int numData = 10;
-    bool addDataFromFile = true;
+  std::string fileName = "/mnt/kmeans_data";
+  if (argc > 8) {
+    fileName = argv[8];
+  }
+  std::cout << "Input data file: " << fileName << std::endl;
+  std::cout << std::endl;
 
-    if (argc > 6) {
-        iter = std::stoi(argv[6]);
-    }
-    std::cout << "The number of iterations: " << iter << std::endl;
+  /* Setup the client */
+  pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    if (argc > 7) {
-        k = std::stoi(argv[7]);
-    }
-    std::cout << "The number of clusters: " << k << std::endl;
+  PDBClient pdbClient(8108, masterIp, clientLogger, false, true);
 
-    /*
-    if (argc > 8) {
-    numData = std::stoi(argv[8]);
-    }
-    std::cout << "The number of data points: " << numData << std :: endl;
-    */
+  CatalogClient catalogClient(8108, masterIp, clientLogger);
 
-    if (argc > 8) {
-        dim = std::stoi(argv[8]);
-    }
-    std::cout << "The dimension of each data point: " << dim << std::endl;
+  string errMsg;
 
-    std::string fileName = "/mnt/data_generator_kmeans/gaussian_pdb/kmeans_data";
-    if (argc > 9) {
-        fileName = argv[9];
-    }
-    std::cout << "Input file: " << fileName << std::endl;
-    std::cout << std::endl;
+  /* Register types and classes */
+  pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
+  pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
+  pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+  pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
+  pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+  pdbClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
+  pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
+  pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
+  pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+  pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
+  pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
+  pdbClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
 
+  /* Meta data */
+  pdb::makeObjectAllocatorBlock(1 * 1024 * 1024, true);
+  int dataCount = 0;
+  int kk = 0;
 
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
+  /* Data does not need to be loaded */
+  if (whetherToAddData == false) {
 
-    PDBClient pdbClient(
-            8108, masterIp,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
-
-    string errMsg;
-
-    // Some meta data
-    pdb::makeObjectAllocatorBlock(1 * 1024 * 1024, true);
-    std::vector<double> avgData(dim, 0);
-    int dataCount = 0;
-    int myk = 0;
-    int kk = 0;
-    bool ifFirst = true;
-    //    srand(time(0));
-    // For the random number generator
-    std::random_device rd;
-    std::mt19937 randomGen(rd());
-
-    if ((numOfMb > 0) && (whetherToAddData == false)) {
-        // Step 1. Create Database and Set
-        // now, register a type for user data
-        // TODO: once sharedLibrary is supported, add this line back!!!
-        pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
-        pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
-        // register this query class
-        pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        pdbClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
-        pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
-        pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
-        pdbClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
-        // now, create a new database
-        if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
-            std::cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            std::cout << "Created database.\n";
-        }
-
-        // now, create a new set in that database
-        if (!pdbClient.createSet<double[]>("kmeans_db", "kmeans_input_set", errMsg)) {
-            std::cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            std::cout << "Created set.\n";
-        }
+    if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
+      std::cout << "Not able to create database: " + errMsg;
+      exit(-1);
     }
 
-    if (whetherToAddData == true) {
-        // Step 1. Create Database and Set
-        // now, register a type for user data
-        // TODO: once sharedLibrary is supported, add this line back!!!
-        pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
-        pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
-        // register this query class
-        pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        pdbClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
-        pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
-        pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
-        pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
-        pdbClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
-        // now, create a new database
-        if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
-            std::cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            std::cout << "Created database.\n";
-        }
+    if (!pdbClient.createSet<double[]>("kmeans_db", "kmeans_input_set",
+                                       errMsg)) {
+      std::cout << "Not able to create set: " + errMsg;
+      exit(-1);
+    }
+  }
 
-        // now, create a new set in that database
-        if (!pdbClient.createSet<double[NUM_KMEANS_DIMENSIONS]>(
-                "kmeans_db", "kmeans_input_set", errMsg)) {
-            std::cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            std::cout << "Created set.\n";
-        }
+  /* Add data from the input file */
+  else {
 
+    /* Create a new database */
+    if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
+      std::cout << "Not able to create database: " + errMsg;
+      exit(-1);
+    }
 
-        // Step 2. Add data
+    /* Create a new set */
+    if (!pdbClient.createSet<double[NUM_KMEANS_DIMENSIONS]>(
+            "kmeans_db", "kmeans_input_set", errMsg)) {
+      std::cout << "Not able to create set: " + errMsg;
+      exit(-1);
+    }
 
-        if (numOfMb >= 0) {
-            if (addDataFromFile) {
-                int blockSize = 256;
-                // std :: ifstream inFile("/mnt/data_generator_kmeans/gaussian_pdb/kmeans_data");
-                std::ifstream inFile(fileName.c_str());
-                std::string line;
-                bool rollback = false;
-                bool end = false;
+    /* Start adding data */
 
-                while (!end) {
-                    pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    pdb::Handle<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>> storeMe =
-                        pdb::makeObject<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>>(
-                            2177672);
-                    try {
+    int blockSize = 256;
+    std::ifstream inFile(fileName.c_str());
+    std::string line;
+    bool rollback = false;
+    bool end = false;
 
-                        while (1) {
-                            if (!rollback) {
-                                //      std::istringstream iss(line);
-                                if (!std::getline(inFile, line)) {
-                                    end = true;
-                                    break;
-                                } else {
-                                    pdb::Handle<double[NUM_KMEANS_DIMENSIONS]> myData =
-                                        pdb::makeObject<double[NUM_KMEANS_DIMENSIONS]>();
-                                    std::stringstream lineStream(line);
-                                    double value;
-                                    int index = 0;
-                                    while (lineStream >> value) {
-                                        (*myData)[index] = value;
-                                        index++;
-                                    }
-                                    storeMe->push_back(myData);
-                                }
-                            } else {
-                                rollback = false;
-                                pdb::Handle<double[NUM_KMEANS_DIMENSIONS]> myData =
-                                    pdb::makeObject<double[NUM_KMEANS_DIMENSIONS]>();
-                                std::stringstream lineStream(line);
-                                double value;
-                                int index = 0;
-                                while (lineStream >> value) {
-                                    (*myData)[index] = value;
-                                    index++;
-                                }
-                                storeMe->push_back(myData);
-                            }
-                        }
+    while (!end) {
+      pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+      pdb::Handle<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>>
+          storeMe = pdb::makeObject<
+              pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>>(2177672);
+      try {
 
-                        end = true;
-
-                        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
-                                std::pair<std::string, std::string>("kmeans_input_set",
-                                                                    "kmeans_db"),
-                                storeMe,
-                                errMsg)) {
-                            std::cout << "Failed to send data to dispatcher server" << std::endl;
-                            return -1;
-                        }
-                        std::cout << "Dispatched " << storeMe->size() << " data in the last patch!"
-                                  << std::endl;
-                        pdbClient.flushData(errMsg);
-                    } catch (pdb::NotEnoughSpace& n) {
-                        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
-                                std::pair<std::string, std::string>("kmeans_input_set",
-                                                                    "kmeans_db"),
-                                storeMe,
-                                errMsg)) {
-                            std::cout << "Failed to send data to dispatcher server" << std::endl;
-                            return -1;
-                        }
-                        std::cout << "Dispatched " << storeMe->size()
-                                  << " data when allocated block is full!" << std::endl;
-                        rollback = true;
-                    }
-                    PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
-
-                }  // while not end
-                inFile.close();
+        while (1) {
+          if (!rollback) {
+            if (!std::getline(inFile, line)) {
+              end = true;
+              break;
+            } else {
+              pdb::Handle<double[NUM_KMEANS_DIMENSIONS]> myData =
+                  pdb::makeObject<double[NUM_KMEANS_DIMENSIONS]>();
+              std::stringstream lineStream(line);
+              double value;
+              int index = 0;
+              while (lineStream >> value) {
+                (*myData)[index] = value;
+                index++;
+              }
+              storeMe->push_back(myData);
             }
-        }
-    }
-    // now, create a new set in that database to store output data
-
-    PDB_COUT << "to create a new set to store the norm vectors" << std::endl;
-    if (!pdbClient.createSet<KMeansDoubleVector>("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
-        std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        std::cout << "Created set kmeans_norm_vector_set.\n";
-    }
-
-
-    PDB_COUT << "to create a new set to store the data count" << std::endl;
-    if (!pdbClient.createSet<SumResult>("kmeans_db", "kmeans_data_count_set", errMsg)) {
-        std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        std::cout << "Created set kmeans_data_count_set.\n";
-    }
-
-
-    PDB_COUT << "to create a new set to store the initial model" << std::endl;
-    if (!pdbClient.createSet<KMeansDoubleVector>("kmeans_db", "kmeans_initial_model_set", errMsg)) {
-        std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        std::cout << "Created set kmeans_initial_model_set.\n";
-    }
-
-
-    PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set", errMsg)) {
-        std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        std::cout << "Created set kmeans_output_set.\n";
-    }
-
-    // Step 3. To execute a Query
-    // for allocations
-
-    auto iniBegin = std::chrono::high_resolution_clock::now();
-
-    // Initialization for the model in the KMeansAggregate
-
-    // Calculate the count of input data points
-
-
-    Handle<Computation> myInitialScanSet =
-        makeObject<ScanDoubleArraySet>("kmeans_db", "kmeans_input_set");
-    Handle<Computation> myNormVectorMap = makeObject<KMeansNormVectorMap>();
-    myNormVectorMap->setInput(myInitialScanSet);
-    Handle<Computation> myNormVectorWriter =
-        makeObject<WriteKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
-    myNormVectorWriter->setInput(myNormVectorMap);
-
-    if (!pdbClient.executeComputations(errMsg, myNormVectorWriter)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
-    auto iniNormEnd = std::chrono::high_resolution_clock::now();
-
-    Handle<Computation> myScanSet =
-        makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
-    Handle<Computation> myDataCount = makeObject<KMeansDataCountAggregate>();
-    myDataCount->setInput(myScanSet);
-    Handle<Computation> myWriter =
-        makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
-    myWriter->setInput(myDataCount);
-
-    if (!pdbClient.executeComputations(errMsg, myWriter)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
-    SetIterator<SumResult> dataCountResult =
-            pdbClient.getSetIterator<SumResult>("kmeans_db", "kmeans_data_count_set");
-    for (Handle<SumResult> a : dataCountResult) {
-
-        dataCount = a->getTotal();
-    }
-
-    std::cout << "The number of data points: " << dataCount << std::endl;
-    std::cout << std::endl;
-
-    // Randomly sample k data points from the input data through Bernoulli sampling
-    // We guarantee the sampled size >= k in 99.99% of the time
-    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
-    srand(time(NULL));
-    double fraction = Sampler::computeFractionForSampleSize(k, dataCount, false);
-    std::cout << "The sample threshold is: " << fraction << std::endl;
-    int initialCount = dataCount;
-
-    Vector<Handle<KMeansDoubleVector>> mySamples;
-    while (mySamples.size() < k) {
-        std::cout << "Needed to sample due to insufficient sample size." << std::endl;
-        Handle<Computation> mySampleScanSet =
-            makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
-        Handle<Computation> myDataSample = makeObject<KMeansSampleSelection>(fraction);
-        myDataSample->setInput(mySampleScanSet);
-        Handle<Computation> myWriteSet =
-            makeObject<WriteKMeansDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
-        myWriteSet->setInput(myDataSample);
-
-        if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
-            std::cout << "Query failed. Message was: " << errMsg << "\n";
-            return 1;
-        }
-        SetIterator<KMeansDoubleVector> sampleResult =
-            pdbClient.getSetIterator<KMeansDoubleVector>("kmeans_db", "kmeans_initial_model_set");
-
-        for (Handle<KMeansDoubleVector> a : sampleResult) {
-            Handle<KMeansDoubleVector> myDoubles = makeObject<KMeansDoubleVector>();
-            double* rawData = a->getRawData();
-            double* myRawData = myDoubles->getRawData();
-            for (int i = 0; i < dim; i++) {
-                myRawData[i] = rawData[i];
+          } else {
+            rollback = false;
+            pdb::Handle<double[NUM_KMEANS_DIMENSIONS]> myData =
+                pdb::makeObject<double[NUM_KMEANS_DIMENSIONS]>();
+            std::stringstream lineStream(line);
+            double value;
+            int index = 0;
+            while (lineStream >> value) {
+              (*myData)[index] = value;
+              index++;
             }
-            mySamples.push_back(myDoubles);
+            storeMe->push_back(myData);
+          }
         }
-        std::cout << "Now we have " << mySamples.size() << " samples" << std::endl;
-        pdbClient.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::KMeansDoubleVector", errMsg);
-    }
-    Sampler::randomizeInPlace(mySamples);
-    // take k samples
-    mySamples.resize(k);
-    // distinct
-    Vector<Handle<KMeansDoubleVector>> myDistinctSamples;
-    for (size_t i = 0; i < k; i++) {
-        // std :: cout << "the " << i << "-th element" << std :: endl;
-        //(mySamples[i])->print();
-        std::cout << std::endl;
-        int j;
-        for (j = i + 1; j < k; j++) {
-            if (((mySamples[i])->equals(mySamples[j]))) {
-                // std :: cout << "it equals with the " << j << "-th element" << std :: endl;
-                break;
-            }
-        }
-        if ((mySamples.size() > 0) && (j == k)) {
-            myDistinctSamples.push_back(mySamples[i]);
-        }
-    }
 
-    k = myDistinctSamples.size();
-    std::cout << "There are " << k << "distinct clusters" << std::endl;
-    std::vector<std::vector<double>> model(k, vector<double>(dim));
+        end = true;
+
+        /* Send the data to the database */
+        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+                std::pair<std::string, std::string>("kmeans_input_set",
+                                                    "kmeans_db"),
+                storeMe, errMsg)) {
+          std::cout << "Failed to send data to dispatcher server" << std::endl;
+          return -1;
+        }
+        pdbClient.flushData(errMsg);
+      } catch (pdb::NotEnoughSpace &n) {
+        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+                std::pair<std::string, std::string>("kmeans_input_set",
+                                                    "kmeans_db"),
+                storeMe, errMsg)) {
+          std::cout << "Failed to send data to dispatcher server" << std::endl;
+          return -1;
+        }
+        rollback = true;
+      }
+    }
+    inFile.close();
+  }
+
+  /* Create a new set to store the normalized inpu data */
+  if (!pdbClient.createSet<KMeansDoubleVector>(
+          "kmeans_db", "kmeans_norm_vector_set", errMsg)) {
+    std::cout << "Not able to create set: " + errMsg;
+    exit(-1);
+  }
+
+  /* Create a new set to store the data count */
+  if (!pdbClient.createSet<SumResult>("kmeans_db", "kmeans_data_count_set",
+                                      errMsg)) {
+    std::cout << "Not able to create set: " + errMsg;
+    exit(-1);
+  }
+
+  /* Create a new set to store the initial model */
+  if (!pdbClient.createSet<KMeansDoubleVector>(
+          "kmeans_db", "kmeans_initial_model_set", errMsg)) {
+    std::cout << "Not able to create set: " + errMsg;
+    exit(-1);
+  }
+
+  /* Create a new set to store output data */
+  if (!pdbClient.createSet<KMeansAggregateOutputType>(
+          "kmeans_db", "kmeans_output_set", errMsg)) {
+    std::cout << "Not able to create set: " + errMsg;
+    exit(-1);
+  }
+
+  /* Main program */
+
+  /* Normalize the input data */
+  Handle<Computation> myInitialScanSet =
+      makeObject<ScanDoubleArraySet>("kmeans_db", "kmeans_input_set");
+  Handle<Computation> myNormVectorMap = makeObject<KMeansNormVectorMap>();
+  myNormVectorMap->setInput(myInitialScanSet);
+  Handle<Computation> myNormVectorWriter =
+      makeObject<WriteKMeansDoubleVectorSet>("kmeans_db",
+                                             "kmeans_norm_vector_set");
+  myNormVectorWriter->setInput(myNormVectorMap);
+
+  if (!pdbClient.executeComputations(errMsg, myNormVectorWriter)) {
+    std::cout << "Query failed. Message was: " << errMsg << "\n";
+    return 1;
+  }
+
+  /* Compute the number of data */
+  Handle<Computation> myScanSet = makeObject<ScanKMeansDoubleVectorSet>(
+      "kmeans_db", "kmeans_norm_vector_set");
+  Handle<Computation> myDataCount = makeObject<KMeansDataCountAggregate>();
+  myDataCount->setInput(myScanSet);
+  Handle<Computation> myWriter =
+      makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
+  myWriter->setInput(myDataCount);
+
+  if (!pdbClient.executeComputations(errMsg, myWriter)) {
+    std::cout << "Query failed. Message was: " << errMsg << "\n";
+    return 1;
+  }
+  SetIterator<SumResult> dataCountResult =
+      pdbClient.getSetIterator<SumResult>("kmeans_db", "kmeans_data_count_set");
+  for (Handle<SumResult> a : dataCountResult) {
+
+    dataCount = a->getTotal();
+  }
+
+  /*
+   * Initialize the model
+   * Randomly sample k data points from the input data through Bernoulli
+   * sampling Guarantee the sampled size >= k in 99.99% of the time
+   */
+
+  const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
+  srand(time(NULL));
+  double fraction = Sampler::computeFractionForSampleSize(k, dataCount, false);
+  int initialCount = dataCount;
+
+  Vector<Handle<KMeansDoubleVector>> mySamples;
+  while (mySamples.size() < k) {
+    Handle<Computation> mySampleScanSet = makeObject<ScanKMeansDoubleVectorSet>(
+        "kmeans_db", "kmeans_norm_vector_set");
+    Handle<Computation> myDataSample =
+        makeObject<KMeansSampleSelection>(fraction);
+    myDataSample->setInput(mySampleScanSet);
+    Handle<Computation> myWriteSet = makeObject<WriteKMeansDoubleVectorSet>(
+        "kmeans_db", "kmeans_initial_model_set");
+    myWriteSet->setInput(myDataSample);
+
+    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
+      std::cout << "Query failed. Message was: " << errMsg << "\n";
+      return 1;
+    }
+    SetIterator<KMeansDoubleVector> sampleResult =
+        pdbClient.getSetIterator<KMeansDoubleVector>(
+            "kmeans_db", "kmeans_initial_model_set");
+
+    for (Handle<KMeansDoubleVector> a : sampleResult) {
+      Handle<KMeansDoubleVector> myDoubles = makeObject<KMeansDoubleVector>();
+      double *rawData = a->getRawData();
+      double *myRawData = myDoubles->getRawData();
+      for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
+        myRawData[i] = rawData[i];
+      }
+      mySamples.push_back(myDoubles);
+    }
+    pdbClient.clearSet("kmeans_db", "kmeans_initial_model_set",
+                       "pdb::KMeansDoubleVector", errMsg);
+  }
+  Sampler::randomizeInPlace(mySamples);
+
+  /* Take k samples */
+  mySamples.resize(k);
+  /* Ensure sampled data points distinct */
+  Vector<Handle<KMeansDoubleVector>> myDistinctSamples;
+  for (size_t i = 0; i < k; i++) {
+    int j;
+    for (j = i + 1; j < k; j++) {
+      if (((mySamples[i])->equals(mySamples[j]))) {
+        break;
+      }
+    }
+    if ((mySamples.size() > 0) && (j == k)) {
+      myDistinctSamples.push_back(mySamples[i]);
+    }
+  }
+
+  k = myDistinctSamples.size();
+  std::vector<std::vector<double>> model(k,
+                                         vector<double>(NUM_KMEANS_DIMENSIONS));
+  for (int i = 0; i < k; i++) {
+    Handle<KMeansDoubleVector> tmp = myDistinctSamples[i];
+    double *rawData = tmp->getRawData();
+    for (int j = 0; j < NUM_KMEANS_DIMENSIONS; j++) {
+      model[i][j] = rawData[j];
+    }
+  }
+
+  /* K-means training loop */
+  for (int n = 0; n < iter; n++) {
+
+    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
+
+    /* Read in the model */
+    pdb::Handle<pdb::Vector<Handle<KMeansDoubleVector>>> my_model =
+        pdb::makeObject<pdb::Vector<Handle<KMeansDoubleVector>>>();
+
     for (int i = 0; i < k; i++) {
-        Handle<KMeansDoubleVector> tmp = myDistinctSamples[i];
-        std::cout << "The " << i << "-th sample is:" << endl;
-        double* rawData = tmp->getRawData();
-        for (int j = 0; j < dim; j++) {
-            model[i][j] = rawData[j];
-            std::cout << model[i][j] << " ";
-        }
-        std::cout << std::endl;
+      Handle<KMeansDoubleVector> tmp = pdb::makeObject<KMeansDoubleVector>();
+      double *rawData = tmp->getRawData();
+      double norm = 0;
+      for (int j = 0; j < NUM_KMEANS_DIMENSIONS; j++) {
+        rawData[j] = model[i][j];
+        norm += rawData[j] * rawData[j];
+      }
+      tmp->norm = norm;
+      my_model->push_back(tmp);
     }
+
+    /* Aggregation for each cluster */
+    Handle<Computation> myScanSet = makeObject<ScanKMeansDoubleVectorSet>(
+        "kmeans_db", "kmeans_norm_vector_set");
+    Handle<Computation> myQuery = pdb::makeObject<KMeansAggregate>(my_model);
+    myQuery->setInput(myScanSet);
+    myQuery->setOutput("kmeans_db", "kmeans_output_set");
+
+    if (!pdbClient.executeComputations(errMsg, myQuery)) {
+      std::cout << "Query failed. Message was: " << errMsg << "\n";
+      return 1;
+    }
+
+    /* Update the model */
+    SetIterator<KMeansAggregateOutputType> result =
+        pdbClient.getSetIterator<KMeansAggregateOutputType>(
+            "kmeans_db", "kmeans_output_set");
+    kk = 0;
+    bool converge = true;
+    for (Handle<KMeansAggregateOutputType> a : result) {
+      if (kk >= k)
+        break;
+      size_t count = (*a).getValue().getCount();
+      if (count == 0) {
+        kk++;
+        continue;
+      }
+      KMeansDoubleVector &meanVec = (*a).getValue().getMean();
+      KMeansDoubleVector tmpModel = meanVec / count;
+      if (converge &&
+          (tmpModel.getFastSquaredDistance((*(*my_model)[kk])) > threshold)) {
+        converge = false;
+      }
+      double *rawData = tmpModel.getRawData();
+      for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
+        model[kk][i] = rawData[i];
+      }
+      kk++;
+    }
+
+    pdbClient.clearSet("kmeans_db", "kmeans_output_set",
+                       "pdb::KMeansAggregateOutputType", errMsg);
+    if (converge == true) {
+      std::cout << "Converged" << std::endl;
+      break;
+    }
+  }
+
+  auto allEnd = std::chrono::high_resolution_clock::now();
+
+  /* Print out the resuts */
+  if (printResult == true) {
+
+    SetIterator<KMeansAggregateOutputType> result =
+        pdbClient.getSetIterator<KMeansAggregateOutputType>(
+            "kmeans_db", "kmeans_output_set");
+
+    std::cout << std::endl;
+    std::cout << blue << "*****************************************" << reset
+              << std::endl;
+    std::cout << blue << "The model I learned: " << reset << std::endl;
+    std::cout << blue << "*****************************************" << reset
+              << std::endl;
     std::cout << std::endl;
 
+    for (int i = 0; i < k; i++) {
+      std::cout << "Cluster index: " << i << std::endl;
+      for (int j = 0; j < NUM_KMEANS_DIMENSIONS - 1; j++) {
+        std::cout << model[i][j] << ", ";
+      }
+      std::cout << model[i][NUM_KMEANS_DIMENSIONS - 1] << std::endl;
+    }
+  }
 
-    auto iniEnd = std::chrono::high_resolution_clock::now();
-
-
-    // Start k-means iterations
-
-    for (int n = 0; n < iter; n++) {
-
-        auto iterBegin = std::chrono::high_resolution_clock::now();
-        const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
-
-        std::cout << "*****************************************" << std::endl;
-        std::cout << "I am in iteration : " << n << std::endl;
-        std::cout << "*****************************************" << std::endl;
-
-
-        pdb::Handle<pdb::Vector<Handle<KMeansDoubleVector>>> my_model =
-            pdb::makeObject<pdb::Vector<Handle<KMeansDoubleVector>>>();
-
-        for (int i = 0; i < k; i++) {
-            Handle<KMeansDoubleVector> tmp = pdb::makeObject<KMeansDoubleVector>();
-            // JiaNote: use raw C++ data directly
-            double* rawData = tmp->getRawData();
-            double norm = 0;
-            for (int j = 0; j < dim; j++) {
-                rawData[j] = model[i][j];
-                norm += rawData[j] * rawData[j];
-            }
-            tmp->norm = norm;
-            my_model->push_back(tmp);
-        }
-
-        Handle<Computation> myScanSet =
-            makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
-        // Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db",
-        // "kmeans_input_set");
-        Handle<Computation> myQuery = pdb::makeObject<KMeansAggregate>(my_model);
-        myQuery->setInput(myScanSet);
-        // myQuery->setAllocatorPolicy(noReuseAllocator);
-        myQuery->setOutput("kmeans_db", "kmeans_output_set");
-
-        auto begin = std::chrono::high_resolution_clock::now();
-
-        if (!pdbClient.executeComputations(errMsg, myQuery)) {
-            std::cout << "Query failed. Message was: " << errMsg << "\n";
-            return 1;
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "The query is executed successfully!" << std::endl;
-
-        // update the model
-        SetIterator<KMeansAggregateOutputType> result =
-            pdbClient.getSetIterator<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set");
-        kk = 0;
-        bool converge = true;
-        if (ifFirst) {
-            for (Handle<KMeansAggregateOutputType> a : result) {
-                if (kk >= k)
-                    break;
-
-                std::cout << "The cluster index I got is " << (*a).getKey() << std::endl;
-                size_t count = (*a).getValue().getCount();
-                std::cout << "The cluster count sum I got is " << count << std::endl;
-                if (count == 0) {
-                    kk++;
-                    continue;
-                }
-                // std::cout << "The cluster mean sum I got is " << std :: endl;
-                // JiaNote: use reference
-                KMeansDoubleVector& meanVec = (*a).getValue().getMean();
-                // meanVec.print();
-                KMeansDoubleVector tmpModel = meanVec / count;
-                if (converge && (tmpModel.getFastSquaredDistance(*((*my_model)[kk])) >
-                                 KMEANS_CONVERGE_THRESHOLD)) {
-                    converge = false;
-                }
-                // JiaNote: use rawData
-                double* rawData = tmpModel.getRawData();
-                for (int i = 0; i < dim; i++) {
-                    model[kk][i] = rawData[i];
-                }
-                rawData = meanVec.getRawData();
-                for (int i = 0; i < dim; i++) {
-                    avgData[i] += rawData[i];
-                }
-
-                /*std::cout << "I am updating the model in position: " << kk << std :: endl;
-                for(int i = 0; i < dim; i++)
-                    std::cout << i << ": " << model[kk][i] << ' ';
-                std::cout << std :: endl;*/
-                std::cout << std::endl;
-                kk++;
-            }
-            for (int i = 0; i < dim; i++) {
-                avgData[i] = avgData[i] / dataCount;
-            }
-            /*
-            std::cout << "The average of data points is : \n";
-            for (int i = 0; i < dim; i++)
-                std::cout << i << ": " << avgData[i] << ' ';
-            std::cout << std :: endl;
-            std::cout << std :: endl;
-            */
-            ifFirst = false;
-        } else {
-            for (Handle<KMeansAggregateOutputType> a : result) {
-                if (kk >= k)
-                    break;
-                std::cout << "The cluster index I got is " << (*a).getKey() << std::endl;
-                size_t count = (*a).getValue().getCount();
-                std::cout << "The cluster count sum I got is " << count << std::endl;
-                // std::cout << "The cluster mean sum I got is " << std :: endl;
-                //(*a).getValue().getMean().print();
-                //		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
-                if (count == 0) {
-                    kk++;
-                    continue;
-                }
-                KMeansDoubleVector& meanVec = (*a).getValue().getMean();
-                KMeansDoubleVector tmpModel = meanVec / count;
-                if (converge && (tmpModel.getFastSquaredDistance((*(*my_model)[kk])) >
-                                 KMEANS_CONVERGE_THRESHOLD)) {
-                    converge = false;
-                }
-                // JiaNote: using raw C++ data
-                double* rawData = tmpModel.getRawData();
-                for (int i = 0; i < dim; i++) {
-                    model[kk][i] = rawData[i];
-                }
-                /*std::cout << "I am updating the model in position: " << kk << std :: endl;
-                for(int i = 0; i < dim; i++)
-                    std::cout << i << ": " << model[kk][i] << ' ';
-                std::cout << std :: endl;
-                std::cout << std :: endl;
-                                */
-                kk++;
-            }
-        }
-        if (converge == true) {
-            std::cout << "It converges...." << std::endl;
-        }
-        pdbClient.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
-        auto iterEnd = std::chrono::high_resolution_clock::now();
-        std::cout << "Server-side Time Duration for Iteration-: " << n << " is:"
-             << std::chrono::duration_cast<std::chrono::duration<float>>(end - begin).count()
-             << " secs." << std::endl;
-        std::cout
-            << "Total Time Duration for Iteration-: " << n << " is:"
-            << std::chrono::duration_cast<std::chrono::duration<float>>(iterEnd - iterBegin).count()
+  std::cout << "Running Time: "
+            << std::chrono::duration_cast<std::chrono::duration<float>>(allEnd -
+                                                                        iniEnd)
+                   .count()
             << " secs." << std::endl;
-        if (converge == true) {
-            break;
-        }
+
+  /* Remove the sets */
+  if (clusterMode == false) {
+    pdbClient.deleteSet("kmeans_db", "kmeans_output_set");
+    pdbClient.deleteSet("kmeans_db", "kmeans_initial_model_set");
+    pdbClient.deleteSet("kmeans_db", "kmeans_data_count_set");
+    pdbClient.deleteSet("kmeans_db", "kmeans_norm_vector_set");
+
+  } else {
+    if (!pdbClient.removeSet("kmeans_db", "kmeans_output_set", errMsg)) {
+      std::cout << "Not able to remove set: " + errMsg;
+      exit(-1);
+    } else if (!pdbClient.removeSet("kmeans_db", "kmeans_initial_model_set",
+                                    errMsg)) {
+      std::cout << "Not able to remove set: " + errMsg;
+      exit(-1);
+    } else if (!pdbClient.removeSet("kmeans_db", "kmeans_data_count_set",
+                                    errMsg)) {
+      std::cout << "Not able to remove set: " + errMsg;
+      exit(-1);
+    } else if (!pdbClient.removeSet("kmeans_db", "kmeans_norm_vector_set",
+                                    errMsg)) {
+      std::cout << "Not able to remove set: " + errMsg;
+      exit(-1);
     }
-
-    auto allEnd = std::chrono::high_resolution_clock::now();
-
-    std::cout << std::endl;
-
-    // print the resuts
-    if (printResult == true) {
-
-        SetIterator<KMeansAggregateOutputType> result =
-            pdbClient.getSetIterator<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set");
-
-
-        std::cout << std::endl;
-        std::cout << blue << "*****************************************" << reset << std::endl;
-        std::cout << blue << "K-means resultss : " << reset << std::endl;
-        std::cout << blue << "*****************************************" << reset << std::endl;
-        std::cout << std::endl;
-
-        //                std::cout << "The std model I have is: " << std :: endl;
-        for (int i = 0; i < k; i++) {
-            std::cout << "Cluster index: " << i << std::endl;
-            for (int j = 0; j < dim - 1; j++) {
-                std::cout << blue << model[i][j] << ", " << reset;
-            }
-            std::cout << blue << model[i][dim - 1] << reset << std::endl;
-        }
-    }
-
-
-    std::cout << std::endl;
-    std::cout << "Norm Vector Map Time Duration: "
-         << std::chrono::duration_cast<std::chrono::duration<float>>(iniNormEnd - iniBegin).count()
-         << " secs." << std::endl;
-    std::cout << "Sampling Time Duration: "
-         << std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd - iniNormEnd).count()
-         << " secs." << std::endl;
-    std::cout << "Total Processing Time Duration: "
-         << std::chrono::duration_cast<std::chrono::duration<float>>(allEnd - iniEnd).count()
-         << " secs." << std::endl;
-    if (clusterMode == false) {
-        // and delete the sets
-        pdbClient.deleteSet("kmeans_db", "kmeans_output_set");
-        pdbClient.deleteSet("kmeans_db", "kmeans_initial_model_set");
-        pdbClient.deleteSet("kmeans_db", "kmeans_data_count_set");
-        pdbClient.deleteSet("kmeans_db", "kmeans_norm_vector_set");
-
-    } else {
-        if (!pdbClient.removeSet("kmeans_db", "kmeans_output_set", errMsg)) {
-            std::cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else if (!pdbClient.removeSet("kmeans_db", "kmeans_initial_model_set", errMsg)) {
-            std::cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else if (!pdbClient.removeSet("kmeans_db", "kmeans_data_count_set", errMsg)) {
-            std::cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else if (!pdbClient.removeSet("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
-            std::cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            std::cout << "Removed set.\n";
-        }
-    }
-    int code = system("scripts/cleanupSoFiles.sh");
-    if (code < 0) {
-        std::cout << "Can't cleanup so files" << std::endl;
-    }
-    //    std::cout << "Time Duration: " <<
-    //    std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." <<
-    //    std::endl;
+  }
+  int code = system("scripts/cleanupSoFiles.sh");
+  if (code < 0) {
+    std::cout << "Can't cleanup so files" << std::endl;
+  }
 }
 
 #endif
