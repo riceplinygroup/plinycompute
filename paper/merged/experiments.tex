@@ -69,15 +69,20 @@ node and the rest ten machines served as worker nodes.
 Since Apache Spark is one of the most widely-used Big Data system both for applications programming and for tool and library
 development, most
 (though not all) of our comparisons were with Spark (version
-2.1.0). The configuration of the Spark cluster such as number of executors,
+2.1.0). For TPC-H and LDA, of which total volume of data for input and
+processing exceeded available memory, we ran Spark in yarn client
+mode to avoid the out-of-memory errors. For other experiments, we ran Spark
+in cluster mode to be consistent with PC.
+
+The configuration of the Spark cluster such as number of executors,
 executor memory, number of cores for each executor, driver memory and so on are carefully tuned for each
 experiment, as shown in Table~\ref{fig:sparkConf}. We do not clear the OS buffer cache, so HDFS data can be buffered or
-cached in the OS buffer cache. For each experiment we read HDFS data
-via a binary format (Parquet for the Spark Dataset API,
-and a Java Object file for the Spark RDD API).  In all of the
-experiments, data were serialized in Kryo format. 
+cached in the OS buffer cache. 
 
-Other Spark parameters such as parallelsim,
+In addition, input data for experiments
+using Dataset APIs were stored in Parquet format, and input data for
+experiments using RDD APIs were stored in Spark's object file format,
+and serialized using Kryo. Other Spark parameters such as parallelsim,
 partition number, and so on were all carefully tuned for each experiment. More details
 are omitted due to space limitation.
 
