@@ -34,7 +34,7 @@ For example, imagine that the goal is implementing a distributed linear algebra 
 smaller sub-matrices.  A sub-matrix may be stored via our current, C++ binding, using the following object:
 
 \begin{code}
-class SubMatrix : public Object {
+class MatrixBlock : public Object {
 public:
 	int chunkRow, chunkColumn;
 	int chunkWidth, chunkHeight;
@@ -45,7 +45,7 @@ public:
 or, a sparse sub-matrix may be stored as:
 
 \begin{code}
-class SparseSubMatrix : public Object {
+class SparseMatrixBlock : public Object {
 public:
 	int chunkRow, chunkColumn;
 	int chunkWidth, chunkHeight;
