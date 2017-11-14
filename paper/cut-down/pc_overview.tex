@@ -140,14 +140,14 @@ cluster.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization.
 
 \section{PlinyCompute's Lambda Calculus}
-A PC programmer specifies a distributed computation by providing a graph of high-level computations over sets of data---those data
+A PC programmer specifies a distributed query graph by providing a graph of high-level computations over sets of data---those data
 may either be of simple types, or they may be
 PC \texttt{Object}s. 
 
 The PC toolkit consists of a set of
 computations that can be used to compose a query graph: 
 \texttt{SelectionComp} (equivalent to relational selection and projection), \texttt{JoinComp} (equivalent to a join of arbitrary arity and arbitrary predicate), 
-\texttt{Aggregate Comp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
+\texttt{AggregateComp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
 Each of these is an abstract type descending from PC's
 \texttt{Computation} class.
 

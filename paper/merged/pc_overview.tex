@@ -143,9 +143,11 @@ without (de-)serialization.
 
 \section{PlinyCompute's Lambda Calculus}
 \label{sec:lambda}
-A PC programmer specifies a distributed computation by providing a graph of high-level computations over sets of data---those data
+A PC programmer specifies a distributed query graph by providing a graph of high-level computations over sets of data---those data
 may either be of simple types, or they may be
-PC \texttt{Object}s. The PC toolkit consists of a set of
+PC \texttt{Object}s. 
+
+The PC toolkit consists of a set of
 computations 
 that are not unlike the operations provided by systems such as Spark and Flink, though they are less numerous and generally higher-level:
 \texttt{SelectionComp} (equivalent to relational selection and projection), \texttt{JoinComp} (equivalent to a join of arbitrary arity and arbitrary predicate), 
@@ -157,7 +159,7 @@ using a
 domain-specific lambda calculus.
 For example, to implement a \texttt{SelectionComp} over PC \texttt{Object}s of type \texttt{DataPoint}, a programmer
 must implement the lambda term construction function
-\texttt{getSelection (Handle <DataPoint>)} and \texttt{getProjection (Handle <DataPoint>)} which returns a lambda term
+\texttt{getSelection (Handle <DataPoint>)} and \texttt{getProject ion(Handle <DataPoint>)} which returns a lambda term
 describing how \texttt{DataPoint} objects
 should be processed.
 
@@ -219,7 +221,8 @@ The standard arithmetic operations: \texttt{+}, \texttt{-}, \texttt{*}, etc.
 For an example of all of this, consider performing a join over three
 sets of PC \texttt{Object}s stored in the PC cluster.  
 Joins are specified in PC 
-by implementing a \texttt{JoinComp} object. One of the methods that must be overridden to build a specific join is \texttt{JoinComp :: getSelection ()}
+by implementing a \texttt{JoinComp} object. One of the methods that
+must be overridden to build a specific join is \texttt{JoinComp :: getSelection ()}
 which returns a lambda term
 that specifies how to compute if a particular combination of input objects is accepted by the join.  Consider the following
 \texttt{getSelection ()} for a three-way join over objects of type \texttt{Dept}, \texttt{Emp}, and \texttt{Sup}:
@@ -246,9 +249,14 @@ calculus, or not.  A programmer could, for example, hide the entire selection pr
 If the programmer chose to do this, PC would be unable to optimize the compute plan---the system relies on the willingness of the 
 programmer to expose intent via the lambda term construction function.
 
+\vspace{5pt}
+A complete example of using PC APIs, which is based on the lambda
+calculus as described in this section, can be found in
+Section~\ref{sec:example} in the Appendix.
+
 \begin{figure}[t]
   \begin{center}
-    \includegraphics[width=6in]{TCAP}
+    \includegraphics[width=4in]{TCAP}
   \end{center}
   \caption{Execution of the first four stages of a pipeline constructed from the example TCAP program.  The first two stages extract new vectors from 
 existing vectors of PC \texttt{Object}s, first via a call to \texttt{Join\_2122.att\_acc\_1 ()}, which extracts \texttt{Dep.deptName} from each item in the vector
@@ -259,6 +267,8 @@ in the vector \texttt{emp}, producing a new vector called \texttt{nm2}.  A bit v
 vectors via a call to \texttt{Join\_2122.==\_3 ()}, and finally all of the vectors are filtered.}
   \label{fig:TCAP}
 \end{figure}
+
+
 
 \section{PlinyCompute's Execution Engine}
 \label{sec:engine}
@@ -271,7 +281,7 @@ A TCAP program is fully optimizable, using many standard techniques from relatio
 will discuss in Section:~\ref{sec:optimizer}.
 In this section, we discuss how TCAP programs are executed by PC.
 
-\subsubsection{Vectorized or Compiled?}
+\subsection{Vectorized or Compiled?}
 \label{sec:vectorized}
 
 Volcano-style, record-by-record iteration \cite{graefe1990encapsulation} has fallen out of favor over the last decade, largely replaced by
@@ -288,49 +298,33 @@ consisting of comparison between attributes, simple arithmetic, and logical oper
 Applying classical vectorization to PC,
 which requires an execution plan to be constructed consisting entirely of calls to a toolkit of
 vector-based operations shipped with the system, is
-unrealistic when most/all computations are over user-defined types.  Code generation---at least as described in the database literature---is also
-unrealistic in such an environment.  Generating LLVM code for complex operations over user-defined types 
+unrealistic when most/all computations are over user-defined
+types. Further, generating LLVM code for complex operations over user-defined types 
 in a high-level language 
 is akin to writing a full-fledged compiler. 
 
 
 PC uses a hybrid approach, where the PC execution engine is vectorized, but the code for the individual vectorized operations (called \emph{pipeline stages})
-is fully compiled.  
+is fully compiled.  PC's C++ binding relies on template metaprogramming (see Section 5.3)
+to convert the user-supplied lambda terms 
+(see Secion 4) into efficient pipeline stages over vectors of PC
+\texttt{Object}s or simple types.
 
-In PC, a user does not specify the graph of pipeline stages directly.  Rather,
-the programmer expresses her/his intent at a high-level, by building a graph of high-level computations.  These computations tend to be higher
-level than those provided by other platforms, and, like in a relational database engine, are not associated with any specific 
-physical implementation.
-For example, PC supplies an abstract $n$-way join called a \texttt{JoinComp}.
-
-Operations are customized when a user supplies a set of 
-\emph{lambda term
-construction functions} as described in Section~\ref{sec:lambda}.  To customize an computation, a user writes one or more member functions
-that return \emph{lambda terms}, which are possibly complex terms in a lambda calculus that 
-wrap C++ code.  Those lambda terms express the programmer's intent, hence PC does not rely on analysis of C++ to build an optimized
-execution plan \cite{alexandrov2015implicit}. 
-
-PC's C++ binding relies on template metaprogramming (see
-Section~\ref{sec:template}) to convert the user-supplied lambda terms
-into a TCAP program, where each TCAP operation represents a pipeline
-stage over vectors of PC \texttt{Object}s or simple types. 
-
-The TCAP program is then optimized (that is, operations are automatically
+The operations in this DAG are then
+optimized (that is, operations are automatically
 re-ordered to form an optimal plan) using classical relational
-methods \cite{chaudhuri1998overview, graefe1995cascades,
-  jarke1984query}. After optimization, the pipeline stages are fit
-together to produce a set of interconnected pipelines.  Input data are broken into lists of 
+methods \cite{chaudhuri1998overview, graefe1995cascades, jarke1984query}. After optimization, the pipeline stages are fit together to produce a set of interconnected pipelines.  Input data are broken into lists of 
 data vectors (called, appropriately, \emph{vector lists}), and fed into the various pipelines.
 Optimization of the DAG of pipeline stages
-is possible because the programmer expresses intent via the lambda calculus \cite{barendregt1984lambda, moggi1989computational}---we do not rely on inspection of opaque user
-code \cite{alexandrov2015implicit}, which is often going to be unrealistic.  Thus, PC's hybrid approach is vectorized, 
-but it is \emph{also} compiled---the opaque C++ code in a user-supplied computation is compiled into pipeline stages that are assembled into an 
-optimized plan.
+is possible because the programmer expresses intent via the lambda calculus \cite{barendregt1984lambda, moggi1989computational}.
+Thus, PC's hybrid approach is vectorized, 
+but it is \emph{also} compiled---the opaque C++ user code is compiled into pipeline stages that are 
+assmebled into an optimized plan.
 
 
 
 
-\subsubsection{TCAP and Vectorized Execution} \label{sec:vectorized}
+\subsection{TCAP and Vectorized Execution} \label{sec:vectorized}
 
 As mentioned in Section \ref{sec:vectorized}, PC's vectorized execution engine repeatedly pushes 
 so-called \emph{vector lists} through a pipeline that runs a series of
@@ -415,7 +409,7 @@ Note that in each TCAP operation, the key-value map is only informational and do
 information can be vital during optimization.  For example, as we will discuss in Section~\ref{sec:optimizer}, 
 multiple calls to the same method can be detected using information stored in TCAP key-value maps, and the redundant calls eliminated.
 
-\subsubsection{Template Metaprogramming}
+\subsection{Template Metaprogramming}
 \label{sec:template}
 In PC,
 each vectorized pipeline stage (such as \texttt{Join\_2212.att\_acc\_1}) is executed as fully-compiled native code, with no virtual function
