@@ -143,7 +143,7 @@ JK2_12(sup,emp) <= FILTER(JK2_11(bool2), JK2_11(sup,emp), 'Join_42', []);
 \noindent
 This code first uses \texttt{emp.getSupervisor ()} and \texttt{sup.name} to obtain the join keys. These are hashed, and 
 a hash join is run (this is the \texttt{JOIN} operation).  After the hash join,
-the result of calling \texttt{emp.getSupervisor ()} is compared with
+the result of calling \texttt{emp.getSuper visor ()} is compared with
 \texttt{sup.name}.  If these two values are equal and the salary exceeds \texttt{50000}, the result tuple is accepted.
 
 Clearly, it should be possible to first filter based off of the salary exceeding \texttt{50000} before the hash join is ever run.  Hence, one of
