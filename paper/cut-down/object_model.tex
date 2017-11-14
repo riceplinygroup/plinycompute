@@ -221,12 +221,12 @@ is automatically performed.  This deep copy happens recursively, so any \texttt{
 have \emph{their} targets deep-copied to the active block.  For example, consider the following code:
 
 \begin{codesmall}
-makeObjectAllocatorBlock (1024 * 1204);
+makeObjectAllocatorBlock (1024 * 1024);
 Handle <Vector <double>> data = 
      makeObject <Vector <double>> ();
 for (int i = 0; i < 1000; i++)
      data->push_back (i * 1.0);
-makeObjectAllocatorBlock (1024 * 1204); 
+makeObjectAllocatorBlock (1024 * 1024); 
 Handle <MatrixBlock> myMatrix = 
      makeObject <MatrixBlock> ();
 myMatrix->value = data; // deep copy of data happens!!
