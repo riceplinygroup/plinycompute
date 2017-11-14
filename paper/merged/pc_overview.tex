@@ -75,7 +75,7 @@ public:
 To create and load such data into a PC compute cluster, we might write the following code:
 
 \begin{codesmall}
-makeObjectAllocatorBlock (1024 * 1204);
+makeObjectAllocatorBlock (1024 * 1024);
 Handle <Vector <Handle <DataPoint>>> myVec = 
      makeObject <Vector <Handle <DataPoint>>> ();
 Handle <DataPoint> storeMe = makeObject <DataPoint> ();
