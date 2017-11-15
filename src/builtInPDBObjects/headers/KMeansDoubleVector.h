@@ -36,9 +36,8 @@
 #endif
 
 
+/* This class implements a double vector based on a native array */
 namespace pdb {
-
-//this class encapsulates a double vector based on native array
 
 class KMeansDoubleVector : public Object {
 
@@ -75,8 +74,7 @@ public:
         rawData[i] = val;
     }
 
-    // following implementation of Spark MLLib
-    // https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/linalg/Vectors.scala
+    /* Compute the 2-norm */
     inline double getNorm2() {
         if (norm < 0) {
             norm = 0;
@@ -88,6 +86,7 @@ public:
         return norm;
     }
 
+    /* Dot product */
     inline double dot(KMeansDoubleVector& other) {
         double* otherRawData = other.getRawData();
         double dotSum = 0;
@@ -97,8 +96,7 @@ public:
         return dotSum;
     }
 
-    // to get squared distance following SparkMLLib
-
+    /* Compute the squared distance */
     inline double getSquaredDistance(KMeansDoubleVector& other) {
         double* otherRawData = other.getRawData();
         double distance = 0;
@@ -120,8 +118,10 @@ public:
     }
 
 
-    // this implementation is following Spark MLLib
-    // https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/util/MLUtils.scala
+    /* 
+     * Another way to compute the squared distance
+     * Faster than the direct computing when both norms are given
+     */
     inline double getFastSquaredDistance(KMeansDoubleVector& other) {
         double precision = 0.000001;
         double myNorm = norm;
@@ -139,7 +139,7 @@ public:
         return sqDist;
     }
 
-
+    /* Overload the + operator */
     inline KMeansDoubleVector& operator+(KMeansDoubleVector& other) {
         double* otherRawData = other.getRawData();
         for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
@@ -148,7 +148,7 @@ public:
         return *this;
     }
 
-
+    /* Overload the / operator */
     inline KMeansDoubleVector& operator/(int val) {
         if (val == 0) {
             std::cout << "Error in KMeansDoubleVector: division by zero" << std::endl;
@@ -163,8 +163,7 @@ public:
         return *result;
     }
 
-    // Shuffle the elements of an array into a random order, modifying the original array. Returns
-    // the original array.
+    /* Shuffle the elements of an array to a random order */
     inline KMeansDoubleVector& randomizeInPlace() {
         for (int i = NUM_KMEANS_DIMENSIONS - 1; i >= 0; i--) {
             int j = rand() % NUM_KMEANS_DIMENSIONS;
@@ -175,6 +174,7 @@ public:
         return *this;
     }
 
+    /* Judge if two KMeansDoubleVector is equal */
     inline bool equals(Handle<KMeansDoubleVector>& other) {
         double* otherRawData = other->getRawData();
         for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
