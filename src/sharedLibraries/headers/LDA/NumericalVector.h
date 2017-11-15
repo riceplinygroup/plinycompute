@@ -15,8 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-
 #ifndef NUMERICAL_VECTOR_H
 #define NUMERICAL_VECTOR_H
 
@@ -26,13 +24,16 @@
 
 using namespace pdb;
 
-// this class is used for aggregations over vectors of numerical types (ints, doubles, unsigned,
-// etc.).
-// The benefit of using this class is that if the vector has only a single non-zero entry, the
-// NumericalVector
-// class stores it sparsely and efficiently.  This means that one can very efficiently aggregate
-// vectors
-// tht have only a single non-empty entry at initialization
+/*
+ * This class is used for aggregations over vectors of numerical types (ints, doubles, unsigned,
+ * etc.).
+ * The benefit of using this class is that if the vector has only a single non-zero entry, the
+ * NumericalVector
+ * class stores it sparsely and efficiently.  This means that one can very efficiently aggregate
+ * vectors
+ * tht have only a single non-empty entry at initialization
+ */
+
 template <class NumericalType>
 class NumericalVector {
 
