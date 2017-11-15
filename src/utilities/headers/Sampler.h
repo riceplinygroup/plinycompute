@@ -22,10 +22,8 @@
 #include <math.h>
 #include <stdio.h>
 
+/* This class wraps utilities for sampling data */
 namespace pdb {
-
-// this class wraps utilities for sampling data, which is consistent to Spark
-// MLLib
 
 class Sampler {
 
@@ -45,13 +43,11 @@ public:
                                              long total, bool withReplacement) {
 
     if (withReplacement) {
-      // PossonBounds.getUpperBound()
       return fmax(sampleSizeLowerBound +
                       numStd(sampleSizeLowerBound) * sqrt(sampleSizeLowerBound),
                   1e-15) /
              total;
     } else {
-      // BinomialBounds.getUpperBound()
       double fraction = (double)sampleSizeLowerBound / (double)(total);
       double delata = 1e-4;
       double gamma = -log(delata) / total;
