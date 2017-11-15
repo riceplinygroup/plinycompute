@@ -22,12 +22,12 @@
 #include "Object.h"
 #include "Handle.h"
 
-// By Shangyu
-
+/* The class for LDA documents */
 using namespace pdb;
 
 class LDADocument : public Object {
 
+/* Document ID, word ID, and the number of this word in this document */
 private:
     unsigned docID;
     unsigned wordID;
@@ -46,7 +46,6 @@ public:
         return this->docID;
     }
 
-
     void setWord(int fromWord) {
         this->wordID = fromWord;
     }
@@ -54,7 +53,6 @@ public:
     unsigned getWord() {
         return this->wordID;
     }
-
 
     void setCount(unsigned fromCount) {
         this->count = fromCount;
@@ -64,7 +62,6 @@ public:
         return this->count;
     }
 
-
     void print() {
         std::cout << "docID: " << this->docID << " wordID: " << wordID << " count: " << count
                   << std::endl;
@@ -72,6 +69,5 @@ public:
 
     ~LDADocument() {}
 };
-
 
 #endif

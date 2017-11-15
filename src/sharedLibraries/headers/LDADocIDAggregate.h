@@ -18,8 +18,6 @@
 #ifndef LDA_DOC_ID_AGGREGATE_H
 #define LDA_DOC_ID_AGGREGATE_H
 
-// by Shangyu, May 2017
-
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
@@ -27,9 +25,8 @@
 #include "SumResult.h"
 #include "LDADocument.h"
 
-
+/* The class for extracting document IDs */
 using namespace pdb;
-
 
 class LDADocIDAggregate : public ClusterAggregateComp<SumResult, LDADocument, int, int> {
 
@@ -38,13 +35,10 @@ public:
 
     LDADocIDAggregate() {}
 
-
-    // the key type must have == and size_t hash () defined
     Lambda<int> getKeyProjection(Handle<LDADocument> aggMe) override {
         return makeLambda(aggMe, [](Handle<LDADocument>& aggMe) { return (int)aggMe->getDoc(); });
     }
 
-    // the value type must have + defined
     Lambda<int> getValueProjection(Handle<LDADocument> aggMe) override {
         return makeLambda(aggMe, [](Handle<LDADocument>& aggMe) { return 1; });
     }
