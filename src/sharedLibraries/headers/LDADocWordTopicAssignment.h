@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
 #define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
 
@@ -25,8 +24,7 @@
 #include "LDA/TopicAssignment.h"
 #include "LDA/DocAssignment.h"
 
-// By Shangyu
-
+/* This class stores the pair (DocAssighment, TopicAssignment) */
 using namespace pdb;
 
 class LDADocWordTopicAssignment : public Object {

@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef SCAN_INT_DOUBLE_VECTOR_PAIR_SET_H
 #define SCAN_INT_DOUBLE_VECTOR_PAIR_SET_H
 
@@ -35,6 +34,5 @@ public:
         setSetName(setName);
     }
 };
-
 
 #endif

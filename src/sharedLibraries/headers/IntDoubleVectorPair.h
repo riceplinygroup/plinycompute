@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef INT_DOUBLE_VECTOR_PAIR_H
 #define INT_DOUBLE_VECTOR_PAIR_H
 
@@ -24,8 +23,7 @@
 #include "Handle.h"
 #include <cstddef>
 
-// By Shangyu
-
+/* This class is for storing a (int, double vector) pair */
 using namespace pdb;
 class IntDoubleVectorPair : public Object {
 
@@ -42,13 +40,6 @@ public:
     IntDoubleVectorPair(int fromInt, Handle<Vector<double>>& fromVector) {
         this->myInt = fromInt;
         this->myVector = *fromVector;
-        /*
-        int size = fromVector->size();
-        this->myVector = makeObject<Vector<double>>(size, size);
-        for (int i = 0; i < size; i++) {
-            (*(this->myVector))[i] = (*fromVector)[i];
-        }
-        */
     }
 
     void setInt(int fromInt) {
@@ -60,14 +51,6 @@ public:
         for (int i = 0; i < size; i++) {
             myVector.push_back((*fromVector)[i]);
         }
-        // this->myVector = *fromVector;
-        /*
-        if (this->myVector->c_ptr() == nullptr || this->myVector->size() < size)
-                    this->myVector = makeObject<Vector<double>>(size, size);
-                for (int i = 0; i < size; i++) {
-                        (*(this->myVector))[i] = (*fromVector)[i];
-                }
-        */
     }
 
     int getInt() {
@@ -90,6 +73,8 @@ public:
         return this->myVector;
     }
 };
+
+/* Overload the + operator */
 namespace pdb {
 inline Vector<double>& operator+(Vector<double>& lhs, Vector<double>& rhs) {
     int size = lhs.size();

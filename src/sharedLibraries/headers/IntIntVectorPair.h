@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef INT_INT_VECTOR_PAIR_H
 #define INT_INT_VECTOR_PAIR_H
 
@@ -23,8 +22,7 @@
 #include "PDBVector.h"
 #include "Handle.h"
 
-// By Shangyu
-
+/* This class is for storing a (int, int vector) pair */
 using namespace pdb;
 class IntIntVectorPair : public Object {
 
@@ -43,7 +41,6 @@ public:
         this->myInt = fromInt;
     }
 
-
     int getInt() {
         return this->myInt;
     }
@@ -61,6 +58,7 @@ public:
     }
 };
 
+/* Overload the + operator */
 namespace pdb {
 inline Vector<int>& operator+(Vector<int>& lhs, Vector<int>& rhs) {
     int size = lhs.size();
@@ -68,9 +66,6 @@ inline Vector<int>& operator+(Vector<int>& lhs, Vector<int>& rhs) {
         std::cout << "You cannot add two vectors in different sizes!" << std::endl;
         return lhs;
     }
-    // std :: cout << "operator+: size is " << size << std :: endl;
-    // Optimize below implementation by manipulating c_ptr() directly to reduce vtable fixing
-    // overhead
     int* lhsArray = lhs.c_ptr();
     int* rhsArray = rhs.c_ptr();
     for (int i = 0; i < size; ++i) {
