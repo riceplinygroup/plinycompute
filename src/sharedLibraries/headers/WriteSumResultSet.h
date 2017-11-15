@@ -15,11 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef WRITE_SUM_RESULT_SET_H
 #define WRITE_SUM_RESULT_SET_H
-
-// by Jia, Mar 2017
 
 #include "WriteUserSet.h"
 #include "SumResult.h"
@@ -32,8 +29,6 @@ public:
 
     WriteSumResultSet() {}
 
-    // below constructor is not required, but if we do not call setOutput() here, we must call
-    // setOutput() later to set the output set
     WriteSumResultSet(std::string dbName, std::string setName) {
         this->setOutput(dbName, setName);
     }
