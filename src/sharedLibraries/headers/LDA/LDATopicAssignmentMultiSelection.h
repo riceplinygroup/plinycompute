@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef LDA_TOPIC_ASSIGN_MULTI_SELECT_H
 #define LDA_TOPIC_ASSIGN_MULTI_SELECT_H
 
@@ -26,6 +25,7 @@
 #include "LDA/LDADocWordTopicCount.h"
 #include "LDADocWordTopicAssignment.h"
 
+/* This class implements a multi-selection that extracts topic assignment from LDADocWordTopicAssignment */
 using namespace pdb;
 class LDATopicAssignmentMultiSelection
     : public MultiSelectionComp<TopicAssignment, LDADocWordTopicAssignment> {

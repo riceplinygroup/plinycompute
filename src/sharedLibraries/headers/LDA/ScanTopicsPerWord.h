@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef SCAN_TOPIC_PER_WORD_H
 #define SCAN_TOPIC_PER_WORD_H
 

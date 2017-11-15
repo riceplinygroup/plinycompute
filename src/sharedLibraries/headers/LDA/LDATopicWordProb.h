@@ -19,21 +19,20 @@
 #ifndef LDA_TOPIC_WORD_PROB_H
 #define LDA_TOPIC_WORD_PROB_H
 
-// By Shangyu
-
 #include "Object.h"
 #include "Handle.h"
 #include "NumericalVector.h"
 
+/* This class stores a word and its topic probability */
 using namespace pdb;
 
 class LDATopicWordProb : public Object {
 
 private:
-    // the word for which we have all of the topic probabilities
+    /* The word for which we have the topic probabilities */
     unsigned whichWord;
 
-    // the list of probabilities
+    /* The list of probabilities */
     NumericalVector<double> probabilities;
 
 public:

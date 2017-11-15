@@ -26,6 +26,7 @@
 #include "LDA/LDADocWordTopicCount.h"
 #include "LDADocWordTopicAssignment.h"
 
+/* This class implements a multi-selection that extract  doc assignment from LDADocWordTopicAssignment */
 using namespace pdb;
 
 class LDADocAssignmentMultiSelection

@@ -15,11 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef WRITE_DOC_WORD_TOPIC_H
 #define WRITE_DOC_WORD_TOPIC_H
-
-// by Shangyu, June 2017
 
 #include "WriteUserSet.h"
 #include "LDADocWordTopicAssignment.h"
