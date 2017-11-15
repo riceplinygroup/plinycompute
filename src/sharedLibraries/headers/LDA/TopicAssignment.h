@@ -23,6 +23,7 @@
 #include "Handle.h"
 #include "NumericalVector.h"
 
+/* This class stores the word assignment for a topic */
 using namespace pdb;
 
 class TopicAssignment : public Object {

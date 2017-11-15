@@ -23,6 +23,7 @@
 #include "Handle.h"
 #include "NumericalVector.h"
 
+/* This class stores the topic assignment for a document */
 using namespace pdb;
 
 class DocAssignment : public Object {
