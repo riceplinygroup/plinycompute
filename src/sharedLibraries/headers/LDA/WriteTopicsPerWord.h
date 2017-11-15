@@ -15,11 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef WRITE_TOPICS_PER_WORD_H
 #define WRITE_TOPICS_PER_WORD_H
-
-// by Shangyu, June 2017
 
 #include "WriteUserSet.h"
 #include "LDATopicWordProb.h"

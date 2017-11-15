@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef LDA_INITIAL_WORD_TOPIC_PROB_SELECT_H
 #define LDA_INITIAL_WORD_TOPIC_PROB_SELECT_H
 
@@ -26,6 +25,7 @@
 #include "IntDoubleVectorPair.h"
 #include "LDA/LDATopicWordProb.h"
 
+/* This class initialize the topic-probability for each word */
 using namespace pdb;
 class LDAInitialWordTopicProbSelection : public SelectionComp<LDATopicWordProb, int> {
 
@@ -46,12 +46,9 @@ public:
 
     Lambda<Handle<LDATopicWordProb>> getProjection(Handle<int> checkMe) override {
 
-
         return makeLambda(checkMe, [&](Handle<int>& checkMe) {
 
             int numWord = *checkMe;
-
-            // first, seed the RNG
             srand48(numWord);
 
             Handle<Vector<double>> wordTopicProb = makeObject<Vector<double>>(numTopic);
@@ -64,6 +61,5 @@ public:
         });
     }
 };
-
 
 #endif

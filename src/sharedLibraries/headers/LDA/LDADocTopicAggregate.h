@@ -18,8 +18,6 @@
 #ifndef LDA_DOC_TOPIC_AGGREGATE_H
 #define LDA_DOC_TOPIC_AGGREGATE_H
 
-// by Shangyu, May 2017
-
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
@@ -27,22 +25,19 @@
 #include "LDADocWordTopicAssignment.h"
 #include "PDBVector.h"
 
-
 using namespace pdb;
 
-
+/* Aggregate for doc assignment */
 class LDADocTopicAggregate
     : public ClusterAggregateComp<DocAssignment, DocAssignment, unsigned, DocAssignment> {
 
 public:
     ENABLE_DEEP_COPY
 
-    // the key type must have == and size_t hash () defined
     Lambda<unsigned> getKeyProjection(Handle<DocAssignment> aggMe) override {
         return makeLambdaFromMethod(aggMe, getKey);
     }
 
-    // the value type must have + defined
     Lambda<DocAssignment> getValueProjection(Handle<DocAssignment> aggMe) override {
         return makeLambdaFromMethod(aggMe, getValue);
     }

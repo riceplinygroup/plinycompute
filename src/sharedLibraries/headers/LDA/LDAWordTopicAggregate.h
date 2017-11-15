@@ -18,17 +18,14 @@
 #ifndef LDA_WORD_TOPIC_AGGREGATE_H
 #define LDA_WORD_TOPIC_AGGREGATE_H
 
-// by Shangyu, May 2017
-
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
 #include "IntDoubleVectorPair.h"
 #include "LDATopicWordProb.h"
 
-
+/* Aggregation for LDATopicWordProb */
 using namespace pdb;
-
 
 class LDAWordTopicAggregate
     : public ClusterAggregateComp<LDATopicWordProb, LDATopicWordProb, unsigned, LDATopicWordProb> {
@@ -36,12 +33,10 @@ class LDAWordTopicAggregate
 public:
     ENABLE_DEEP_COPY
 
-    // the key type must have == and size_t hash () defined
     Lambda<unsigned> getKeyProjection(Handle<LDATopicWordProb> aggMe) override {
         return makeLambdaFromMethod(aggMe, getKey);
     }
 
-    // the value type must have + defined
     Lambda<LDATopicWordProb> getValueProjection(Handle<LDATopicWordProb> aggMe) override {
         return makeLambdaFromMethod(aggMe, getValue);
     }
