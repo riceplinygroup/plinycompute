@@ -304,7 +304,7 @@ private:
     unordered_map<CacheKey, PDBPagePtr, CacheKeyHash, CacheKeyEqual>* cache;
     pdb::PDBLoggerPtr logger;
     ConfigurationPtr conf;
-    unsigned int size;
+    size_t size;
     size_t maxSize;
     size_t warnSize;       // the threshold to evict
     size_t evictStopSize;  // the threshold to stop eviction
