@@ -208,7 +208,9 @@ the number of \texttt{Handle} objects that currently reference the object.
 Un-managed blocks (and objects inside of such blocks) are not reference-counted.
 
 When the reference count on an object in a managed block goes to zero, it is automatically
-deallocated (at least, this is the default behavior; it is possible for a programmer to override this behavior for speed, if desired, as we describe in Section~\ref{sec:allocation}).  
+deallocated (at least, this is the default behavior; it is possible
+for a programmer to override this behavior for speed, if desired, as
+we describe in Section~\ref{sec:allocation} in the Appendix).  
 Once the number of reachable objects on an inactive, managed allocation block falls to zero, the block is automatically deallocated.  
 In that sense, PC resembles a smart-pointer based memory management system.  
 
