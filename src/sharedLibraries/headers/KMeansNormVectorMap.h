@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef K_MEANS_NORM_VECTOR_MAP_H
 #define K_MEANS_NORM_VECTOR_MAP_H
 
@@ -25,14 +24,17 @@
 #include "KMeansDoubleVector.h"
 #include "PDBVector.h"
 #include "PDBString.h"
-#include <ctime>
 #include <cstdlib>
 
+/* 
+ * Use macro for performance consideration 
+ * Should be consistent with the value in TestKMeans.cc
+ */
 #ifndef NUM_KMEANS_DIMENSIONS
 #define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
-
+/* This selection computes the 2-norm */
 using namespace pdb;
 class KMeansNormVectorMap
     : public SelectionComp<KMeansDoubleVector, double[NUM_KMEANS_DIMENSIONS]> {
@@ -42,12 +44,12 @@ public:
 
     KMeansNormVectorMap() {}
 
-    // srand has already been invoked in server
     Lambda<bool> getSelection(Handle<double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
         return makeLambda(checkMe,
                           [&](Handle<double[NUM_KMEANS_DIMENSIONS]>& checkMe) { return true; });
     }
 
+    /* 2-norm computation */
     Lambda<Handle<KMeansDoubleVector>> getProjection(
         Handle<double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
         return makeLambda(checkMe, [](Handle<double[NUM_KMEANS_DIMENSIONS]>& checkMe) {

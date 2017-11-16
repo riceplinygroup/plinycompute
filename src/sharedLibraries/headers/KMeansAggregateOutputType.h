@@ -21,10 +21,6 @@
 #include "Object.h"
 #include "Handle.h"
 #include "KMeansCentroid.h"
-//#include "KMeansAggregate.h"
-
-
-// By Shangyu, May 2017
 
 using namespace pdb;
 

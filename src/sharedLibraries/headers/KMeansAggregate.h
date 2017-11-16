@@ -18,8 +18,6 @@
 #ifndef K_MEANS_AGGREGATE_H
 #define K_MEANS_AGGREGATE_H
 
-// by Shangyu, May 2017
-
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
@@ -28,9 +26,11 @@
 #include "KMeansCentroid.h"
 #include "KMeansAggregateOutputType.h"
 
-
+/* 
+ * This class computes the membership for each data point, 
+ * and implements the aggregation for each cluster 
+ */
 using namespace pdb;
-
 
 class KMeansAggregate : public ClusterAggregateComp<KMeansAggregateOutputType,
                                                     KMeansDoubleVector,
@@ -52,44 +52,23 @@ public:
         for (int i = 0; i < inputModel->size(); i++) {
             model.push_back(*(*inputModel)[i]);
         }
-
-
-        /*std :: cout << "The model I get is: " << std :: endl;
-        for(int i = 0; i < (this->model).size(); i ++) {
-                (this->model)[i].print();
-        }*/
     }
 
-
-    // the key type must have == and size_t hash () defined
     Lambda<int> getKeyProjection(Handle<KMeansDoubleVector> aggMe) override {
         return makeLambda(aggMe, [&](Handle<KMeansDoubleVector>& aggMe) {
             return this->computeClusterMemberOptimized(*aggMe);
         });
     }
 
-    // the value type must have + defined
     Lambda<KMeansCentroid> getValueProjection(Handle<KMeansDoubleVector> aggMe) override {
-        /*return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
-    Handle<KMeansCentroid> result = makeObject<KMeansCentroid>(1, *aggMe);
-    return *result;
-}); */
-
         return makeLambda(
             aggMe, [](Handle<KMeansDoubleVector>& aggMe) { return KMeansCentroid(1, *aggMe); });
     }
 
+    /* Compute the membership according to squared distance */
     int computeClusterMember(Handle<KMeansDoubleVector> data) {
         int closestDistance = INT_MAX;
         int cluster = 0;
-        /*
-            std :: cout << "my data is: " << std :: endl;
-        data->print();
-            std :: cout << "my model is: " << std :: endl;
-        for(int j = 0; j < (this->model).size(); j ++) {
-            (this->model)[j]->print();
-        }
-        */
         Vector<KMeansDoubleVector>& myModel = this->model;
         KMeansDoubleVector& myData = *data;
         size_t modelSize = myModel.size();
@@ -102,11 +81,10 @@ public:
                 cluster = j;
             }
         }
-        //		std :: cout << "my cluster is: " << cluster << std :: endl;
         return cluster;
     }
 
-    // JiaNote: add this to be consistent with Spark MLLib
+    /* Another way to compute the membership */
     int computeClusterMemberOptimized(KMeansDoubleVector& data) {
         int closestDistance = INT_MAX;
         int cluster = 0;

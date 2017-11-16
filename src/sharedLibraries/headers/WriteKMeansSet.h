@@ -19,8 +19,6 @@
 #ifndef WRITE_K_MEANS_SET_H
 #define WRITE_K_MEANS_SET_H
 
-// by Shangyu, June 2017
-
 #include "WriteUserSet.h"
 #include "KMeansAggregateOutputType.h"
 
@@ -32,8 +30,6 @@ public:
 
     WriteKMeansSet() {}
 
-    // below constructor is not required, but if we do not call setOutput() here, we must call
-    // setOutput() later to set the output set
     WriteKMeansSet(std::string dbName, std::string setName) {
         this->setOutput(dbName, setName);
     }

@@ -15,14 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef SCAN_DOUBLE_ARRAY_SET_H
 #define SCAN_DOUBLE_ARRAY_SET_H
 
 #include "ScanUserSet.h"
 
 #ifndef NUM_KMEANS_DIMENSIONS
-#define NUM_KMEANS_DIMENSIONS 100
+#define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
 
