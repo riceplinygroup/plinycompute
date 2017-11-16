@@ -61,7 +61,7 @@ common_env.Append(CCFLAGS='-DPROFILING')
 common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=15000')
 common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
-common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.99')
+common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
 #uncomment following for KMeans
 #common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
 #common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=500')
