@@ -62,6 +62,12 @@
 
 using namespace pdb;
 
+/* 
+ * Use macros for performance consideration 
+ * NUM_KMEANS_DIMENSIONS denotes the dimentionality of the input data
+ * This value should be consistent with the one in KMeansNormVectorMap.h
+ * and ScanDoubleArraySet.h 
+ */
 #ifndef NUM_KMEANS_DIMENSIONS
 #define NUM_KMEANS_DIMENSIONS 1000
 #endif
@@ -301,7 +307,7 @@ int main(int argc, char *argv[]) {
 
   /* Main program */
 
-  /* Normalize the input data */
+  /* Compute the 2-norm for the input data */
   Handle<Computation> myInitialScanSet =
       makeObject<ScanDoubleArraySet>("kmeans_db", "kmeans_input_set");
   Handle<Computation> myNormVectorMap = makeObject<KMeansNormVectorMap>();

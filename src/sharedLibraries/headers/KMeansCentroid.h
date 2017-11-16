@@ -18,12 +18,14 @@
 #ifndef K_MEANS_CENTROID_H
 #define K_MEANS_CENTROID_H
 
-// by Shangyu, May 2017
-
 #include "Object.h"
 #include "Handle.h"
 #include "KMeansDoubleVector.h"
 
+/* 
+ * This class stores the centroid of a cluster, which contains the number 
+ * of data points in this cluster, and the mean of these data points
+ */
 using namespace pdb;
 
 class KMeansCentroid : public Object {
@@ -36,13 +38,6 @@ public:
     ENABLE_DEEP_COPY
 
     KMeansCentroid() {}
-
-    /*
-    KMeansCentroid ( size_t count, size_t size ) {
-        this->count = count;
-        this->mean = *(makeObject<DoubleVector> ( size ));
-    }
-    */
 
     KMeansCentroid(size_t count, KMeansDoubleVector value) {
         this->count = count;
@@ -60,9 +55,6 @@ public:
     }
 
     KMeansCentroid& operator+(KMeansCentroid& other) {
-
-        // Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count +
-        // other.getCount(), this->mean + other.getMean());
         this->count += other.getCount();
         this->mean = this->mean + other.getMean();
         return *this;
