@@ -233,7 +233,7 @@ public:
                     try {
                         curChunk = dataSource->getNextTupleSet();
                     } catch (NotEnoughSpace& n) {
-                        std::cout << "batch size tuned to be " << MIN_BATCH_SIZE << std::endl;
+                        std::cout << "batch size tuned to be 1" << std::endl;
                         dataSource->setChunkSize(1);
                         try {
                             curChunk = dataSource->getNextTupleSet();
