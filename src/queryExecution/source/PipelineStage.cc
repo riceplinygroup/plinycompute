@@ -217,8 +217,8 @@ size_t PipelineStage::getBackendCircularBufferSize(bool& success, std::string& e
     if (conf->getShmSize() / conf->getPageSize() - 2 <
         2 + 2 * numThreads + backendCircularBufferSize) {
         success = false;
-        errMsg = "Error: Not enough buffer pool size to run the query!";
-        PDB_COUT << errMsg << std::endl;
+        errMsg = "Error: Not enough buffer pool size to run the query! Please reduce number of threads or increase shared memory pool size or reduce default page size and retry";
+        std::cout << errMsg << std::endl;
         return 0;
     }
     backendCircularBufferSize = (conf->getShmSize() / conf->getPageSize() - 4 - 2 * numThreads);
