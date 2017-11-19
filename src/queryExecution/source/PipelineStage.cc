@@ -1565,8 +1565,9 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                 if (page != nullptr) {
                     // to load output page
                     if (output == nullptr) {
-                        output = (char*)calloc(conf->getNetPageSize(), 1);
-                        makeObjectAllocatorBlock(output, conf->getNetPageSize(), true);
+                        //use broadcastPageSize for broadcast join and hash partition join
+                        output = (char*)calloc(conf->getNetBroadcastPageSize(), 1);
+                        makeObjectAllocatorBlock(output, conf->getNetBroadcastPageSize(), true);
                         std::cout << getAllocator().printCurrentBlock() << std::endl;
                         myMaps = shuffler->createNewOutputContainer();
                     }
@@ -1621,8 +1622,8 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                                     numPages++;
                                     // free the output page and reload a new output page
                                     myMaps = nullptr;
-                                    buffer = (char*)calloc(conf->getNetPageSize(), 1);
-                                    makeObjectAllocatorBlock(buffer, conf->getNetPageSize(), true);
+                                    buffer = (char*)calloc(conf->getNetBroadcastPageSize(), 1);
+                                    makeObjectAllocatorBlock(buffer, conf->getNetBroadcastPageSize(), true);
                                     // redo for current map;
                                     myMaps = shuffler->createNewOutputContainer();
                                     shuffler->writeOut(theOtherMaps[j], myMaps);
@@ -1693,7 +1694,7 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                 makeObjectAllocatorBlock(128 * 1024, true);
                 sendData(communicator,
                          nullptr,
-                         DEFAULT_NET_PAGE_SIZE,
+                         conf->getNetBroadcastPageSize(),
                          jobStage->getSinkContext()->getDatabase(),
                          jobStage->getSinkContext()->getSetName(),
                          errMsg);
@@ -1705,7 +1706,7 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
 #endif
             getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
             getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
-            getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);
+            getAllocator().cleanInactiveBlocks((size_t)(conf->getNetBroadcastPageSize()));
             callerBuzzer->buzz(PDBAlarm::WorkAllDone, shuffleCounter);
         }
 
