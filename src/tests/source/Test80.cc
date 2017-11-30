@@ -20,8 +20,6 @@
 #define TEST_80_H
 
 
-// to test AllSelection with makeObject applied in projection using new pipeline stuff and new
-// end-to-end framework
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -40,6 +38,10 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+
+
+
+// to test AllSelection with makeObject applied in projection using new pipeline stuff and new end-to-end framework
 
 /* This test uses data and selection of builtInType to demonstrate a distributed query with
  * distributed storage */
