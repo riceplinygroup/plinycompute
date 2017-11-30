@@ -18,7 +18,6 @@
 #ifndef TEST_77_H
 #define TEST_77_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
