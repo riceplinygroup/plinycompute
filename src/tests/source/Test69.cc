@@ -20,8 +20,6 @@
 #define TEST_69_H
 
 
-// to test ChrisSelection using new pipeline stuff and new end-to-end framework
-// This test is an upgrade of Test66, user can specify selectionRatio
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -40,6 +38,10 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+
+// to test ChrisSelection using new pipeline stuff and new end-to-end framework
+// This test is an upgrade of Test66, user can specify selectionRatio
+
 
 /* This test uses data and selection of builtInType to demonstrate a distributed query with
  * distributed storage */
