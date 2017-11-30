@@ -48,8 +48,8 @@
 #include <fcntl.h>
 
 
-// to run the aggregate, the system first passes each through the hash operation...
-// then the system
+//to run a query graph that has two selection and one aggregation
+
 using namespace pdb;
 
 
@@ -189,7 +189,6 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                         }
-                        // std :: cout << myString << std :: endl;
                         Handle<Supervisor> myData = makeObject<Supervisor>(
                             "Steve Stevens", 20 + (i % 29), std::string(myString), i * 34.4);
                         for (int j = 0; j < 10; j++) {
@@ -262,9 +261,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

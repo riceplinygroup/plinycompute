@@ -20,7 +20,6 @@
 #define TEST_62_H
 
 
-// by Jia, Mar 2017
 // to test TCAP generation
 
 #include "PDBDebug.h"
@@ -61,7 +60,6 @@ int main(int argc, char* argv[]) {
 
     std::string myScanSetTcapString = myScanSet->toTCAPString(
         inputTupleSets1, 0, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-    // std :: cout << myScanSetTcapString;
 
     inputTupleSetName = outputTupleSetName;
     inputColumnNames.clear();
@@ -89,7 +87,6 @@ int main(int argc, char* argv[]) {
 
     std::string myQueryString = myQuery->toTCAPString(
         inputTupleSets2, 1, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-    // std :: cout << myQueryString;
 
     inputTupleSetName = outputTupleSetName;
     inputColumnNames.clear();

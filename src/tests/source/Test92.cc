@@ -18,7 +18,6 @@
 #ifndef TEST_92_H
 #define TEST_92_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -342,9 +341,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

@@ -24,7 +24,7 @@
 #include "InterfaceFunctions.h"
 
 // this won't be visible to the v-table map, since it is not in the built in types directory
-
+// unit test for creating database
 int main(int argc, char* argv[]) {
 
     std::cout << "Make sure to run bin/test23 in a different window to provide a catalog/storage "

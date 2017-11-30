@@ -18,7 +18,6 @@
 #ifndef TEST_90_H
 #define TEST_90_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -44,8 +43,10 @@
 #include <fcntl.h>
 #include <thread>
 
-// to run the aggregate, the system first passes each through the hash operation...
-// then the system
+
+
+//to test an optimized implementation of EmployeeGroupBy
+
 using namespace pdb;
 
 int main(int argc, char* argv[]) {
@@ -193,8 +194,6 @@ int main(int argc, char* argv[]) {
                             }
                         }
 
-                        //                            std :: cout << i << ":" << myString << std ::
-                        //                            endl;
                         Handle<OptimizedSupervisor> myData = makeObject<OptimizedSupervisor>(
                             "Steve Stevens", 20 + (i % 29), std::string(myString), 3.54);
                         myData->myGuys.resize(10);
@@ -231,7 +230,6 @@ int main(int argc, char* argv[]) {
                     }
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    // std :: cout << "We comes to " << i << " here" << std :: endl;
                     if (!pdbClient.sendData<OptimizedSupervisor>(
                             std::pair<std::string, std::string>("test90_set", "test90_db"),
                             storeMe,

@@ -16,7 +16,6 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_OBJECTS 12000
 
 #include <cstddef>
 #include <iostream>
@@ -38,6 +37,9 @@
 #include "InterfaceFunctions.h"
 #include "JoinMap.h"
 #include "Configuration.h"
+
+//unit test for JoinMap
+
 using namespace pdb;
 
 int main(int argc, char* argv[]) {

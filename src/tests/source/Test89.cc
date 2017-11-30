@@ -18,7 +18,6 @@
 #ifndef TEST_89_H
 #define TEST_89_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -44,8 +43,8 @@
 #include <fcntl.h>
 
 
-// to run the aggregate, the system first passes each through the hash operation...
-// then the system
+//to test iterative execution of aggregations
+
 using namespace pdb;
 
 int main(int argc, char* argv[]) {
@@ -185,8 +184,6 @@ int main(int argc, char* argv[]) {
                             }
                         }
 
-                        //                            std :: cout << i << ":" << myString << std ::
-                        //                            endl;
                         Handle<Supervisor> myData = makeObject<Supervisor>(
                             "Steve Stevens", 20 + (i % 29), std::string(myString), 3.54);
                         storeMe->push_back(myData);
@@ -209,7 +206,6 @@ int main(int argc, char* argv[]) {
                     }
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    // std :: cout << "We comes to " << i << " here" << std :: endl;
                     if (!pdbClient.sendData<Supervisor>(
                             std::pair<std::string, std::string>("test89_set", "test89_db"),
                             storeMe,
@@ -236,20 +232,6 @@ int main(int argc, char* argv[]) {
         cout << "Created set.\n";
     }
 
-    // print the input set
-    /*
-    std :: cout << "to print input..." << std :: endl;
-    SetIterator <Supervisor> result = pdbClient.getSetIterator <Supervisor> ("test89_db",
-    "test89_set");
-    int count = 0;
-    for (auto a : result)
-    {
-                 count ++;
-                 std :: cout << count << ":";
-                 a->print();
-    }
-    std :: cout << "input count:" << count << "\n";
-    */
     // this is the object allocation block where all of this stuff will reside
     // register this query class
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
@@ -273,9 +255,6 @@ int main(int argc, char* argv[]) {
         }
         std::cout << std::endl;
 
-        // std::cout << "Time Duration: " <<
-        //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-        //      std::endl;
 
         std::cout << std::endl;
 

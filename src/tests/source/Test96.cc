@@ -16,7 +16,6 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_OBJECTS 12000
 
 #include <cstddef>
 #include <iostream>
@@ -38,6 +37,8 @@
 #include "InterfaceFunctions.h"
 #include "IntDoubleVectorPair.h"
 
+//a test case for pdb::Vector
+
 using namespace pdb;
 
 int main() {
@@ -48,7 +49,6 @@ int main() {
     int numWord = 10;
     int numTopic = 4;
 
-    // std :: cout << "ABOUT TO MAKE THE OBJECT.\n";
     Handle<Vector<Handle<IntDoubleVectorPair>>> result =
         makeObject<Vector<Handle<IntDoubleVectorPair>>>(numWord, numWord);
 

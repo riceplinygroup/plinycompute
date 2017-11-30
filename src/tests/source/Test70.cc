@@ -20,8 +20,7 @@
 #define TEST_70_H
 
 
-// by Jia, Mar 2017
-// To dump a set
+// To export a set
 
 
 #include "PDBDebug.h"
@@ -37,8 +36,6 @@
 #include <chrono>
 #include <fcntl.h>
 
-/* This test uses data and selection of builtInType to demonstrate a distributed query with
- * distributed storage */
 
 /*  Note that data size must be larger than #numTotalThreadsInCluster*#PageSize */
 /*  Below test case is tested using 8GB data in 4-node cluster, each node run 12 threads */

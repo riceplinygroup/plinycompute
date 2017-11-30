@@ -49,7 +49,7 @@
 #include <fcntl.h>
 #include <thread>
 
-/* distributed join test case */
+/* distributed join test case to run joins with two sinks*/
 using namespace pdb;
 
 

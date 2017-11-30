@@ -20,7 +20,6 @@
 #define TEST_66_H
 
 
-// by Jia, Mar 2017
 // to test ChrisSelection using new pipeline stuff and new end-to-end framework
 
 #include "PDBDebug.h"
@@ -118,9 +117,6 @@ int main(int argc, char* argv[]) {
             masterIp,
             clientLogger);
 
-//    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
-//
-//    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
 
     string errMsg;
 
@@ -228,9 +224,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

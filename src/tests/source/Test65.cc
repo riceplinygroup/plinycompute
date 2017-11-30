@@ -18,7 +18,6 @@
 #ifndef TEST_65_H
 #define TEST_65_H
 
-// by Jia, Mar 2017
 // to test user graph analysis
 
 #include "Handle.h"
