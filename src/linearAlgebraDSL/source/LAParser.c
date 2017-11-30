@@ -69,7 +69,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:339  */
+#line 1 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:339  */
 
   #include "LAParserHelperFunctions.h"
   #include <stdio.h>  // For fileno()
@@ -89,7 +89,7 @@
 
   void yyerror(yyscan_t scanner, struct LAStatementsList **myStatements, const char *s) { printf( "Error: %s\n", s); exit(1); }
 
-#line 93 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:339  */
+#line 93 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -167,7 +167,7 @@ extern int LAdebug;
 
 union LASTYPE
 {
-#line 23 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:355  */
+#line 23 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:355  */
 
   int intVal;
   double doubleVal;
@@ -182,7 +182,7 @@ union LASTYPE
   struct LAStatementNode * myStatement;
   struct LAStatementsList * myList; 
 
-#line 186 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:355  */
+#line 186 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:355  */
 };
 
 typedef union LASTYPE LASTYPE;
@@ -198,7 +198,7 @@ int LAparse (void *scanner, struct LAStatementsList **myStatements);
 
 /* Copy the second part of user declarations.  */
 
-#line 202 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:358  */
+#line 202 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1401,365 +1401,365 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 97 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 97 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     (yyval.myList) = (yyvsp[0].myList);
     *myStatements = (yyval.myList);
   }
-#line 1410 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1410 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 107 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 107 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("single statement!\n");
     }
     (yyval.myList) = makeStatementList((yyvsp[0].myStatement));
   }
-#line 1421 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1421 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 114 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 114 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("statements\n!");
     }
     (yyval.myList) = appendStatementList((yyvsp[-1].myList),(yyvsp[0].myStatement));
   }
-#line 1432 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1432 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 126 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 126 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("Assign statement!\n");
     }
     (yyval.myStatement) = makeStatement((yyvsp[-2].myIdentifer),(yyvsp[0].myExp));
   }
-#line 1443 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1443 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 138 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 138 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     (yyval.myExp) = (struct LAExpressionNode *) ((yyvsp[0].myAddExp));
   }
-#line 1451 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1451 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 147 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 147 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("multiplicativeExpression as additiveExpression\n");
     }
     (yyval.myAddExp) = makeAdditiveExpressionFromMultiplicativeExpressionSingle((yyvsp[0].myMultiExp));
   }
-#line 1462 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1462 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 155 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 155 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("add as additiveExpression\n");
     }
     (yyval.myAddExp) = makeAdditiveExpressionFromMultiplicativeExpressionDouble("add",(yyvsp[-2].myAddExp),(yyvsp[0].myMultiExp));
   }
-#line 1473 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1473 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 163 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 163 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     { 
     if(LAPARSEPRINTFLAG){
       printf("minus as additiveExpression\n");
     }
     (yyval.myAddExp) = makeAdditiveExpressionFromMultiplicativeExpressionDouble("substract",(yyvsp[-2].myAddExp),(yyvsp[0].myMultiExp));
   }
-#line 1484 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1484 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 175 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 175 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("postfixExpression as multiplicativeExpression\n");
     }
     (yyval.myMultiExp) = makeMultiplicativeExpressionFromPostfixExpressionSingle((yyvsp[0].myPostExp));
   }
-#line 1495 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1495 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 183 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 183 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("multiply as multiplicativeExpression\n");
     }
     (yyval.myMultiExp) = makeMultiplicativeExpressionFromPostfixExpressionDouble("multiply", (yyvsp[-2].myMultiExp), (yyvsp[0].myPostExp));
   }
-#line 1506 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1506 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 191 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 191 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("scale multiply as multiplicativeExpression\n");
     }
     (yyval.myMultiExp) = makeMultiplicativeExpressionFromPostfixExpressionDouble("scale_multiply", (yyvsp[-2].myMultiExp), (yyvsp[0].myPostExp));
   }
-#line 1517 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1517 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 199 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 199 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("transpose multiply as multiplicativeExpression\n");
     }
     (yyval.myMultiExp) = makeMultiplicativeExpressionFromPostfixExpressionDouble("transpose_multiply", (yyvsp[-2].myMultiExp), (yyvsp[0].myPostExp));
   }
-#line 1528 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1528 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 211 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 211 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("primaryExpression as postfixExpression\n");
     }
     (yyval.myPostExp) = makePostfixExpressionFromPrimaryExpression("none",(yyvsp[0].myPrimaryExp));
   }
-#line 1539 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1539 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 219 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 219 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("transpose postfixExpression\n");
     }
     (yyval.myPostExp) = makePostfixExpressionFromPrimaryExpression("transpose",(yyvsp[-1].myPrimaryExp));
   }
-#line 1550 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1550 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 227 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 227 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("inverse postfixExpression\n");
     }
     (yyval.myPostExp) = makePostfixExpressionFromPrimaryExpression("inverse",(yyvsp[-1].myPrimaryExp));
   }
-#line 1561 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1561 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 239 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 239 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("identifier as primaryExpression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromIdentifier((yyvsp[0].myIdentifer));
   }
-#line 1572 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1572 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 256 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 256 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("initializer as primaryExpression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromInitializer((yyvsp[0].myInitializer));
   }
-#line 1583 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1583 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 264 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 264 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("parenthesized Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("recursive",(yyvsp[-1].myExp));
   }
-#line 1594 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1594 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 272 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 272 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("max function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("max",(yyvsp[-1].myExp));
   }
-#line 1605 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1605 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 280 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 280 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("min function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("min",(yyvsp[-1].myExp));
   }
-#line 1616 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1616 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 288 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 288 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("rowMax function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("rowMax",(yyvsp[-1].myExp));
   }
-#line 1627 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1627 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 296 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 296 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("rowMin function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("rowMin",(yyvsp[-1].myExp));
   }
-#line 1638 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1638 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 304 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 304 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("rowSum function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("rowSum",(yyvsp[-1].myExp));
   }
-#line 1649 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1649 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 312 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 312 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("colMax function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("colMax",(yyvsp[-1].myExp));
   }
-#line 1660 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1660 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 320 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 320 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("colMin function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("colMin",(yyvsp[-1].myExp));
   }
-#line 1671 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1671 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 328 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 328 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("colSum function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpression("colSum",(yyvsp[-1].myExp));
   }
-#line 1682 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1682 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 336 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 336 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("duplicateRow function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpressionDuplicate("duplicateRow",(yyvsp[-5].myExp),(yyvsp[-3].intVal),(yyvsp[-1].intVal));
   }
-#line 1693 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1693 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 344 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 344 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("duplicateCol function Expression\n");
     }
     (yyval.myPrimaryExp) = makePrimaryExpressionFromExpressionDuplicate("duplicateCol",(yyvsp[-5].myExp),(yyvsp[-3].intVal),(yyvsp[-1].intVal));
   }
-#line 1704 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1704 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 356 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 356 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("zeros(%d, %d, %d, %d)\n",(yyvsp[-7].intVal),(yyvsp[-5].intVal),(yyvsp[-3].intVal),(yyvsp[-1].intVal));
     }
     (yyval.myInitializer) = makeZerosInitializer((yyvsp[-7].intVal),(yyvsp[-5].intVal),(yyvsp[-3].intVal),(yyvsp[-1].intVal));
   }
-#line 1715 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1715 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 364 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 364 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     { 
     if(LAPARSEPRINTFLAG){
       printf("ones(%d, %d, %d, %d)\n",(yyvsp[-7].intVal),(yyvsp[-5].intVal),(yyvsp[-3].intVal),(yyvsp[-1].intVal));
     }
     (yyval.myInitializer) = makeOnesInitializer((yyvsp[-7].intVal),(yyvsp[-5].intVal),(yyvsp[-3].intVal),(yyvsp[-1].intVal));
   }
-#line 1726 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1726 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 372 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 372 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     { 
     if(LAPARSEPRINTFLAG){
       printf("identity(%d, %d)\n",(yyvsp[-3].intVal),(yyvsp[-1].intVal));
     }
     (yyval.myInitializer) = makeIdentityInitializer((yyvsp[-3].intVal),(yyvsp[-1].intVal));
   }
-#line 1737 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1737 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 380 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 380 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("load(%d, %d, %d, %d, %s)\n",(yyvsp[-9].intVal),(yyvsp[-7].intVal),(yyvsp[-5].intVal),(yyvsp[-3].intVal),(yyvsp[-1].stringVal));
     }
     (yyval.myInitializer) = makeLoadInitializer((yyvsp[-9].intVal),(yyvsp[-7].intVal),(yyvsp[-5].intVal),(yyvsp[-3].intVal),(yyvsp[-1].stringVal));
   }
-#line 1748 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1748 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 392 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
+#line 392 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1646  */
     {
     if(LAPARSEPRINTFLAG){
       printf("Create identifer <%s>\n",(yyvsp[0].stringVal));
     }
     (yyval.myIdentifer) = makeIdentifier((yyvsp[0].stringVal));
   }
-#line 1759 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1759 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
     break;
 
 
-#line 1763 "/pdb/src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
+#line 1763 "src/linearAlgebraDSL/source/LAParser.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1987,7 +1987,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 408 "/pdb/src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1906  */
+#line 408 "src/linearAlgebraDSL/source/LAParser.y" /* yacc.c:1906  */
 
 
 int yylex(YYSTYPE *, void *);
