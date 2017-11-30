@@ -18,7 +18,6 @@
 #ifndef TEST_85_H
 #define TEST_85_H
 
-//A query graph consists of a multi-selection, an aggregation and a selection, and has two sinks
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -48,6 +47,7 @@
 #include <fcntl.h>
 
 
+//To run a query graph consists of a multi-selection, an aggregation and a selection, and has two sinks
 
 using namespace pdb;
 
