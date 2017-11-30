@@ -20,7 +20,6 @@
 #define TEST_80_H
 
 
-// by Jia, May 2017
 // to test AllSelection with makeObject applied in projection using new pipeline stuff and new
 // end-to-end framework
 
@@ -224,9 +223,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

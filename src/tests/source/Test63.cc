@@ -18,7 +18,6 @@
 #ifndef TEST_63_H
 #define TEST_63_H
 
-// by Jia, Mar 2017
 // to test TCAP generation
 #include "Handle.h"
 #include "Lambda.h"
@@ -70,7 +69,6 @@ int main(int argc, char* argv[]) {
     inputTupleSets1.push_back(inputTupleSet1);
     std::string myScanSetTcapString = myScanSet->toTCAPString(
         inputTupleSets1, 0, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-    // std :: cout << myScanSetTcapString;
 
     inputTupleSetName = outputTupleSetName;
     inputColumnNames.clear();
@@ -98,7 +96,6 @@ int main(int argc, char* argv[]) {
 
     std::string myQueryString = myFilter->toTCAPString(
         inputTupleSets2, 1, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-    // std :: cout << myQueryString;
 
     inputTupleSetName = outputTupleSetName;
     inputColumnNames.clear();

@@ -43,8 +43,8 @@
 #include <fcntl.h>
 
 
-// to run the aggregate, the system first passes each through the hash operation...
-// then the system
+//aggregation on double vector
+
 using namespace pdb;
 
 int main(int argc, char* argv[]) {
@@ -222,9 +222,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     if (printResult == true) {

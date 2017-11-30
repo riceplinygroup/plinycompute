@@ -50,6 +50,8 @@
 #include <fcntl.h>
 
 
+//to test a 2-way join
+
 using namespace pdb;
 
 /* distributed join test case */
@@ -252,9 +254,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

@@ -20,7 +20,6 @@
 #define TEST_64_H
 
 
-// by Jia, Mar 2017
 // to test user graph analysis
 
 #include "PDBDebug.h"

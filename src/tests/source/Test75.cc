@@ -19,7 +19,7 @@
 #define TEST_75_CC
 
 
-// by Jia, May 2017
+// unit test for JoinMap
 
 #include <cstddef>
 #include <iostream>

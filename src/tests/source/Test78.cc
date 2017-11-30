@@ -48,7 +48,7 @@
 #include <chrono>
 #include <fcntl.h>
 
-/* distributed join test case */
+/* distributed join test case to test a 3-way join followed by an aggregation*/
 using namespace pdb;
 
 

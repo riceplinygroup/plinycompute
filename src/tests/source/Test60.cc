@@ -18,7 +18,6 @@
 #ifndef TEST_60_H
 #define TEST_60_H
 
-// by Jia, Mar 2017
 // to test TCAP string parsing
 
 #include "TupleSetJobStage.h"

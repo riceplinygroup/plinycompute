@@ -16,10 +16,9 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_OBJECTS 12000
 
-#include <cstddef>
 #include <iostream>
+#include <cstddef>
 #include <vector>
 #include <chrono>
 #include <algorithm>
@@ -38,6 +37,10 @@
 #include "InterfaceFunctions.h"
 #include "Employee.h"
 #include "Supervisor.h"
+
+
+
+//String class test
 
 using namespace pdb;
 

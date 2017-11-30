@@ -18,7 +18,6 @@
 #ifndef TEST_93_H
 #define TEST_93_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -48,7 +47,7 @@
 #include <chrono>
 #include <fcntl.h>
 
-/* distributed join test case */
+/* distributed join test case: an optimized MethodJoin implementation */
 using namespace pdb;
 
 
@@ -331,7 +330,6 @@ int main(int argc, char* argv[]) {
     myOtherJoin->setInput(1, myScanSet3);
     Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
     mySelection->setInput(myOtherJoin);
-    // mySelection->setInput(myJoin);
     Handle<Computation> myWriter = makeObject<WriteStringSet>("test93_db", "output_set1");
     myWriter->setInput(mySelection);
     auto begin = std::chrono::high_resolution_clock::now();
@@ -343,9 +341,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

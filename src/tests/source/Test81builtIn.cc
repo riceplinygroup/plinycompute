@@ -220,9 +220,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts
@@ -234,7 +231,6 @@ int main(int argc, char* argv[]) {
         for (auto a : result) {
             count++;
             std::cout << count << ":";
-            // std :: cout << (*a) << "; ";
             a->print();
         }
         std::cout << "selection output count:" << count << "\n";

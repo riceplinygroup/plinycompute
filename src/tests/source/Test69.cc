@@ -20,7 +20,6 @@
 #define TEST_69_H
 
 
-// by Jia, Mar 2017
 // to test ChrisSelection using new pipeline stuff and new end-to-end framework
 // This test is an upgrade of Test66, user can specify selectionRatio
 
@@ -232,9 +231,6 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
 
         auto end = std::chrono::high_resolution_clock::now();
-        // std::cout << "Time Duration: " <<
-        //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-        //      std::endl;
 
         std::cout << std::endl;
         // print the resuts
@@ -245,8 +241,6 @@ int main(int argc, char* argv[]) {
             int count = 0;
             for (auto a : result) {
                 count++;
-                // std :: cout << count << ":";
-                // std :: cout << (*a) << "; ";
             }
             std::cout << "selection output count:" << count << "\n";
         }

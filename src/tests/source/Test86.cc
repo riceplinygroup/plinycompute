@@ -18,7 +18,7 @@
 #ifndef TEST_86_H
 #define TEST_86_H
 
-// by Jia, May 2017
+// Multiselection with aggregation
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -189,8 +189,6 @@ int main(int argc, char* argv[]) {
                             }
                         }
 
-                        //                            std :: cout << i << ":" << myString << std ::
-                        //                            endl;
                         Handle<Supervisor> myData = makeObject<Supervisor>(
                             "Steve Stevens", 20 + (i % 29), std::string(myString), 3.54);
                         storeMe->push_back(myData);
@@ -213,7 +211,6 @@ int main(int argc, char* argv[]) {
                     }
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    // std :: cout << "We comes to " << i << " here" << std :: endl;
                     if (!pdbClient.sendData<Supervisor>(
                             std::pair<std::string, std::string>("test86_set", "test86_db"),
                             storeMe,
@@ -269,9 +266,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
 

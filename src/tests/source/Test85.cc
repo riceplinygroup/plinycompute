@@ -18,7 +18,7 @@
 #ifndef TEST_85_H
 #define TEST_85_H
 
-// by Jia, May 2017
+//A query graph consists of a multi-selection, an aggregation and a selection, and has two sinks
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -48,8 +48,7 @@
 #include <fcntl.h>
 
 
-// to run the aggregate, the system first passes each through the hash operation...
-// then the system
+
 using namespace pdb;
 
 int main(int argc, char* argv[]) {
@@ -189,7 +188,6 @@ int main(int argc, char* argv[]) {
                                 }
                             }
                         }
-                        // std :: cout << myString << std :: endl;
                         Handle<Supervisor> myData = makeObject<Supervisor>(
                             "Steve Stevens", 20 + (i % 29), std::string(myString), i * 34.4);
                         storeMe->push_back(myData);
@@ -279,9 +277,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
 
