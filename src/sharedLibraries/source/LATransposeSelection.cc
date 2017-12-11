@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_COL_SUM_AGGREGATE_CC
-#define SILLY_LA_COL_SUM_AGGREGATE_CC
+#ifndef SILLY_LA_TRANSPOSE_SELECT_CC
+#define SILLY_LA_TRANSPOSE_SELECT_CC
 
-#include "../headers/LAColSumAggregate.h"
+// by Binhang, May 2017
+
+#include "LATransposeSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAColSumAggregate)
+GET_V_TABLE(LATransposeSelection)
 
 #endif

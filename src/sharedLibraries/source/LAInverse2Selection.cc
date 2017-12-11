@@ -15,14 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MULTIPLY1_JOIN_CC
-#define SILLY_LA_MULTIPLY1_JOIN_CC
+#ifndef SILLY_LA_INVERSE2_SELECT_CC
+#define SILLY_LA_INVERSE2_SELECT_CC
 
-// by Binhang, May 2017
-
-#include "../headers/LAMultiply1Join.h"
+#include "LAInverse2Selection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAMultiply1Join)
+GET_V_TABLE(LAInverse2Selection)
 
 #endif

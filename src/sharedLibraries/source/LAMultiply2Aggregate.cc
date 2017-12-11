@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_DUPLICATE_COL_MULTISELECTION_CC
-#define SILLY_LA_DUPLICATE_COL_MULTISELECTION_CC
+#ifndef SILLY_LA_MULTIPLY2_AGGREGATE_CC
+#define SILLY_LA_MULTIPLY2_AGGREGATE_CC
 
-#include "../headers/LADuplicateColMultiSelection.h"
+// by Binhang, May 2017
+
+#include "LAMultiply2Aggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LADuplicateColMultiSelection)
+GET_V_TABLE(LAMultiply2Aggregate)
 
 #endif

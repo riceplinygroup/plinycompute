@@ -15,13 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef SILLY_LA_SCALE_MULTIPLY_JOIN_CC
+#define SILLY_LA_SCALE_MULTIPLY_JOIN_CC
 
-#ifndef SILLY_LA_ROW_MIN_AGGREGATE_CC
-#define SILLY_LA_ROW_MIN_AGGREGATE_CC
-
-#include "../headers/LARowMinAggregate.h"
+#include "LAScaleMultiplyJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LARowMinAggregate)
+GET_V_TABLE(LAScaleMultiplyJoin)
 
 #endif

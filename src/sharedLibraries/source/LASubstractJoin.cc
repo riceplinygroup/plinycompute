@@ -15,14 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_ADD_JOIN_CC
-#define SILLY_LA_ADD_JOIN_CC
+#ifndef SILLY_LA_SUBSTRACT_JOIN_CC
+#define SILLY_LA_SUBSTRACT_JOIN_CC
 
 // by Binhang, May 2017
 
-#include "../headers/LAAddJoin.h"
+#include "LASubstractJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAAddJoin)
+GET_V_TABLE(LASubstractJoin)
 
 #endif

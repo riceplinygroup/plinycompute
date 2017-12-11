@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_SCALE_MULTIPLY_JOIN_CC
-#define SILLY_LA_SCALE_MULTIPLY_JOIN_CC
+#ifndef SILLY_LA_MAXELEMENT_AGGREGATE_CC
+#define SILLY_LA_MAXELEMENT_AGGREGATE_CC
 
-#include "../headers/LAScaleMultiplyJoin.h"
+// by Binhang, May 2017
+
+#include "LAMaxElementAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAScaleMultiplyJoin)
+GET_V_TABLE(LAMaxElementAggregate)
 
 #endif
