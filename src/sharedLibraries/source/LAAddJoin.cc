@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE3_MULTISELECT_CC
-#define SILLY_LA_INVERSE3_MULTISELECT_CC
+#ifndef SILLY_LA_ADD_JOIN_CC
+#define SILLY_LA_ADD_JOIN_CC
 
-#include "../headers/LAInverse3MultiSelection.h"
+// by Binhang, May 2017
+
+#include "LAAddJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAInverse3MultiSelection)
+GET_V_TABLE(LAAddJoin)
 
 #endif

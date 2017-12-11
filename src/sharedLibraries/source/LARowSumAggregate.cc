@@ -15,13 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef SILLY_LA_ROW_SUM_AGGREGATE_CC
+#define SILLY_LA_ROW_SUM_AGGREGATE_CC
 
-#ifndef SILLY_LA_COL_MAX_AGGREGATE_CC
-#define SILLY_LA_COL_MAX_AGGREGATE_CC
-
-#include "../headers/LAColMaxAggregate.h"
+#include "LARowSumAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAColMaxAggregate)
+GET_V_TABLE(LARowSumAggregate)
 
 #endif

@@ -15,14 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_SUBSTRACT_JOIN_CC
-#define SILLY_LA_SUBSTRACT_JOIN_CC
+#ifndef SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_CC
+#define SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_CC
 
 // by Binhang, May 2017
 
-#include "../headers/LASubstractJoin.h"
+#include "LATransposeMultiply1Join.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LASubstractJoin)
+GET_V_TABLE(LATransposeMultiply1Join)
 
 #endif

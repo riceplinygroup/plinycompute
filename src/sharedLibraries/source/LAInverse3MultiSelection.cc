@@ -15,14 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MAXELEMENT_AGGREGATE_CC
-#define SILLY_LA_MAXELEMENT_AGGREGATE_CC
+#ifndef SILLY_LA_INVERSE3_MULTISELECT_CC
+#define SILLY_LA_INVERSE3_MULTISELECT_CC
 
-// by Binhang, May 2017
-
-#include "../headers/LAMaxElementAggregate.h"
+#include "LAInverse3MultiSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAMaxElementAggregate)
+GET_V_TABLE(LAInverse3MultiSelection)
 
 #endif

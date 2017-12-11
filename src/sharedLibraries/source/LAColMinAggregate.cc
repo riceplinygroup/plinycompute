@@ -15,12 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE1_AGGREGATE_CC
-#define SILLY_LA_INVERSE1_AGGREGATE_CC
 
-#include "../headers/LAInverse1Aggregate.h"
+#ifndef SILLY_LA_COL_MIN_AGGREGATE_CC
+#define SILLY_LA_COL_MIN_AGGREGATE_CC
+
+#include "LAColMinAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAInverse1Aggregate)
+GET_V_TABLE(LAColMinAggregate)
 
 #endif

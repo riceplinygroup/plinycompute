@@ -15,14 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_CC
-#define SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_CC
 
-// by Binhang, May 2017
+#ifndef SILLY_LA_ROW_MIN_AGGREGATE_CC
+#define SILLY_LA_ROW_MIN_AGGREGATE_CC
 
-#include "../headers/LATransposeMultiply1Join.h"
+#include "LARowMinAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LATransposeMultiply1Join)
+GET_V_TABLE(LARowMinAggregate)
 
 #endif

@@ -15,14 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MINELEMENT_AGGREGATE_CC
-#define SILLY_LA_MINELEMENT_AGGREGATE_CC
+#ifndef SILLY_LA_MULTIPLY1_JOIN_CC
+#define SILLY_LA_MULTIPLY1_JOIN_CC
 
 // by Binhang, May 2017
 
-#include "../headers/LAMinElementAggregate.h"
+#include "LAMultiply1Join.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAMinElementAggregate)
+GET_V_TABLE(LAMultiply1Join)
 
 #endif

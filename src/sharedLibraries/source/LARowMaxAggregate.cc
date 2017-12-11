@@ -15,14 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MULTIPLY2_AGGREGATE_CC
-#define SILLY_LA_MULTIPLY2_AGGREGATE_CC
 
-// by Binhang, May 2017
+#ifndef SILLY_LA_ROW_MAX_AGGREGATE_CC
+#define SILLY_LA_ROW_MAX_AGGREGATE_CC
 
-#include "../headers/LAMultiply2Aggregate.h"
+#include "LARowMaxAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LAMultiply2Aggregate)
+GET_V_TABLE(LARowMaxAggregate)
 
 #endif

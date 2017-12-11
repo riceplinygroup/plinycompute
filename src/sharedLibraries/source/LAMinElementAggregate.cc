@@ -15,14 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_TRANSPOSE_SELECT_CC
-#define SILLY_LA_TRANSPOSE_SELECT_CC
+#ifndef SILLY_LA_MINELEMENT_AGGREGATE_CC
+#define SILLY_LA_MINELEMENT_AGGREGATE_CC
 
 // by Binhang, May 2017
 
-#include "../headers/LATransposeSelection.h"
+#include "LAMinElementAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LATransposeSelection)
+GET_V_TABLE(LAMinElementAggregate)
 
 #endif
