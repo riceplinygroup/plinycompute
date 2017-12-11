@@ -15,34 +15,35 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_ROW_MIN_AGGREGATE_H
-#define SILLY_LA_ROW_MIN_AGGREGATE_H
+#ifndef SILLY_LA_INVERSE2_SELECT_H
+#define SILLY_LA_INVERSE2_SELECT_H
 
-// by Binhang, May 2017
+// by Binhang, June 2017
 
-#include "ClusterAggregateComp.h"
-#include "MatrixBlock.h"
+#include "Lambda.h"
 #include "LambdaCreationFunctions.h"
+#include "SelectionComp.h"
+#include "LASingleMatrix.h"
 
+// LA libraries:
+#include <eigen3/Eigen/Dense>
 
 using namespace pdb;
 
-class LASillyRowMinAggregate
-    : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
+class LAInverse2Selection : public SelectionComp<SingleMatrix, SingleMatrix> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyRowMinAggregate() {}
+    LAInverse2Selection() {}
 
-    // the key type must have == and size_t hash () defined
-    Lambda<MatrixMeta> getKeyProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getRowKey);
+    Lambda<bool> getSelection(Handle<SingleMatrix> checkMe) override {
+        return makeLambda(checkMe, [](Handle<SingleMatrix>& checkMe) { return true; });
     }
 
-    // the value type must have + defined
-    Lambda<MatrixData> getValueProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getRowMinValue);
+
+    Lambda<Handle<SingleMatrix>> getProjection(Handle<SingleMatrix> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getInverse);
     }
 };
 

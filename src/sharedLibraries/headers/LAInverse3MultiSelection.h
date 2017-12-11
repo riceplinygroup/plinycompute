@@ -28,14 +28,14 @@
 #include "LADimension.h"
 
 
-class LASillyInverse3MultiSelection : public MultiSelectionComp<MatrixBlock, SingleMatrix> {
+class LAInverse3MultiSelection : public MultiSelectionComp<MatrixBlock, SingleMatrix> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyInverse3MultiSelection() {}
+    LAInverse3MultiSelection() {}
 
-    LASillyInverse3MultiSelection(LADimension dim) : targetDim(dim) {}
+    LAInverse3MultiSelection(LADimension dim) : targetDim(dim) {}
 
     Lambda<bool> getSelection(Handle<SingleMatrix> checkMe) override {
         return makeLambda(checkMe, [](Handle<SingleMatrix>& checkMe) { return true; });

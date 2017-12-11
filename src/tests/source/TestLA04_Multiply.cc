@@ -29,9 +29,6 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
-#include "LASillyMultiply1Join.h"
-#include "LASillyMultiply2Aggregate.h"
-//#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 #include "Set.h"
 #include "DataTypes.h"
@@ -41,6 +38,8 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "LAMultiply1Join.h"
+#include "LAMultiply2Aggregate.h"
 
 
 using namespace pdb;
@@ -240,8 +239,8 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASillyMultiply1Join.so", errMsg);
-    pdbClient.registerType("libraries/libLASillyMultiply2Aggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAMultiply1Join.so", errMsg);
+    pdbClient.registerType("libraries/libLAMultiply2Aggregate.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
@@ -250,11 +249,11 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA04_db", "LA_input_set1");
     Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA04_db", "LA_input_set2");
 
-    Handle<Computation> myMultiply1Join = makeObject<LASillyMultiply1Join>();
+    Handle<Computation> myMultiply1Join = makeObject<LAMultiply1Join>();
     myMultiply1Join->setInput(0, myMatrixSet1);
     myMultiply1Join->setInput(1, myMatrixSet2);
 
-    Handle<Computation> myMultiply2Aggregate = makeObject<LASillyMultiply2Aggregate>();
+    Handle<Computation> myMultiply2Aggregate = makeObject<LAMultiply2Aggregate>();
     myMultiply2Aggregate->setInput(myMultiply1Join);
 
     Handle<Computation> myProductWriteSet =

@@ -31,12 +31,12 @@
 
 using namespace pdb;
 
-class LASillyMultiply1Join : public JoinComp<MatrixBlock, MatrixBlock, MatrixBlock> {
+class LAMultiply1Join : public JoinComp<MatrixBlock, MatrixBlock, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyMultiply1Join() {}
+    LAMultiply1Join() {}
 
     Lambda<bool> getSelection(Handle<MatrixBlock> in1, Handle<MatrixBlock> in2) override {
         /*

@@ -18,9 +18,9 @@
 #ifndef SILLY_LA_ROW_SUM_AGGREGATE_CC
 #define SILLY_LA_ROW_SUM_AGGREGATE_CC
 
+#include "../headers/LARowSumAggregate.h"
 #include "GetVTable.h"
-#include "LASillyRowSumAggregate.h"
 
-GET_V_TABLE(LASillyRowSumAggregate)
+GET_V_TABLE(LARowSumAggregate)
 
 #endif

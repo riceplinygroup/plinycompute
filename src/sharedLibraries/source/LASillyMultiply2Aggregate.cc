@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LAMultiply2Aggregate.h"
 #include "GetVTable.h"
-#include "LASillyMultiply2Aggregate.h"
 
-GET_V_TABLE(LASillyMultiply2Aggregate)
+GET_V_TABLE(LAMultiply2Aggregate)
 
 #endif

@@ -29,8 +29,6 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMinElementSet.h"
-#include "LASillyMinElementAggregate.h"
-//#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 #include "LAMinElementOutputType.h"
 #include "Set.h"
@@ -41,6 +39,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "LAMinElementAggregate.h"
 
 
 using namespace pdb;
@@ -225,14 +224,14 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASillyMinElementAggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAMinElementAggregate.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMinElementSet.so", errMsg);
 
 
 
     Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA06_db", "LA_input_set");
-    Handle<Computation> myQuery = makeObject<LASillyMinElementAggregate>();
+    Handle<Computation> myQuery = makeObject<LAMinElementAggregate>();
     myQuery->setInput(myScanSet);
     // myQuery->setOutput("LA06_db", "LA_min_set");
 

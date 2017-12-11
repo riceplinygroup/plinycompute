@@ -15,35 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE2_SELECT_H
-#define SILLY_LA_INVERSE2_SELECT_H
+#ifndef SILLY_LA_MINELEMENT_AGGREGATE_H
+#define SILLY_LA_MINELEMENT_AGGREGATE_H
 
-// by Binhang, June 2017
+// by Binhang, May 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "SelectionComp.h"
-#include "LASingleMatrix.h"
+#include "ClusterAggregateComp.h"
+#include "LAMinElementValueType.h"
+#include "LAMinElementOutputType.h"
+#include "MatrixBlock.h"
 
-// LA libraries:
-#include <eigen3/Eigen/Dense>
 
 using namespace pdb;
 
-class LASillyInverse2Selection : public SelectionComp<SingleMatrix, SingleMatrix> {
+class LAMinElementAggregate
+    : public ClusterAggregateComp<LAMinElementOutputType, MatrixBlock, int, LAMinElementValueType> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyInverse2Selection() {}
+    LAMinElementAggregate() {}
 
-    Lambda<bool> getSelection(Handle<SingleMatrix> checkMe) override {
-        return makeLambda(checkMe, [](Handle<SingleMatrix>& checkMe) { return true; });
+    // the key type must have == and size_t hash () defined
+    Lambda<int> getKeyProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambda(aggMe, [](Handle<MatrixBlock>& aggMe) { return 1; });
     }
 
-
-    Lambda<Handle<SingleMatrix>> getProjection(Handle<SingleMatrix> checkMe) override {
-        return makeLambdaFromMethod(checkMe, getInverse);
+    // the value type must have + defined
+    Lambda<LAMinElementValueType> getValueProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getMinElementValue);
     }
 };
 

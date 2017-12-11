@@ -30,12 +30,12 @@
 
 using namespace pdb;
 
-class LASillyScaleMultiplyJoin : public JoinComp<MatrixBlock, MatrixBlock, MatrixBlock> {
+class LAScaleMultiplyJoin : public JoinComp<MatrixBlock, MatrixBlock, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyScaleMultiplyJoin() {}
+    LAScaleMultiplyJoin() {}
 
     Lambda<bool> getSelection(Handle<MatrixBlock> in1, Handle<MatrixBlock> in2) override {
         /*

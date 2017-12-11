@@ -15,34 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_COL_MIN_AGGREGATE_H
-#define SILLY_LA_COL_MIN_AGGREGATE_H
+#ifndef SILLY_LA_INVERSE1_AGGREGATE_H
+#define SILLY_LA_INVERSE1_AGGREGATE_H
 
 // by Binhang, May 2017
 
 #include "ClusterAggregateComp.h"
 #include "MatrixBlock.h"
+#include "LASingleMatrix.h"
 #include "LambdaCreationFunctions.h"
 
 
 using namespace pdb;
 
-class LASillyColMinAggregate
-    : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
+
+// This aggregation will
+class LAInverse1Aggregate
+    : public ClusterAggregateComp<SingleMatrix, MatrixBlock, int, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyColMinAggregate() {}
+    LAInverse1Aggregate() {}
 
     // the key type must have == and size_t hash () defined
-    Lambda<MatrixMeta> getKeyProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getColKey);
+    Lambda<int> getKeyProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambda(aggMe, [](Handle<MatrixBlock>& aggMe) { return 1; });
     }
 
     // the value type must have + defined
-    Lambda<MatrixData> getValueProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getColMinValue);
+    Lambda<MatrixBlock> getValueProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambda(aggMe, [](Handle<MatrixBlock>& aggMe) { return *aggMe; });
     }
 };
 

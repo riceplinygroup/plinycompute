@@ -29,7 +29,6 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
-#include "LASillyDuplicateRowMultiSelection.h"
 #include "LADimension.h"
 #include "MatrixBlock.h"
 #include "Set.h"
@@ -40,6 +39,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "LADuplicateRowMultiSelection.h"
 
 
 using namespace pdb;
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASillyDuplicateRowMultiSelection.so", errMsg);
+    pdbClient.registerType("libraries/libLADuplicateRowMultiSelection.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
 
     Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA12_db", "LA_input_set");
     LADimension targetDim(2, 5, 4, 10);
-    Handle<Computation> myQuery = makeObject<LASillyDuplicateRowMultiSelection>(targetDim);
+    Handle<Computation> myQuery = makeObject<LADuplicateRowMultiSelection>(targetDim);
     myQuery->setInput(myScanSet);
 
     Handle<Computation> myWriteSet =

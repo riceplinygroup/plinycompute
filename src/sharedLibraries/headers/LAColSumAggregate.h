@@ -15,37 +15,34 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MINELEMENT_AGGREGATE_H
-#define SILLY_LA_MINELEMENT_AGGREGATE_H
+#ifndef SILLY_LA_COL_SUM_AGGREGATE_H
+#define SILLY_LA_COL_SUM_AGGREGATE_H
 
 // by Binhang, May 2017
 
-#include "Lambda.h"
-#include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
-#include "LAMinElementValueType.h"
-#include "LAMinElementOutputType.h"
 #include "MatrixBlock.h"
+#include "LambdaCreationFunctions.h"
 
 
 using namespace pdb;
 
-class LASillyMinElementAggregate
-    : public ClusterAggregateComp<LAMinElementOutputType, MatrixBlock, int, LAMinElementValueType> {
+class LAColSumAggregate
+    : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyMinElementAggregate() {}
+    LAColSumAggregate() {}
 
     // the key type must have == and size_t hash () defined
-    Lambda<int> getKeyProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambda(aggMe, [](Handle<MatrixBlock>& aggMe) { return 1; });
+    Lambda<MatrixMeta> getKeyProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getColKey);
     }
 
     // the value type must have + defined
-    Lambda<LAMinElementValueType> getValueProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getMinElementValue);
+    Lambda<MatrixData> getValueProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getColSumValue);
     }
 };
 

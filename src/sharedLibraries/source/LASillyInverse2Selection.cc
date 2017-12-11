@@ -18,9 +18,9 @@
 #ifndef SILLY_LA_INVERSE2_SELECT_CC
 #define SILLY_LA_INVERSE2_SELECT_CC
 
-#include "LASillyInverse2Selection.h"
+#include "../headers/LAInverse2Selection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LASillyInverse2Selection)
+GET_V_TABLE(LAInverse2Selection)
 
 #endif

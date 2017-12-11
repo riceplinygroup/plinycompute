@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_ROW_SUM_AGGREGATE_H
-#define SILLY_LA_ROW_SUM_AGGREGATE_H
+#ifndef SILLY_LA_ROW_MAX_AGGREGATE_H
+#define SILLY_LA_ROW_MAX_AGGREGATE_H
 
 // by Binhang, May 2017
 
@@ -27,13 +27,13 @@
 
 using namespace pdb;
 
-class LASillyRowSumAggregate
+class LARowMaxAggregate
     : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyRowSumAggregate() {}
+    LARowMaxAggregate() {}
 
     // the key type must have == and size_t hash () defined
     Lambda<MatrixMeta> getKeyProjection(Handle<MatrixBlock> aggMe) override {
@@ -42,7 +42,7 @@ public:
 
     // the value type must have + defined
     Lambda<MatrixData> getValueProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getRowSumValue);
+        return makeLambdaFromMethod(aggMe, getRowMaxValue);
     }
 };
 
