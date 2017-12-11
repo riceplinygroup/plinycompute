@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_SCALE_MULTIPLY_JOIN_CC
-#define SILLY_LA_SCALE_MULTIPLY_JOIN_CC
+#ifndef LA_SCALE_MULTIPLY_JOIN_CC
+#define LA_SCALE_MULTIPLY_JOIN_CC
 
 #include "LAScaleMultiplyJoin.h"
 #include "GetVTable.h"

@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_DUPLICATE_COL_MULTISELECTION_CC
-#define SILLY_LA_DUPLICATE_COL_MULTISELECTION_CC
+#ifndef LA_DUPLICATE_COL_MULTISELECTION_CC
+#define LA_DUPLICATE_COL_MULTISELECTION_CC
 
 #include "LADuplicateColMultiSelection.h"
 #include "GetVTable.h"

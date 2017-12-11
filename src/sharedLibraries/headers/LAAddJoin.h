@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_ADD_JOIN_H
-#define SILLY_LA_ADD_JOIN_H
+#ifndef LA_ADD_JOIN_H
+#define LA_ADD_JOIN_H
 
 // by Binhang, May 2017
 

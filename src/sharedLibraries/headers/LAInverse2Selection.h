@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE2_SELECT_H
-#define SILLY_LA_INVERSE2_SELECT_H
+#ifndef LA_INVERSE2_SELECT_H
+#define LA_INVERSE2_SELECT_H
 
 // by Binhang, June 2017
 

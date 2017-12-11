@@ -18,8 +18,6 @@
 /*
  * CatalogStandardDatabaseMetadata.h
  *
- *  Created on: Dec 8, 2016
- *      Author: carlos
  */
 
 #ifndef SRC_CATALOG_CATALOGSTANDARDDATABASEMETADATA_H_

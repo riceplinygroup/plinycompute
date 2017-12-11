@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE1_AGGREGATE_CC
-#define SILLY_LA_INVERSE1_AGGREGATE_CC
+#ifndef LA_INVERSE1_AGGREGATE_CC
+#define LA_INVERSE1_AGGREGATE_CC
 
 #include "LAInverse1Aggregate.h"
 #include "GetVTable.h"

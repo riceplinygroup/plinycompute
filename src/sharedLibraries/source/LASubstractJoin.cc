@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_SUBSTRACT_JOIN_CC
-#define SILLY_LA_SUBSTRACT_JOIN_CC
+#ifndef LA_SUBSTRACT_JOIN_CC
+#define LA_SUBSTRACT_JOIN_CC
 
 // by Binhang, May 2017
 

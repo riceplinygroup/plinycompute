@@ -17,8 +17,6 @@
  *****************************************************************************/
 /*
  * File:   PDBCatalogMsgType.h
- * Author: carlos
- *
  */
 
 #ifndef PDBCATALOGMSGTYPE_H
