@@ -18,8 +18,6 @@
 /*
  * CatalogUserTypeMetadata.h
  *
- *  Created on: Mar 7, 2016
- *      Author: carlos
  */
 
 #ifndef CATALOG_USER_TYPE_METADATA_H_

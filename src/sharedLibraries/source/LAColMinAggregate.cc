@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SILLY_LA_COL_MIN_AGGREGATE_CC
-#define SILLY_LA_COL_MIN_AGGREGATE_CC
+#ifndef LA_COL_MIN_AGGREGATE_CC
+#define LA_COL_MIN_AGGREGATE_CC
 
 #include "LAColMinAggregate.h"
 #include "GetVTable.h"

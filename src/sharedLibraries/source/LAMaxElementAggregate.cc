@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MAXELEMENT_AGGREGATE_CC
-#define SILLY_LA_MAXELEMENT_AGGREGATE_CC
+#ifndef LA_MAXELEMENT_AGGREGATE_CC
+#define LA_MAXELEMENT_AGGREGATE_CC
 
 // by Binhang, May 2017
 

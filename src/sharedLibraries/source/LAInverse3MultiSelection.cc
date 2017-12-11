@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE3_MULTISELECT_CC
-#define SILLY_LA_INVERSE3_MULTISELECT_CC
+#ifndef LA_INVERSE3_MULTISELECT_CC
+#define LA_INVERSE3_MULTISELECT_CC
 
 #include "LAInverse3MultiSelection.h"
 #include "GetVTable.h"

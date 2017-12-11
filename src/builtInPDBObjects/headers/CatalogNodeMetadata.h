@@ -18,8 +18,6 @@
 /*
  * CatalogNodeMetadata.h
  *
- *  Created on: Sept 12, 2016
- *      Author: carlos
  */
 
 #ifndef CATALOG_NODE_METADATA_H_

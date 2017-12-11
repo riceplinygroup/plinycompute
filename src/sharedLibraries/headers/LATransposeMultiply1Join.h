@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_H
-#define SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_H
+#ifndef LA_TRANSPOSE_MULTIPLY1_JOIN_H
+#define LA_TRANSPOSE_MULTIPLY1_JOIN_H
 
 // by Binhang, May 2017
 

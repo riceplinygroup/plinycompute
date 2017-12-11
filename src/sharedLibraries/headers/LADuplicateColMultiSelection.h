@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SILLY_LA_DUPLICATE_COL_MULTISELECTION_H
-#define SILLY_LA_DUPLICATE_COL_MULTISELECTION_H
+#ifndef LA_DUPLICATE_COL_MULTISELECTION_H
+#define LA_DUPLICATE_COL_MULTISELECTION_H
 
 // by Binhang, June 2017
 

@@ -18,8 +18,6 @@
 /*
  * CatalogStandardDatabaseMetadata.cc
  *
- *  Created on: Dec 8, 2016
- *      Author: carlos
  */
 
 #include "CatalogStandardDatabaseMetadata.h"

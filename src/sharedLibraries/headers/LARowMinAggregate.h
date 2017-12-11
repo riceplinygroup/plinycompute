@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_ROW_MIN_AGGREGATE_H
-#define SILLY_LA_ROW_MIN_AGGREGATE_H
+#ifndef LA_ROW_MIN_AGGREGATE_H
+#define LA_ROW_MIN_AGGREGATE_H
 
 // by Binhang, May 2017
 

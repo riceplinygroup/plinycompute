@@ -18,8 +18,6 @@
 /*
  * CatalogPrintMetadata.h
  *
- *  Created on: Sept 12, 2016
- *      Author: carlos
  */
 
 #ifndef CATALOG_PRINT_METADATA_H_

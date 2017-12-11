@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_TRANSPOSE_SELECT_H
-#define SILLY_LA_TRANSPOSE_SELECT_H
+#ifndef LA_TRANSPOSE_SELECT_H
+#define LA_TRANSPOSE_SELECT_H
 
 // by Binhang, May 2017
 

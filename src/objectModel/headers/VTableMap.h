@@ -19,8 +19,6 @@
 /*
  * VTableMap.h
  *
- *  Created on: Dec 11, 2015
- *      Author: carlos
  */
 
 #include "Allocator.h"

@@ -18,8 +18,6 @@
 /*
  * CatalogStandardUserTypeMetadata.h
  *
- *  Created on: Dec 8, 2016
- *      Author: carlos
  */
 
 #ifndef SRC_CATALOG_CATALOGSTANDARDUSERTYPEMETADATA_H_

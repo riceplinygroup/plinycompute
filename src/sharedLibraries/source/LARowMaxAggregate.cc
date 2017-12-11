@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SILLY_LA_ROW_MAX_AGGREGATE_CC
-#define SILLY_LA_ROW_MAX_AGGREGATE_CC
+#ifndef LA_ROW_MAX_AGGREGATE_CC
+#define LA_ROW_MAX_AGGREGATE_CC
 
 #include "LARowMaxAggregate.h"
 #include "GetVTable.h"

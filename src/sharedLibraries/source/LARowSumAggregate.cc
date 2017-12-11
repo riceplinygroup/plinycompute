@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_ROW_SUM_AGGREGATE_CC
-#define SILLY_LA_ROW_SUM_AGGREGATE_CC
+#ifndef LA_ROW_SUM_AGGREGATE_CC
+#define LA_ROW_SUM_AGGREGATE_CC
 
 #include "LARowSumAggregate.h"
 #include "GetVTable.h"

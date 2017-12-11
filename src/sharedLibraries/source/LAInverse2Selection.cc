@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_INVERSE2_SELECT_CC
-#define SILLY_LA_INVERSE2_SELECT_CC
+#ifndef LA_INVERSE2_SELECT_CC
+#define LA_INVERSE2_SELECT_CC
 
 #include "LAInverse2Selection.h"
 #include "GetVTable.h"

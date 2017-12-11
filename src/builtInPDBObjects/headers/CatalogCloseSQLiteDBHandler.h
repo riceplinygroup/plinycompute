@@ -18,8 +18,6 @@
 /*
  * CatalogCloseSQLiteDBHandler.h
  *
- *  Created on: Jan 3, 2017
- *      Author: carlos
  */
 
 #ifndef SRC_BUILTINPDBOBJECTS_HEADERS_CATALOGCLOSESQLITEDBHANDLER_H_

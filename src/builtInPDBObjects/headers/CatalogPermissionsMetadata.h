@@ -18,8 +18,6 @@
 /*
  * CatalogPermissionsMetadata.h
  *
- *  Created on: Sept 12, 2016
- *      Author: carlos
  */
 
 #ifndef CATALOG_PERMISSIONS_METADATA_H_
