@@ -31,12 +31,12 @@
 
 using namespace pdb;
 
-class LASillyTransposeSelection : public SelectionComp<MatrixBlock, MatrixBlock> {
+class LATransposeSelection : public SelectionComp<MatrixBlock, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyTransposeSelection() {}
+    LATransposeSelection() {}
 
     Lambda<bool> getSelection(Handle<MatrixBlock> checkMe) override {
         return makeLambda(checkMe, [](Handle<MatrixBlock>& checkMe) { return true; });

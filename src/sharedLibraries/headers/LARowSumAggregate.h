@@ -15,37 +15,34 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MAXELEMENT_AGGREGATE_H
-#define SILLY_LA_MAXELEMENT_AGGREGATE_H
+#ifndef SILLY_LA_ROW_SUM_AGGREGATE_H
+#define SILLY_LA_ROW_SUM_AGGREGATE_H
 
 // by Binhang, May 2017
 
-#include "Lambda.h"
-#include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
-#include "LAMaxElementValueType.h"
-#include "LAMaxElementOutputType.h"
 #include "MatrixBlock.h"
+#include "LambdaCreationFunctions.h"
 
 
 using namespace pdb;
 
-class LASillyMaxElementAggregate
-    : public ClusterAggregateComp<LAMaxElementOutputType, MatrixBlock, int, LAMaxElementValueType> {
+class LARowSumAggregate
+    : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyMaxElementAggregate() {}
+    LARowSumAggregate() {}
 
     // the key type must have == and size_t hash () defined
-    Lambda<int> getKeyProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambda(aggMe, [](Handle<MatrixBlock>& aggMe) { return 1; });
+    Lambda<MatrixMeta> getKeyProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getRowKey);
     }
 
     // the value type must have + defined
-    Lambda<LAMaxElementValueType> getValueProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getMaxElementValue);
+    Lambda<MatrixData> getValueProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getRowSumValue);
     }
 };
 

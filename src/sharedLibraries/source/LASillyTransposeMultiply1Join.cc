@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LATransposeMultiply1Join.h"
 #include "GetVTable.h"
-#include "LASillyTransposeMultiply1Join.h"
 
-GET_V_TABLE(LASillyTransposeMultiply1Join)
+GET_V_TABLE(LATransposeMultiply1Join)
 
 #endif

@@ -28,9 +28,6 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
-#include "LASillyInverse1Aggregate.h"
-#include "LASillyInverse2Selection.h"
-#include "LASillyInverse3MultiSelection.h"
 #include "LADimension.h"
 #include "MatrixBlock.h"
 #include "LASingleMatrix.h"
@@ -42,6 +39,9 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "LAInverse1Aggregate.h"
+#include "LAInverse2Selection.h"
+#include "LAInverse3MultiSelection.h"
 
 
 using namespace pdb;
@@ -230,9 +230,9 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASillyInverse1Aggregate.so", errMsg);
-    pdbClient.registerType("libraries/libLASillyInverse2Selection.so", errMsg);
-    pdbClient.registerType("libraries/libLASillyInverse3MultiSelection.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse1Aggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse2Selection.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse3MultiSelection.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
@@ -240,14 +240,14 @@ int main(int argc, char* argv[]) {
 
     Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA14_db", "LA_input_set");
 
-    Handle<Computation> myAgg1 = makeObject<LASillyInverse1Aggregate>();
+    Handle<Computation> myAgg1 = makeObject<LAInverse1Aggregate>();
     myAgg1->setInput(myScanSet);
 
-    Handle<Computation> mySelect2 = makeObject<LASillyInverse2Selection>();
+    Handle<Computation> mySelect2 = makeObject<LAInverse2Selection>();
     mySelect2->setInput(myAgg1);
 
     LADimension targetDim(4, 4, 5, 5);
-    Handle<Computation> myMultiSelect3 = makeObject<LASillyInverse3MultiSelection>(targetDim);
+    Handle<Computation> myMultiSelect3 = makeObject<LAInverse3MultiSelection>(targetDim);
     myMultiSelect3->setInput(mySelect2);
 
 

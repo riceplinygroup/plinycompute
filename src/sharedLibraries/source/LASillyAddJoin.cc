@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LAAddJoin.h"
 #include "GetVTable.h"
-#include "LASillyAddJoin.h"
 
-GET_V_TABLE(LASillyAddJoin)
+GET_V_TABLE(LAAddJoin)
 
 #endif

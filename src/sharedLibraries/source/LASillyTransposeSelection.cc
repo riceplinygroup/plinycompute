@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LATransposeSelection.h"
 #include "GetVTable.h"
-#include "LASillyTransposeSelection.h"
 
-GET_V_TABLE(LASillyTransposeSelection)
+GET_V_TABLE(LATransposeSelection)
 
 #endif

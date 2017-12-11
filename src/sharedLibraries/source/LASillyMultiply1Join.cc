@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LAMultiply1Join.h"
 #include "GetVTable.h"
-#include "LASillyMultiply1Join.h"
 
-GET_V_TABLE(LASillyMultiply1Join)
+GET_V_TABLE(LAMultiply1Join)
 
 #endif

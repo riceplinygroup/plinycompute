@@ -29,8 +29,6 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMaxElementSet.h"
-#include "LASillyMaxElementAggregate.h"
-//#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 #include "LAMaxElementOutputType.h"
 #include "Set.h"
@@ -41,6 +39,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "LAMaxElementAggregate.h"
 
 
 using namespace pdb;
@@ -225,14 +224,14 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASillyMaxElementAggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAMaxElementAggregate.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMaxElementSet.so", errMsg);
 
 
 
     Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA05_db", "LA_input_set");
-    Handle<Computation> myQuery = makeObject<LASillyMaxElementAggregate>();
+    Handle<Computation> myQuery = makeObject<LAMaxElementAggregate>();
     myQuery->setInput(myScanSet);
 
     Handle<Computation> myWriteSet = makeObject<LAWriteMaxElementSet>("LA05_db", "LA_max_set");

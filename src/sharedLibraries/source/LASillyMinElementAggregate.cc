@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LAMinElementAggregate.h"
 #include "GetVTable.h"
-#include "LASillyMinElementAggregate.h"
 
-GET_V_TABLE(LASillyMinElementAggregate)
+GET_V_TABLE(LAMinElementAggregate)
 
 #endif

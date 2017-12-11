@@ -29,8 +29,6 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
-#include "LASillySubstractJoin.h"
-//#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 #include "Set.h"
 #include "DataTypes.h"
@@ -40,6 +38,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "LASubstractJoin.h"
 
 
 using namespace pdb;
@@ -237,7 +236,7 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASillySubstractJoin.so", errMsg);
+    pdbClient.registerType("libraries/libLASubstractJoin.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
@@ -246,7 +245,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA03_db", "LA_input_set1");
     Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA03_db", "LA_input_set2");
 
-    Handle<Computation> mySubstractJoin = makeObject<LASillySubstractJoin>();
+    Handle<Computation> mySubstractJoin = makeObject<LASubstractJoin>();
     mySubstractJoin->setInput(0, myMatrixSet1);
     mySubstractJoin->setInput(1, myMatrixSet2);
 

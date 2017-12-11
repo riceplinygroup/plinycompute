@@ -26,32 +26,11 @@
 #include "LAAdditiveExpressionNode.h"
 #include "LAStatementNode.h"
 
-#include "LASillyDuplicateColMultiSelection.h"
-#include "LASillyDuplicateRowMultiSelection.h"
 #include "LAMaxElementOutputType.h"
 #include "LAMaxElementValueType.h"
 #include "LAMinElementOutputType.h"
 #include "LAMinElementValueType.h"
 #include "LAScanMatrixBlockSet.h"
-#include "LASillyAddJoin.h"
-#include "LASillyScaleMultiplyJoin.h"
-#include "LASillyColMaxAggregate.h"
-#include "LASillyColMinAggregate.h"
-#include "LASillyColSumAggregate.h"
-#include "LASillyInverse1Aggregate.h"
-#include "LASillyInverse2Selection.h"
-#include "LASillyInverse3MultiSelection.h"
-#include "LASillyMaxElementAggregate.h"
-#include "LASillyMinElementAggregate.h"
-#include "LASillyMultiply1Join.h"
-#include "LASillyMultiply2Aggregate.h"
-#include "LASillyRowMaxAggregate.h"
-#include "LASillyRowMinAggregate.h"
-#include "LASillyRowSumAggregate.h"
-#include "LASillyScaleMultiplyJoin.h"
-#include "LASillySubstractJoin.h"
-#include "LASillyTransposeMultiply1Join.h"
-#include "LASillyTransposeSelection.h"
 #include "LAWriteMatrixBlockSet.h"
 #include "LAWriteMaxElementSet.h"
 #include "LAWriteMinElementSet.h"
@@ -60,6 +39,27 @@
 #include "MatrixMeta.h"
 
 #include <fstream>
+#include "LAAddJoin.h"
+#include "LAColMaxAggregate.h"
+#include "LAColMinAggregate.h"
+#include "LAColSumAggregate.h"
+#include "LADuplicateColMultiSelection.h"
+#include "LADuplicateRowMultiSelection.h"
+#include "LAInverse1Aggregate.h"
+#include "LAInverse2Selection.h"
+#include "LAInverse3MultiSelection.h"
+#include "LAMaxElementAggregate.h"
+#include "LAMinElementAggregate.h"
+#include "LAMultiply1Join.h"
+#include "LAMultiply2Aggregate.h"
+#include "LARowMaxAggregate.h"
+#include "LARowMinAggregate.h"
+#include "LARowSumAggregate.h"
+#include "LAScaleMultiplyJoin.h"
+#include "LAScaleMultiplyJoin.h"
+#include "LASubstractJoin.h"
+#include "LATransposeMultiply1Join.h"
+#include "LATransposeSelection.h"
 
 // by Binhang, June 2017
 
@@ -261,40 +261,40 @@ pdb::Handle<pdb::Computation>& LAPrimaryExpressionNode::evaluate(LAPDBInstance& 
         query = child->evaluate(instance);
         setDimension(child->getDimension());
     } else if (flag.compare("max") == 0) {
-        query = makeObject<LASillyMaxElementAggregate>();
+        query = makeObject<LAMaxElementAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(1, 1, 1, 1));
     } else if (flag.compare("min") == 0) {
-        query = makeObject<LASillyMinElementAggregate>();
+        query = makeObject<LAMinElementAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(1, 1, 1, 1));
     } else if (flag.compare("rowMax") == 0) {
-        query = makeObject<LASillyRowMaxAggregate>();
+        query = makeObject<LARowMaxAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(
             child->getDimension().blockRowSize, 1, child->getDimension().blockRowNum, 1));
     } else if (flag.compare("rowMin") == 0) {
-        query = makeObject<LASillyRowMinAggregate>();
+        query = makeObject<LARowMinAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(
             child->getDimension().blockRowSize, 1, child->getDimension().blockRowNum, 1));
     } else if (flag.compare("rowSum") == 0) {
-        query = makeObject<LASillyRowSumAggregate>();
+        query = makeObject<LARowSumAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(
             child->getDimension().blockRowSize, 1, child->getDimension().blockRowNum, 1));
     } else if (flag.compare("colMax") == 0) {
-        query = makeObject<LASillyColMaxAggregate>();
+        query = makeObject<LAColMaxAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(
             1, child->getDimension().blockColSize, 1, child->getDimension().blockColNum));
     } else if (flag.compare("colMin") == 0) {
-        query = makeObject<LASillyColMinAggregate>();
+        query = makeObject<LAColMinAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(
             1, child->getDimension().blockColSize, 1, child->getDimension().blockColNum));
     } else if (flag.compare("colSum") == 0) {
-        query = makeObject<LASillyColSumAggregate>();
+        query = makeObject<LAColSumAggregate>();
         query->setInput(child->evaluate(instance));
         setDimension(LADimension(
             1, child->getDimension().blockColSize, 1, child->getDimension().blockColNum));
@@ -304,7 +304,7 @@ pdb::Handle<pdb::Computation>& LAPrimaryExpressionNode::evaluate(LAPDBInstance& 
                                child->getDimension().blockColSize,
                                duplicateDim.blockRowNum,
                                child->getDimension().blockColNum);
-        query = makeObject<LASillyDuplicateRowMultiSelection>(updatedDim);
+        query = makeObject<LADuplicateRowMultiSelection>(updatedDim);
         query->setInput(input);
         setDimension(updatedDim);
     } else if (flag.compare("duplicateCol") == 0) {
@@ -313,7 +313,7 @@ pdb::Handle<pdb::Computation>& LAPrimaryExpressionNode::evaluate(LAPDBInstance& 
                                duplicateDim.blockColSize,
                                child->getDimension().blockRowNum,
                                duplicateDim.blockColNum);
-        query = makeObject<LASillyDuplicateColMultiSelection>(updatedDim);
+        query = makeObject<LADuplicateColMultiSelection>(updatedDim);
         query->setInput(input);
         setDimension(updatedDim);
     } else {
@@ -331,14 +331,14 @@ pdb::Handle<pdb::Computation>& LAPostfixExpressionNode::evaluate(LAPDBInstance& 
         query = child->evaluate(instance);
         setDimension(child->getDimension());
     } else if (postOperator.compare("transpose") == 0) {
-        query = makeObject<LASillyTransposeSelection>();
+        query = makeObject<LATransposeSelection>();
         query->setInput(child->evaluate(instance));
         setDimension(child->getDimension().transpose());
     } else if (postOperator.compare("inverse") == 0) {
-        pdb::Handle<pdb::Computation> queryAgg1 = makeObject<LASillyInverse1Aggregate>();
+        pdb::Handle<pdb::Computation> queryAgg1 = makeObject<LAInverse1Aggregate>();
         queryAgg1->setInput(child->evaluate(instance));
 
-        pdb::Handle<pdb::Computation> querySelect2 = makeObject<LASillyInverse2Selection>();
+        pdb::Handle<pdb::Computation> querySelect2 = makeObject<LAInverse2Selection>();
         querySelect2->setInput(queryAgg1);
 
         LADimension targetDim(child->getDimension().transpose());
@@ -346,7 +346,7 @@ pdb::Handle<pdb::Computation>& LAPostfixExpressionNode::evaluate(LAPDBInstance& 
                   << targetDim.blockColSize << "," << targetDim.blockRowNum << ","
                   << targetDim.blockColNum << std::endl;
         Handle<Computation> queryMultiSelect3 =
-            makeObject<LASillyInverse3MultiSelection>(targetDim);
+            makeObject<LAInverse3MultiSelection>(targetDim);
         queryMultiSelect3->setInput(querySelect2);
         query = queryMultiSelect3;
         setDimension(targetDim);
@@ -365,7 +365,7 @@ pdb::Handle<pdb::Computation>& LAMultiplicativeExpressionNode::evaluate(LAPDBIns
         query2 = rightChild->evaluate(instance);
         setDimension(rightChild->getDimension());
     } else if (multiOperator.compare("scale_multiply") == 0) {
-        query2 = makeObject<LASillyScaleMultiplyJoin>();
+        query2 = makeObject<LAScaleMultiplyJoin>();
         query2->setInput(0, leftChild->evaluate(instance));
         query2->setInput(1, rightChild->evaluate(instance));
         LADimension dimLeft = leftChild->getDimension();
@@ -377,7 +377,7 @@ pdb::Handle<pdb::Computation>& LAMultiplicativeExpressionNode::evaluate(LAPDBIns
         }
         setDimension(dimLeft);
     } else if (multiOperator.compare("multiply") == 0) {
-        query1 = makeObject<LASillyMultiply1Join>();
+        query1 = makeObject<LAMultiply1Join>();
         query1->setInput(0, leftChild->evaluate(instance));
         query1->setInput(1, rightChild->evaluate(instance));
         LADimension dimLeft = leftChild->getDimension();
@@ -388,13 +388,13 @@ pdb::Handle<pdb::Computation>& LAMultiplicativeExpressionNode::evaluate(LAPDBIns
                       << rightChild->toString() << std::endl;
             exit(1);
         }
-        query2 = makeObject<LASillyMultiply2Aggregate>();
+        query2 = makeObject<LAMultiply2Aggregate>();
         query2->setInput(query1);
         LADimension dimNew(
             dimLeft.blockRowSize, dimRight.blockColSize, dimLeft.blockRowNum, dimRight.blockColNum);
         setDimension(dimNew);
     } else if (multiOperator.compare("transpose_multiply") == 0) {
-        query1 = makeObject<LASillyTransposeMultiply1Join>();
+        query1 = makeObject<LATransposeMultiply1Join>();
         query1->setInput(0, leftChild->evaluate(instance));
         query1->setInput(1, rightChild->evaluate(instance));
         LADimension dimLeft = leftChild->getDimension();
@@ -405,7 +405,7 @@ pdb::Handle<pdb::Computation>& LAMultiplicativeExpressionNode::evaluate(LAPDBIns
                       << leftChild->toString() << "," << rightChild->toString() << std::endl;
             exit(1);
         }
-        query2 = makeObject<LASillyMultiply2Aggregate>();
+        query2 = makeObject<LAMultiply2Aggregate>();
         query2->setInput(query1);
         LADimension dimNew(
             dimLeft.blockColSize, dimRight.blockColSize, dimLeft.blockColNum, dimRight.blockColNum);
@@ -425,7 +425,7 @@ pdb::Handle<pdb::Computation>& LAAdditiveExpressionNode::evaluate(LAPDBInstance&
         query = rightChild->evaluate(instance);
         setDimension(rightChild->getDimension());
     } else if (addOperator.compare("add") == 0) {
-        query = makeObject<LASillyAddJoin>();
+        query = makeObject<LAAddJoin>();
         query->setInput(0, leftChild->evaluate(instance));
         query->setInput(1, rightChild->evaluate(instance));
         LADimension dimLeft = leftChild->getDimension();
@@ -437,7 +437,7 @@ pdb::Handle<pdb::Computation>& LAAdditiveExpressionNode::evaluate(LAPDBInstance&
         }
         setDimension(dimLeft);
     } else if (addOperator.compare("substract") == 0) {
-        query = makeObject<LASillySubstractJoin>();
+        query = makeObject<LASubstractJoin>();
         query->setInput(0, leftChild->evaluate(instance));
         query->setInput(1, rightChild->evaluate(instance));
         LADimension dimLeft = leftChild->getDimension();

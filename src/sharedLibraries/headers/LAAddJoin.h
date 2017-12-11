@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_SUBSTRACT_JOIN_H
-#define SILLY_LA_SUBSTRACT_JOIN_H
+#ifndef SILLY_LA_ADD_JOIN_H
+#define SILLY_LA_ADD_JOIN_H
 
 // by Binhang, May 2017
 
@@ -26,17 +26,18 @@
 //#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 
+
 // LA libraries:
 #include <eigen3/Eigen/Dense>
 
 using namespace pdb;
 
-class LASillySubstractJoin : public JoinComp<MatrixBlock, MatrixBlock, MatrixBlock> {
+class LAAddJoin : public JoinComp<MatrixBlock, MatrixBlock, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillySubstractJoin() {}
+    LAAddJoin() {}
 
     Lambda<bool> getSelection(Handle<MatrixBlock> in1, Handle<MatrixBlock> in2) override {
         /*
@@ -77,9 +78,9 @@ public:
                 pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(
                     blockRowIndex, blockColIndex, rowNums, colNums, totalRows, totalCols);
                 Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
-                    diffMatrix(resultMatrixBlock->getRawDataHandle()->c_ptr(), rowNums, colNums);
+                    sumMatrix(resultMatrixBlock->getRawDataHandle()->c_ptr(), rowNums, colNums);
 
-                diffMatrix = currentMatrix1 - currentMatrix2;
+                sumMatrix = currentMatrix1 + currentMatrix2;
 
                 // std::cout <<"Result Matrix :"<< std::endl;
                 // resultMatrixBlock->print();

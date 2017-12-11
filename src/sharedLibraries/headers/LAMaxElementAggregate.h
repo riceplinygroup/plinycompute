@@ -15,34 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MULTIPLY2_AGGREGATE_H
-#define SILLY_LA_MULTIPLY2_AGGREGATE_H
+#ifndef SILLY_LA_MAXELEMENT_AGGREGATE_H
+#define SILLY_LA_MAXELEMENT_AGGREGATE_H
 
 // by Binhang, May 2017
 
-#include "ClusterAggregateComp.h"
-#include "MatrixBlock.h"
+#include "Lambda.h"
 #include "LambdaCreationFunctions.h"
+#include "ClusterAggregateComp.h"
+#include "LAMaxElementValueType.h"
+#include "LAMaxElementOutputType.h"
+#include "MatrixBlock.h"
 
 
 using namespace pdb;
 
-class LASillyMultiply2Aggregate
-    : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
+class LAMaxElementAggregate
+    : public ClusterAggregateComp<LAMaxElementOutputType, MatrixBlock, int, LAMaxElementValueType> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyMultiply2Aggregate() {}
+    LAMaxElementAggregate() {}
 
     // the key type must have == and size_t hash () defined
-    Lambda<MatrixMeta> getKeyProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getMultiplyKey);
+    Lambda<int> getKeyProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambda(aggMe, [](Handle<MatrixBlock>& aggMe) { return 1; });
     }
 
     // the value type must have + defined
-    Lambda<MatrixData> getValueProjection(Handle<MatrixBlock> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getMultiplyValue);
+    Lambda<LAMaxElementValueType> getValueProjection(Handle<MatrixBlock> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getMaxElementValue);
     }
 };
 

@@ -18,9 +18,9 @@
 #ifndef SILLY_LA_COL_SUM_AGGREGATE_CC
 #define SILLY_LA_COL_SUM_AGGREGATE_CC
 
+#include "../headers/LAColSumAggregate.h"
 #include "GetVTable.h"
-#include "LASillyColSumAggregate.h"
 
-GET_V_TABLE(LASillyColSumAggregate)
+GET_V_TABLE(LAColSumAggregate)
 
 #endif

@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LAMaxElementAggregate.h"
 #include "GetVTable.h"
-#include "LASillyMaxElementAggregate.h"
 
-GET_V_TABLE(LASillyMaxElementAggregate)
+GET_V_TABLE(LAMaxElementAggregate)
 
 #endif

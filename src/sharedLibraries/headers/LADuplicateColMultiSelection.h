@@ -30,14 +30,14 @@
 
 
 using namespace pdb;
-class LASillyDuplicateColMultiSelection : public MultiSelectionComp<MatrixBlock, MatrixBlock> {
+class LADuplicateColMultiSelection : public MultiSelectionComp<MatrixBlock, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY
 
-    LASillyDuplicateColMultiSelection() {}
+    LADuplicateColMultiSelection() {}
 
-    LASillyDuplicateColMultiSelection(LADimension dim) : targetDim(dim) {}
+    LADuplicateColMultiSelection(LADimension dim) : targetDim(dim) {}
 
     Lambda<bool> getSelection(Handle<MatrixBlock> checkMe) override {
         return makeLambda(checkMe, [](Handle<MatrixBlock>& checkMe) { return true; });

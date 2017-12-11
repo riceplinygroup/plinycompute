@@ -18,9 +18,9 @@
 #ifndef SILLY_LA_INVERSE1_AGGREGATE_CC
 #define SILLY_LA_INVERSE1_AGGREGATE_CC
 
+#include "../headers/LAInverse1Aggregate.h"
 #include "GetVTable.h"
-#include "LASillyInverse1Aggregate.h"
 
-GET_V_TABLE(LASillyInverse1Aggregate)
+GET_V_TABLE(LAInverse1Aggregate)
 
 #endif

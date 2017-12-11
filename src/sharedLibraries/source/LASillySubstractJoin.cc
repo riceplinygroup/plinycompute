@@ -20,9 +20,9 @@
 
 // by Binhang, May 2017
 
+#include "../headers/LASubstractJoin.h"
 #include "GetVTable.h"
-#include "LASillySubstractJoin.h"
 
-GET_V_TABLE(LASillySubstractJoin)
+GET_V_TABLE(LASubstractJoin)
 
 #endif

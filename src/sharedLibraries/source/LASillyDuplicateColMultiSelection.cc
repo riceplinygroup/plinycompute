@@ -18,9 +18,9 @@
 #ifndef SILLY_LA_DUPLICATE_COL_MULTISELECTION_CC
 #define SILLY_LA_DUPLICATE_COL_MULTISELECTION_CC
 
-#include "LASillyDuplicateColMultiSelection.h"
+#include "../headers/LADuplicateColMultiSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(LASillyDuplicateColMultiSelection)
+GET_V_TABLE(LADuplicateColMultiSelection)
 
 #endif
