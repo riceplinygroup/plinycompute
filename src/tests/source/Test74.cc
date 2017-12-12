@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     }
 	
     pdbClient.registerType("libraries/libSimpleSelection.so", errMsg);
-    pdbClient.registerType("libraries/libSimpleAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSimple_Aggregation.so", errMsg);
     pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
