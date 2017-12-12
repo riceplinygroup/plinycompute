@@ -28,7 +28,6 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
 #include "ScanSupervisorSet.h"
-#include "SillyGroupBy.h"
 #include "DepartmentEmployees.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -41,6 +40,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "SimpleGroupBy.h"
 
 
 
@@ -239,11 +239,11 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    pdbClient.registerType("libraries/libSillyGroupBy.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleGroupBy.so", errMsg);
 
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test87_db", "test87_set");
-    Handle<Computation> myAgg = makeObject<SillyGroupBy>("test87_db", "output_set");
+    Handle<Computation> myAgg = makeObject<SimpleGroupBy>("test87_db", "output_set");
     myAgg->setAllocatorPolicy(noReuseAllocator);
     myAgg->setInput(myScanSet);
 

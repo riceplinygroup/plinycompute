@@ -339,7 +339,7 @@ common_env.SharedLibrary('libraries/libEmployeeSelection.so', ['build/libraries/
 common_env.SharedLibrary('libraries/libFinalSelection.so', ['build/libraries/FinalSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libIntAggregation.so', ['build/libraries/IntAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libIntSelectionOfStringIntPair.so', ['build/libraries/IntSelectionOfStringIntPair.cc'] + all)
-common_env.SharedLibrary('libraries/libIntSillyJoin.so', ['build/libraries/IntSillyJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libIntSimpleJoin.so', ['build/libraries/IntSimpleJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libMethodJoin.so', ['build/libraries/MethodJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libOptimizedMethodJoin.so', ['build/libraries/OptimizedMethodJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
@@ -388,10 +388,10 @@ common_env.SharedLibrary('libraries/libScanStringSet.so', ['build/libraries/Scan
 common_env.SharedLibrary('libraries/libScanSupervisorSet.so', ['build/libraries/ScanSupervisorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanOptimizedSupervisorSet.so', ['build/libraries/ScanOptimizedSupervisorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/SharedEmployee.cc'] + all)
-common_env.SharedLibrary('libraries/libSillyAggregation.so', ['build/libraries/SillyAggregation.cc'] + all)
-common_env.SharedLibrary('libraries/libSillyJoin.so', ['build/libraries/SillyJoin.cc'] + all)
-common_env.SharedLibrary('libraries/libSillySelection.so', ['build/libraries/SillySelection.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleAggregation.so', ['build/libraries/SimpleAggregation.cc'] + all)
+common_env.SharedLibrary('libraries/libSimpleJoin.so', ['build/libraries/SimpleJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libSimpleSelection.so', ['build/libraries/SimpleSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libSimple_Aggregation.so', ['build/libraries/Simple_Aggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleEmployee.so', ['build/libraries/SimpleEmployee.cc'] + all)
 common_env.SharedLibrary('libraries/libStringIntPairMultiSelection.so', ['build/libraries/StringIntPairMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
@@ -405,7 +405,7 @@ common_env.SharedLibrary('libraries/libWriteStringSet.so', ['build/libraries/Wri
 common_env.SharedLibrary('libraries/libWriteSumResultSet.so', ['build/libraries/WriteSumResultSet.cc'] + all)
 common_env.SharedLibrary('libraries/libDoubleVectorAggregation.so', ['build/libraries/DoubleVectorAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSupervisorMultiSelection.so', ['build/libraries/SupervisorMultiSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libSillyGroupBy.so', ['build/libraries/SillyGroupBy.cc'] + all)
+common_env.SharedLibrary('libraries/libSimpleGroupBy.so', ['build/libraries/SimpleGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libEmployeeGroupBy.so', ['build/libraries/EmployeeGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libOptimizedEmployeeGroupBy.so', ['build/libraries/OptimizedEmployeeGroupBy.cc'] + all)
 
@@ -651,7 +651,7 @@ common_env.Depends(pdbTest, [
   'libraries/libFinalSelection.so', 
   'libraries/libIntAggregation.so', 
   'libraries/libIntSelectionOfStringIntPair.so', 
-  'libraries/libIntSillyJoin.so', 
+  'libraries/libIntSimpleJoin.so', 
   'libraries/libScanEmployeeSet.so',
   'libraries/libScanIntSet.so', 
   'libraries/libScanSimpleEmployeeSet.so', 
@@ -659,9 +659,9 @@ common_env.Depends(pdbTest, [
   'libraries/libScanStringSet.so', 
   'libraries/libScanSupervisorSet.so', 
   'libraries/libSharedEmployee.so', 
-  'libraries/libSillyAggregation.so', 
-  'libraries/libSillyJoin.so', 
-  'libraries/libSillySelection.so', 
+  'libraries/libSimpleAggregation.so', 
+  'libraries/libSimpleJoin.so', 
+  'libraries/libSimpleSelection.so', 
   'libraries/libSimpleEmployee.so', 
   'libraries/libStringSelection.so', 
   'libraries/libStringSelectionOfStringIntPair.so', 
@@ -819,10 +819,10 @@ mainTests=common_env.Alias('mainTests', [
   'libraries/libFinalSelection.so',
   'libraries/libIntAggregation.so',
   'libraries/libIntSelectionOfStringIntPair.so',
-  'libraries/libIntSillyJoin.so',
+  'libraries/libIntSimpleJoin.so',
   'libraries/libMethodJoin.so',
   'libraries/libOptimizedMethodJoin.so',
-  'libraries/libSillyGroupBy.so',
+  'libraries/libSimpleGroupBy.so',
   'libraries/libEmployeeGroupBy.so',
   'libraries/libOptimizedEmployeeGroupBy.so',
  # 'libraries/libPartialResult.so', 
@@ -835,10 +835,10 @@ mainTests=common_env.Alias('mainTests', [
   'libraries/libScanSupervisorSet.so',
   'libraries/libScanOptimizedSupervisorSet.so',
   'libraries/libSharedEmployee.so',
-  'libraries/libSillyAggregation.so',
-  'libraries/libSillyJoin.so',
-  'libraries/libSillySelection.so',
   'libraries/libSimpleAggregation.so',
+  'libraries/libSimpleJoin.so',
+  'libraries/libSimpleSelection.so',
+  'libraries/libSimple_Aggregation.so',
   'libraries/libSimpleEmployee.so',
   'libraries/libStringSelection.so',
   'libraries/libStringSelectionOfStringIntPair.so',

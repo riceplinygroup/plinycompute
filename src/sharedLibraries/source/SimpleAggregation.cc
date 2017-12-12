@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SIMPLE_AGG_CC
-#define SIMPLE_AGG_CC
+#ifndef SILLY_AGG_CC
+#define SILLY_AGG_CC
 
 #include "SimpleAggregation.h"
 #include "GetVTable.h"

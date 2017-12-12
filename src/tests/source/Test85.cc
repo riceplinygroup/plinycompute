@@ -31,7 +31,6 @@
 #include "ScanSupervisorSet.h"
 #include "WriteBuiltinEmployeeSet.h"
 #include "SupervisorMultiSelection.h"
-#include "SillyAggregation.h"
 #include "AllSelectionWithCreation.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
@@ -45,6 +44,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "SimpleAggregation.h"
 
 
 //To run a query graph consists of a multi-selection, an aggregation and a selection, and has two sinks
@@ -253,14 +253,14 @@ int main(int argc, char* argv[]) {
     pdbClient.registerType("libraries/libWriteBuiltinEmployeeSet.so", errMsg);
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
     pdbClient.registerType("libraries/libSupervisorMultiSelection.so", errMsg);
-    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleAggregation.so", errMsg);
     pdbClient.registerType("libraries/libAllSelectionWithCreation.so", errMsg);
 
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test85_db", "test85_set");
     Handle<Computation> myFlatten = makeObject<SupervisorMultiSelection>();
     myFlatten->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<SillyAggregation>("test85_db", "output_set2");
+    Handle<Computation> myAgg = makeObject<SimpleAggregation>("test85_db", "output_set2");
     myAgg->setInput(myFlatten);
     Handle<Computation> myFilter = makeObject<AllSelectionWithCreation>();
     myFilter->setInput(myFlatten);

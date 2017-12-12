@@ -15,42 +15,41 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_AGG_H
-#define SILLY_AGG_H
+#ifndef SIMPLE_JOIN_H
+#define SIMPLE_JOIN_H
 
 // by Jia, Mar 2017
 
-#include "ClusterAggregateComp.h"
-#include "DepartmentTotal.h"
-#include "Employee.h"
+#include "JoinComp.h"
+#include "PDBString.h"
+#include "StringIntPair.h"
 #include "LambdaCreationFunctions.h"
 
 
 using namespace pdb;
 
-class SillyAggregation : public ClusterAggregateComp<DepartmentTotal, Employee, String, double> {
+class SimpleJoin : public JoinComp<String, int, StringIntPair, String> {
 
 public:
     ENABLE_DEEP_COPY
 
-    SillyAggregation() {}
+    SimpleJoin() {}
 
-    // the below constructor is NOT REQUIRED
-    // user can also set output later by invoking the setOutput (std :: string dbName, std :: string
-    // setName)  method
-    SillyAggregation(std::string dbName, std::string setName) {
-        this->setOutput(dbName, setName);
+    Lambda<bool> getSelection(Handle<int> in1,
+                              Handle<StringIntPair> in2,
+                              Handle<String> in3) override {
+        // std :: cout << "SimpleJoin selection: type code is " << in1.getExactTypeInfoValue() << ",
+        // " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
+        return (makeLambdaFromSelf(in1) == makeLambdaFromMember(in2, myInt)) &&
+            (makeLambdaFromMember(in2, myString) == makeLambdaFromSelf(in3));
     }
 
-
-    // the key type must have == and size_t hash () defined
-    Lambda<String> getKeyProjection(Handle<Employee> aggMe) override {
-        return makeLambdaFromMember(aggMe, department);
-    }
-
-    // the value type must have + defined
-    Lambda<double> getValueProjection(Handle<Employee> aggMe) override {
-        return makeLambdaFromMethod(aggMe, getSalary);
+    Lambda<Handle<String>> getProjection(Handle<int> in1,
+                                         Handle<StringIntPair> in2,
+                                         Handle<String> in3) override {
+        // std :: cout << "SimpleJoin projection: type code is " << in1.getExactTypeInfoValue() << ",
+        // " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
+        return makeLambdaFromMember(in2, myString);
     }
 };
 

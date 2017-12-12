@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_JOIN_CC
-#define SILLY_JOIN_CC
+#ifndef SIMPLE_AGG_CC
+#define SIMPLE_AGG_CC
 
-#include "SillyJoin.h"
+#include "Simple_Aggregation.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(SillyJoin)
+GET_V_TABLE(Simple_Aggregation)
 
 #endif

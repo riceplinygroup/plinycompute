@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << pdbClient.listUserDefinedTypes(errMsg) << std::endl;
 
-  pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
+  pdbClient.registerType("libraries/libSimpleJoin.so", errMsg);
   pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
   std::cout << pdbClient.listUserDefinedTypes(errMsg) << std::endl;
 

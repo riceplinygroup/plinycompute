@@ -26,12 +26,9 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
 #include "AggregateComp.h"
 #include "ScanSupervisorSet.h"
-#include "SillyAggregation.h"
-#include "SillySelection.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -46,6 +43,10 @@
 #include <chrono>
 #include <fcntl.h>
 
+#include "SimpleAggregation.h"
+#include "SimpleSelection.h"
+#include "SimpleSelection.h"
+
 
 using namespace pdb;
 
@@ -53,8 +54,8 @@ int main(int argc, char* argv[]) {
 
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("chris_db", "chris_set");
-    Handle<Computation> myFilter = makeObject<SillySelection>();
-    Handle<Computation> myAgg = makeObject<SillyAggregation>("chris_db", "output_set1");
+    Handle<Computation> myFilter = makeObject<SimpleSelection>();
+    Handle<Computation> myAgg = makeObject<SimpleAggregation>("chris_db", "output_set1");
 
     std::string inputTupleSetName = "";
     std::vector<std::string> inputColumnNames;

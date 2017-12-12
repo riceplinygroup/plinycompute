@@ -47,7 +47,7 @@ public:
         return myInt;
     }
 
-    int getSillyInt() {
+    int getSimpleInt() {
         return myInt + myString->size();
     }
 
@@ -55,13 +55,13 @@ public:
         return myString;
     }
 
-    Handle<String> getSillyString() {
-        return makeObject<String>(std::string("Silly") + std::to_string(getSillyInt()));
+    Handle<String> getSimpleString() {
+        return makeObject<String>(std::string("Simple") + std::to_string(getSimpleInt()));
     }
 
 
-    StringIntPair getSillyPair() {
-        return StringIntPair(std::string("Silly") + std::to_string(getSillyInt()),
+    StringIntPair getSimplePair() {
+        return StringIntPair(std::string("Simple") + std::to_string(getSimpleInt()),
                              myInt + myString->size());
     }
 

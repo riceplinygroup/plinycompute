@@ -15,12 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_SELECT_CC
-#define SILLY_SELECT_CC
+#ifndef SIMPLE_SELECT_CC
+#define SIMPLE_SELECT_CC
 
-#include "SillySelection.h"
+#include "SimpleSelection.h"
+
 #include "GetVTable.h"
 
-GET_V_TABLE(SillySelection)
+GET_V_TABLE(SimpleSelection)
 
 #endif

@@ -5,7 +5,7 @@ add_test(join ${CTEST_BINARY_DIRECTORY}/Test79 Y Y 1024 master Y)
 add_dependencies(build-tests Test79)
 
 # add build dependencies to shared libraries it uses
-add_dependencies(Test79 SillyJoin)
+add_dependencies(Test79 SimpleJoin)
 add_dependencies(Test79 ScanIntSet)
 add_dependencies(Test79 ScanStringIntPairSet)
 add_dependencies(Test79 ScanStringSet)

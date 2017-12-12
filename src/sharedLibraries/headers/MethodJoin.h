@@ -36,9 +36,9 @@ public:
     MethodJoin() {}
 
     Lambda<bool> getSelection(Handle<StringIntPair> in1, Handle<StringIntPair> in2) override {
-        return (makeLambdaFromMethod(in1, getSillyInt) == makeLambdaFromMethod(in2, getSillyInt)) &&
-            (makeLambdaFromMethod(in1, getSillyString) ==
-             makeLambdaFromMethod(in2, getSillyString));
+        return (makeLambdaFromMethod(in1, getSimpleInt) == makeLambdaFromMethod(in2, getSimpleInt)) &&
+            (makeLambdaFromMethod(in1, getSimpleString) ==
+             makeLambdaFromMethod(in2, getSimpleString));
     }
 
     Lambda<Handle<StringIntPair>> getProjection(Handle<StringIntPair> in1,

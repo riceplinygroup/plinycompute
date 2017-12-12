@@ -39,7 +39,7 @@
 // then the system
 using namespace pdb;
 
-class SillyWrite : public SetWriter<String> {
+class SimpleWrite : public SetWriter<String> {
 
 public:
     ENABLE_DEEP_COPY
@@ -57,7 +57,7 @@ public:
 
 // this plan has three tables: A (a: int), B (a: int, c: String), C (c: int)
 // it first joins A with B, and then joins the result with C
-class SillyJoin : public JoinComp<String, int, StringIntPair, String> {
+class SimpleJoin : public JoinComp<String, int, StringIntPair, String> {
 
 public:
     ENABLE_DEEP_COPY
@@ -65,7 +65,7 @@ public:
     Lambda<bool> getSelection(Handle<int> in1,
                               Handle<StringIntPair> in2,
                               Handle<String> in3) override {
-        std::cout << "SillyJoin selection: type code is " << in1.getExactTypeInfoValue() << ", "
+        std::cout << "SimpleJoin selection: type code is " << in1.getExactTypeInfoValue() << ", "
                   << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue()
                   << std::endl;
         return (makeLambdaFromSelf(in1) == makeLambdaFromMember(in2, myInt)) &&
@@ -75,14 +75,14 @@ public:
     Lambda<Handle<String>> getProjection(Handle<int> in1,
                                          Handle<StringIntPair> in2,
                                          Handle<String> in3) override {
-        std::cout << "SillyJoin projection: type code is " << in1.getExactTypeInfoValue() << ", "
+        std::cout << "SimpleJoin projection: type code is " << in1.getExactTypeInfoValue() << ", "
                   << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue()
                   << std::endl;
         return makeLambdaFromMember(in2, myString);
     }
 };
 
-class SillyReadOfA : public ScanSet<int> {
+class SimpleReadOfA : public ScanSet<int> {
 
     ENABLE_DEEP_COPY
 
@@ -115,7 +115,7 @@ class SillyReadOfA : public ScanSet<int> {
                             data->push_back(myInt);
                         }
                     } catch (NotEnoughSpace& e) {
-                        std::cout << "got to " << i << " when proucing data for SillyReadOfA.\n";
+                        std::cout << "got to " << i << " when proucing data for SimpleReadOfA.\n";
                         getRecord(data);
                     }
                 }
@@ -131,7 +131,7 @@ class SillyReadOfA : public ScanSet<int> {
     }
 };
 
-class SillyReadOfB : public ScanSet<StringIntPair> {
+class SimpleReadOfB : public ScanSet<StringIntPair> {
 
     ENABLE_DEEP_COPY
 
@@ -168,7 +168,7 @@ class SillyReadOfB : public ScanSet<StringIntPair> {
                             data->push_back(myPair);
                         }
                     } catch (NotEnoughSpace& e) {
-                        std::cout << "got to " << i << " when proucing data for SillyReadOfB.\n";
+                        std::cout << "got to " << i << " when proucing data for SimpleReadOfB.\n";
                         getRecord(data);
                     }
                 }
@@ -184,7 +184,7 @@ class SillyReadOfB : public ScanSet<StringIntPair> {
     }
 };
 
-class SillyReadOfC : public ScanSet<String> {
+class SimpleReadOfC : public ScanSet<String> {
 
     ENABLE_DEEP_COPY
 
@@ -222,7 +222,7 @@ class SillyReadOfC : public ScanSet<String> {
                             j++;
                         }
                     } catch (NotEnoughSpace& e) {
-                        std::cout << "got to " << j << " when proucing data for SillyReadOfC.\n";
+                        std::cout << "got to " << j << " when proucing data for SimpleReadOfC.\n";
                         getRecord(data);
                     }
                 }
@@ -247,11 +247,11 @@ int main() {
     Vector<Handle<Computation>> myComputations;
 
     // create all of the computation objects
-    Handle<Computation> readA = makeObject<SillyReadOfA>();
-    Handle<Computation> readB = makeObject<SillyReadOfB>();
-    Handle<Computation> readC = makeObject<SillyReadOfC>();
-    Handle<Computation> myJoin = makeObject<SillyJoin>();
-    Handle<Computation> myWriter = makeObject<SillyWrite>();
+    Handle<Computation> readA = makeObject<SimpleReadOfA>();
+    Handle<Computation> readB = makeObject<SimpleReadOfB>();
+    Handle<Computation> readC = makeObject<SimpleReadOfC>();
+    Handle<Computation> myJoin = makeObject<SimpleJoin>();
+    Handle<Computation> myWriter = makeObject<SimpleWrite>();
 
     std::cout << "##############################" << std::endl;
 

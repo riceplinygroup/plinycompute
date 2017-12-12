@@ -25,7 +25,6 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
 #include "AggregateComp.h"
@@ -46,6 +45,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "SimpleSelection.h"
 
 /* distributed join test case: two consecutive OptimizedMethodJoin */
 using namespace pdb;

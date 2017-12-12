@@ -15,12 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_AGG_CC
-#define SILLY_AGG_CC
+#ifndef SIMPLE_GROUPBY_CC
+#define SIMPLE_GROUPBY_CC
 
-#include "SillyAggregation.h"
+#include "SimpleGroupBy.h"
+
 #include "GetVTable.h"
 
-GET_V_TABLE(SillyAggregation)
+GET_V_TABLE(SimpleGroupBy)
 
 #endif
