@@ -22,28 +22,35 @@
 
 #include "ClusterAggregateComp.h"
 #include "DepartmentTotal.h"
-#include "SimpleEmployee.h"
+#include "Employee.h"
 #include "LambdaCreationFunctions.h"
 
 
 using namespace pdb;
 
-class SimpleAggregation
-    : public ClusterAggregateComp<DepartmentTotal, SimpleEmployee, String, double> {
+class SimpleAggregation : public ClusterAggregateComp<DepartmentTotal, Employee, String, double> {
 
 public:
     ENABLE_DEEP_COPY
 
     SimpleAggregation() {}
 
+    // the below constructor is NOT REQUIRED
+    // user can also set output later by invoking the setOutput (std :: string dbName, std :: string
+    // setName)  method
+    SimpleAggregation(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
+
+
     // the key type must have == and size_t hash () defined
-    Lambda<String> getKeyProjection(Handle<SimpleEmployee> aggMe) override {
+    Lambda<String> getKeyProjection(Handle<Employee> aggMe) override {
         return makeLambdaFromMember(aggMe, department);
     }
 
     // the value type must have + defined
-    Lambda<double> getValueProjection(Handle<SimpleEmployee> aggMe) override {
-        return makeLambdaFromMember(aggMe, salary);
+    Lambda<double> getValueProjection(Handle<Employee> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getSalary);
     }
 };
 
