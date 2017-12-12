@@ -487,6 +487,7 @@ common_env.SharedLibrary('libraries/libTopicAssignment.so', ['build/libraries/LD
 #common_env.SharedLibrary('libraries/libWriteLDATopicWordProbSet.so', ['build/libraries/LDA/WriteLDATopicWordProbSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
 
+common_env.SharedLibrary('libraries/libGmmModel.so', ['build/libraries/GMM/GmmModel.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmSampleSelection.so', ['build/libraries/GMM/GmmSampleSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmDataCountAggregate.so', ['build/libraries/GMM/GmmDataCountAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregateLazy.so', ['build/libraries/GMM/GmmAggregateLazy.cc'] + all)
@@ -627,7 +628,6 @@ common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc']
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all + pdb_client)
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all + pdb_client)
-common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all + pdb_client)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all + pdb_client)
 common_env.Program('bin/TestMatrix', ['build/tests/TestMatrix.cc'] + all)
 

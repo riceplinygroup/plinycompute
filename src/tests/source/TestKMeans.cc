@@ -413,6 +413,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  auto iniEnd = std::chrono::high_resolution_clock::now();
+
   /* K-means training loop */
   for (int n = 0; n < iter; n++) {
 
