@@ -391,7 +391,7 @@ common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/Sha
 common_env.SharedLibrary('libraries/libSimpleAggregation.so', ['build/libraries/SimpleAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleJoin.so', ['build/libraries/SimpleJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleSelection.so', ['build/libraries/SimpleSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libSimple_Aggregation.so', ['build/libraries/Simple_Aggregation.cc'] + all)
+common_env.SharedLibrary('libraries/libSimpleAggregation.so', ['build/libraries/SimpleAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleEmployee.so', ['build/libraries/SimpleEmployee.cc'] + all)
 common_env.SharedLibrary('libraries/libStringIntPairMultiSelection.so', ['build/libraries/StringIntPairMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
@@ -838,7 +838,7 @@ mainTests=common_env.Alias('mainTests', [
   'libraries/libSimpleAggregation.so',
   'libraries/libSimpleJoin.so',
   'libraries/libSimpleSelection.so',
-  'libraries/libSimple_Aggregation.so',
+  'libraries/libSimpleAggregation.so',
   'libraries/libSimpleEmployee.so',
   'libraries/libStringSelection.so',
   'libraries/libStringSelectionOfStringIntPair.so',
