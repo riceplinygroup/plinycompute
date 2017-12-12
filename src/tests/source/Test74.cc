@@ -45,7 +45,7 @@
 #include <chrono>
 #include <fcntl.h>
 
-#include "Simple_Aggregation.h"
+#include "SimpleAggregation.h"
 #include "SimpleSelection.h"
 
 
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     }
 	
     pdbClient.registerType("libraries/libSimpleSelection.so", errMsg);
-    pdbClient.registerType("libraries/libSimple_Aggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleAggregation.so", errMsg);
     pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myScanSet = makeObject<ScanUserSet<Supervisor>>("test74_db", "test74_set");
     Handle<Computation> myFilter = makeObject<SimpleSelection>();
     myFilter->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<Simple_Aggregation>();
+    Handle<Computation> myAgg = makeObject<SimpleAggregation>();
     myAgg->setInput(myFilter);
     Handle<Computation> mySelection = makeObject<FinalSelection>();
     mySelection->setInput(myAgg);
