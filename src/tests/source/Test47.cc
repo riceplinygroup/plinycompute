@@ -39,7 +39,7 @@
 // then the system
 using namespace pdb;
 
-class SillyWrite : public SetWriter<double> {
+class SimpleWrite : public SetWriter<double> {
 
 public:
     ENABLE_DEEP_COPY
@@ -72,7 +72,7 @@ public:
 void* whereHashTableSits;
 
 // aggregate relies on having two methods in the output type: getKey () and getValue ()
-class SillyAgg : public AggregateComp<DepartmentTotal, Employee, String, double> {
+class Simple_Agg : public AggregateComp<DepartmentTotal, Employee, String, double> {
 
 public:
     ENABLE_DEEP_COPY
@@ -104,7 +104,7 @@ public:
     }
 };
 
-class SillyQuery : public SelectionComp<Employee, Supervisor> {
+class SimpleQuery : public SelectionComp<Employee, Supervisor> {
 
 public:
     ENABLE_DEEP_COPY
@@ -118,7 +118,7 @@ public:
     }
 };
 
-class SillyRead : public ScanUserSet<Supervisor> {
+class SimpleRead : public ScanUserSet<Supervisor> {
 
     ENABLE_DEEP_COPY
 
@@ -211,11 +211,11 @@ int main() {
     Vector<Handle<Computation>> myComputations;
 
     // create all of the computation objects
-    Handle<Computation> myScanSet = makeObject<SillyRead>();
-    Handle<Computation> myFilter = makeObject<SillyQuery>();
-    Handle<Computation> myAgg = makeObject<SillyAgg>();
+    Handle<Computation> myScanSet = makeObject<SimpleRead>();
+    Handle<Computation> myFilter = makeObject<SimpleQuery>();
+    Handle<Computation> myAgg = makeObject<Simple_Agg>();
     Handle<Computation> myFinalFilter = makeObject<FinalQuery>();
-    Handle<Computation> myWrite = makeObject<SillyWrite>();
+    Handle<Computation> myWrite = makeObject<SimpleWrite>();
 
     // put them in the list of computations
     myComputations.push_back(myScanSet);

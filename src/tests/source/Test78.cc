@@ -35,7 +35,6 @@
 #include "StringIntPair.h"
 #include "ScanIntSet.h"
 #include "ScanStringIntPairSet.h"
-#include "IntSillyJoin.h"
 #include "IntAggregation.h"
 #include "StringSelectionOfStringIntPair.h"
 #include "WriteSumResultSet.h"
@@ -47,6 +46,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "IntSimpleJoin.h"
 
 /* distributed join test case to test a 3-way join followed by an aggregation*/
 using namespace pdb;
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
 
-    pdbClient.registerType("libraries/libIntSillyJoin.so", errMsg);
+    pdbClient.registerType("libraries/libIntSimpleJoin.so", errMsg);
     pdbClient.registerType("libraries/libStringSelectionOfStringIntPair.so", errMsg);
     pdbClient.registerType("libraries/libIntAggregation.so", errMsg);
 
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test78_db", "test78_set2");
     Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
     mySelection->setInput(myScanSet2);
-    Handle<Computation> myJoin = makeObject<IntSillyJoin>();
+    Handle<Computation> myJoin = makeObject<IntSimpleJoin>();
     myJoin->setInput(0, myScanSet1);
     myJoin->setInput(1, myScanSet2);
     myJoin->setInput(2, mySelection);

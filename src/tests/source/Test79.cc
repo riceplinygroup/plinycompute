@@ -25,7 +25,6 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
 #include "AggregateComp.h"
@@ -36,7 +35,6 @@
 #include "ComputePlan.h"
 #include "StringIntPair.h"
 #include "ScanUserSet.h"
-#include "SillyJoin.h"
 #include "IntAggregation.h"
 #include "IntSelectionOfStringIntPair.h"
 #include "WriteUserSet.h"
@@ -48,6 +46,8 @@
 #include <chrono>
 #include <fcntl.h>
 #include <thread>
+#include "SimpleJoin.h"
+#include "SimpleSelection.h"
 
 /* distributed join test case to run joins with two sinks*/
 using namespace pdb;
@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleJoin.so", errMsg);
     pdbClient.registerType("libraries/libIntSelectionOfStringIntPair.so", errMsg);
 
 
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myScanSet1 = makeObject<ScanUserSet<int>>("test79_db", "test79_set1");
     Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test79_db", "test79_set2");
     Handle<Computation> myScanSet3 = makeObject<ScanUserSet<String>>("test79_db", "test79_set3");
-    Handle<Computation> myJoin = makeObject<SillyJoin>();
+    Handle<Computation> myJoin = makeObject<SimpleJoin>();
     myJoin->setInput(0, myScanSet1);
     myJoin->setInput(1, myScanSet2);
     myJoin->setInput(2, myScanSet3);

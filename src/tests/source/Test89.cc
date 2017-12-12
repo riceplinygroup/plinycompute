@@ -28,7 +28,6 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
 #include "ScanSupervisorSet.h"
-#include "SillyGroupBy.h"
 #include "DepartmentEmployees.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -41,6 +40,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "SimpleGroupBy.h"
 
 
 //to test iterative execution of aggregations
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     // register this query class
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    pdbClient.registerType("libraries/libSillyGroupBy.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleGroupBy.so", errMsg);
 
 
     for (int i = 0; i < 10; i++) {
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
 
         // create all of the computation objects
         Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test89_db", "test89_set");
-        Handle<Computation> myAgg = makeObject<SillyGroupBy>("test89_db", "output_set");
+        Handle<Computation> myAgg = makeObject<SimpleGroupBy>("test89_db", "output_set");
         myAgg->setAllocatorPolicy(noReuseAllocator);
         myAgg->setInput(myScanSet);
 

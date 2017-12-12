@@ -31,7 +31,6 @@
 #include "ScanSupervisorSet.h"
 #include "WriteBuiltinEmployeeSet.h"
 #include "SupervisorMultiSelection.h"
-#include "SillyAggregation.h"
 #include "AllSelectionWithCreation.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
@@ -45,6 +44,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include "SimpleAggregation.h"
 
 // Multiselection with aggregation
 
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
     pdbClient.registerType("libraries/libWriteBuiltinEmployeeSet.so", errMsg);
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
     pdbClient.registerType("libraries/libSupervisorMultiSelection.so", errMsg);
-    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleAggregation.so", errMsg);
     pdbClient.registerType("libraries/libAllSelectionWithCreation.so", errMsg);
 
     // create all of the computation objects
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myFilter = makeObject<AllSelectionWithCreation>();
     myFilter->setAllocatorPolicy(AllocatorPolicy::noReuseAllocator);
     myFilter->setInput(myFlatten);
-    Handle<Computation> myAgg = makeObject<SillyAggregation>("test86_db", "output_set");
+    Handle<Computation> myAgg = makeObject<SimpleAggregation>("test86_db", "output_set");
     myAgg->setInput(myFilter);
 
     auto begin = std::chrono::high_resolution_clock::now();

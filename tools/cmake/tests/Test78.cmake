@@ -5,7 +5,7 @@ add_test(selection-and-join-mixed ${CTEST_BINARY_DIRECTORY}/Test78 Y Y 1024 mast
 add_dependencies(build-tests Test78)
 
 # add build dependencies to shared libraries it uses
-add_dependencies(Test78 IntSillyJoin)
+add_dependencies(Test78 IntSimpleJoin)
 add_dependencies(Test78 ScanIntSet)
 add_dependencies(Test78 ScanStringIntPairSet)
 add_dependencies(Test78 StringSelectionOfStringIntPair)

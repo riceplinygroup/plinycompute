@@ -15,12 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_GROUPBY_CC
-#define SILLY_GROUPBY_CC
+#ifndef SIMPLE_AGG_H
+#define SIMPLE_AGG_H
 
-#include "SillyGroupBy.h"
-#include "GetVTable.h"
+// by Jia, Mar 2017
 
-GET_V_TABLE(SillyGroupBy)
+#include "ClusterAggregateComp.h"
+#include "DepartmentTotal.h"
+#include "SimpleEmployee.h"
+#include "LambdaCreationFunctions.h"
+
+
+using namespace pdb;
+
+class Simple_Aggregation
+    : public ClusterAggregateComp<DepartmentTotal, SimpleEmployee, String, double> {
+
+public:
+    ENABLE_DEEP_COPY
+
+    Simple_Aggregation() {}
+
+    // the key type must have == and size_t hash () defined
+    Lambda<String> getKeyProjection(Handle<SimpleEmployee> aggMe) override {
+        return makeLambdaFromMember(aggMe, department);
+    }
+
+    // the value type must have + defined
+    Lambda<double> getValueProjection(Handle<SimpleEmployee> aggMe) override {
+        return makeLambdaFromMember(aggMe, salary);
+    }
+};
+
 
 #endif

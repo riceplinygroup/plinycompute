@@ -15,37 +15,33 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef INT_SILLY_JOIN_H
-#define INT_SILLY_JOIN_H
 
-// by Jia, Mar 2017
+#ifndef SIMPLE_SELECT_H
+#define SIMPLE_SELECT_H
 
-#include "JoinComp.h"
-#include "PDBString.h"
-#include "StringIntPair.h"
+#include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-
+#include "SelectionComp.h"
+#include "Employee.h"
+#include "Supervisor.h"
+#include "PDBVector.h"
+#include "PDBString.h"
+#include "Supervisor.h"
 
 using namespace pdb;
-
-class IntSillyJoin : public JoinComp<int, int, StringIntPair, String> {
+class SimpleSelection : public SelectionComp<Employee, Supervisor> {
 
 public:
     ENABLE_DEEP_COPY
 
-    IntSillyJoin() {}
+    SimpleSelection() {}
 
-    Lambda<bool> getSelection(Handle<int> in1,
-                              Handle<StringIntPair> in2,
-                              Handle<String> in3) override {
-        return (makeLambdaFromSelf(in1) == makeLambdaFromMember(in2, myInt)) &&
-            (makeLambdaFromMember(in2, myString) == makeLambdaFromSelf(in3));
+    Lambda<bool> getSelection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getSteve) == makeLambdaFromMember(checkMe, me);
     }
 
-    Lambda<Handle<int>> getProjection(Handle<int> in1,
-                                      Handle<StringIntPair> in2,
-                                      Handle<String> in3) override {
-        return makeLambda(in1, [](Handle<int>& in1) { return in1; });
+    Lambda<Handle<Employee>> getProjection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getMe);
     }
 };
 

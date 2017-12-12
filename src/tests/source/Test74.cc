@@ -27,12 +27,10 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
 #include "AggregateComp.h"
 #include "ScanUserSet.h"
-#include "SillyAggregation.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -46,6 +44,9 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+
+#include "SimpleAggregation.h"
+#include "SimpleSelection.h"
 
 
 //to run a query graph that has two selection and one aggregation
@@ -237,16 +238,16 @@ int main(int argc, char* argv[]) {
         cout << "Created set.\n";
     }
 	
-    pdbClient.registerType("libraries/libSillySelection.so", errMsg);
-    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleSelection.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleAggregation.so", errMsg);
     pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanUserSet<Supervisor>>("test74_db", "test74_set");
-    Handle<Computation> myFilter = makeObject<SillySelection>();
+    Handle<Computation> myFilter = makeObject<SimpleSelection>();
     myFilter->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<SillyAggregation>();
+    Handle<Computation> myAgg = makeObject<SimpleAggregation>();
     myAgg->setInput(myFilter);
     Handle<Computation> mySelection = makeObject<FinalSelection>();
     mySelection->setInput(myAgg);

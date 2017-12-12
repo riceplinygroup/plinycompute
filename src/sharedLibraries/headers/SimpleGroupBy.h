@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_GROUPBY_H
-#define SILLY_GROUPBY_H
+#ifndef SIMPLE_GROUPBY_H
+#define SIMPLE_GROUPBY_H
 
 // by Jia, Mar 2017
 
@@ -28,7 +28,7 @@
 
 using namespace pdb;
 
-class SillyGroupBy : public ClusterAggregateComp<DepartmentEmployeeAges,
+class SimpleGroupBy : public ClusterAggregateComp<DepartmentEmployeeAges,
                                                  Supervisor,
                                                  String,
                                                  Handle<Map<String, Vector<int>>>> {
@@ -36,12 +36,12 @@ class SillyGroupBy : public ClusterAggregateComp<DepartmentEmployeeAges,
 public:
     ENABLE_DEEP_COPY
 
-    SillyGroupBy() {}
+    SimpleGroupBy() {}
 
     // the below constructor is NOT REQUIRED
     // user can also set output later by invoking the setOutput (std :: string dbName, std :: string
     // setName)  method
-    SillyGroupBy(std::string dbName, std::string setName) {
+    SimpleGroupBy(std::string dbName, std::string setName) {
         this->setOutput(dbName, setName);
     }
 

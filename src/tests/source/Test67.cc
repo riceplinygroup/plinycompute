@@ -27,12 +27,9 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
 #include "AggregateComp.h"
 #include "ScanSupervisorSet.h"
-#include "SillyAggregation.h"
-#include "SillySelection.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -45,6 +42,10 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+
+#include "SimpleAggregation.h"
+#include "SimpleSelection.h"
+#include "SimpleSelection.h"
 
 
 //To test an end-to-end distributed query graph that has an aggregation following a selection.
@@ -239,16 +240,16 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    pdbClient.registerType("libraries/libSillySelection.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleSelection.so", errMsg);
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSimpleAggregation.so", errMsg);
 
 
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test67_db", "test67_set");
-    Handle<Computation> myFilter = makeObject<SillySelection>();
+    Handle<Computation> myFilter = makeObject<SimpleSelection>();
     myFilter->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<SillyAggregation>("test67_db", "output_set1");
+    Handle<Computation> myAgg = makeObject<SimpleAggregation>("test67_db", "output_set1");
     myAgg->setInput(myFilter);
 
     auto begin = std::chrono::high_resolution_clock::now();

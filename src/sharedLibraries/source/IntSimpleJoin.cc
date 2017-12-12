@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef INT_SILLY_JOIN_CC
-#define INT_SILLY_JOIN_CC
+#ifndef INT_SIMPLE_JOIN_CC
+#define INT_SIMPLE_JOIN_CC
 
-#include "IntSillyJoin.h"
+#include "IntSimpleJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(IntSillyJoin)
+GET_V_TABLE(IntSimpleJoin)
 
 #endif
