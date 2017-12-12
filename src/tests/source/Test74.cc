@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myScanSet = makeObject<ScanUserSet<Supervisor>>("test74_db", "test74_set");
     Handle<Computation> myFilter = makeObject<SimpleSelection>();
     myFilter->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<SimpleAggregation>();
+    Handle<Computation> myAgg = makeObject<Simple_Aggregation>();
     myAgg->setInput(myFilter);
     Handle<Computation> mySelection = makeObject<FinalSelection>();
     mySelection->setInput(myAgg);
