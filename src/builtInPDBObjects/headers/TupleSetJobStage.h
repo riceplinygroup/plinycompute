@@ -76,16 +76,19 @@ public:
 
     ~TupleSetJobStage() {}
 
-
     std::string getJobStageType() override {
         return "TupleSetJobStage";
     }
 
+    int16_t getJobStageTypeID() override {
+        return TupleSetJobStage_TYPEID;
+    }
+
     // to set compute plan
-    void setComputePlan(Handle<ComputePlan> plan,
-                        std::string sourceTupleSetSpecifier,
-                        std::string targetTupleSetSpecifier,
-                        std::string targetComputationSpecifier) {
+    void setComputePlan(const Handle<ComputePlan> &plan,
+                        const std::string &sourceTupleSetSpecifier,
+                        const std::string &targetTupleSetSpecifier,
+                        const std::string &targetComputationSpecifier) {
         this->sharedPlan = plan;
         this->sourceTupleSetSpecifier = sourceTupleSetSpecifier;
         this->targetTupleSetSpecifier = targetTupleSetSpecifier;
@@ -113,10 +116,10 @@ public:
     }
 
     // to set tuplesets for building pipeline
-    void setTupleSetsToBuildPipeline(std::vector<std::string> buildMe) {
+    void setTupleSetsToBuildPipeline(const std::vector<std::string> &buildMe) {
         buildTheseTupleSets = makeObject<Vector<String>>();
-        for (int i = 0; i < buildMe.size(); i++) {
-            buildTheseTupleSets->push_back(buildMe[i]);
+        for (const auto &i : buildMe) {
+            buildTheseTupleSets->push_back(i);
         }
     }
 
@@ -298,7 +301,7 @@ public:
         return this->outputTypeName;
     }
 
-    void setOutputTypeName(std::string outputTypeName) {
+    void setOutputTypeName(const std::string &outputTypeName) {
         this->outputTypeName = outputTypeName;
     }
 
@@ -386,22 +389,6 @@ public:
 
     void setNodeId(NodeID nodeId) {
         this->myNodeId = nodeId;
-    }
-
-    bool getNeedsRemoveInputSet() {
-        return this->needsRemoveInputSet;
-    }
-
-    void setNeedsRemoveInputSet(bool needsRemoveInputSet) {
-        this->needsRemoveInputSet = needsRemoveInputSet;
-    }
-
-    bool getNeedsRemoveCombinerSet() {
-        return this->needsRemoveCombinerSet;
-    }
-
-    void setNeedsRemoveCombinerSet(bool needsRemoveCombinerSet) {
-        this->needsRemoveCombinerSet = needsRemoveCombinerSet;
     }
 
     void setTotalMemoryOnThisNode(size_t totalMem) {
@@ -498,12 +485,6 @@ private:
 
     // node id of the receiver of this message
     NodeID myNodeId;
-
-    // needs remove combiner set at frontend
-    bool needsRemoveCombinerSet;
-
-    // needs remove input set at frontend
-    bool needsRemoveInputSet;
 
     // memory size on this node
     size_t totalMemoryOnThisNode;

@@ -67,9 +67,12 @@ public:
         return this->numNodePartitions;
     }
 
-
     std::string getJobStageType() override {
         return "AggregationJobStage";
+    }
+
+    int16_t getJobStageTypeID() override {
+        return AggregationJobStage_TYPEID;
     }
 
     // to set source set identifier
@@ -134,14 +137,6 @@ public:
 
     void setAggComputation(Handle<AbstractAggregateComp> aggComputation) {
         this->aggComputation = aggComputation;
-    }
-
-    void setNeedsRemoveInputSet(bool needsRemoveInputSet) {
-        this->needsRemoveInputSet = needsRemoveInputSet;
-    }
-
-    bool getNeedsRemoveInputSet() {
-        return this->needsRemoveInputSet;
     }
 
     void setTotalMemoryOnThisNode(size_t totalMem) {

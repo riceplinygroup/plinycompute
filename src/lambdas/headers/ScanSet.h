@@ -30,6 +30,10 @@ class ScanSet : public Computation {
         return std::string("ScanSet");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return ScanSetAtomicTypeID;
+    }
 
     // gets the name of the i^th input type...
     std::string getIthInputType(int i) override {

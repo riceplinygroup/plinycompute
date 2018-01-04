@@ -29,8 +29,6 @@
 namespace pdb {
 
 //this class encapsulates a computation that write objects of OutputClass type to a userset defined by setName and dbName.
-
-
 template <class OutputClass>
 class WriteUserSet : public Computation {
 
@@ -111,6 +109,11 @@ public:
     // to return the type of the computation
     std::string getComputationType() override {
         return std::string("WriteUserSet");
+    }
+
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return WriteUserSetTypeID;
     }
 
     // to return the output type

@@ -196,6 +196,11 @@ public:
         return std::string("ClusterAggregationComp");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return ClusterAggregationCompTypeID;
+    }
+
     // to get output type
     std::string getOutputType() override {
         return getTypeName<OutputClass>();

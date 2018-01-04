@@ -91,22 +91,15 @@ public:
         return "BroadcastJoinBuildHTJobStage";
     }
 
+    // return job stage type id
+    int16_t getJobStageTypeID() override {
+        return BroadcastJoinBuildHTJobStage_TYPEID;
+    }
+
     // return job stage id
     JobStageID getStageId() override {
         return this->id;
     }
-
-    // set whether to remove input set after processing this job stage
-    void setNeedsRemoveInputSet(bool needsRemoveInputSet) {
-        this->needsRemoveInputSet = needsRemoveInputSet;
-    }
-
-
-    // return whether to remove input set after processing this job stage
-    bool getNeedsRemoveInputSet() {
-        return this->needsRemoveInputSet;
-    }
-
 
     // set name of the hash set that stores the broadcasted table
     void setHashSetName(std::string hashSetName) {
@@ -133,10 +126,10 @@ public:
     }
 
     // to set compute plan
-    void setComputePlan(Handle<ComputePlan> plan,
-                        std::string sourceTupleSetSpecifier,
-                        std::string targetTupleSetSpecifier,
-                        std::string targetComputationSpecifier) {
+    void setComputePlan(const Handle<ComputePlan> &plan,
+                        const std::string &sourceTupleSetSpecifier,
+                        const std::string &targetTupleSetSpecifier,
+                        const std::string &targetComputationSpecifier) {
         this->sharedPlan = plan;
         this->sourceTupleSetSpecifier = sourceTupleSetSpecifier;
         this->targetTupleSetSpecifier = targetTupleSetSpecifier;
