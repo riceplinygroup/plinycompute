@@ -556,7 +556,6 @@ common_env.Program('bin/test403', ['build/tests/Test403.cc'] + all)
 common_env.Program('bin/test405', ['build/tests/Test405.cc'] + all + pdb_client)
 common_env.Program('bin/test42', ['build/tests/Test42.cc'] + all)
 common_env.Program('bin/test43', ['build/tests/Test43.cc'] + all)
-common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
 common_env.Program('bin/test45', ['build/tests/Test45.cc'] + all)
 common_env.Program('bin/test46', ['build/tests/Test46.cc'] + all)
 common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all)
@@ -638,7 +637,6 @@ common_env.Depends(pdbTest, [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server', 
-  'bin/test44', 
   'bin/test46', 
   'bin/test74', 
   'bin/test79', 
