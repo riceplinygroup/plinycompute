@@ -170,6 +170,10 @@ public:
         return std::string("ScanUserSet");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return ScanSetTypeID;
+    }
 
     // below function implements the interface for parsing computation into a TCAP string
     std::string toTCAPString(std::vector<InputTupleSetSpecifier>& inputTupleSets,

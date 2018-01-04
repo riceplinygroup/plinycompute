@@ -31,6 +31,11 @@ class SetWriter : public Computation {
         return std::string("SetWriter");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return SetWriterTypeID;
+    }
+
     // gets the name of the i^th input type...
     std::string getIthInputType(int i) override {
         if (i == 0) {

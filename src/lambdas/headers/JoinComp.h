@@ -575,6 +575,11 @@ public:
         return std::string("JoinComp");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return JoinCompTypeID;
+    }
+
     // JiaNote: Returning a TCAP string for this Join computation
     virtual std::string toTCAPString(std::vector<InputTupleSetSpecifier>& inputTupleSets,
                                      int computationLabel,

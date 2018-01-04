@@ -35,6 +35,20 @@ struct AtomicComputationList;
 struct AtomicComputation;
 typedef std::shared_ptr<struct AtomicComputation> AtomicComputationPtr;
 
+// the TypeIDs for each AtomicComputations
+enum AtomicComputationTypeID {
+  ApplyLambdaTypeID,
+  HashLeftTypeID,
+  HashRightTypeID,
+  HashOneTypeID,
+  FlattenTypeID,
+  ApplyFilterTypeID,
+  ApplyAggTypeID,
+  ScanSetAtomicTypeID,
+  WriteSetTypeID,
+  ApplyJoinTypeID
+};
+
 struct AtomicComputation {
 
 private:
@@ -47,6 +61,9 @@ private:
 public:
     // returns the type of this computation
     virtual std::string getAtomicComputationType() = 0;
+
+    // returns the type id of this computation
+    virtual AtomicComputationTypeID getAtomicComputationTypeID() = 0;
 
     // sometimes, we'll need to figure out the type of a particular attribute in a tuple set.  What
     // this does is to
@@ -115,8 +132,7 @@ public:
         return projection;
     }
 
-    // this gets a string that allows us to look up the actual Computation object associated wit
-    // this node
+    // this gets a string that allows us to look up the actual Computation object associated with this node
     std::string& getComputationName() {
         return computationName;
     }

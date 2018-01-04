@@ -36,6 +36,11 @@ public:
                                            TupleSpec& pipelinedInputSchema,
                                            TupleSpec& pipelinedAttsToOperateOn,
                                            TupleSpec& pipelinedAttsToIncludeInOutput) = 0;
+
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return JoinCompBaseTypeID;
+    }
 };
 }
 

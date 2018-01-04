@@ -111,6 +111,22 @@ public:
     }
   }
 
+  // to increment page number of a set
+  void incrementNumPages(std::string databaseName, std::string setName, size_t numPages) {
+    std::string key = databaseName + ":" + setName;
+    pthread_mutex_lock(&mutex);
+    dataStatistics[key].numPages += numPages;
+    pthread_mutex_unlock(&mutex);
+  }
+
+  // to increment number of bytes of a set
+  void incrementNumBytes(std::string databaseName, std::string setName, size_t numBytes) {
+    std::string key = databaseName + ":" + setName;
+    pthread_mutex_lock(&mutex);
+    dataStatistics[key].numBytes += numBytes;
+    pthread_mutex_unlock(&mutex);
+  }
+
   // to set numBytes of a set
   void setNumBytes(std::string databaseName, std::string setName,
                    size_t numBytes) {

@@ -55,6 +55,11 @@ public:
         return std::string("MultiSelectionComp");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return MultiSelectionCompTypeID;
+    }
+
     // gets the name of the i^th input type...
     std::string getIthInputType(int i) override {
         if (i == 0) {

@@ -145,8 +145,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             std::cout << "HashPartitioned data set size: " << inputSet->getNumPages() << " pages"
                       << std::endl;
             newRequest->setNumPages(inputSet->getNumPages());
-            newRequest->setNeedsRemoveInputSet(request->getNeedsRemoveInputSet());
-            newRequest->setNeedsRemoveInputSet(false);  // the scheduler will remove this set
             std::cout << "Input is set with setName=" << inSetName
                       << ", setId=" << inputSet->getSetID() << std::endl;
 
@@ -172,13 +170,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                     errMsg = std::string("backend failure: ") + errMsg;
                 }
             }
-
-            // remove sets
-            if (newRequest->getNeedsRemoveInputSet() == true) {
-                // remove input set
-                getFunctionality<PangeaStorageServer>().removeSet(inDatabaseName, inSetName);
-            }
-
 
             // forward result
             // now, we send back the result
@@ -273,8 +264,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             std::cout << "Broadcasted data set size: " << inputSet->getNumPages() << " pages"
                       << std::endl;
             newRequest->setNumPages(inputSet->getNumPages());
-            newRequest->setNeedsRemoveInputSet(request->getNeedsRemoveInputSet());
-            newRequest->setNeedsRemoveInputSet(false);  // the scheduler will remove this set
             PDB_COUT << "Input is set with setName=" << inSetName
                      << ", setId=" << inputSet->getSetID() << std::endl;
 
@@ -304,13 +293,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 errMsg = std::string("Error: broadcasted data size is 0");
                 std::cout << errMsg << std::endl;
             }
-
-            // remove sets
-            if (newRequest->getNeedsRemoveInputSet() == true) {
-                // remove input set
-                getFunctionality<PangeaStorageServer>().removeSet(inDatabaseName, inSetName);
-            }
-
 
             // forward result
             // now, we send back the result
@@ -410,8 +392,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             sourceContext->setSetId(inputSet->getSetID());
             sourceContext->setPageSize(inputSet->getPageSize());
             newRequest->setSourceContext(sourceContext);
-            newRequest->setNeedsRemoveInputSet(request->getNeedsRemoveInputSet());
-            newRequest->setNeedsRemoveInputSet(false);  // the scheduler will remove this set
             PDB_COUT << "Input is set with setName=" << inSetName
                      << ", setId=" << inputSet->getSetID() << std::endl;
 
@@ -478,14 +458,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                     errMsg = std::string("backend failure: ") + errMsg;
                 }
             }
-
-
-            // remove sets
-            if (newRequest->getNeedsRemoveInputSet() == true) {
-                // remove input set
-                getFunctionality<PangeaStorageServer>().removeSet(inDatabaseName, inSetName);
-            }
-
 
             // forward result
             // now, we send back the result
@@ -700,8 +672,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                     newRequest->setCombinerContext(nullptr);
                 }
 
-                newRequest->setNeedsRemoveCombinerSet(needsRemoveCombinerSet);
-
                 newRequest->print();
 
                 if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
@@ -725,13 +695,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 getFunctionality<PangeaStorageServer>().removeSet(combinerDatabaseName,
                                                                   combinerSetName);
             }
-
-            if ((newRequest->getNeedsRemoveInputSet() == true) &&
-                (request->isInputAggHashOut() == false)) {
-                // remove input set
-                getFunctionality<PangeaStorageServer>().removeSet(inDatabaseName, inSetName);
-            }
-
 
             // now, we send back the result
             Handle<SetIdentifier> result = makeObject<SetIdentifier>(outDatabaseName, outSetName);

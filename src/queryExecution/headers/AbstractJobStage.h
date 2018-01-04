@@ -34,6 +34,7 @@ public:
     }
 
 
+    virtual int16_t getJobStageTypeID() = 0;
     virtual std::string getJobStageType() = 0;
     virtual JobStageID getStageId() = 0;
     virtual void print() = 0;

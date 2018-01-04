@@ -33,6 +33,23 @@ namespace pdb {
 
 class ComputePlan;
 
+/**
+ * List all the possible computation types
+ */
+enum ComputationTypeID {
+    WriteUserSetTypeID,
+    ScanUserSetTypeID,
+    SelectionCompTypeID,
+    AggregateCompTypeID,
+    MultiSelectionCompTypeID,
+    SetWriterTypeID,
+    AbstractAggregateCompTypeID,
+    ScanSetTypeID,
+    JoinCompBaseTypeID,
+    JoinCompTypeID,
+    ClusterAggregationCompTypeID
+};
+
 // all nodes in a user-supplied computation are descended from this
 class Computation : public Object {
 
@@ -129,6 +146,9 @@ public:
 
     // gets the output type of this query as a string
     virtual std::string getOutputType() = 0;
+
+    // gets the output type if of this query
+    virtual ComputationTypeID getComputationTypeID() = 0;
 
     // get the number of consumers of this query
     int getNumConsumers() {

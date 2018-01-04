@@ -74,7 +74,9 @@ int main(int argc, char* argv[]) {
     std::vector<Handle<AbstractJobStage>> queryPlan;
     std::vector<Handle<SetIdentifier>> interGlobalSets;
     std::cout << "PARSE TCAP STRING..." << std::endl;
-    tcapAnalyzer.analyze(queryPlan, interGlobalSets);
+    tcapAnalyzer.analyze(queryPlan, interGlobalSets, <#initializer#>, AtomicComputationPtr(), AtomicComputationPtr(),
+                         AtomicComputationPtr(), Handle<Computation>(), Handle<SetIdentifier>(), <#initializer#>, false,
+                         std::__cxx11::string(), defaultAllocator);
     std::cout << "PRINT PHYSICAL PLAN..." << std::endl;
     for (int i = 0; i < queryPlan.size(); i++) {
         std::cout << "to print the " << i << "-th plan" << std::endl;

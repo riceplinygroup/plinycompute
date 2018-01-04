@@ -89,6 +89,10 @@ public:
     // to set the set name
     virtual void setSetName(std::string setName) = 0;
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return AbstractAggregateCompTypeID;
+    }
 
     bool needsMaterializeOutput() override {
         return this->materializeAggOut;

@@ -46,6 +46,10 @@ public:
         return std::string("Apply");
     }
 
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+        return ApplyLambdaTypeID;
+    }
+
     std::pair<std::string, std::string> findSource(std::string attName,
                                                    AtomicComputationList& allComps) override {
 
@@ -94,6 +98,10 @@ public:
 
     std::string getAtomicComputationType() override {
         return std::string("HashLeft");
+    }
+
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return HashLeftTypeID;
     }
 
     // returns the name of the lambda we are supposed to apply
@@ -148,6 +156,10 @@ public:
         return std::string("HashRight");
     }
 
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return HashRightTypeID;
+    }
+
     // returns the name of the lambda we are supposed to apply
     std::string& getLambdaToApply() {
         return lambdaName;
@@ -199,6 +211,9 @@ public:
         return std::string("HashOne");
     }
 
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return HashOneTypeID;
+    }
 
     std::pair<std::string, std::string> findSource(std::string attName,
                                                    AtomicComputationList& allComps) override {
@@ -238,6 +253,9 @@ public:
         return std::string("Flatten");
     }
 
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return FlattenTypeID;
+    }
 
     std::pair<std::string, std::string> findSource(std::string attName,
                                                    AtomicComputationList& allComps) override {
@@ -283,6 +301,10 @@ public:
         return std::string("Filter");
     }
 
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return ApplyFilterTypeID;
+    }
+
     std::pair<std::string, std::string> findSource(std::string attName,
                                                    AtomicComputationList& allComps) override {
 
@@ -307,6 +329,10 @@ public:
 
     std::string getAtomicComputationType() override {
         return std::string("Aggregate");
+    }
+
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return ApplyAggTypeID;
     }
 
     std::pair<std::string, std::string> findSource(std::string attName,
@@ -345,6 +371,10 @@ public:
 
     std::string getAtomicComputationType() override {
         return std::string("Scan");
+    }
+
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return ScanSetAtomicTypeID;
     }
 
     std::string& getDBName() {
@@ -399,6 +429,10 @@ public:
         return std::string("WriteSet");
     }
 
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return WriteSetTypeID;
+    }
+
     std::string& getDBName() {
         return dbName;
     }
@@ -449,6 +483,10 @@ public:
 
     std::string getAtomicComputationType() override {
         return std::string("JoinSets");
+    }
+
+    AtomicComputationTypeID getAtomicComputationTypeID() override {
+      return ApplyJoinTypeID;
     }
 
     bool isTraversed() {

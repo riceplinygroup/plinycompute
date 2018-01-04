@@ -45,10 +45,15 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include <StringIntPair.h>
+#include <StringSelectionOfStringIntPair.h>
+#include <IntSimpleJoin.h>
+#include <IntAggregation.h>
 
 #include "SimpleAggregation.h"
 #include "SimpleSelection.h"
 #include "SimpleSelection.h"
+#include "WriteUserSet.h"
 
 
 using namespace pdb;
@@ -57,13 +62,23 @@ int main(int argc, char* argv[]) {
 
     // create all of the computation objects
     const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
-    Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("chris_db", "chris_set");
-    Handle<Computation> myFilter = makeObject<SimpleSelection>();
-    myFilter->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<SimpleAggregation>("chris_db", "output_set1");
-    myAgg->setInput(myFilter);
+
+
+    Handle<Computation> myScanSet1 = makeObject<ScanUserSet<int>>("test78_db", "test78_set1");
+    Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test78_db", "test78_set2");
+    Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
+    mySelection->setInput(myScanSet2);
+    Handle<Computation> myJoin = makeObject<IntSimpleJoin>();
+    myJoin->setInput(0, myScanSet1);
+    myJoin->setInput(1, myScanSet2);
+    myJoin->setInput(2, mySelection);
+    Handle<Computation> myAggregation = makeObject<IntAggregation>();
+    myAggregation->setInput(myJoin);
+    Handle<Computation> myWriter = makeObject<WriteUserSet<SumResult>>("test78_db", "output_set1");
+    myWriter->setInput(myAggregation);
+
     std::vector<Handle<Computation>> queryGraph;
-    queryGraph.push_back(myAgg);
+    queryGraph.push_back(myWriter);
     QueryGraphAnalyzer queryAnalyzer(queryGraph);
     std::string tcapString = queryAnalyzer.parseTCAPString();
     std::cout << "TCAP OUTPUT:" << std::endl;
@@ -71,27 +86,38 @@ int main(int argc, char* argv[]) {
     std::vector<Handle<Computation>> computations;
     std::cout << "PARSE COMPUTATIONS..." << std::endl;
     queryAnalyzer.parseComputations(computations);
-    Handle<Vector<Handle<Computation>>> computationsToSend =
-        makeObject<Vector<Handle<Computation>>>();
-    for (int i = 0; i < computations.size(); i++) {
-        computationsToSend->push_back(computations[i]);
+    Handle<Vector<Handle<Computation>>> computationsToSend = makeObject<Vector<Handle<Computation>>>();
+    for (const auto &computation : computations) {
+        computationsToSend->push_back(computation);
     }
     PDBLoggerPtr logger = make_shared<PDBLogger>("testAggregationAnalysis.log");
     ConfigurationPtr conf = make_shared<Configuration>();
-    TCAPAnalyzer tcapAnalyzer("TestAggregationJob", computationsToSend, tcapString, logger, conf);
+    std::string jobId = std::string("TestAggregationJob");
+    TCAPAnalyzer tcapAnalyzer(jobId, computationsToSend, tcapString, logger, conf);
 
     std::vector<Handle<AbstractJobStage>> queryPlan;
     std::vector<Handle<SetIdentifier>> interGlobalSets;
-    std::cout << "PARSE TCAP STRING..." << std::endl;
-    tcapAnalyzer.analyze(queryPlan, interGlobalSets);
-    std::cout << "PRINT PHYSICAL PLAN..." << std::endl;
-    for (int i = 0; i < queryPlan.size(); i++) {
-        std::cout << "to print the " << i << "-th plan" << std::endl;
-        queryPlan[i]->print();
-    }
-    int ret = system("scripts/cleanupSoFiles.sh");
-    if (ret < 0) {
-        std::cout << "Can't cleanup so files" << std::endl;
+
+    int jobStageId;
+
+    std::vector<Handle<AbstractJobStage>> jobStages;
+    std::vector<Handle<SetIdentifier>> intermediateSets;
+
+    StatisticsPtr stats = nullptr;
+
+    while (tcapAnalyzer.hasSources()) {
+        bool success = false;
+        while (tcapAnalyzer.hasSources() && !success) {
+
+            success = tcapAnalyzer.getNextStagesOptimized(jobStages,
+                                                          intermediateSets,
+                                                          stats,
+                                                          jobStageId);
+        }
+
+
+        jobStages.clear();
+        intermediateSets.clear();
     }
 }
 

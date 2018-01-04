@@ -65,6 +65,11 @@ class AggregateComp : public Computation {
         return std::string("AggregationComp");
     }
 
+    // to return the type if of this computation
+    ComputationTypeID getComputationTypeID() override {
+        return AggregateCompTypeID;
+    }
+
     int getNumInputs() override {
         return 1;
     }

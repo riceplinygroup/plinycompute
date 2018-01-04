@@ -111,6 +111,10 @@ public:
         return this->pageSize;
     }
 
+    std::string toSourceSetName() {
+        return getDatabase() + ":" + getSetName();
+    }
+
 private:
     String dataBase;
     String setName;

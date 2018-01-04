@@ -76,20 +76,16 @@ QuerySchedulerServer::~QuerySchedulerServer() {
 QuerySchedulerServer::QuerySchedulerServer(PDBLoggerPtr logger,
                                            ConfigurationPtr conf,
                                            bool pseudoClusterMode,
-                                           double partitionToCoreRatio,
-                                           bool isDynamicPlanning,
-                                           bool removeIntermediateDataEarly) {
+                                           double partitionToCoreRatio) {
+    pthread_mutex_init(&connection_mutex, nullptr);
+
     this->port = 8108;
     this->logger = logger;
     this->conf = conf;
     this->pseudoClusterMode = pseudoClusterMode;
-    pthread_mutex_init(&connection_mutex, nullptr);
-    this->jobStageId = 0;
     this->partitionToCoreRatio = partitionToCoreRatio;
-    this->dynamicPlanningOrNot = isDynamicPlanning;
-    this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
     this->statsForOptimization = nullptr;
-    this->initializeStats();
+    this->standardResources = nullptr;
 }
 
 
@@ -97,929 +93,505 @@ QuerySchedulerServer::QuerySchedulerServer(int port,
                                            PDBLoggerPtr logger,
                                            ConfigurationPtr conf,
                                            bool pseudoClusterMode,
-                                           double partitionToCoreRatio,
-                                           bool isDynamicPlanning,
-                                           bool removeIntermediateDataEarly) {
+                                           double partitionToCoreRatio) {
+    pthread_mutex_init(&connection_mutex, nullptr);
+
     this->port = port;
     this->logger = logger;
     this->conf = conf;
     this->pseudoClusterMode = pseudoClusterMode;
-    pthread_mutex_init(&connection_mutex, nullptr);
-    this->jobStageId = 0;
     this->partitionToCoreRatio = partitionToCoreRatio;
-    this->dynamicPlanningOrNot = isDynamicPlanning;
-    this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
     this->statsForOptimization = nullptr;
-    this->initializeStats();
+    this->standardResources = nullptr;
 }
 
 void QuerySchedulerServer::cleanup() {
 
+    // delete standard resources if they exist and set them to null
     delete this->standardResources;
     this->standardResources = nullptr;
 
-    for (int i = 0; i < currentPlan.size(); i++) {
-        currentPlan[i] = nullptr;
-    }
-    this->currentPlan.clear();
-
-    for (int i = 0; i < queryPlan.size(); i++) {
-        queryPlan[i] = nullptr;
-    }
-    this->queryPlan.clear();
-
-    for (int i = 0; i < interGlobalSets.size(); i++) {
-        interGlobalSets[i] = nullptr;
+    // clean the list of intermediate sets that need to be removed
+    for (auto &interGlobalSet : interGlobalSets) {
+        interGlobalSet = nullptr;
     }
     this->interGlobalSets.clear();
-
-    this->jobStageId = 0;
 }
 
-QuerySchedulerServer::QuerySchedulerServer(std::string resourceManagerIp,
-                                           int port,
-                                           PDBLoggerPtr logger,
-                                           ConfigurationPtr conf,
-                                           bool usePipelineNetwork,
-                                           double partitionToCoreRatio,
-                                           bool isDynamicPlanning,
-                                           bool removeIntermediateDataEarly) {
+void QuerySchedulerServer::initialize() {
 
-    this->resourceManagerIp = resourceManagerIp;
-    this->port = port;
-    this->conf = conf;
-    this->standardResources = nullptr;
-    this->logger = logger;
-    this->usePipelineNetwork = usePipelineNetwork;
-    this->jobStageId = 0;
-    this->partitionToCoreRatio = partitionToCoreRatio;
-    this->dynamicPlanningOrNot = isDynamicPlanning;
-    this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
-    this->statsForOptimization = nullptr;
-    this->initializeStats();
+  // remove the standard resources if there are any
+  delete this->standardResources;
+  this->standardResources = new std::vector<StandardResourceInfoPtr>();
+
+  // depending of whether we are running in pseudo cluster mode
+  // or not we need to grab the standard resources from a different place
+  if (!pseudoClusterMode) {
+      initializeForServerMode();
+  } else {
+      initializeForPseudoClusterMode();
+  }
 }
 
-void QuerySchedulerServer::initialize(bool isRMRunAsServer) {
-    if (this->standardResources != nullptr) {
-        delete this->standardResources;
-    }
-    this->standardResources = new std::vector<StandardResourceInfoPtr>();
-    if (pseudoClusterMode == false) {
-        UseTemporaryAllocationBlock(2 * 1024 * 1024);
-        Handle<Vector<Handle<ResourceInfo>>> resourceObjects;
-        PDB_COUT << "To get the resource object from the resource manager" << std::endl;
-        if (isRMRunAsServer == true) {
-            resourceObjects = getFunctionality<ResourceManagerServer>().getAllResources();
-        } else {
-            ResourceManagerServer rm("conf/serverlist", 8108);
-            resourceObjects = rm.getAllResources();
-        }
+void QuerySchedulerServer::initializeForPseudoClusterMode() {
 
-        // add and print out the resources
-        for (int i = 0; i < resourceObjects->size(); i++) {
+    // all the stuff we create will be stored here
+    const UseTemporaryAllocationBlock block(2 * 1024 * 1024);
 
-            PDB_COUT << i << ": address=" << (*(resourceObjects))[i]->getAddress()
-                     << ", port=" << (*(resourceObjects))[i]->getPort()
-                     << ", node=" << (*(resourceObjects))[i]->getNodeId()
-                     << ", numCores=" << (*(resourceObjects))[i]->getNumCores()
-                     << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std::endl;
-            StandardResourceInfoPtr currentResource = std::make_shared<StandardResourceInfo>(
-                (*(resourceObjects))[i]->getNumCores(),
-                (*(resourceObjects))[i]->getMemSize(),
-                (*(resourceObjects))[i]->getAddress().c_str(),
-                (*(resourceObjects))[i]->getPort(),
-                (*(resourceObjects))[i]->getNodeId());
-            this->standardResources->push_back(currentResource);
-        }
+    PDB_COUT << "To get the node object from the resource manager" << std::endl;
+    auto nodeObjects = getFunctionality<ResourceManagerServer>().getAllNodes();
 
-    } else {
-        UseTemporaryAllocationBlock(2 * 1024 * 1024);
-        Handle<Vector<Handle<NodeDispatcherData>>> nodeObjects;
-        PDB_COUT << "To get the node object from the resource manager" << std::endl;
-        if (isRMRunAsServer == true) {
-            nodeObjects = getFunctionality<ResourceManagerServer>().getAllNodes();
-        } else {
-            ResourceManagerServer rm("conf/serverlist", 8108);
-            nodeObjects = rm.getAllNodes();
-        }
+    // add and print out the resources
+    for (int i = 0; i < nodeObjects->size(); i++) {
 
-        // add and print out the resources
-        for (int i = 0; i < nodeObjects->size(); i++) {
-
-            PDB_COUT << i << ": address=" << (*(nodeObjects))[i]->getAddress()
-                     << ", port=" << (*(nodeObjects))[i]->getPort()
-                     << ", node=" << (*(nodeObjects))[i]->getNodeId() << std::endl;
-            StandardResourceInfoPtr currentResource =
+        PDB_COUT << i << ": address=" << (*(nodeObjects))[i]->getAddress()
+                 << ", port=" << (*(nodeObjects))[i]->getPort()
+                 << ", node=" << (*(nodeObjects))[i]->getNodeId() << std::endl;
+        StandardResourceInfoPtr currentResource =
                 std::make_shared<StandardResourceInfo>(DEFAULT_NUM_CORES / (nodeObjects->size()),
                                                        DEFAULT_MEM_SIZE / (nodeObjects->size()),
                                                        (*(nodeObjects))[i]->getAddress().c_str(),
                                                        (*(nodeObjects))[i]->getPort(),
                                                        (*(nodeObjects))[i]->getNodeId());
-            this->standardResources->push_back(currentResource);
-        }
+        this->standardResources->push_back(currentResource);
     }
 }
 
-// collect the statistics that will be used for optimizer
-// this needs the functionality of catalog and distributed storage manager
-void QuerySchedulerServer::initializeStats() {
-    // TODO: to load stats from file
-    this->statsForOptimization = nullptr;
-    this->standardResources = nullptr;
-    return;
+void QuerySchedulerServer::initializeForServerMode() {
+
+    // all the stuff we create will be stored here
+    const UseTemporaryAllocationBlock block(2 * 1024 * 1024);
+
+    PDB_COUT << "To get the resource object from the resource manager" << std::endl;
+    auto resourceObjects = getFunctionality<ResourceManagerServer>().getAllResources();
+
+    // add and print out the resources
+    for (int i = 0; i < resourceObjects->size(); i++) {
+
+        PDB_COUT << i << ": address=" << (*(resourceObjects))[i]->getAddress()
+                 << ", port=" << (*(resourceObjects))[i]->getPort()
+                 << ", node=" << (*(resourceObjects))[i]->getNodeId()
+                 << ", numCores=" << (*(resourceObjects))[i]->getNumCores()
+                 << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std::endl;
+        StandardResourceInfoPtr currentResource = std::make_shared<StandardResourceInfo>(
+                (*(resourceObjects))[i]->getNumCores(),
+                (*(resourceObjects))[i]->getMemSize(),
+                (*(resourceObjects))[i]->getAddress().c_str(),
+                (*(resourceObjects))[i]->getPort(),
+                (*(resourceObjects))[i]->getNodeId());
+        this->standardResources->push_back(currentResource);
+    }
 }
 
-// return statsForOptimization
+
 StatisticsPtr QuerySchedulerServer::getStats() {
     return statsForOptimization;
 }
 
-// to schedule dynamic pipeline stages
-// this must be invoked after initialize() and before cleanup()
+
 void QuerySchedulerServer::scheduleStages(std::vector<Handle<AbstractJobStage>>& stagesToSchedule,
-                                          std::vector<Handle<SetIdentifier>>& intermediateSets,
                                           std::shared_ptr<ShuffleInfo> shuffleInfo) {
 
     int counter = 0;
-    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& counter) {
-        counter++;
-        PDB_COUT << "counter = " << counter << std::endl;
+
+    // create the buzzer
+    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& cnt) {
+        cnt++;
+        PDB_COUT << "counter = " << cnt << std::endl;
     });
 
-    int numStages = stagesToSchedule.size();
+    // go though all the stages and send them to every node
+    for (auto &stage : stagesToSchedule) {
+        for (unsigned long node = 0; node < shuffleInfo->getNumNodes(); node++) {
 
-    for (int i = 0; i < numStages; i++) {
-        for (int j = 0; j < shuffleInfo->getNumNodes(); j++) {
+            // grab a worker
             PDBWorkerPtr myWorker = getWorker();
-            PDBWorkPtr myWork = make_shared<GenericWork>([&, i, j](PDBBuzzerPtr callerBuzzer) {
-#ifdef PROFILING
-                auto scheduleBegin = std::chrono::high_resolution_clock::now();
-#endif
 
-
-                const UseTemporaryAllocationBlock block(256 * 1024 * 1024);
-
-
-                int port = (*(this->standardResources))[j]->getPort();
-                PDB_COUT << "port:" << port << std::endl;
-                std::string ip = (*(this->standardResources))[j]->getAddress();
-                PDB_COUT << "ip:" << ip << std::endl;
-                size_t memory = (*(this->standardResources))[j]->getMemSize();
-                // create PDBCommunicator
-                pthread_mutex_lock(&connection_mutex);
-                PDB_COUT << "to connect to the remote node" << std::endl;
-                PDBCommunicatorPtr communicator = std::make_shared<PDBCommunicator>();
-
-                string errMsg;
-                bool success;
-                if (communicator->connectToInternetServer(logger, port, ip, errMsg)) {
-                    success = false;
-                    std::cout << errMsg << std::endl;
-                    pthread_mutex_unlock(&connection_mutex);
-                    callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                    return;
-                }
-                pthread_mutex_unlock(&connection_mutex);
-
-                // get current stage to schedule
-                Handle<AbstractJobStage> stage = stagesToSchedule[i];
-
-                // schedule the stage
-                if (stage->getJobStageType() == "TupleSetJobStage") {
-                    Handle<TupleSetJobStage> tupleSetStage =
-                        unsafeCast<TupleSetJobStage, AbstractJobStage>(stage);
-                    tupleSetStage->setTotalMemoryOnThisNode(memory);
-                    success = scheduleStage(j, tupleSetStage, communicator, DeepCopy);
-                } else if (stage->getJobStageType() == "AggregationJobStage") {
-                    Handle<AggregationJobStage> aggStage =
-                        unsafeCast<AggregationJobStage, AbstractJobStage>(stage);
-                    int numPartitionsOnThisNode =
-                        (int)((double)(standardResources->at(j)->getNumCores()) *
-                              partitionToCoreRatio);
-                    if (numPartitionsOnThisNode == 0) {
-                        numPartitionsOnThisNode = 1;
-                    }
-                    aggStage->setNumNodePartitions(numPartitionsOnThisNode);
-                    aggStage->setAggTotalPartitions(shuffleInfo->getNumHashPartitions());
-                    aggStage->setAggBatchSize(DEFAULT_BATCH_SIZE);
-                    aggStage->setTotalMemoryOnThisNode(memory);
-                    success = scheduleStage(j, aggStage, communicator, DeepCopy);
-                } else if (stage->getJobStageType() == "BroadcastJoinBuildHTJobStage") {
-                    Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage =
-                        unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage>(stage);
-                    broadcastJoinStage->setTotalMemoryOnThisNode(memory);
-                    success = scheduleStage(j, broadcastJoinStage, communicator, DeepCopy);
-                } else if (stage->getJobStageType() == "HashPartitionedJoinBuildHTJobStage") {
-                    Handle<HashPartitionedJoinBuildHTJobStage> hashPartitionedJoinStage =
-                        unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage>(stage);
-                    int numPartitionsOnThisNode =
-                        (int)((double)(standardResources->at(j)->getNumCores()) *
-                              partitionToCoreRatio);
-                    if (numPartitionsOnThisNode == 0) {
-                        numPartitionsOnThisNode = 1;
-                    }
-                    hashPartitionedJoinStage->setNumNodePartitions(numPartitionsOnThisNode);
-                    hashPartitionedJoinStage->setTotalMemoryOnThisNode(memory);
-                    success = scheduleStage(j, hashPartitionedJoinStage, communicator, DeepCopy);
-                } else {
-                    errMsg = "Unrecognized job stage";
-                    std::cout << errMsg << std::endl;
-                    success = false;
-                }
-#ifdef PROFILING
-                auto scheduleEnd = std::chrono::high_resolution_clock::now();
-                std::cout << "Time Duration for Scheduling stage-" << stage->getStageId() << " on "
-                          << ip << ":"
-                          << std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd -
-                                                                                      scheduleBegin)
-                                 .count()
-                          << " seconds." << std::endl;
-#endif
-                if (success == false) {
-                    errMsg = std::string("Can't execute the ") + std::to_string(i) +
-                        std::string("-th stage on the ") + std::to_string(j) +
-                        std::string("-th node");
-                    std::cout << errMsg << std::endl;
-                    callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                    return;
-                }
-                callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
+            // create some work for it
+            PDBWorkPtr myWork = make_shared<GenericWork>([&, node](PDBBuzzerPtr callerBuzzer) {
+                prepareAndScheduleStage(stage, node, counter, callerBuzzer);
             });
+
+            // execute the work
             myWorker->execute(myWork, tempBuzzer);
         }
+
+        // wait until all the nodes are finished
         while (counter < shuffleInfo->getNumNodes()) {
             tempBuzzer->wait();
         }
+
+        // reset the counter for the next stage
         counter = 0;
     }
 }
 
+void QuerySchedulerServer::prepareAndScheduleStage(Handle<AbstractJobStage> &stage,
+                                                   unsigned long node,
+                                                   int &counter,
+                                                   PDBBuzzerPtr &callerBuzzer){
+    // this is where all the stuff we create will be stored (the deep copy of the stage)
+    const UseTemporaryAllocationBlock block(256 * 1024 * 1024);
 
-// deprecated
-bool QuerySchedulerServer::schedule(std::string ip,
-                                    int port,
-                                    PDBLoggerPtr logger,
-                                    ObjectCreationMode mode) {
+    // grab the port and the address of the node node from the standard resources
+    int port = this->standardResources->at(node)->getPort();
+    std::string ip = this->standardResources->at(node)->getAddress();
 
+    // create PDBCommunicator
+    PDBCommunicatorPtr communicator = getCommunicatorToNode(port, ip);
+
+    // if we failed to acquire a communicator to the node signal a failure and finish
+    if(communicator == nullptr) {
+        callerBuzzer->buzz(PDBAlarm::GenericError, counter);
+        return;
+    }
+
+    // figure out what kind of stage it is and schedule it
+    bool success;
+    switch (stage->getJobStageTypeID()) {
+        case TupleSetJobStage_TYPEID : {
+            Handle<TupleSetJobStage> tupleSetStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(stage);
+            success = scheduleStage(node, tupleSetStage, communicator);
+            break;
+        }
+        case AggregationJobStage_TYPEID : {
+            Handle<AggregationJobStage> aggStage = unsafeCast<AggregationJobStage, AbstractJobStage>(stage);
+
+            // TODO this is bad, concurrent modification need to move it to the right place!
+            aggStage->setAggTotalPartitions(shuffleInfo->getNumHashPartitions());
+            aggStage->setAggBatchSize(DEFAULT_BATCH_SIZE);
+            success = scheduleStage(node, aggStage, communicator);
+            break;
+        }
+        case BroadcastJoinBuildHTJobStage_TYPEID : {
+            Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage =
+                    unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage>(stage);
+            success = scheduleStage(node, broadcastJoinStage, communicator);
+            break;
+        }
+        case HashPartitionedJoinBuildHTJobStage_TYPEID : {
+            Handle<HashPartitionedJoinBuildHTJobStage> hashPartitionedJoinStage =
+                    unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage>(stage);
+            success = scheduleStage(node, hashPartitionedJoinStage, communicator);
+            break;
+        }
+        default: {
+            PDB_COUT << "Unrecognized job stage" << std::endl;
+            success = false;
+            break;
+        }
+    }
+
+    // if we failed to execute the stage on the node node we signal a failure
+    if (!success) {
+        PDB_COUT << "Can't execute the " << stage->getJobStageType() << " with " << stage->getStageId()
+                 << " on the " << std::to_string(node) << "-th node" << std::endl;
+        callerBuzzer->buzz(PDBAlarm::GenericError, counter);
+        return;
+    }
+
+    // excellent everything worked just as expected
+    callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
+}
+
+PDBCommunicatorPtr QuerySchedulerServer::getCommunicatorToNode(int port, std::string &ip) {
+
+    // lock the connection mutex so no other thread tries to connect to a node
     pthread_mutex_lock(&connection_mutex);
-    PDB_COUT << "to connect to the remote node" << std::endl;
     PDBCommunicatorPtr communicator = std::make_shared<PDBCommunicator>();
 
-    PDB_COUT << "port:" << port << std::endl;
-    PDB_COUT << "ip:" << ip << std::endl;
+    // log what we are doing
+    PDB_COUT << "Connecting to remote node connect to the remote node with address : " << ip  << ":" << port << std::endl;
 
+    // try to connect to the node
     string errMsg;
-    bool success;
-    if (communicator->connectToInternetServer(logger, port, ip, errMsg)) {
-        success = false;
-        std::cout << errMsg << std::endl;
-        pthread_mutex_unlock(&connection_mutex);
-        return success;
-    }
-    if (this->currentPlan.size() > 1) {
-        PDB_COUT << "#####################################" << std::endl;
-        PDB_COUT << "WARNING: GraphIr generates 2 stages" << std::endl;
-        PDB_COUT << "#####################################" << std::endl;
-    }
+    bool failure = communicator->connectToInternetServer(logger, port, ip, errMsg);
+
+    // we are don connecting somebody else can do it now
     pthread_mutex_unlock(&connection_mutex);
-    // Now we only allow one stage for each query graph
-    for (int i = 0; i < 1; i++) {
-        Handle<JobStage> stage = currentPlan[i];
-        success = schedule(stage, communicator, mode);
-        if (!success) {
-            return success;
-        }
+
+    // if we succeeded return the communicator
+    if (!failure) {
+        return communicator;
     }
-    return true;
+
+    // otherwise log the error message
+    std::cout << errMsg << std::endl;
+
+    // return a null pointer
+    return nullptr;
 }
 
 
-// JiaNote TODO: consolidate below three functions into a template function
-// to replace: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode
-// mode)
-bool QuerySchedulerServer::scheduleStage(int index,
-                                         Handle<TupleSetJobStage>& stage,
-                                         PDBCommunicatorPtr communicator,
-                                         ObjectCreationMode mode) {
+template<typename T>
+bool QuerySchedulerServer::scheduleStage(unsigned long node,
+                                         Handle<T>& stage,
+                                         PDBCommunicatorPtr communicator){
     bool success;
     std::string errMsg;
-    PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the " << index
-             << "-th remote node" << std::endl;
+    PDB_COUT << "to send the job stage with id="
+             << stage->getStageId() << " to the " << node << "-th remote node" << std::endl;
 
-    if (mode == DeepCopy) {
-        const UseTemporaryAllocationBlock block(256 * 1024 * 1024);
-        Handle<TupleSetJobStage> stageToSend =
-            deepCopyToCurrentAllocationBlock<TupleSetJobStage>(stage);
-        stageToSend->setNumNodes(this->shuffleInfo->getNumNodes());
-        stageToSend->setNumTotalPartitions(this->shuffleInfo->getNumHashPartitions());
-        Handle<Vector<Handle<Vector<HashPartitionID>>>> partitionIds =
-            makeObject<Vector<Handle<Vector<HashPartitionID>>>>();
-        std::vector<std::vector<HashPartitionID>> standardPartitionIds =
-            shuffleInfo->getPartitionIds();
-        for (unsigned int i = 0; i < standardPartitionIds.size(); i++) {
-            Handle<Vector<HashPartitionID>> nodePartitionIds =
-                makeObject<Vector<HashPartitionID>>();
-            for (unsigned int j = 0; j < standardPartitionIds[i].size(); j++) {
-                nodePartitionIds->push_back(standardPartitionIds[i][j]);
-            }
-            partitionIds->push_back(nodePartitionIds);
-        }
-        stageToSend->setNumPartitions(partitionIds);
+    // the copy we are about to make will be stored here
+    const UseTemporaryAllocationBlock block(256 * 1024 * 1024);
 
-        Handle<Vector<String>> addresses = makeObject<Vector<String>>();
-        std::vector<std::string> standardAddresses = shuffleInfo->getAddresses();
-        for (unsigned int i = 0; i < standardAddresses.size(); i++) {
-            addresses->push_back(String(standardAddresses[i]));
-        }
-        stageToSend->setIPAddresses(addresses);
-        stageToSend->setNodeId(index);
-        success = communicator->sendObject<TupleSetJobStage>(stageToSend, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else {
-        std::cout << "Error: No such object creation mode supported in query scheduler"
-                  << std::endl;
+    // get a copy of the stage, that is prepared to be sent
+    Handle<T> stageToSend = getStageToSend(node, stage);
+
+    // send the stage to the execution server
+    success = communicator->sendObject<T>(stageToSend, errMsg);
+
+    // check if we succeeded on doing that if not we have a problem
+    if (!success) {
+        std::cout << errMsg << std::endl;
         return false;
     }
-    PDB_COUT << "to receive query response from the " << index << "-th remote node" << std::endl;
+
+    PDB_COUT << "to receive query response from the " << node << "-th remote node" << std::endl;
     Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
-    if (result != nullptr) {
-        this->updateStats(result);
-        PDB_COUT << "TupleSetJobStage execute: wrote set:" << result->getDatabase() << ":"
-                 << result->getSetName() << std::endl;
-    } else {
-        PDB_COUT << "TupleSetJobStage execute failure: can't get results" << std::endl;
+
+    // check if we succeeded in executing the stage
+    if(result == nullptr) {
+        PDB_COUT << stage->getJobStageType() << "TupleSetJobStage execute failure: can't get results" << std::endl;
         return false;
     }
+
+    // update the statistics based on the returned results
+    this->updateStats(result);
+    PDB_COUT << stage->getJobStageType() << " execute: wrote set:" << result->getDatabase()
+             << ":" << result->getSetName() << std::endl;
 
     return true;
 }
 
-bool QuerySchedulerServer::scheduleStage(int index,
-                                         Handle<BroadcastJoinBuildHTJobStage>& stage,
-                                         PDBCommunicatorPtr communicator,
-                                         ObjectCreationMode mode) {
-    bool success;
-    std::string errMsg;
-    PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the " << index
-             << "-th remote node" << std::endl;
+Handle<TupleSetJobStage> QuerySchedulerServer::getStageToSend(unsigned long index,
+                                                              Handle<TupleSetJobStage> &stage) {
 
-    if (mode == Direct) {
-        success = communicator->sendObject<BroadcastJoinBuildHTJobStage>(stage, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
+    // do a deep copy of the stage
+    Handle<TupleSetJobStage> stageToSend = deepCopyToCurrentAllocationBlock<TupleSetJobStage>(stage);
+
+    // set the number of nodes and the number of hash partitions
+    stageToSend->setNumNodes(this->shuffleInfo->getNumNodes());
+    stageToSend->setNumTotalPartitions(this->shuffleInfo->getNumHashPartitions());
+
+    // grab the partition IDs on each node
+    std::vector<std::vector<HashPartitionID>> standardPartitionIds = shuffleInfo->getPartitionIds();
+
+    // copy the IDs into a new vector of vectors
+    Handle<Vector<Handle<Vector<HashPartitionID>>>> partitionIds = makeObject<Vector<Handle<Vector<HashPartitionID>>>>();
+    for (auto &standardPartitionId : standardPartitionIds) {
+        Handle<Vector<HashPartitionID>> nodePartitionIds = makeObject<Vector<HashPartitionID>>();
+        for (unsigned int id : standardPartitionId) {
+            nodePartitionIds->push_back(id);
         }
-    } else if (mode == DeepCopy) {
-        Handle<BroadcastJoinBuildHTJobStage> stageToSend =
-            deepCopyToCurrentAllocationBlock<BroadcastJoinBuildHTJobStage>(stage);
-        stageToSend->nullifyComputePlanPointer();
-        success = communicator->sendObject<BroadcastJoinBuildHTJobStage>(stageToSend, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else {
-        std::cout << "Error: No such object creation mode supported in query scheduler"
-                  << std::endl;
-        return false;
-    }
-    PDB_COUT << "to receive query response from the " << index << "-th remote node" << std::endl;
-    Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
-    if (result != nullptr) {
-        this->updateStats(result);
-        PDB_COUT << "BroadcastJoinBuildHTJobStage execute: wrote set:" << result->getDatabase()
-                 << ":" << result->getSetName() << std::endl;
-    } else {
-        PDB_COUT << "BroadcastJoinBuildHTJobStage execute failure: can't get results" << std::endl;
-        return false;
+        partitionIds->push_back(nodePartitionIds);
     }
 
-    return true;
+    // set the memory on the node we want to send it
+    stageToSend->setTotalMemoryOnThisNode((size_t)(*(this->standardResources))[index]->getMemSize());
+
+    // set the partition IDs for each node
+    stageToSend->setNumPartitions(partitionIds);
+
+    // grab the addresses for each node
+    std::vector<std::string> standardAddresses = shuffleInfo->getAddresses();
+
+    // go through each address and copy it into a vector of strings
+    Handle<Vector<String>> addresses = makeObject<Vector<String>>();
+    for (const auto &standardAddress : standardAddresses) {
+        addresses->push_back(String(standardAddress));
+    }
+
+    // set the addresses of the nodes
+    stageToSend->setIPAddresses(addresses);
+    stageToSend->setNodeId(static_cast<NodeID>(index));
+
+    return stageToSend;
 }
 
-bool QuerySchedulerServer::scheduleStage(int index,
-                                         Handle<AggregationJobStage>& stage,
-                                         PDBCommunicatorPtr communicator,
-                                         ObjectCreationMode mode) {
-    bool success;
-    std::string errMsg;
-    PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the " << index
-             << "-th remote node" << std::endl;
+Handle<AggregationJobStage> QuerySchedulerServer::getStageToSend(unsigned long index,
+                                                                 Handle<AggregationJobStage> &stage) {
 
-    if (mode == Direct) {
-        success = communicator->sendObject<AggregationJobStage>(stage, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else if (mode == DeepCopy) {
-        Handle<AggregationJobStage> stageToSend =
+    // do a deep copy of the stage
+    Handle<AggregationJobStage> stageToSend =
             deepCopyToCurrentAllocationBlock<AggregationJobStage>(stage);
-        success = communicator->sendObject<AggregationJobStage>(stageToSend, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else {
-        std::cout << "Error: No such object creation mode supported in query scheduler"
-                  << std::endl;
-        return false;
-    }
-    PDB_COUT << "to receive query response from the " << index << "-th remote node" << std::endl;
-    Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
-    if (result != nullptr) {
-        this->updateStats(result);
-        PDB_COUT << "AggregationJobStage execute: wrote set:" << result->getDatabase() << ":"
-                 << result->getSetName() << std::endl;
-    } else {
-        PDB_COUT << "AggregationJobStage execute failure: can't get results" << std::endl;
-        return false;
+
+    // figure out the number of partitions on the node we want to send it
+    auto numPartitionsOnThisNode = (int)((double)(standardResources->at(index)->getNumCores()) * partitionToCoreRatio);
+    if (numPartitionsOnThisNode == 0) {
+        numPartitionsOnThisNode = 1;
     }
 
-    return true;
+    // fill in the info about the node
+    stageToSend->setNumNodePartitions(numPartitionsOnThisNode);
+    stageToSend->setTotalMemoryOnThisNode((size_t)(*(this->standardResources))[index]->getMemSize());
+
+    // TODO these two need to be relocated
+    stageToSend->setAggTotalPartitions(shuffleInfo->getNumHashPartitions());
+    stageToSend->setAggBatchSize(DEFAULT_BATCH_SIZE);
+
+    return stageToSend;
 }
 
-bool QuerySchedulerServer::scheduleStage(int index,
-                                         Handle<HashPartitionedJoinBuildHTJobStage>& stage,
-                                         PDBCommunicatorPtr communicator,
-                                         ObjectCreationMode mode) {
-    bool success;
-    std::string errMsg;
-    PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the " << index
-             << "-th remote node" << std::endl;
+Handle<BroadcastJoinBuildHTJobStage> QuerySchedulerServer::getStageToSend(unsigned long index,
+                                                                          Handle<BroadcastJoinBuildHTJobStage> &stage) {
 
-    if (mode == Direct) {
-        success = communicator->sendObject<HashPartitionedJoinBuildHTJobStage>(stage, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else if (mode == DeepCopy) {
-        Handle<HashPartitionedJoinBuildHTJobStage> stageToSend =
+    // do a deep copy of the stage
+    Handle<BroadcastJoinBuildHTJobStage> stageToSend =
+            deepCopyToCurrentAllocationBlock<BroadcastJoinBuildHTJobStage>(stage);
+
+    // set the reference to the compute plan to null so it's not sent
+    stageToSend->nullifyComputePlanPointer();
+
+    // set the memory on the node we want to send it
+    stageToSend->setTotalMemoryOnThisNode((size_t)(*(this->standardResources))[index]->getMemSize());
+
+    return stageToSend;
+}
+
+Handle<HashPartitionedJoinBuildHTJobStage> QuerySchedulerServer::getStageToSend(unsigned long index,
+                                                                                Handle<HashPartitionedJoinBuildHTJobStage> &stage) {
+
+    // do a deep copy of the stage
+    Handle<HashPartitionedJoinBuildHTJobStage> stageToSend =
             deepCopyToCurrentAllocationBlock<HashPartitionedJoinBuildHTJobStage>(stage);
-        stageToSend->nullifyComputePlanPointer();
-        success = communicator->sendObject<HashPartitionedJoinBuildHTJobStage>(stageToSend, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else {
-        std::cout << "Error: No such object creation mode supported in query scheduler"
-                  << std::endl;
-        return false;
-    }
-    PDB_COUT << "to receive query response from the " << index << "-th remote node" << std::endl;
-    Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
-    if (result != nullptr) {
-        this->updateStats(result);
-        PDB_COUT << "HashPartitionedJoinBuildHTJobStage execute: wrote set:"
-                 << result->getDatabase() << ":" << result->getSetName() << std::endl;
-    } else {
-        PDB_COUT << "HashPartitionedJoinBuildHTJobStage execute failure: can't get results"
-                 << std::endl;
-        return false;
+
+    // set the reference to the compute plan to null so it's not sent
+    stageToSend->nullifyComputePlanPointer();
+
+    // figure out the number of partitions on the node we want to send it
+    auto numPartitionsOnThisNode = (int)((double)(standardResources->at(index)->getNumCores()) * partitionToCoreRatio);
+    if (numPartitionsOnThisNode == 0) {
+        numPartitionsOnThisNode = 1;
     }
 
-    return true;
-}
+    // set the value we just calculated
+    stageToSend->setNumNodePartitions(numPartitionsOnThisNode);
 
+    // set the memory on the node we want to send it
+    stageToSend->setTotalMemoryOnThisNode((size_t)(*(this->standardResources))[index]->getMemSize());
 
-// deprecated
-bool QuerySchedulerServer::schedule(Handle<JobStage>& stage,
-                                    PDBCommunicatorPtr communicator,
-                                    ObjectCreationMode mode) {
-
-    bool success;
-    std::string errMsg;
-
-    PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the remote node"
-             << std::endl;
-
-    if (mode == Direct) {
-        success = communicator->sendObject<JobStage>(stage, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-
-    } else if (mode == Recreation) {
-        Handle<JobStage> stageToSend = makeObject<JobStage>(stage->getStageId());
-        std::string inDatabaseName = stage->getInput()->getDatabase();
-        std::string inSetName = stage->getInput()->getSetName();
-        Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
-        stageToSend->setInput(input);
-
-        std::string outDatabaseName = stage->getOutput()->getDatabase();
-        std::string outSetName = stage->getOutput()->getSetName();
-        Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
-        stageToSend->setOutput(output);
-        stageToSend->setOutputTypeName(stage->getOutputTypeName());
-
-        Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
-        for (int i = 0; i < operators.size(); i++) {
-            Handle<QueryBase> newSelection =
-                deepCopyToCurrentAllocationBlock<QueryBase>(operators[i]->getSelection());
-            Handle<ExecutionOperator> curOperator;
-            if (operators[i]->getName() == "ProjectionOperator") {
-                curOperator = makeObject<ProjectionOperator>(newSelection);
-            } else if (operators[i]->getName() == "FilterOperator") {
-                curOperator = makeObject<FilterOperator>(newSelection);
-            }
-            PDB_COUT << curOperator->getName() << std::endl;
-            stageToSend->addOperator(curOperator);
-        }
-        success = communicator->sendObject<JobStage>(stageToSend, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else if (mode == DeepCopy) {
-        Handle<JobStage> stageToSend = deepCopyToCurrentAllocationBlock<JobStage>(stage);
-        success = communicator->sendObject<JobStage>(stageToSend, errMsg);
-        if (!success) {
-            std::cout << errMsg << std::endl;
-            return false;
-        }
-    } else {
-        std::cout << "Error: No such object creation mode supported in scheduler" << std::endl;
-        return false;
-    }
-    PDB_COUT << "to receive query response from the remote node" << std::endl;
-    Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
-    if (result != nullptr) {
-        for (int j = 0; j < result->size(); j++) {
-            PDB_COUT << "Query execute: wrote set:" << (*result)[j] << std::endl;
-        }
-    } else {
-        PDB_COUT << "Query execute failure: can't get results" << std::endl;
-        return false;
-    }
-
-    Vector<Handle<JobStage>> childrenStages = stage->getChildrenStages();
-    for (int i = 0; i < childrenStages.size(); i++) {
-        success = schedule(childrenStages[i], communicator, mode);
-        if (!success) {
-            return success;
-        }
-    }
-    return true;
-}
-
-
-bool QuerySchedulerServer::parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations,
-                                           std::string myTCAPString) {
-    TCAPAnalyzer tcapAnalyzer(
-        this->jobId, myComputations, myTCAPString, this->logger, this->conf, false);
-    return tcapAnalyzer.analyze(this->queryPlan, this->interGlobalSets);
-}
-
-
-// deprecated
-// checkSet can only be true if we deploy QuerySchedulerServer, CatalogServer and
-// DistributedStorageManagerServer on the same machine.
-void QuerySchedulerServer::parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph) {
-
-    // current logical planning only supports selection and projection
-    // start from the first sink:
-    //  ---we push node to this sink's pipeline until we meet a source node, a materialized node or
-    //  a traversed node;
-    //  ------if we meet a source node, we set input for the pipeline, and start a new pipeline
-    //  stage for a new sink
-    //  ------if we meet a materialized node, we set input for the pipeline, and start a new
-    //  pipeline stage for the materialization node
-    //  ------if we meet a traversed node, which is a materialized node, we set input for the
-    //  pipeline, and start a new pipeline stage for a new sink
-    //  ------if we meet a traversed node, we set the node's set as input of this pipline stage
-    // if a node's parent is source, we stop here for this sink, and start from the next sink.
-
-    //     const UseTemporaryAllocationBlock tempBlock {1024*1024};
-    int stageOperatorCounter = 0;
-    int jobStageId = -1;
-    std::shared_ptr<pdb_detail::SetExpressionIr> curNode;
-    std::unordered_map<int, Handle<JobStage>> stageMap;
-    for (int i = 0; i < queryGraph->getSinkNodeCount(); i++) {
-
-        stageOperatorCounter = 0;
-        curNode = queryGraph->getSinkNode(i);
-        PDB_COUT << "the " << i << "-th sink:" << std::endl;
-        PDB_COUT << curNode->getName() << std::endl;
-
-        // the sink node must be a materialized node
-        shared_ptr<pdb_detail::MaterializationMode> materializationMode =
-            curNode->getMaterializationMode();
-        if (materializationMode->isNone() == true) {
-            std::cout << "Error: sink node output must be materialized." << std::endl;
-            continue;
-        }
-        string name = "";
-        Handle<SetIdentifier> output =
-            makeObject<SetIdentifier>(materializationMode->tryGetDatabaseName(name),
-                                      materializationMode->tryGetSetName(name));
-
-        jobStageId++;
-        Handle<JobStage> stage = makeObject<JobStage>(jobStageId);
-        stage->setOutput(output);
-
-        bool isNodeMaterializable = true;
-        while (curNode->getName() != "SourceSetNameIr") {
-            if (curNode->isTraversed() == false) {
-                if (stageOperatorCounter > 0) {
-                    materializationMode = curNode->getMaterializationMode();
-                    if (materializationMode->isNone() == false) {
-                        PDB_COUT << "We meet a materialization mode" << std::endl;
-                        // we meet a materialized node, we need stop this stage, set the
-                        // materialized results as the input of this stage
-                        // if in future, we remove the one output restriction from the pipeline, we
-                        // can go on
-                        Handle<SetIdentifier> input =
-                            makeObject<SetIdentifier>(materializationMode->tryGetDatabaseName(name),
-                                                      materializationMode->tryGetSetName(name));
-                        stage->setInput(input);
-
-                        // we start a new stage, which is the parent of the stopping stage
-                        jobStageId++;
-                        Handle<JobStage> newStage = makeObject<JobStage>(jobStageId);
-                        newStage->setOutput(input);
-                        stage->setParentStage(newStage);
-                        stageMap[stage->getStageId()] = stage;
-
-                        PDB_COUT << "stage with id=" << stage->getStageId() << " is added to map"
-                                 << std::endl;
-                        PDB_COUT << "verify id =" << stageMap[stage->getStageId()]->getStageId()
-                                 << std::endl;
-
-                        newStage->appendChildStage(stage);
-                        stage = newStage;
-                        stageOperatorCounter = 0;
-                        isNodeMaterializable = true;
-                    }
-                }
-                // a new operator
-                if (curNode->getName() == "SelectionIr") {
-                    PDB_COUT << "We meet a selection node" << std::endl;
-                    shared_ptr<pdb_detail::SelectionIr> selectionNode =
-                        dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
-                    Handle<ExecutionOperator> filterOp =
-                        makeObject<FilterOperator>(selectionNode->getQueryBase());
-                    stage->addOperator(filterOp);
-                    stageOperatorCounter++;
-                    curNode->setTraversed(true, jobStageId);
-                    if (curNode->isTraversed() == false) {
-                        std::cout << "Error: the node can not be modified!" << std::endl;
-                        exit(-1);
-                    }
-                    curNode = selectionNode->getInputSet();
-                    PDB_COUT << "We set the node to be traversed with id=" << jobStageId
-                             << std::endl;
-                } else if (curNode->getName() == "ProjectionIr") {
-                    PDB_COUT << "We meet a projection node" << std::endl;
-                    shared_ptr<pdb_detail::ProjectionIr> projectionNode =
-                        dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
-                    if (isNodeMaterializable) {
-                        Handle<QueryBase> base = projectionNode->getQueryBase();
-                        Handle<Selection<Object, Object>> userQuery =
-                            unsafeCast<Selection<Object, Object>>(base);
-                        stage->setOutputTypeName(userQuery->getOutputType());
-                        isNodeMaterializable = false;
-                    }
-                    Handle<ExecutionOperator> projectionOp =
-                        makeObject<ProjectionOperator>(projectionNode->getQueryBase());
-                    stage->addOperator(projectionOp);
-                    stageOperatorCounter++;
-                    curNode->setTraversed(true, jobStageId);
-                    if (curNode->isTraversed() == false) {
-                        std::cout << "Error: the node can not be modified!" << std::endl;
-                        exit(-1);
-                    }
-                    curNode = projectionNode->getInputSet();
-                    PDB_COUT << "We set the node to be traversed with id=" << jobStageId
-                             << std::endl;
-                } else {
-                    PDB_COUT << "We only support Selection and Projection right now" << std::endl;
-                }
-
-
-            } else {
-                // TODO: we need check that this node's result must be materialized
-                // get the stage that generates the input
-
-                Handle<JobStage> parentStage;
-                JobStageID parentStageId = curNode->getTraversalId();
-                PDB_COUT << "We meet a node that has been traversed with id=" << parentStageId
-                         << std::endl;
-                parentStage = stageMap[parentStageId];
-                // append this stage to that stage and finishes loop for this sink
-                Handle<SetIdentifier> input = parentStage->getOutput();
-                stage->setInput(input);
-                parentStage->appendChildStage(stage);
-                stage->setParentStage(parentStage);
-                stageMap[stage->getStageId()] = stage;
-                PDB_COUT << "stage with id=" << stage->getStageId() << " is added to map"
-                         << std::endl;
-                PDB_COUT << "verify id =" << stageMap[stage->getStageId()]->getStageId()
-                         << std::endl;
-                break;
-            }
-            PDB_COUT << curNode->getName() << std::endl;
-        }
-
-        if (curNode->getName() == "SourceSetNameIr") {
-            shared_ptr<pdb_detail::SourceSetNameIr> sourceNode =
-                dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
-            Handle<SetIdentifier> input =
-                makeObject<SetIdentifier>(sourceNode->getDatabaseName(), sourceNode->getSetName());
-            stage->setInput(input);
-            stageMap[stage->getStageId()] = stage;
-            PDB_COUT << "stage with id=" << stage->getStageId() << " is added to map" << std::endl;
-            PDB_COUT << "verify id =" << stageMap[stage->getStageId()]->getStageId() << std::endl;
-            this->currentPlan.push_back(stage);
-        }
-    }
-}
-
-// to replace: printCurrentPlan()
-void QuerySchedulerServer::printStages() {
-
-    for (int i = 0; i < this->queryPlan.size(); i++) {
-        PDB_COUT << "#########The " << i << "-th Plan#############" << std::endl;
-        queryPlan[i]->print();
-    }
-}
-
-
-// deprecated
-void QuerySchedulerServer::printCurrentPlan() {
-
-    for (int i = 0; i < this->currentPlan.size(); i++) {
-        PDB_COUT << "#########The " << i << "-th Plan#############" << std::endl;
-        currentPlan[i]->print();
-    }
-}
-
-
-// to replace: schedule()
-// this must be invoked after initialize() and before cleanup()
-void QuerySchedulerServer::scheduleQuery() {
-
-    // query plan
-    int numStages = this->queryPlan.size();
-
-    if (numStages > 1) {
-        PDB_COUT << "#####################################" << std::endl;
-        PDB_COUT << "WARNING: GraphIr generates " << numStages << " stages" << std::endl;
-        PDB_COUT << "#####################################" << std::endl;
-    }
-
-    std::shared_ptr<ShuffleInfo> shuffleInfo =
-        std::make_shared<ShuffleInfo>(this->standardResources, this->partitionToCoreRatio);
-    scheduleStages(this->queryPlan, this->interGlobalSets, shuffleInfo);
-}
-
-
-// deprecated
-void QuerySchedulerServer::schedule() {
-
-    int counter = 0;
-    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& counter) {
-        counter++;
-        PDB_COUT << "counter = " << counter << std::endl;
-    });
-    for (int i = 0; i < this->standardResources->size(); i++) {
-        PDBWorkerPtr myWorker = getWorker();
-        PDBWorkPtr myWork =
-            make_shared<GenericWork>([i, this, &counter](PDBBuzzerPtr callerBuzzer) {
-                makeObjectAllocatorBlock(1 * 1024 * 1024, true);
-                PDB_COUT << "to schedule on the " << i << "-th node" << std::endl;
-                PDB_COUT << "port:" << (*(this->standardResources))[i]->getPort() << std::endl;
-                PDB_COUT << "ip:" << (*(this->standardResources))[i]->getAddress() << std::endl;
-                bool success = getFunctionality<QuerySchedulerServer>().schedule(
-                    (*(this->standardResources))[i]->getAddress(),
-                    (*(this->standardResources))[i]->getPort(),
-                    this->logger,
-                    Recreation);
-                if (!success) {
-                    callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                    return;
-                }
-                callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
-            });
-        myWorker->execute(myWork, tempBuzzer);
-    }
-
-    while (counter < this->standardResources->size()) {
-        tempBuzzer->wait();
-    }
+    return stageToSend;
 }
 
 void QuerySchedulerServer::collectStats() {
-    this->statsForOptimization = make_shared<Statistics>();
+
+    // we use this variable to sync all the nodes
     int counter = 0;
-    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& counter) {
-        counter++;
-        PDB_COUT << "counter = " << counter << std::endl;
+
+    // create the buzzer
+    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& cnt) {
+        cnt++;
+        PDB_COUT << "counter = " << cnt << std::endl;
     });
+
+    // if the standard resources are for some reason not initialized initialize them
     if (this->standardResources == nullptr) {
-        initialize(true);
+        initialize();
     }
-    for (int i = 0; i < this->standardResources->size(); i++) {
+
+    this->statsForOptimization = make_shared<Statistics>();
+
+    // go through each node
+    for (int node = 0; node < this->standardResources->size(); node++) {
+
+        // grab one worker
         PDBWorkerPtr myWorker = getWorker();
-        PDBWorkPtr myWork = make_shared<GenericWork>([&, i](PDBBuzzerPtr callerBuzzer) {
-            const UseTemporaryAllocationBlock block(4 * 1024 * 1024);
 
-            PDB_COUT << "to collect stats on the " << i << "-th node" << std::endl;
-            int port = (*(this->standardResources))[i]->getPort();
-            PDB_COUT << "port:" << port << std::endl;
-            std::string ip = (*(this->standardResources))[i]->getAddress();
-            PDB_COUT << "ip:" << ip << std::endl;
-
-            // create PDBCommunicator
-            pthread_mutex_lock(&connection_mutex);
-            PDB_COUT << "to connect to the remote node" << std::endl;
-            PDBCommunicatorPtr communicator = std::make_shared<PDBCommunicator>();
-
-            string errMsg;
-            bool success;
-            if (communicator->connectToInternetServer(logger, port, ip, errMsg)) {
-                success = false;
-                std::cout << errMsg << std::endl;
-                pthread_mutex_unlock(&connection_mutex);
-                callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                return;
-            }
-            pthread_mutex_unlock(&connection_mutex);
-
-            // send StorageCollectStats to remote server
-            Handle<StorageCollectStats> collectStatsMsg = makeObject<StorageCollectStats>();
-            success = communicator->sendObject<StorageCollectStats>(collectStatsMsg, errMsg);
-            if (!success) {
-                std::cout << errMsg << std::endl;
-                callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                return;
-            }
-            // receive StorageCollectStatsResponse from remote server
-            PDB_COUT << "to receive response from the " << i << "-th remote node" << std::endl;
-            Handle<StorageCollectStatsResponse> result =
-                communicator->getNextObject<StorageCollectStatsResponse>(success, errMsg);
-            if (result != nullptr) {
-                // update stats
-                Handle<Vector<Handle<SetIdentifier>>> stats = result->getStats();
-                if (statsForOptimization == nullptr) {
-                    statsForOptimization = make_shared<Statistics>();
-                }
-                for (int j = 0; j < stats->size(); j++) {
-                    Handle<SetIdentifier> setToUpdateStats = (*stats)[j];
-                    this->updateStats(setToUpdateStats);
-                }
-
-            } else {
-                errMsg = "Collect response execute failure: can't get results";
-                std::cout << errMsg << std::endl;
-                callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                return;
-            }
-            result = nullptr;
-
-            if (success == false) {
-                errMsg = std::string("Can't collect stats from node with id=") + std::to_string(i) +
-                    std::string(" and ip=") + ip;
-                std::cout << errMsg << std::endl;
-                callerBuzzer->buzz(PDBAlarm::GenericError, counter);
-                return;
-            }
-            callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
+        // make some work to collect the stats for the current node
+        PDBWorkPtr myWork = make_shared<GenericWork>([&, node](PDBBuzzerPtr callerBuzzer) {
+            collectStatsForNode(node, counter, callerBuzzer);
         });
+
+        // execute the work
         myWorker->execute(myWork, tempBuzzer);
     }
+
+    // wait until everything is finished
     while (counter < this->standardResources->size()) {
         tempBuzzer->wait();
     }
-    counter = 0;
+}
+
+void QuerySchedulerServer::collectStatsForNode(int node,
+                                               int &counter,
+                                               PDBBuzzerPtr &callerBuzzer) {
+
+    bool success;
+    std::string errMsg;
+
+    // all the stuff that we create in this method will be stored here
+    const UseTemporaryAllocationBlock block(4 * 1024 * 1024);
+
+    // grab the port and the ip of the node
+    int port = (*(this->standardResources))[node]->getPort();
+    std::string ip = (*(this->standardResources))[node]->getAddress();
+
+    // create PDBCommunicator
+    PDBCommunicatorPtr communicator = getCommunicatorToNode(port, ip);
+
+    // if we failed to acquire a communicator to the node signal a failure and finish
+    if(communicator == nullptr) {
+        callerBuzzer->buzz(PDBAlarm::GenericError, counter);
+        return;
+    }
+
+    // make a request to remote server for the statistics
+    PDB_COUT << "About to collect stats on the " << node << "-th node" << std::endl;
+    requestStatistics(communicator, success, errMsg);
+
+    // we failed to request print the reason for the failure and signal an error
+    if (!success) {
+        std::cout << errMsg << std::endl;
+        callerBuzzer->buzz(PDBAlarm::GenericError, counter);
+        return;
+    }
+
+    // receive StorageCollectStatsResponse from remote server
+    PDB_COUT << "About to receive response from the " << node << "-th remote node" << std::endl;
+    Handle<StorageCollectStatsResponse> result = communicator->getNextObject<StorageCollectStatsResponse>(success,
+                                                                                                          errMsg);
+
+    // we failed to receive the result, print out what happened and signal an error
+    if (!success || result == nullptr) {
+        PDB_COUT << "Can't get results from node with id=" << std::to_string(node) << " and ip=" << ip << std::endl;
+        callerBuzzer->buzz(PDBAlarm::GenericError, counter);
+        return;
+    }
+
+    // update stats
+    Handle<Vector<Handle<SetIdentifier>>> stats = result->getStats();
+    for (int j = 0; j < stats->size(); j++) {
+        this->updateStats((*stats)[j]);
+    }
+
+    // lose the reference to the result
+    result = nullptr;
+
+    // great! we succeeded in collecting the statistics for this node signal that
+    callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
+}
+
+void QuerySchedulerServer::requestStatistics(PDBCommunicatorPtr &communicator, bool &success, string &errMsg) const {
+    Handle<StorageCollectStats> collectStatsMsg = makeObject<StorageCollectStats>();
+    success = communicator->sendObject<StorageCollectStats>(collectStatsMsg, errMsg);
 }
 
 void QuerySchedulerServer::updateStats(Handle<SetIdentifier> setToUpdateStats) {
 
+    // grab the database name and the name of the set we are updating
     std::string databaseName = setToUpdateStats->getDatabase();
     std::string setName = setToUpdateStats->getSetName();
+
+    // figure out the values we need tu updated
     size_t numPages = setToUpdateStats->getNumPages();
-    size_t numOldPages = statsForOptimization->getNumPages(databaseName, setName);
-    statsForOptimization->setNumPages(databaseName, setName, numPages + numOldPages);
     size_t pageSize = setToUpdateStats->getPageSize();
-    statsForOptimization->setPageSize(databaseName, setName, pageSize);
     size_t numBytes = numPages * pageSize;
-    size_t numOldBytes = statsForOptimization->getNumBytes(databaseName, setName);
-    statsForOptimization->setNumBytes(databaseName, setName, numBytes + numOldBytes);
-}
 
-void QuerySchedulerServer::resetStats(Handle<SetIdentifier> setToResetStats) {
-
-    std::string databaseName = setToResetStats->getDatabase();
-    std::string setName = setToResetStats->getSetName();
-    statsForOptimization->setNumPages(databaseName, setName, 0);
-    statsForOptimization->setPageSize(databaseName, setName, 0);
-    statsForOptimization->setNumBytes(databaseName, setName, 0);
+    // update the statistics
+    statsForOptimization->setPageSize(databaseName, setName, pageSize);
+    statsForOptimization->incrementNumPages(databaseName, setName, numPages);
+    statsForOptimization->incrementNumBytes(databaseName, setName, numBytes);
 }
 
 
@@ -1029,344 +601,193 @@ void QuerySchedulerServer::registerHandlers(PDBServer& forMe) {
     forMe.registerHandler(
         ExecuteComputation_TYPEID,
         make_shared<SimpleRequestHandler<ExecuteComputation>>(
-
-            [&](Handle<ExecuteComputation> request, PDBCommunicatorPtr sendUsingMe) {
-
-                std::string errMsg;
-                bool success;
-
-                // parse the query
-                const UseTemporaryAllocationBlock block{256 * 1024 * 1024};
-                PDB_COUT << "Got the ExecuteComputation object" << std::endl;
-                Handle<Vector<Handle<Computation>>> computations =
-                    sendUsingMe->getNextObject<Vector<Handle<Computation>>>(success, errMsg);
-                std::string tcapString = request->getTCAPString();
-                DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
-
-                this->jobId = this->getNextJobId();
-                // create the database first
-                success = dsmClient.createDatabase(this->jobId, errMsg);
-
-
-                if (success == true) {
-                    // we do not use dynamic planning
-                    if (this->dynamicPlanningOrNot == false) {
-                        success = parseTCAPString(computations, tcapString);
-                        if (success == false) {
-                            errMsg =
-                                "FATAL ERROR in QuerySchedulerServer: can't parse TCAP string.\n" +
-                                tcapString;
-                        } else {
-                            // create intermediate sets:
-                            PDB_COUT << "to create intermediate sets" << std::endl;
-                            if (success == true) {
-                                for (int i = 0; i < this->interGlobalSets.size(); i++) {
-                                    std::string errMsg;
-                                    Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
-                                    bool res =
-                                        dsmClient.createTempSet(aggregationSet->getDatabase(),
-                                                                aggregationSet->getSetName(),
-                                                                "IntermediateSet",
-                                                                errMsg,
-                                                                aggregationSet->getPageSize());
-                                    if (res != true) {
-                                        std::cout << "can't create temp set: " << errMsg
-                                                  << std::endl;
-                                    } else {
-                                        PDB_COUT << "Created set with database="
-                                                 << aggregationSet->getDatabase()
-                                                 << ", set=" << aggregationSet->getSetName()
-                                                 << std::endl;
-                                    }
-                                }
-
-                                getFunctionality<QuerySchedulerServer>().printStages();
-                                PDB_COUT << "To get the resource object from the resource manager"
-                                         << std::endl;
-                                getFunctionality<QuerySchedulerServer>().initialize(true);
-                                PDB_COUT << "To schedule the query to run on the cluster"
-                                         << std::endl;
-                                getFunctionality<QuerySchedulerServer>().scheduleQuery();
-
-                                PDB_COUT << "to remove intermediate sets" << std::endl;
-                                for (int i = 0; i < this->interGlobalSets.size(); i++) {
-                                    std::string errMsg;
-                                    Handle<SetIdentifier> intermediateSet =
-                                        this->interGlobalSets[i];
-                                    bool res =
-                                        dsmClient.removeTempSet(intermediateSet->getDatabase(),
-                                                                intermediateSet->getSetName(),
-                                                                "IntermediateData",
-                                                                errMsg);
-                                    if (res != true) {
-                                        std::cout << "can't remove temp set: " << errMsg
-                                                  << std::endl;
-                                    } else {
-                                        PDB_COUT << "Removed set with database="
-                                                 << intermediateSet->getDatabase()
-                                                 << ", set=" << intermediateSet->getSetName()
-                                                 << std::endl;
-                                    }
-                                }
-                            }
-                        }
-
-                    } else {
-
-                        // analyze resources
-                        PDB_COUT << "To get the resource object from the resource manager"
-                                 << std::endl;
-                        getFunctionality<QuerySchedulerServer>().initialize(true);
-                        this->shuffleInfo = std::make_shared<ShuffleInfo>(
-                            this->standardResources, this->partitionToCoreRatio);
-
-                        if (this->statsForOptimization == nullptr) {
-                            this->collectStats();
-                        }
-
-
-                        // dyanmic planning
-                        // initialize tcapAnalyzer
-                        this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(
-                            jobId, computations, tcapString, this->logger, this->conf, true);
-                        int jobStageId = 0;
-                        while (this->tcapAnalyzerPtr->getNumSources() > 0) {
-                            std::vector<Handle<AbstractJobStage>> jobStages;
-                            std::vector<Handle<SetIdentifier>> intermediateSets;
-#ifdef PROFILING
-                            auto dynamicPlanBegin = std::chrono::high_resolution_clock::now();
-                            std::cout << "JobStageId " << jobStageId << "============>";
-#endif
-                            while ((jobStages.size() == 0) &&
-                                   (this->tcapAnalyzerPtr->getNumSources() > 0)) {
-                                // analyze all sources and select a source based on cost model
-                                int indexOfBestSource = this->tcapAnalyzerPtr->getBestSource(
-                                    this->statsForOptimization);
-
-                                // get the job stages and intermediate data sets for this source
-                                std::string sourceName =
-                                    this->tcapAnalyzerPtr->getSourceSetName(indexOfBestSource);
-                                std::cout << "best source is " << sourceName << std::endl;
-                                Handle<SetIdentifier> sourceSet =
-                                    this->tcapAnalyzerPtr->getSourceSetIdentifier(sourceName);
-                                AtomicComputationPtr sourceAtomicComp =
-                                    this->tcapAnalyzerPtr->getSourceComputation(sourceName);
-                                unsigned int sourceConsumerIndex =
-                                    this->tcapAnalyzerPtr->getNextConsumerIndex(sourceName);
-                                bool hasConsumers = this->tcapAnalyzerPtr->getNextStagesOptimized(
-                                    jobStages,
-                                    intermediateSets,
-                                    sourceAtomicComp,
-                                    sourceSet,
-                                    sourceConsumerIndex,
-                                    jobStageId);
-                                if (jobStages.size() > 0) {
-                                    this->tcapAnalyzerPtr->incrementConsumerIndex(sourceName);
-                                    break;
-                                } else {
-                                    if (hasConsumers == false) {
-                                        std::cout << "we didn't meet a penalized set and we remove "
-                                                     "source "
-                                                  << sourceName << std::endl;
-                                        this->tcapAnalyzerPtr->removeSource(sourceName);
-                                    }
-                                }
-                            }
-#ifdef PROFILING
-                            auto dynamicPlanEnd = std::chrono::high_resolution_clock::now();
-                            std::cout << "Time Duration for Dynamic Planning: "
-                                      << std::chrono::duration_cast<std::chrono::duration<float>>(
-                                             dynamicPlanEnd - dynamicPlanBegin)
-                                             .count()
-                                      << " seconds." << std::endl;
-                            auto createSetBegin = std::chrono::high_resolution_clock::now();
-#endif
-                            // create intermediate sets
-                            for (int i = 0; i < intermediateSets.size(); i++) {
-                                std::string errMsg;
-                                Handle<SetIdentifier> intermediateSet = intermediateSets[i];
-                                bool res = dsmClient.createTempSet(intermediateSet->getDatabase(),
-                                                                   intermediateSet->getSetName(),
-                                                                   "IntermediateData",
-                                                                   errMsg,
-                                                                   intermediateSet->getPageSize());
-                                if (res != true) {
-                                    std::cout << "can't create temp set: " << errMsg << std::endl;
-                                } else {
-                                    PDB_COUT << "Created set with database="
-                                             << intermediateSet->getDatabase()
-                                             << ", set=" << intermediateSet->getSetName()
-                                             << std::endl;
-                                }
-                            }
-#ifdef PROFILING
-                            auto createSetEnd = std::chrono::high_resolution_clock::now();
-                            std::cout << "Time Duration for Creating intermdiate sets: "
-                                      << std::chrono::duration_cast<std::chrono::duration<float>>(
-                                             createSetEnd - createSetBegin)
-                                             .count()
-                                      << " seconds." << std::endl;
-                            auto scheduleBegin = std::chrono::high_resolution_clock::now();
-#endif
-                            // schedule this job stages
-                            PDB_COUT << "To schedule the query to run on the cluster" << std::endl;
-                            getFunctionality<QuerySchedulerServer>().scheduleStages(
-                                jobStages, intermediateSets, shuffleInfo);
-
-#ifdef PROFILING
-                            auto scheduleEnd = std::chrono::high_resolution_clock::now();
-                            std::cout << "Time Duration for Scheduling stages: "
-                                      << std::chrono::duration_cast<std::chrono::duration<float>>(
-                                             scheduleEnd - scheduleBegin)
-                                             .count()
-                                      << " seonds." << std::endl;
-                            auto removeSetBegin = std::chrono::high_resolution_clock::now();
-#endif
-
-                            // to remove the intermediate sets:
-                            for (int i = 0; i < intermediateSets.size(); i++) {
-                                std::string errMsg;
-                                Handle<SetIdentifier> intermediateSet = intermediateSets[i];
-                                // check whether intermediateSet is a source set and has consumer
-                                // number > 0
-                                std::string key = intermediateSet->getDatabase() + ":" +
-                                    intermediateSet->getSetName();
-                                unsigned int numConsumers =
-                                    this->tcapAnalyzerPtr->getNumConsumers(key);
-                                if (numConsumers > 0) {
-                                    // to remember this set
-                                    this->interGlobalSets.push_back(intermediateSet);
-
-                                } else {
-
-                                    bool res =
-                                        dsmClient.removeTempSet(intermediateSet->getDatabase(),
-                                                                intermediateSet->getSetName(),
-                                                                "IntermediateData",
-                                                                errMsg);
-                                    if (res != true) {
-                                        std::cout << "can't remove temp set: " << errMsg
-                                                  << std::endl;
-                                    } else {
-                                        std::cout << "Removed set with database="
-                                                  << intermediateSet->getDatabase()
-                                                  << ", set=" << intermediateSet->getSetName()
-                                                  << std::endl;
-                                    }
-                                }
-                            }
-#ifdef PROFILING
-                            auto removeSetEnd = std::chrono::high_resolution_clock::now();
-                            std::cout << "Time Duration for Removing intermediate sets: "
-                                      << std::chrono::duration_cast<std::chrono::duration<float>>(
-                                             removeSetEnd - removeSetBegin)
-                                             .count()
-                                      << " seconds." << std::endl;
-#endif
-                        }
-                        // to remove remaining intermediate sets:
-                        PDB_COUT << "to remove intermediate sets" << std::endl;
-                        for (int i = 0; i < this->interGlobalSets.size(); i++) {
-                            std::string errMsg;
-                            Handle<SetIdentifier> intermediateSet = this->interGlobalSets[i];
-                            bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(),
-                                                               intermediateSet->getSetName(),
-                                                               "IntermediateData",
-                                                               errMsg);
-                            if (res != true) {
-                                std::cout << "can't remove temp set: " << errMsg << std::endl;
-                            } else {
-                                PDB_COUT << "Removed set with database="
-                                         << intermediateSet->getDatabase()
-                                         << ", set=" << intermediateSet->getSetName() << std::endl;
-                            }
-                        }
-                    }
-                }
-                PDB_COUT << "To send back response to client" << std::endl;
-                Handle<SimpleRequestResult> result =
-                    makeObject<SimpleRequestResult>(success, errMsg);
-                if (!sendUsingMe->sendObject(result, errMsg)) {
-                    PDB_COUT << "to cleanup" << std::endl;
-                    getFunctionality<QuerySchedulerServer>().cleanup();
-                    return std::make_pair(false, errMsg);
-                }
-                PDB_COUT << "to cleanup" << std::endl;
-                getFunctionality<QuerySchedulerServer>().cleanup();
-                return std::make_pair(true, errMsg);
-            }
-
-            ));
-
-
-    // deprecated
-    // handler to schedule a query
-    forMe.registerHandler(
-        ExecuteQuery_TYPEID,
-        make_shared<SimpleRequestHandler<ExecuteQuery>>([&](Handle<ExecuteQuery> request,
-                                                            PDBCommunicatorPtr sendUsingMe) {
-
-            std::string errMsg;
-            bool success;
-
-            // parse the query
-            const UseTemporaryAllocationBlock block{128 * 1024 * 1024};
-            PDB_COUT << "Got the ExecuteQuery object" << std::endl;
-            Handle<Vector<Handle<QueryBase>>> userQuery =
-                sendUsingMe->getNextObject<Vector<Handle<QueryBase>>>(success, errMsg);
-            if (!success) {
-                std::cout << errMsg << std::endl;
-                return std::make_pair(false, errMsg);
-            }
-
-            PDB_COUT << "To transform the ExecuteQuery object into a logicalGraph" << std::endl;
-            pdb_detail::QueryGraphIrPtr queryGraph = pdb_detail::buildIr(userQuery);
-
-            PDB_COUT << "To transform the logicalGraph into a physical plan" << std::endl;
-
-            getFunctionality<QuerySchedulerServer>().parseOptimizedQuery(queryGraph);
-
-#ifdef CLEAR_SET
-            // So far we only clear for the first stage. (we now only schedule the first stage)
-            Handle<SetIdentifier> output = getFunctionality<QuerySchedulerServer>().getOutputSet();
-            std::string outputTypeName =
-                getFunctionality<QuerySchedulerServer>().getOutputTypeName();
-            // check whether output exists, if yes, we remove that set and create a new set
-            DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
-            std::cout << "QuerySchedulerServer: to clear output set with databaseName="
-                      << output->getDatabase() << " and setName=" << output->getSetName()
-                      << " and typeName=" << outputTypeName << std::endl;
-            std::cout
-                << "Please turn CLEAR_SET flag off if client is responsible for creating output set"
-                << std::endl;
-            bool ret = dsmClient.clearSet(
-                output->getDatabase(), output->getSetName(), outputTypeName, errMsg);
-            if (ret == false) {
-                std::cout << "QuerySchedulerServer: can't clear output set with databaseName="
-                          << output->getDatabase() << " and setName=" << output->getSetName()
-                          << " and typeName=" << outputTypeName << std::endl;
-                return std::make_pair(false, errMsg);
-            }
-            std::cout << "QuerySchedulerServer: set cleared" << std::endl;
-#endif
-            getFunctionality<QuerySchedulerServer>().printCurrentPlan();
-            PDB_COUT << "To get the resource object from the resource manager" << std::endl;
-            getFunctionality<QuerySchedulerServer>().initialize(true);
-            PDB_COUT << "To schedule the query to run on the cluster" << std::endl;
-            getFunctionality<QuerySchedulerServer>().schedule();
-            PDB_COUT << "To send back response to client" << std::endl;
-            Handle<SimpleRequestResult> result =
-                makeObject<SimpleRequestResult>(true, std::string("successfully executed query"));
-            if (!sendUsingMe->sendObject(result, errMsg)) {
-                return std::make_pair(false, errMsg);
-            }
-            PDB_COUT << "to cleanup" << std::endl;
-            getFunctionality<QuerySchedulerServer>().cleanup();
-            return std::make_pair(true, errMsg);
-
-
-        }));
+                [&](Handle<ExecuteComputation> request, PDBCommunicatorPtr sendUsingMe) {
+                return executeComputation(request, sendUsingMe);
+            }));
 }
+
+
+pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<ExecuteComputation> &request,
+                                                                        PDBCommunicatorPtr &sendUsingMe) {
+    // all the stuff will be allocated here
+    const UseTemporaryAllocationBlock block{256 * 1024 * 1024};
+
+    std::string errMsg;
+    bool success;
+
+    // parse the query
+    PDB_COUT << "Got the ExecuteComputation object" << std::endl;
+    Handle<Vector<Handle<Computation>>> computations = sendUsingMe->getNextObject<Vector<Handle<Computation>>>(success,
+                                                                                                               errMsg);
+    // we create a new jobID
+    this->jobId = this->getNextJobId();
+
+    // use that jobID to create a database for the job
+    DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
+    if(!dsmClient.createDatabase(this->jobId, errMsg)) {
+        PDB_COUT << "Could not crate a database for " << this->jobId << ", cleaning up!" <<  std::endl;
+        getFunctionality<QuerySchedulerServer>().cleanup();
+        return std::make_pair(false, errMsg);
+    }
+
+    // initialize the standard resources from the resource manager
+    PDB_COUT << "To get the resource object from the resource manager" << std::endl;
+    getFunctionality<QuerySchedulerServer>().initialize();
+
+
+    // create the shuffle info (just combine the standard resources with the partition to core ration) TODO ask Jia if this is really necessary
+    this->shuffleInfo = std::make_shared<ShuffleInfo>(this->standardResources,
+                                                      this->partitionToCoreRatio);
+
+    // if we don't have the information about the sets we ask every node to submit them
+    if (this->statsForOptimization == nullptr) {
+        this->collectStats();
+    }
+
+    // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
+    this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,
+                                                      computations,
+                                                      request->getTCAPString(),
+                                                      this->logger,
+                                                      this->conf);
+    int jobStageId = 0;
+    while (this->tcapAnalyzerPtr->hasSources()) {
+
+        std::vector<Handle<AbstractJobStage>> jobStages;
+        std::vector<Handle<SetIdentifier>> intermediateSets;
+
+        extractPipelineStages(jobStageId, jobStages, intermediateSets);
+
+        // create intermediate sets
+        createIntermediateSets(dsmClient, intermediateSets);
+
+        // schedule this job stages
+        PDB_COUT << "To schedule the query to run on the cluster" << std::endl;
+        getFunctionality<QuerySchedulerServer>().scheduleStages(jobStages, shuffleInfo);
+
+        // removes the intermediate sets we don't anymore to continue the execution
+        removeUnusedIntermediateSets(dsmClient, intermediateSets);
+    }
+
+    // removes the rest of the intermediate sets
+    PDB_COUT << "About to remove intermediate sets" << endl;
+    removeIntermediateSets(dsmClient);
+
+    // notify the client that we succeeded
+    PDB_COUT << "About to send back response to client" << std::endl;
+    Handle<SimpleRequestResult> result = makeObject<SimpleRequestResult>(success, errMsg);
+
+    if (!sendUsingMe->sendObject(result, errMsg)) {
+        PDB_COUT << "About to cleanup" << std::endl;
+        getFunctionality<QuerySchedulerServer>().cleanup();
+        return std::make_pair(false, errMsg);
+    }
+
+    PDB_COUT << "About to cleanup" << std::endl;
+    getFunctionality<QuerySchedulerServer>().cleanup();
+    return std::make_pair(true, errMsg);
+}
+
+void QuerySchedulerServer::removeUnusedIntermediateSets(DistributedStorageManagerClient &dsmClient,
+                                                        vector<Handle<SetIdentifier>> &intermediateSets) {
+
+    // to remove the intermediate sets:
+    for (const auto &intermediateSet : intermediateSets) {
+
+        // check whether intermediateSet is a source set and has consumers
+        string setName = intermediateSet->toSourceSetName();
+        if (this->tcapAnalyzerPtr->hasConsumers(setName)) {
+
+            // if it does then we need to remember this set and not remove it, because it will be used later
+            this->interGlobalSets.push_back(intermediateSet);
+            continue;
+        }
+
+        // check if we failed, if we did log it and continue to the next set
+        std::string errMsg;
+        bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(),
+                                        intermediateSet->getSetName(),
+                                        "IntermediateData",
+                                        errMsg);
+
+        // check if we failed, if we did log it and continue to the next set
+        if (!res) {
+            std::cout << "can't remove temp set: " << errMsg << std::endl;
+            continue;
+        }
+
+        // we succeeded in removing the set, log that
+        std::cout << "Removed set with database=" << intermediateSet->getDatabase() << ", set="
+                  << intermediateSet->getSetName() << std::endl;
+    }
+}
+
+void QuerySchedulerServer::removeIntermediateSets(DistributedStorageManagerClient &dsmClient) {
+
+    // go through the remaining intermediate sets and remove them
+    for (const auto &intermediateSet : interGlobalSets) {
+
+        // send a request to the DistributedStorageManagerClient to remove it
+        string errMsg;
+        bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(),
+                                           intermediateSet->getSetName(),
+                                           "IntermediateData",
+                                           errMsg);
+
+        // check if we failed, if we did log it and continue to the next set
+        if (!res) {
+            cout << "Can not remove temp set: " << errMsg << endl;
+            continue;
+        }
+
+        // we succeeded in removing the set, log that
+        PDB_COUT << "Removed set with database=" << intermediateSet->getDatabase() << ", set="
+                 << intermediateSet->getSetName() << endl;
+    }
+}
+
+void QuerySchedulerServer::createIntermediateSets(DistributedStorageManagerClient &dsmClient,
+                                                  vector<Handle<SetIdentifier>> &intermediateSets) {
+
+    // go through each intermediate set list and create them
+    for (const auto &intermediateSet : intermediateSets) {
+
+        // send a request to the DistributedStorageManagerClient to remove it
+        string errMsg;
+        bool res = dsmClient.createTempSet(intermediateSet->getDatabase(),
+                                           intermediateSet->getSetName(),
+                                           "IntermediateData",
+                                           errMsg,
+                                           intermediateSet->getPageSize());
+
+        // check if we failed, if we did log it and continue to the next set
+        if (!res) {
+            cout << "Can not create temp set: " << errMsg << endl;
+            continue;
+        }
+
+        // great everything went well log that...
+        PDB_COUT << "Created set with database=" << intermediateSet->getDatabase() << ", set="
+                 << intermediateSet->getSetName() << endl;
+    }
+}
+
+void QuerySchedulerServer:: extractPipelineStages(int &jobStageId,
+                                                  vector<Handle<AbstractJobStage>> &jobStages,
+                                                  vector<Handle<SetIdentifier>> &intermediateSets) {
+
+    // try to get a sequence of stages, if we have any sources left
+    bool success = false;
+    while (this->tcapAnalyzerPtr->hasSources() && !success) {
+
+        // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
+        success = this->tcapAnalyzerPtr->getNextStagesOptimized(jobStages,
+                                                                intermediateSets,
+                                                                statsForOptimization,
+                                                                jobStageId);
+    }
+}
+
 }
 
 
