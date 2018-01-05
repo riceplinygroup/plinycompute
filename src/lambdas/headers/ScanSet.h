@@ -32,7 +32,7 @@ class ScanSet : public Computation {
 
     // to return the type if of this computation
     ComputationTypeID getComputationTypeID() override {
-        return ScanSetAtomicTypeID;
+        return ScanSetTypeID;
     }
 
     // gets the name of the i^th input type...
