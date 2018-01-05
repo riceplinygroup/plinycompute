@@ -165,8 +165,6 @@ private:
 
     Handle<AbstractAggregateComp> aggComputation;
 
-    bool needsRemoveInputSet;
-
     int numNodePartitions;
 
     size_t totalMemoryOnThisNode;

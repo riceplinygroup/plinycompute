@@ -41,9 +41,6 @@ private:
     // job stage id
     JobStageID id;
 
-    // needs to remove input set
-    bool needsRemoveInputSet;
-
     // number of pages
     int numPages;
 

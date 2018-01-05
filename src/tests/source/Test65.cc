@@ -50,52 +50,61 @@
 #include "SimpleSelection.h"
 #include "SimpleSelection.h"
 
-
 using namespace pdb;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
-    // create all of the computation objects
-    const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
-    Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("chris_db", "chris_set");
-    Handle<Computation> myFilter = makeObject<SimpleSelection>();
-    myFilter->setInput(myScanSet);
-    Handle<Computation> myAgg = makeObject<SimpleAggregation>("chris_db", "output_set1");
-    myAgg->setInput(myFilter);
-    std::vector<Handle<Computation>> queryGraph;
-    queryGraph.push_back(myAgg);
-    QueryGraphAnalyzer queryAnalyzer(queryGraph);
-    std::string tcapString = queryAnalyzer.parseTCAPString();
-    std::cout << "TCAP OUTPUT:" << std::endl;
-    std::cout << tcapString << std::endl;
-    std::vector<Handle<Computation>> computations;
-    std::cout << "PARSE COMPUTATIONS..." << std::endl;
-    queryAnalyzer.parseComputations(computations);
-    Handle<Vector<Handle<Computation>>> computationsToSend =
-        makeObject<Vector<Handle<Computation>>>();
-    for (int i = 0; i < computations.size(); i++) {
-        computationsToSend->push_back(computations[i]);
-    }
-    PDBLoggerPtr logger = make_shared<PDBLogger>("testAggregationAnalysis.log");
-    ConfigurationPtr conf = make_shared<Configuration>();
-    TCAPAnalyzer tcapAnalyzer("TestAggregationJob", computationsToSend, tcapString, logger, conf);
+  // create all of the computation objects
+  const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
+  Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("chris_db", "chris_set");
+  Handle<Computation> myFilter = makeObject<SimpleSelection>();
+  myFilter->setInput(myScanSet);
+  Handle<Computation> myAgg = makeObject<SimpleAggregation>("chris_db", "output_set1");
+  myAgg->setInput(myFilter);
+  std::vector<Handle<Computation>> queryGraph;
+  queryGraph.push_back(myAgg);
+  QueryGraphAnalyzer queryAnalyzer(queryGraph);
+  std::string tcapString = queryAnalyzer.parseTCAPString();
+  std::cout << "TCAP OUTPUT:" << std::endl;
+  std::cout << tcapString << std::endl;
+  std::vector<Handle<Computation>> computations;
+  std::cout << "PARSE COMPUTATIONS..." << std::endl;
+  queryAnalyzer.parseComputations(computations);
+  Handle<Vector<Handle<Computation>>> computationsToSend = makeObject<Vector<Handle<Computation>>>();
+  for (const auto &computation : computations) {
+    computationsToSend->push_back(computation);
+  }
+  PDBLoggerPtr logger = make_shared<PDBLogger>("testSelectionAnalysis.log");
+  ConfigurationPtr conf = make_shared<Configuration>();
+  std::string jobId = "TestSelectionJob";
 
-    std::vector<Handle<AbstractJobStage>> queryPlan;
-    std::vector<Handle<SetIdentifier>> interGlobalSets;
-    std::cout << "PARSE TCAP STRING..." << std::endl;
-    tcapAnalyzer.analyze(queryPlan, interGlobalSets, <#initializer#>, AtomicComputationPtr(), AtomicComputationPtr(),
-                         AtomicComputationPtr(), Handle<Computation>(), Handle<SetIdentifier>(), <#initializer#>, false,
-                         std::__cxx11::string(), defaultAllocator);
-    std::cout << "PRINT PHYSICAL PLAN..." << std::endl;
-    for (int i = 0; i < queryPlan.size(); i++) {
+  TCAPAnalyzer tcapAnalyzer(jobId, computationsToSend, tcapString, logger, conf);
+  std::vector<Handle<AbstractJobStage>> queryPlan;
+  std::vector<Handle<SetIdentifier>> interGlobalSets;
+  std::cout << "PARSE TCAP STRING..." << std::endl;
+
+  int jobStageId = 0;
+  StatisticsPtr statsForOptimization = nullptr;
+  while (tcapAnalyzer.hasSources()) {
+
+    // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
+    bool success = tcapAnalyzer.getNextStagesOptimized(queryPlan,
+                                                       interGlobalSets,
+                                                       statsForOptimization,
+                                                       jobStageId);
+    if (success) {
+      std::cout << "PRINT PHYSICAL PLAN..." << std::endl;
+      for (int i = 0; i < queryPlan.size(); i++) {
         std::cout << "to print the " << i << "-th plan" << std::endl;
         queryPlan[i]->print();
+      }
     }
-    int ret = system("scripts/cleanupSoFiles.sh");
-    if (ret < 0) {
-        std::cout << "Can't cleanup so files" << std::endl;
-    }
-}
+  }
 
+  int code = system("scripts/cleanupSoFiles.sh");
+  if (code < 0) {
+    std::cout << "Can't cleanup so files" << std::endl;
+  }
+}
 
 #endif
