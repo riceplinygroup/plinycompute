@@ -29,228 +29,226 @@
 #include "DataTypes.h"
 #include "DataProxy.h"
 #include "Configuration.h"
+#include "mustache.hpp"
 
 namespace pdb {
 
-
 //to scan a user set
-template <class OutputClass>
+template<class OutputClass>
 class ScanUserSet : public Computation {
 
-public:
+ public:
 
-    // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
-    // Array is the one variable-sized type that we allow, we need to manually override
-    // these methods
-    void setUpAndCopyFrom(void* target, void* source) const override {
-        new (target) ScanUserSet<OutputClass> ();
-        ScanUserSet<OutputClass>& fromMe = *((ScanUserSet<OutputClass> *) source);
-        ScanUserSet<OutputClass>& toMe = *((ScanUserSet<OutputClass> *) target);
-        toMe.iterator = fromMe.iterator;
-        toMe.proxy = fromMe.proxy;
-        toMe.batchSize = fromMe.batchSize;
-        toMe.dbName = fromMe.dbName;
-        toMe.setName = fromMe.setName;
-        toMe.outputType = fromMe.outputType;
+  // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
+  // Array is the one variable-sized type that we allow, we need to manually override
+  // these methods
+  void setUpAndCopyFrom(void *target, void *source) const override {
+    new(target) ScanUserSet<OutputClass>();
+    ScanUserSet<OutputClass> &fromMe = *((ScanUserSet<OutputClass> *) source);
+    ScanUserSet<OutputClass> &toMe = *((ScanUserSet<OutputClass> *) target);
+    toMe.iterator = fromMe.iterator;
+    toMe.proxy = fromMe.proxy;
+    toMe.batchSize = fromMe.batchSize;
+    toMe.dbName = fromMe.dbName;
+    toMe.setName = fromMe.setName;
+    toMe.outputType = fromMe.outputType;
 
+  }
+
+  void deleteObject(void *deleteMe) override {
+    deleter(deleteMe, this);
+  }
+
+  size_t getSize(void *forMe) override {
+    return sizeof(ScanUserSet<OutputClass>);
+  }
+
+  //this constructor is for constructing builtin object
+  ScanUserSet() {}
+
+  //user should only use following constructor
+  ScanUserSet(std::string dbName, std::string setName) {
+    this->dbName = dbName;
+    this->setName = setName;
+    this->outputType = getTypeName<OutputClass>();
+  }
+
+  ~ScanUserSet() {
+    this->iterator = nullptr;
+    this->proxy = nullptr;
+  }
+
+  ComputeSourcePtr getComputeSource(TupleSpec &schema, ComputePlan &plan) override {
+    return std::make_shared<VectorTupleSetIterator>(
+
+        [&]() -> void * {
+          if (this->iterator == nullptr) {
+            return nullptr;
+          }
+          while (this->iterator->hasNext() == true) {
+
+            PDBPagePtr page = this->iterator->next();
+            if (page != nullptr) {
+              return page->getBytes();
+            }
+          }
+
+          return nullptr;
+
+        },
+
+        [&](void *freeMe) -> void {
+          if (this->proxy != nullptr) {
+            char *pageRawBytes = (char *) freeMe -
+                (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) +
+                    sizeof(PageID) + sizeof(int) + sizeof(size_t));
+
+            PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, 0, 0);
+            NodeID nodeId = page->getNodeID();
+            DatabaseID dbId = page->getDbID();
+            UserTypeID typeId = page->getTypeID();
+            SetID setId = page->getSetID();
+            try {
+              this->proxy->unpinUserPage(nodeId, dbId, typeId, setId, page, false);
+            } catch (NotEnoughSpace &n) {
+              makeObjectAllocatorBlock(4096, true);
+              this->proxy->unpinUserPage(nodeId, dbId, typeId, setId, page, false);
+              throw n;
+            }
+          }
+        },
+
+        this->batchSize
+
+    );
+  }
+
+  // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
+  void setIterator(PageCircularBufferIteratorPtr iterator) {
+    this->iterator = iterator;
+  }
+
+  void setProxy(DataProxyPtr proxy) {
+    this->proxy = proxy;
+  }
+
+  void setBatchSize(int batchSize) override {
+    this->batchSize = batchSize;
+  }
+
+  int getBatchSize() {
+    return this->batchSize;
+  }
+
+  void setOutput(std::string dbName, std::string setName) override {
+    this->dbName = dbName;
+    this->setName = setName;
+  }
+
+  void setDatabaseName(std::string dbName) {
+    this->dbName = dbName;
+  }
+
+  void setSetName(std::string setName) {
+    this->setName = setName;
+  }
+
+  std::string getDatabaseName() override {
+    return dbName;
+  }
+
+  std::string getSetName() override {
+    return setName;
+  }
+
+  std::string getComputationType() override {
+    return std::string("ScanUserSet");
+  }
+
+  // to return the type if of this computation
+  ComputationTypeID getComputationTypeID() override {
+    return ScanSetTypeID;
+  }
+
+  // below function implements the interface for parsing computation into a TCAP string
+  std::string toTCAPString(std::vector<InputTupleSetSpecifier> &inputTupleSets,
+                           int computationLabel,
+                           std::string &outputTupleSetName,
+                           std::vector<std::string> &outputColumnNames,
+                           std::string &addedOutputColumnName) override {
+
+    InputTupleSetSpecifier inputTupleSet;
+    if (inputTupleSets.size() > 0) {
+      inputTupleSet = inputTupleSets[0];
     }
+    return toTCAPString(inputTupleSet.getTupleSetName(),
+                        inputTupleSet.getColumnNamesToKeep(),
+                        inputTupleSet.getColumnNamesToApply(),
+                        computationLabel,
+                        outputTupleSetName,
+                        outputColumnNames,
+                        addedOutputColumnName);
+  }
 
-    void deleteObject(void* deleteMe) override {
-        deleter(deleteMe, this);
+  // below function returns a TCAP string for this Computation
+  std::string toTCAPString(std::string inputTupleSetName,
+                           std::vector<std::string> &inputColumnNames,
+                           std::vector<std::string> &inputColumnsToApply,
+                           int computationLabel,
+                           std::string &outputTupleSetName,
+                           std::vector<std::string> &outputColumnNames,
+                           std::string &addedOutputColumnName) {
+
+    // the template we are going to use to create the TCAP string for this ScanUserSet
+    mustache::mustache scanSetTemplate{"inputDataFor{{computationType}}_{{computationLabel}}(in{{computationLabel}}) <= SCAN ('{{setName}}', '{{dbName}}', '{{computationType}}_{{computationLabel}}')\n"};
+
+    // the data required to fill in the template
+    mustache::data scanSetData;
+    scanSetData.set("computationType", getComputationType());
+    scanSetData.set("computationLabel", std::to_string(computationLabel));
+    scanSetData.set("setName", std::string(setName));
+    scanSetData.set("dbName", std::string(dbName));
+
+    // update the state of the computation
+    this->setTraversed(true);
+    this->setOutputTupleSetName(outputTupleSetName);
+    this->setOutputColumnToApply(addedOutputColumnName);
+
+    return scanSetTemplate.render(scanSetData);
+  }
+
+  int getNumInputs() override {
+    return 0;
+  }
+
+  std::string getIthInputType(int i) override {
+    return "";
+  }
+
+  std::string getOutputType() override {
+    if (outputType == "") {
+      outputType = getTypeName<OutputClass>();
     }
+    return this->outputType;
+  }
 
-    size_t getSize(void* forMe) override {
-        return sizeof(ScanUserSet<OutputClass>);
-    }
+  bool needsMaterializeOutput() override {
+    return false;
+  }
 
+ protected:
+  // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
+  PageCircularBufferIteratorPtr iterator = nullptr;
 
-    //this constructor is for constructing builtin object
-    ScanUserSet () {}
+  DataProxyPtr proxy = nullptr;
 
+  String dbName;
 
+  String setName;
 
-    //user should only use following constructor
-    ScanUserSet (std :: string dbName, std :: string setName) {
-        this->dbName = dbName;
-        this->setName = setName;
-        this->outputType = getTypeName<OutputClass>();
-    }
+  int batchSize;
 
-    ~ScanUserSet() {
-        this->iterator = nullptr;
-        this->proxy = nullptr;
-    }
-
-    ComputeSourcePtr getComputeSource(TupleSpec& schema, ComputePlan& plan) override {
-        return std::make_shared<VectorTupleSetIterator>(
-
-            [&]() -> void* {
-                if (this->iterator == nullptr) {
-                    return nullptr;
-                }
-                while (this->iterator->hasNext() == true) {
-
-                    PDBPagePtr page = this->iterator->next();
-                    if (page != nullptr) {
-                        return page->getBytes();
-                    }
-                }
-
-                return nullptr;
-
-            },
-
-            [&](void* freeMe) -> void {
-                if (this->proxy != nullptr) {
-                    char* pageRawBytes = (char*)freeMe -
-                        (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) +
-                         sizeof(PageID) + sizeof(int) + sizeof(size_t));
-
-                    PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, 0, 0);
-                    NodeID nodeId = page->getNodeID();
-                    DatabaseID dbId = page->getDbID();
-                    UserTypeID typeId = page->getTypeID();
-                    SetID setId = page->getSetID();
-                    try {
-                        this->proxy->unpinUserPage(nodeId, dbId, typeId, setId, page, false);
-                    } catch (NotEnoughSpace& n) {
-                        makeObjectAllocatorBlock(4096, true);
-                        this->proxy->unpinUserPage(nodeId, dbId, typeId, setId, page, false);
-                        throw n;
-                    }
-                }
-            },
-
-            this->batchSize
-
-            );
-    }
-
-    // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
-    void setIterator(PageCircularBufferIteratorPtr iterator) {
-        this->iterator = iterator;
-    }
-
-    void setProxy(DataProxyPtr proxy) {
-        this->proxy = proxy;
-    }
-
-
-    void setBatchSize(int batchSize) override {
-        this->batchSize = batchSize;
-    }
-
-    int getBatchSize() {
-        return this->batchSize;
-    }
-
-    void setOutput(std::string dbName, std::string setName) override {
-        this->dbName = dbName;
-        this->setName = setName;
-    }
-
-    void setDatabaseName(std::string dbName) {
-        this->dbName = dbName;
-    }
-
-    void setSetName(std::string setName) {
-        this->setName = setName;
-    }
-
-    std::string getDatabaseName() override {
-        return dbName;
-    }
-
-    std::string getSetName() override {
-        return setName;
-    }
-
-
-    std::string getComputationType() override {
-        return std::string("ScanUserSet");
-    }
-
-    // to return the type if of this computation
-    ComputationTypeID getComputationTypeID() override {
-        return ScanSetTypeID;
-    }
-
-    // below function implements the interface for parsing computation into a TCAP string
-    std::string toTCAPString(std::vector<InputTupleSetSpecifier>& inputTupleSets,
-                             int computationLabel,
-                             std::string& outputTupleSetName,
-                             std::vector<std::string>& outputColumnNames,
-                             std::string& addedOutputColumnName) override {
-
-        InputTupleSetSpecifier inputTupleSet;
-        if (inputTupleSets.size() > 0) {
-            inputTupleSet = inputTupleSets[0];
-        }
-        return toTCAPString(inputTupleSet.getTupleSetName(),
-                            inputTupleSet.getColumnNamesToKeep(),
-                            inputTupleSet.getColumnNamesToApply(),
-                            computationLabel,
-                            outputTupleSetName,
-                            outputColumnNames,
-                            addedOutputColumnName);
-    }
-
-
-    // below function returns a TCAP string for this Computation
-    std::string toTCAPString(std::string inputTupleSetName,
-                             std::vector<std::string>& inputColumnNames,
-                             std::vector<std::string>& inputColumnsToApply,
-                             int computationLabel,
-                             std::string& outputTupleSetName,
-                             std::vector<std::string>& outputColumnNames,
-                             std::string& addedOutputColumnName) {
-
-        outputTupleSetName = "inputDataFor" + getComputationType() + std::string("_") +
-            std::to_string(computationLabel);
-        addedOutputColumnName = "in" + std::to_string(computationLabel);
-        outputColumnNames.push_back(addedOutputColumnName);
-        std::string ret = outputTupleSetName +
-            std::string("(" + addedOutputColumnName + ") <= SCAN ('") + std::string(setName) +
-            "', '" + std::string(dbName) + std::string("', '") + getComputationType() +
-            std::string("_") + std::to_string(computationLabel) + std::string("')\n");
-        this->setTraversed(true);
-        this->setOutputTupleSetName(outputTupleSetName);
-        this->setOutputColumnToApply(addedOutputColumnName);
-        return ret;
-    }
-
-    int getNumInputs() override {
-        return 0;
-    }
-
-    std::string getIthInputType(int i) override {
-        return "";
-    }
-
-    std::string getOutputType() override {
-        if (outputType == "") {
-            outputType = getTypeName<OutputClass>();
-        }
-        return this->outputType;
-    }
-
-    bool needsMaterializeOutput() override {
-        return false;
-    }
-
-protected:
-    // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
-    PageCircularBufferIteratorPtr iterator = nullptr;
-
-    DataProxyPtr proxy = nullptr;
-
-    String dbName;
-
-    String setName;
-
-    int batchSize;
-
-    String outputType = "";    
+  String outputType = "";
 
 };
 }
