@@ -78,6 +78,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/sharedLibraries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/src/boost")
 include_directories("${PROJECT_SOURCE_DIR}/src/mainClient/headers")
+include_directories("${PROJECT_SOURCE_DIR}/src/mustache/headers")
 
 # specify the source files
 file(GLOB SERVER_FUNCTIONALITIES_SOURCE "${PROJECT_SOURCE_DIR}/src/serverFunctionalities/source/*.cc")
