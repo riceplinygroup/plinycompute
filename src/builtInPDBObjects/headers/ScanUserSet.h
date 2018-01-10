@@ -217,6 +217,10 @@ class ScanUserSet : public Computation {
     addedOutputColumnName = outputColumnNameTemplate.render(scanSetData);
     outputColumnNames.push_back(addedOutputColumnName);
 
+    // output tuple set name template
+    mustache::mustache outputTupleSetTemplate{"inputDataFor{{computationType}}_{{computationLabel}}"};
+    outputTupleSetName = outputTupleSetTemplate.render(scanSetData);
+
     // update the state of the computation
     this->setTraversed(true);
     this->setOutputTupleSetName(outputTupleSetName);
