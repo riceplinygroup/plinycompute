@@ -154,6 +154,7 @@ class SelectionComp : public Computation {
       inputColumnData.push_back(columnData);
     }
 
+    // create the data for the filter
     mustache::data selectionCompData;
     selectionCompData.set("computationType", getComputationType());
     selectionCompData.set("computationLabel", std::to_string(computationLabel));
