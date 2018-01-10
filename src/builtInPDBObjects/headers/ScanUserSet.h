@@ -200,7 +200,8 @@ class ScanUserSet : public Computation {
                            std::string &addedOutputColumnName) {
 
     // the template we are going to use to create the TCAP string for this ScanUserSet
-    mustache::mustache scanSetTemplate{"inputDataFor{{computationType}}_{{computationLabel}}(in{{computationLabel}}) <= SCAN ('{{setName}}', '{{dbName}}', '{{computationType}}_{{computationLabel}}')\n"};
+    mustache::mustache scanSetTemplate{"inputDataFor{{computationType}}_{{computationLabel}}(in{{computationLabel}})"
+                                       " <= SCAN ('{{setName}}', '{{dbName}}', '{{computationType}}_{{computationLabel}}')\n"};
 
     // the data required to fill in the template
     mustache::data scanSetData;
@@ -209,11 +210,19 @@ class ScanUserSet : public Computation {
     scanSetData.set("setName", std::string(setName));
     scanSetData.set("dbName", std::string(dbName));
 
+    // output column name
+    mustache::mustache outputColumnNameTemplate{"in{{computationLabel}}"};
+
+    //  set the output column name
+    addedOutputColumnName = outputColumnNameTemplate.render(scanSetData);
+    outputColumnNames.push_back(addedOutputColumnName);
+
     // update the state of the computation
     this->setTraversed(true);
     this->setOutputTupleSetName(outputTupleSetName);
     this->setOutputColumnToApply(addedOutputColumnName);
 
+    // return the TCAP string
     return scanSetTemplate.render(scanSetData);
   }
 
