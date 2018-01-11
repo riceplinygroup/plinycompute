@@ -21,6 +21,7 @@
 
 #include "Computation.h"
 #include "TypeName.h"
+#include "mustache.hpp"
 
 namespace pdb {
 
@@ -87,18 +88,37 @@ class SetWriter : public Computation {
                              std::string& outputTupleSetName,
                              std::vector<std::string>& outputColumnNames,
                              std::string& addedOutputColumnName) {
-        std::string ret = std::string("out() <= OUTPUT (") + inputTupleSetName + " (" +
-            inputColumnsToApply[0] + ")" + std::string(", '") + std::string("EmptySet()") +
-            std::string("', '") + std::string("EmptySet()") + std::string("', '") +
-            getComputationType() + std::string("_") + std::to_string(computationLabel) +
-            std::string("')\n");
+
+        //Names for output stuff
         outputTupleSetName = "out";
         outputColumnNames.push_back("");
         addedOutputColumnName = "";
+
+        // the template we are going to use to create the TCAP string for this ScanUserSet
+        mustache::mustache writeSetTemplate{"{{outputTupleSetName}}( {{outputColumnNames}}) <= "
+                                            "OUTPUT ( {{inputTupleSetName}} ( {{inputColumnsToApply}} ), "
+                                            "'EmptySet()', 'EmptySet()', '{{computationType}}_{{computationLabel}}')\n"};
+
+
+        // the data required to fill in the template
+        mustache::data writeSetData;
+        writeSetData.set("outputTupleSetName", outputTupleSetName);
+        writeSetData.set("outputColumnNames", outputColumnNames[0]);
+        writeSetData.set("inputTupleSetName", inputTupleSetName);
+        writeSetData.set("inputColumnsToApply", inputColumnsToApply[0]);
+        writeSetData.set("computationType", getComputationType());
+        writeSetData.set("computationLabel", std::to_string(computationLabel));
+
+
+
+        // update the state of the computation
         this->setTraversed(true);
         this->setOutputTupleSetName(outputTupleSetName);
         this->setOutputColumnToApply(addedOutputColumnName);
-        return ret;
+
+
+        // return the TCAP string
+        return writeSetTemplate.render(writeSetData);
     }
 };
 }
