@@ -25,6 +25,8 @@
 #include "VectorSink.h"
 #include "PDBString.h"
 #include "TypeName.h"
+#include "mustache.hpp"
+
 
 namespace pdb {
 
@@ -167,19 +169,37 @@ public:
                              std::string& outputTupleSetName,
                              std::vector<std::string>& outputColumnNames,
                              std::string& addedOutputColumnName) {
-        // std :: cout << "\n/*Write to output set*/\n";
-        std::string ret = std::string("out() <= OUTPUT (") + inputTupleSetName + " (" +
-            inputColumnsToApply[0] + ")" + std::string(", '") + std::string(setName) +
-            std::string("', '") + std::string(dbName) + std::string("', '") + getComputationType() +
-            std::string("_") + std::to_string(computationLabel) + std::string("')");
-        ret = ret + "\n";
+
+        //Names for output stuff
         outputTupleSetName = "out";
         outputColumnNames.push_back("");
         addedOutputColumnName = "";
+
+        // the template we are going to use to create the TCAP string for this ScanUserSet
+        mustache::mustache writeSetTemplate{"{{outputTupleSetName}}( {{outputColumnNames}}) <= "
+                                            "OUTPUT ( {{inputTupleSetName}} ( {{inputColumnsToApply}} ), "
+                                            "'{{setName}}', '{{dbName}}', '{{computationType}}_{{computationLabel}}')\n"};
+
+
+        // the data required to fill in the template
+        mustache::data writeSetData;
+        writeSetData.set("outputTupleSetName", outputTupleSetName);
+        writeSetData.set("outputColumnNames", outputColumnNames[0]);
+        writeSetData.set("inputTupleSetName", inputTupleSetName);
+        writeSetData.set("inputColumnsToApply", inputColumnsToApply[0]); //TODO? Only consider first column
+        writeSetData.set("computationType", getComputationType());
+        writeSetData.set("computationLabel", std::to_string(computationLabel));
+        writeSetData.set("setName", std::string(setName));
+        writeSetData.set("dbName", std::string(dbName));
+
+
+        // update the state of the computation
         this->setTraversed(true);
         this->setOutputTupleSetName(outputTupleSetName);
         this->setOutputColumnToApply(addedOutputColumnName);
-        return ret;
+
+        // return the TCAP string
+        return writeSetTemplate.render(writeSetData);
     }
 
     //this computation always materializes output
