@@ -31,6 +31,7 @@
 #include "ShuffleSink.h"
 #include "CombinedShuffleSink.h"
 #include "MapTupleSetIterator.h"
+#include "mustache.hpp"
 
 
 namespace pdb {
@@ -255,7 +256,9 @@ public:
                              std::vector<std::string>& outputColumnNames,
                              std::string& addedOutputColumnName,
                              std::string& myLambdaName) {
-        std::string tcapString = "";
+        PDB_COUT << "To GET TCAP STRING FOR CLUSTER AGGREGATECOMP" << std::endl;
+
+        PDB_COUT << "To GET TCAP STRING FOR AGGREGATE KEY" << std::endl;
         Handle<InputClass> checkMe = nullptr;
         Lambda<KeyClass> keyLambda = getKeyProjection(checkMe);
         std::string tupleSetName;
@@ -267,6 +270,8 @@ public:
         for (int i = 0; i < inputColumnsToApply.size(); i++) {
             columnsToApply.push_back(inputColumnsToApply[i]);
         }
+
+        std::string tcapString;
         tcapString += "\n/* Extract key for aggregation */\n";
         tcapString += keyLambda.toTCAPString(inputTupleSetName,
                                              inputColumnNames,
@@ -280,6 +285,9 @@ public:
                                              addedColumnName,
                                              myLambdaName,
                                              false);
+
+        PDB_COUT << "To GET TCAP STRING FOR AGGREGATE VALUE" << std::endl;
+
         Lambda<ValueClass> valueLambda = getValueProjection(checkMe);
         std::vector<std::string> columnsToKeep;
         columnsToKeep.push_back(addedColumnName);
@@ -298,20 +306,41 @@ public:
                                                addedOutputColumnName,
                                                myLambdaName,
                                                false);
-        std::string newTupleSetName =
-            "aggOutFor" + getComputationType() + "_" + std::to_string(computationLabel);
+
+
+        // create the data for the filter
+        mustache::data clusterAggCompData;
+        clusterAggCompData.set("computationType", getComputationType());
+        clusterAggCompData.set("computationLabel", std::to_string(computationLabel));
+        clusterAggCompData.set("outputTupleSetName", outputTupleSetName);
+        clusterAggCompData.set("addedColumnName", addedColumnName);
+        clusterAggCompData.set("addedOutputColumnName", addedOutputColumnName);
+        
+        // set the new tuple set name
+        mustache::mustache newTupleSetNameTemplate{"aggOutFor{{computationType}}{{computationLabel}}"};
+        std::string newTupleSetName = newTupleSetNameTemplate.render(clusterAggCompData);
+
+        // set new added output columnName 1
+        mustache::mustache newAddedOutputColumnName1Template{"aggOutFor{{computationLabel}}"};
+        std::string addedOutputColumnName1 = newAddedOutputColumnName1Template.render(clusterAggCompData);
+
         tcapString += "\n/* Apply aggregation */\n";
-        std::string addedOutputColumnName1 = "aggOutFor" + std::to_string(computationLabel);
-        tcapString += newTupleSetName + "(" + addedOutputColumnName1 + ") <= AGGREGATE (" +
-            outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
-        tcapString += getComputationType() + "_" + std::to_string(computationLabel) + "')\n";
+
+        mustache::mustache aggregateTemplate{"aggOutFor{{computationType}}{{computationLabel}} ( {{addedOutputColumnName1}} )"
+                                          "<= AGGREGATE ({{outputTupleSetName}}({{addedColumnName}}, {{addedOutputColumnName}}),"
+                                          "'{{computationType}}_{{computationLabel}}')\n"};
+        tcapString += aggregateTemplate.render(clusterAggCompData);
+
+        // update the state of the computation
         outputTupleSetName = newTupleSetName;
         outputColumnNames.clear();
         outputColumnNames.push_back(addedOutputColumnName1);
+
         this->setTraversed(true);
         this->setOutputTupleSetName(outputTupleSetName);
         this->setOutputColumnToApply(addedOutputColumnName1);
         addedOutputColumnName = addedOutputColumnName1;
+
         return tcapString;
     }
 
