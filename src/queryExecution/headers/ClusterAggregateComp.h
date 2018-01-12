@@ -324,9 +324,11 @@ public:
         mustache::mustache newAddedOutputColumnName1Template{"aggOutFor{{computationLabel}}"};
         std::string addedOutputColumnName1 = newAddedOutputColumnName1Template.render(clusterAggCompData);
 
+        clusterAggCompData.set("addedOutputColumnName1", addedOutputColumnName1);
+
         tcapString += "\n/* Apply aggregation */\n";
 
-        mustache::mustache aggregateTemplate{"aggOutFor{{computationType}}{{computationLabel}} ( {{addedOutputColumnName1}} )"
+        mustache::mustache aggregateTemplate{"aggOutFor{{computationType}}{{computationLabel}} ({{addedOutputColumnName1}})"
                                           "<= AGGREGATE ({{outputTupleSetName}}({{addedColumnName}}, {{addedOutputColumnName}}),"
                                           "'{{computationType}}_{{computationLabel}}')\n"};
         tcapString += aggregateTemplate.render(clusterAggCompData);
