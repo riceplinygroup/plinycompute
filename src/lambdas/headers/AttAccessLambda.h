@@ -32,14 +32,12 @@ namespace pdb {
 
 template<class Out, class ClassType>
 class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
-
  public:
   size_t offsetOfAttToProcess;
   std::string inputTypeName;
   std::string attName;
   std::string attTypeName;
 
- public:
   // create an att access lambda; offset is the position in the input object where we are going to
   // find the input att
   AttAccessLambda(std::string inputTypeNameIn,
