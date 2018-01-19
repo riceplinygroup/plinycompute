@@ -112,8 +112,8 @@ def run_test(test_name, test_command):
 
     # do the cleanup
     subprocess.call(['bash', './scripts/cleanupNode.sh'])
-    print (BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
-    time.sleep(5)
+    print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
+    time.sleep(10)
 
 
 tests = {
