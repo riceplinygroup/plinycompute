@@ -12,16 +12,55 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-rm -rf /var/tmp/*.so
-rm -rf pdbRoot*
-rm -rf pdbRoot
-rm -rf /mnt/pdbRoot*
-rm -rf /tmp/CatalogDir
-rm -rf CatalogDir/*
-rm -rf CatalogDir*
-rm -rf /tmp/CatalogDir*
-rm -rf logs/*
-pkill -9 pdb-server
-pkill -9 pdb-cluster
-pkill -9 test603
-pkill -9 test404
+#!/usr/bin/env bash
+
+# remove shared libraries from the tmp folder only if they exist
+if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
+    rm -rf /var/tmp/*.so
+fi
+
+# remove the any directory starting with pdbRoot only if they exist
+if [[ -n $(find ./ -name "pdbRoot*" 2>/dev/null) ]]; then
+    rm -rf pdbRoot*
+fi
+
+# remove the directory pdbRoot only if they exist
+if [[ -e pdbRoot ]]; then
+    rm -rf pdbRoot
+fi
+
+# remove any directory from /mnt that start with pdbRoot only if they exist
+if [[ -n $(find /mnt/pdbRoot -name "*" 2>/dev/null) ]]; then
+    rm -rf /mnt/pdbRoot*
+fi
+
+# remove the /tmp/CatalogDir only if they exist
+if [[ -e /tmp/CatalogDir ]]; then
+    rm -rf /tmp/CatalogDir
+fi
+
+# remove the content from CatalogDir only if they exist
+if [[ -n $(find ./CatalogDir -name "*" 2>/dev/null) ]]; then
+    rm -rf CatalogDir/*
+fi
+
+# remove everything from CatalogDir only if they exist
+if [[ -n $(find ./CatalogDir -name "*" 2>/dev/null) ]]; then
+    rm -rf CatalogDir*
+fi
+
+# remove everything from /tmp/CatalogDir only if they exist
+if [[ -n $(find /tmp/CatalogDir -name "*" 2>/dev/null) ]]; then
+    rm -rf /tmp/CatalogDir*
+fi
+
+# remove anything from logs only if they exist
+if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
+    rm -rf logs/*
+fi
+
+# kill all the processes
+pkill -9 pdb-server || true
+pkill -9 pdb-cluster || true
+pkill -9 test603 || true
+pkill -9 test404 || true

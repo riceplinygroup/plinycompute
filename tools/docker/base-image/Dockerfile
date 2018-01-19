@@ -41,3 +41,4 @@ RUN make install
 RUN apt-get install -y libsnappy1v5 libsnappy-dev
 RUN apt-get install -y libgsl-dev
 RUN apt-get install -y python3
+RUN apt-get install -y libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev
