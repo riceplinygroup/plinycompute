@@ -37,6 +37,8 @@
 
 using namespace pdb;
 
+
+// TODO Dimitrije this test requires a file (testfile3)
 int main() {
 
     // for timing

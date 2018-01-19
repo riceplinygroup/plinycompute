@@ -36,15 +36,14 @@
 #include <fcntl.h>
 
 // To export a set
-
+// TODO Dimitrije  this is a utility why is this considered an unit test?
 /*  Note that data size must be larger than #numTotalThreadsInCluster*#PageSize */
 /*  Below test case is tested using 8GB data in 4-node cluster, each node run 12 threads */
 using namespace pdb;
 int main(int argc, char* argv[]) {
 
     if (argc < 6) {
-        std::cout << "Usage: #databaseName #setName #outputFilePath #masterIp #outputFormat"
-                  << std::endl;
+        std::cout << "Usage: #databaseName #setName #outputFilePath #masterIp #outputFormat" << std::endl;
     }
     std::string databaseName = argv[1];
     std::string setName = argv[2];
