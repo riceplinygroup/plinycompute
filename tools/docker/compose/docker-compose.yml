@@ -32,7 +32,7 @@ services:
        - seccomp:unconfined
   frontend:
      build: ../frontend-image
-     entrypoint: "/bin/bash -c 'make test; chmod -R 777 .'"
+     entrypoint: "/bin/bash -c 'python scripts/integratedTestsDocker.py; chmod -R 777 .'"
      hostname: "frontend"
      volumes:
        - "${PDB_ROOT}:/pdb"

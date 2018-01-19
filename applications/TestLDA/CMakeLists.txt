@@ -1,0 +1,43 @@
+# create the target
+add_pdb_application(TestLDA)
+
+# add a build dependency to build-tests target
+add_dependencies(build-tests TestLDA)
+
+# compile all the objects
+file(GLOB files "${PROJECT_SOURCE_DIR}/applications/TestLDA/sharedLibraries/source/*.cc")
+foreach(file ${files})
+    get_filename_component(fileName "${file}" NAME_WE)
+    add_library(${fileName} MODULE ${file})
+    target_link_libraries(${fileName} pdb-shared-common)
+    target_link_libraries(${fileName} ${GSL_LIBRARIES})
+    add_dependencies(shared-libraries ${fileName})
+endforeach()
+
+# add build dependencies to shared libraries it uses
+add_dependencies(TestLDA IntDoubleVectorPair)
+add_dependencies(TestLDA LDADocument)
+add_dependencies(TestLDA LDATopicWordProb)
+add_dependencies(TestLDA ScanTopicsPerWord)
+add_dependencies(TestLDA ScanIntDoubleVectorPairSet)
+add_dependencies(TestLDA LDADocWordTopicAssignmentIdentity)
+add_dependencies(TestLDA LDADocIDAggregate)
+add_dependencies(TestLDA WriteLDADocWordTopicAssignment)
+add_dependencies(TestLDA WriteIntDoubleVectorPairSet)
+add_dependencies(TestLDA LDADocWordTopicAssignment)
+add_dependencies(TestLDA ScanLDADocumentSet)
+add_dependencies(TestLDA LDAInitialTopicProbSelection)
+add_dependencies(TestLDA WriteIntDoubleVectorPairSet)
+add_dependencies(TestLDA ScanIntSet)
+add_dependencies(TestLDA LDADocAssignmentMultiSelection)
+add_dependencies(TestLDA LDATopicAssignmentMultiSelection)
+add_dependencies(TestLDA WriteTopicsPerWord)
+add_dependencies(TestLDA TopicAssignment)
+add_dependencies(TestLDA DocAssignment)
+add_dependencies(TestLDA LDADocWordTopicJoin)
+add_dependencies(TestLDA LDAInitialWordTopicProbSelection)
+add_dependencies(TestLDA LDADocTopicAggregate)
+add_dependencies(TestLDA LDADocTopicProbSelection)
+add_dependencies(TestLDA LDATopicWordAggregate)
+add_dependencies(TestLDA LDATopicWordProbMultiSelection)
+add_dependencies(TestLDA LDAWordTopicAggregate)

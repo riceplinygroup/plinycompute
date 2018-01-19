@@ -1,0 +1,16 @@
+.idea
+cmake-build-debug
+CMakeFiles
+cmake_install.cmake
+CMakeCache.txt
+CTestTestfile.cmake
+Makefile
+temp.so
+CatalogDir*
+pdbRoot_*
+logs/*
+bin/*
+libraries/*
+pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h
+pdb/src/objectModel/headers/BuiltinPDBObjects.cc
+pdb/src/objectModel/headers/BuiltinPDBObjects.h
