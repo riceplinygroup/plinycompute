@@ -1,0 +1,12 @@
+# create the target
+add_pdb_integration_test(TestTwoSelectionOneAggregation)
+
+# add a build dependency to build-tests target
+add_dependencies(build-tests TestTwoSelectionOneAggregation)
+
+# add build dependencies to shared libraries it uses
+add_dependencies(TestTwoSelectionOneAggregation SimpleSelection)
+add_dependencies(TestTwoSelectionOneAggregation ScanSupervisorSet)
+add_dependencies(TestTwoSelectionOneAggregation SimpleAggregation)
+add_dependencies(TestTwoSelectionOneAggregation FinalSelection)
+add_dependencies(TestTwoSelectionOneAggregation WriteDoubleSet)
