@@ -117,10 +117,10 @@ def run_test(test_name, test_command):
 
 
 tests = {
-         "AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE": ['bin/Test74', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "JOIN TEST ON G-2 PIPELINE": ['bin/Test79', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE": ['bin/Test78', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "COMPLEX AGGREGATION TEST ON G-2 PIPELINE": ['bin/Test90', 'Y', 'Y', '1024', 'localhost', 'Y'],
+         "AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE": ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
+         "JOIN TEST ON G-2 PIPELINE": ['bin/TestConsecutiveJoinWithTwoSinks', 'Y', 'Y', '1024', 'localhost', 'Y'],
+         "SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE": ['bin/TestAggregationAfterThreeWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y'],
+         "COMPLEX AGGREGATION TEST ON G-2 PIPELINE": ['bin/TestOptimizedGroupByAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
          "LDA TEST ON G-2 PIPELINE": ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']
         }
 

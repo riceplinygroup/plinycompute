@@ -1,0 +1,14 @@
+# create the target
+add_pdb_integration_test(TestConsecutiveJoinWithTwoSinks)
+
+# add a build dependency to build-tests target
+add_dependencies(build-tests TestConsecutiveJoinWithTwoSinks)
+
+# add build dependencies to shared libraries it uses
+add_dependencies(TestConsecutiveJoinWithTwoSinks SimpleJoin)
+add_dependencies(TestConsecutiveJoinWithTwoSinks ScanIntSet)
+add_dependencies(TestConsecutiveJoinWithTwoSinks ScanStringIntPairSet)
+add_dependencies(TestConsecutiveJoinWithTwoSinks ScanStringSet)
+add_dependencies(TestConsecutiveJoinWithTwoSinks IntSelectionOfStringIntPair)
+add_dependencies(TestConsecutiveJoinWithTwoSinks WriteIntSet)
+add_dependencies(TestConsecutiveJoinWithTwoSinks WriteStringSet)
