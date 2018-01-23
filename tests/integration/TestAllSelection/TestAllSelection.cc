@@ -235,9 +235,10 @@ int main(int argc, char* argv[]) {
         int count = 0;
         for (auto a : result) {
             count++;
-            std::cout << count << ":";
-            (*a).print();
-            std::cout << "; " << std::endl;
+            if(count % 1000 == 0) {
+              std::cout << count << ":" << std::endl;
+              a->print();
+            }
         }
         std::cout << "selection output count:" << count << "\n";
     }

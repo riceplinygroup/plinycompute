@@ -47,7 +47,6 @@ public:
                                      100,
                                      checkMe->department,
                                      checkMe->salary);  // cannot get age!
-            // newEmployee->print();
             return newEmployee;
         });
     }
