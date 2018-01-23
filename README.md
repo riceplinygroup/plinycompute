@@ -15,7 +15,8 @@
 ### Building PDB and Build Targets:
 In order to build the project in the root directory of PDB call :
 > cmake .
-> make <target>
+
+> make &lt;target&gt;
 
 In the following table are the possible make targets:
 
@@ -27,8 +28,8 @@ In the following table are the possible make targets:
 | unit-tests              | This target builds all unit tests and their possible dependencies.  |
 | run-integration-tests   | This target builds all integration tests and their dependencies, then proceeds on running them one by one.  |
 | clean-integration-tests | If there happens to be a situation where an integration test would fail, this target will remove them. |
-| <TestName>              | This target builds the test named <TestName> and all of the dependencies. For example running **make TestAllSelection** will build the TestAllSelection test. |
-| <LibraryName>           | This target builds a particular shared library named <LibraryName>. For example running **make SharedEmployee** will build the SharedEmployee library. |
+| &lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies. For example running **make TestAllSelection** will build the TestAllSelection test. |
+| &lt;LibraryName&gt;           | This target builds a particular shared library named &lt;LibraryName&gt;. For example running **make SharedEmployee** will build the SharedEmployee library. |
 
 ### Unit Tests
 To run the unit test run the following commands
@@ -46,7 +47,7 @@ scripts/cleanupNode.sh
 
 
 
-## Run PDB on a Cluster 
+## Run PDB on a Cluster
 
 
 Firstly, we need to setup the test suite by following 4 steps. (Those 4 steps only need to be done only once)
@@ -65,10 +66,10 @@ Step (1.3) Next, configure PDB_INSTALL to be the location that you want PDB to b
 
 Step (1.4) In rice cloud, find at least one different ubuntu servers as your Slaves, make sure those slaves can be accessed by Master through network and vice versa, and also make sure you have only one PEM file to log on to all slaves. Then add only IPs of those slaves to the file: $PDB_HOME/conf/serverlist. For example, my serverlist looks like following:
 10.134.96.184
-10.134.96.153  
+10.134.96.153
 
 Step (1.5) On the master server, install the cluster by run:
-     
+
      scripts/install.sh $pem_file/private_key
 
 
@@ -87,8 +88,8 @@ scripts/startMaster.sh $pem_file/private_key
 
 wait for the scripts to return (see something like "master is started!" in the end), and move to  step 2.3:
 
-Step (2.2) : run following command:   
- 
+Step (2.2) : run following command:
+
 cd $PDB_HOME
 scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNumber (optional, default is 4)  $SharedMemSize (optional, unit MB, default is 4096)
 
