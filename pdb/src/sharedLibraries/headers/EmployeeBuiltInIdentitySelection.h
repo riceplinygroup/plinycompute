@@ -42,14 +42,9 @@ public:
 
     Lambda<Handle<Employee>> getProjection(Handle<SharedEmployee> checkMe) override {
         return makeLambda(checkMe, [](Handle<SharedEmployee>& checkMe) {
-            checkMe->print();
-
             Handle<Employee> newEmployee =
                 makeObject<Employee>(*(checkMe->getName()), 100);  // cannot get age!
-            newEmployee->print();
             return newEmployee;
-
-            // return checkMe;
         });
     }
 };
