@@ -31,7 +31,7 @@ class BColor:
 thread_num = "1"
 shared_memory_size = "2048"
 
-num_total = 5
+num_total = 0
 num_errors = 0
 num_passed = 0
 
@@ -73,6 +73,9 @@ def run_tests(test_list):
     subprocess.call(['bash', './scripts/cleanupNode.sh'])
     print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
     time.sleep(5)
+    
+    # set the total number of tests
+    num_total = len(test_list.items())
 
     # iterate through all the tests and run them
     for name, command in test_list.items():

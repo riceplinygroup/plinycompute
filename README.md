@@ -1,19 +1,39 @@
-# PDB - A Fast and Large-Scalae Cluster Computing Platform 
+# PlinyCompute: A Platform for High-Performance, Distributed, Data-Intensive Tool Development
 
 ## Building PDB
 
-Requirements:  
-Software:
+### Perequisites:
 
-scons http://scons.org/
-bison
-flex
-LLVM/clang++3.8
+| Name          | Homepage                          | Ubutnu Packages             |
+| ------------- |:---------------------------------:| ---------------------------:|
+| Snappy        | https://github.com/google/snappy  | libsnappy1v5, libsnappy-dev |
+| GSL           | https://www.gnu.org/software/gsl/ | libgsl-dev                  |
+| Boost         | http://www.boost.org/             | libboost-dev, libboost-program-options-dev, libboost-filesystem-dev, libboost-system-dev |
+| Bison           | https://www.gnu.org/software/bison/ | bison                   |
+| Flex            | https://github.com/westes/flex      | flex                    |
 
+### Building PDB and Build Targets:
+In order to build the project in the root directory of PDB call :
+> cmake .
+> make <target>
 
-OS: Ubuntu-16, MacOS
+In the following table are the possible make targets:
 
-Run: scons 
+| Target                  | Description                                                        |
+| ----------------------- | ------------------------------------------------------------------ |
+| pdb-cluster             | This target builds the master server that runs on the master node.  |
+| pdb-server              | This target builds the worker server that runs on the worker nodes. |
+| shared-libraries        | This target builds all the shared libraries.                        |
+| unit-tests              | This target builds all unit tests and their possible dependencies.  |
+| run-integration-tests   | This target builds all integration tests and their dependencies, then proceeds on running them one by one.  |
+| clean-integration-tests | If there happens to be a situation where an integration test would fail, this target will remove them. |
+| <TestName>              | This target builds the test named <TestName> and all of the dependencies. For example running **make TestAllSelection** will build the TestAllSelection test. |
+| <LibraryName>           | This target builds a particular shared library named <LibraryName>. For example running **make SharedEmployee** will build the SharedEmployee library. |
+
+### Unit Tests
+To run the unit test run the following commands
+> make unit-tests
+> make test
 
 ## Run PDB on local
 
@@ -151,8 +171,3 @@ common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/Chr
 Then add 'libraries/libChrisSelection.so' to "main=common_env.Alias(...)"
 
 In future, shared library should be able to be compiled at client side via a PDB client library.
-
-
-
-
-
