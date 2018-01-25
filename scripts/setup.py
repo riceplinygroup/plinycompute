@@ -46,6 +46,7 @@ elif _platform == 'linux' or _platform == "linux2":
     os.system("sudo apt-get -y install libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev")
     #Bison/Flex
     os.system("sudo apt-get -y install bison flex")
-
+else:
+    print ("Platform is not supported right now")
 
 
