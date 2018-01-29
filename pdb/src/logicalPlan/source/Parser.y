@@ -39,6 +39,7 @@
 	struct AtomicComputation *myAtomicComputation;
 	struct TupleSpec *myTupleSpec;
 	struct AttList *myAttList;
+	struct KeyValueList *myKeyValueList;
 };
 
 %pure-parser
@@ -65,6 +66,7 @@
 %type <myAtomicComputation> AtomicComputation
 %type <myTupleSpec> TupleSpec
 %type <myAttList> AttList
+%type <myKeyValueList> ListKeyValuePairs
 
 %start LogicalQueryPlan
 
@@ -103,54 +105,142 @@ AtomicComputationList : AtomicComputationList AtomicComputation
 /** THIS IS A PARTICULAR COMPUTATION ***/
 /***************************************/
 
+
+
+// Atomic Computation: Apply:
 AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
 {
 	$$ = makeApply ($1, $5, $7, $9, $11);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeApplyWithList ($1, $5, $7, $9, $11, $14);
+}
+
+
+
+// Atomic Computation: Aggregate:
 | TupleSpec GETS AGG '(' TupleSpec ',' STRING ')'
 {
 	$$ = makeAgg ($1, $5, $7);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS AGG '(' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeAggWithList ($1, $5, $7, $10);
+}
+
+
+
+// Atomic Computation: Scan:
 | TupleSpec GETS SCAN '(' STRING ',' STRING ',' STRING ')'
 {
 	$$ = makeScan ($1, $5, $7, $9);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS SCAN '(' STRING ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeScanWithList ($1, $5, $7, $9, $12);
+}
+
+
+
+// Atomic Computation: Output:
 | TupleSpec GETS OUTPUT '(' TupleSpec ',' STRING ',' STRING ',' STRING ')'
 {
 	$$ = makeOutput ($1, $5, $7, $9, $11);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS OUTPUT '(' TupleSpec ',' STRING ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeOutputWithList ($1, $5, $7, $9, $11, $14);
+}
+
+
+
+// Atomic Computation: Join:
 | TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ')'
 {
 	$$ = makeJoin ($1, $5, $7, $9, $11, $13);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeJoinWithList ($1, $5, $7, $9, $11, $13, $16);
+}
+
+
+
+// Atomic Computation: Filter:
 | TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ',' STRING ')'
 {
 	$$ = makeFilter ($1, $5, $7, $9);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeFilterWithList ($1, $5, $7, $9, $12);
+}
+
+
+// Atomic Computation: Hashleft:
 | TupleSpec GETS HASHLEFT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
 {
 	$$ = makeHashLeft ($1, $5, $7, $9, $11);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS HASHLEFT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeHashLeftWithList ($1, $5, $7, $9, $11, $14);
+}
+
+
+
+
+// Atomic Computation: Hashright:
 | TupleSpec GETS HASHRIGHT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
 {
 	$$ = makeHashRight ($1, $5, $7, $9, $11);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS HASHRIGHT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+	$$ = makeHashRightWithList ($1, $5, $7, $9, $11, $14);
+}
+
+// Atomic Computation: Hashone:
 | TupleSpec GETS HASHONE '(' TupleSpec ',' TupleSpec ',' STRING ')'
 {
         $$ = makeHashOne ($1, $5, $7, $9);
 }
 
+// ss107: Update to older TCAP:
+| TupleSpec GETS HASHONE '(' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+        $$ = makeHashOneWithList ($1, $5, $7, $9, $12);
+}
+
+
+
+// Atomic Computation: Flatten:
 | TupleSpec GETS FLATTEN '(' TupleSpec ',' TupleSpec ',' STRING ')'
 {
         $$ = makeFlatten ($1, $5, $7, $9);
+}
+
+// ss107: Update to older TCAP:
+| TupleSpec GETS FLATTEN '(' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+{
+        $$ = makeFlattenWithList ($1, $5, $7, $9, $12);
 }
 ;
 
@@ -179,6 +269,28 @@ AttList : AttList ',' IDENTIFIER
 	$$ = makeAttList ($1);
 }
 ;
+
+
+/*********************************************/
+/** THIS IS A LIST OF (KEY, VALUE) PAIRS ***/
+/*********************************************/
+
+ListKeyValuePairs : ListKeyValuePairs ',' '(' STRING ',' STRING ')' 
+{
+	$$ = pushBackKeyValue($1, $4, $6);
+}
+
+| '(' STRING ',' STRING ')'
+{
+	$$ = makeKeyValueList($2, $4);
+}
+
+| 	
+{
+	$$ = makeEmptyKeyValueList();
+}
+;
+
 
 
 %%
