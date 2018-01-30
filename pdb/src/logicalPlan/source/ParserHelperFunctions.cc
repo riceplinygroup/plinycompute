@@ -24,6 +24,7 @@
 #include "Parser.h"
 #include "ParserHelperFunctions.h"
 #include "AttList.h"
+#include "KeyValueList.h"
 #include "TupleSpec.h"
 #include "AtomicComputationList.h"
 #include "AtomicComputationClasses.h"
@@ -39,6 +40,142 @@
 
 extern "C" {
 
+// ss107: Newer functions for updating TCAP:
+struct KeyValueList *makeEmptyKeyValueList () {
+	KeyValueList *returnVal = new KeyValueList ();
+	return returnVal;
+}
+
+struct KeyValueList *makeKeyValueList (char *keyName, char *valueName) {
+	KeyValueList *returnVal = new KeyValueList ();
+	returnVal->appendkeyValuePair (keyName, valueName);
+	free (keyName);
+	free (valueName);
+	return returnVal;
+}
+
+struct KeyValueList *pushBackKeyValue (struct KeyValueList *addToMe, char *keyName, char *valueName) {
+	addToMe->appendkeyValuePair (keyName, valueName);
+	free (keyName);
+	free (valueName);
+	return addToMe;
+}
+
+struct AtomicComputation *makeFilterWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, struct KeyValueList *useMe) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyFilter> (*input, *output, *projection, std :: string (nodeName), *useMe);
+	returnVal->setShared (returnVal);
+	delete output;
+	delete input;
+	delete projection;
+	free (nodeName);
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeApplyWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName, struct KeyValueList *useMe) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyLambda> (*input, *output, *projection, std :: string (nodeName), std :: string (opName), *useMe);
+	returnVal->setShared (returnVal);
+	delete output;
+	delete input;
+	delete projection;
+	free (nodeName);
+	free (opName);
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeAggWithList (struct TupleSpec *output, struct TupleSpec *input, char *nodeName, struct KeyValueList *useMe) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyAgg> (*input, *output, *input, std :: string (nodeName), *useMe);
+	returnVal->setShared (returnVal);
+	delete output;
+	delete input;
+	free (nodeName);
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeJoinWithList (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
+		struct TupleSpec *rInput, struct TupleSpec *rProjection, char *opName, struct KeyValueList *useMe) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyJoin> (*output, *lInput, *rInput, *lProjection,
+		*rProjection, std :: string (opName), *useMe);
+	returnVal->setShared (returnVal);
+	free (opName);
+	delete output;
+	delete lInput;
+	delete rInput;
+	delete lProjection;
+	delete rProjection;
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeHashLeftWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName, struct KeyValueList *useMe) {
+        AtomicComputationPtr returnVal = std :: make_shared <HashLeft> (*input, *output, *projection, std :: string (nodeName), std :: string (opName), *useMe);
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        free (opName);
+        return returnVal.get ();
+}
+
+struct AtomicComputation *makeHashRightWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName, struct KeyValueList *useMe) {
+        AtomicComputationPtr returnVal = std :: make_shared <HashRight> (*input, *output, *projection, std :: string (nodeName), std :: string (opName), *useMe);
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        free (opName);
+        return returnVal.get ();
+}
+
+
+
+struct AtomicComputation *makeHashOneWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, struct KeyValueList *useMe) {
+        AtomicComputationPtr returnVal = std :: make_shared <HashOne> (*input, *output, *projection, std :: string (nodeName), *useMe);
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        return returnVal.get ();
+}
+
+struct AtomicComputation *makeFlattenWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, struct KeyValueList *useMe) {
+        AtomicComputationPtr returnVal = std :: make_shared <Flatten> (*input, *output, *projection, std :: string (nodeName), *useMe);
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        return returnVal.get ();
+}
+
+
+
+struct AtomicComputation *makeScanWithList (struct TupleSpec *output, char *dbName, char *setName, char *nodeName, struct KeyValueList *useMe) {
+	AtomicComputationPtr returnVal = std :: make_shared <ScanSet> (*output, std :: string (dbName), std :: string (setName), std :: string (nodeName), *useMe);
+	returnVal->setShared (returnVal);
+	free (dbName);
+	free (setName);
+	free (nodeName);
+	delete output;
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeOutputWithList (struct TupleSpec *output, struct TupleSpec *input,
+	char *dbName, char *setName, char *nodeName, struct KeyValueList *useMe) {
+	AtomicComputationPtr returnVal = std :: make_shared <WriteSet> (*input, *output, *input,
+		std :: string (dbName), std :: string (setName), std :: string (nodeName), *useMe);
+	returnVal->setShared (returnVal);
+	free (dbName);
+	free (setName);
+	free (nodeName);
+	delete output;
+	delete input;
+	return returnVal.get ();
+}
+
+
+// Older functions that were here:
 struct AttList* makeAttList(char* fromMe) {
     AttList* returnVal = new AttList();
     returnVal->appendAttribute(fromMe);
