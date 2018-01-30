@@ -22,6 +22,8 @@
 #include "TupleSpec.h"
 #include "AtomicComputationList.h"
 
+#include "KeyValueList.h"
+
 // NOTE: these are NOT part of the pdb namespace because they need to be included in an "extern
 // C"...
 // I am not sure whether that is possible... perhaps we try moving them to the pdb namespace later.
@@ -41,6 +43,16 @@ public:
                 std::string nodeName,
                 std::string lambdaNameIn)
         : AtomicComputation(input, output, projection, nodeName), lambdaName(lambdaNameIn) {}
+
+	// ss107: New Constructor:
+	ApplyLambda (TupleSpec &input, 
+				 TupleSpec &output, 
+				 TupleSpec &projection, 
+				 std :: string nodeName, 
+				 std :: string lambdaNameIn, 
+                 KeyValueList &useMe) :
+		AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()), lambdaName (lambdaNameIn) {}
+
 
     std::string getAtomicComputationType() override {
         return std::string("Apply");
@@ -95,6 +107,17 @@ public:
              std::string nodeName,
              std::string lambdaNameIn)
         : AtomicComputation(input, output, projection, nodeName), lambdaName(lambdaNameIn) {}
+
+	// ss107: New Constructor:
+	HashLeft (TupleSpec &input, 
+			  TupleSpec &output, 
+              TupleSpec &projection, 
+              std :: string nodeName, 
+			  std :: string lambdaNameIn, 
+			  KeyValueList &useMe) :
+		AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()), lambdaName (lambdaNameIn) {}
+
+
 
     std::string getAtomicComputationType() override {
         return std::string("HashLeft");
@@ -152,6 +175,16 @@ public:
               std::string lambdaNameIn)
         : AtomicComputation(input, output, projection, nodeName), lambdaName(lambdaNameIn) {}
 
+	// ss107: New Constructor:
+	HashRight (TupleSpec &input, 
+			   TupleSpec &output, 
+               TupleSpec &projection, 
+               std :: string nodeName, 
+               std :: string lambdaNameIn, 
+               KeyValueList &useMe) :
+		AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()), lambdaName (lambdaNameIn) {}
+
+
     std::string getAtomicComputationType() override {
         return std::string("HashRight");
     }
@@ -207,6 +240,11 @@ public:
         // << ", projection tuple spec: " << projection << std :: endl;
     }
 
+	// ss107: New Constructor:
+	HashOne (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName, KeyValueList &useMe) :
+	                AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()) {}
+
+
     std::string getAtomicComputationType() override {
         return std::string("HashOne");
     }
@@ -244,6 +282,11 @@ public:
 
     Flatten(TupleSpec& input, TupleSpec& output, TupleSpec& projection, std::string nodeName)
         : AtomicComputation(input, output, projection, nodeName) {
+	// ss107: New Constructor:
+    Flatten (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName, KeyValueList &useMe) :
+	                AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()) {}
+
+
 
         // std :: cout << "Flatten input tuple spec: " << input << ", output tuple spec: " << output
         // << ", projection tuple spec: " << projection << std :: endl;
@@ -297,6 +340,10 @@ public:
         // << ", projection tuple spec: " << projection << std :: endl;
     }
 
+	// ss107: New Constructor:
+	ApplyFilter (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName, KeyValueList &useMe) :
+		AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()) {}
+
     std::string getAtomicComputationType() override {
         return std::string("Filter");
     }
@@ -326,6 +373,10 @@ public:
 
     ApplyAgg(TupleSpec& input, TupleSpec& output, TupleSpec& projection, std::string nodeName)
         : AtomicComputation(input, output, projection, nodeName) {}
+
+	// ss107: New Constructor:
+	ApplyAgg (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName, KeyValueList &useMe) :
+		AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()) {}
 
     std::string getAtomicComputationType() override {
         return std::string("Aggregate");
@@ -368,6 +419,11 @@ public:
         : AtomicComputation(TupleSpec(), output, TupleSpec(), nodeName),
           dbName(dbName),
           setName(setName) {}
+
+	// ss107: New Constructor:
+	ScanSet (TupleSpec &output, std :: string dbName, std :: string setName, std :: string nodeName, KeyValueList &useMe) :
+		AtomicComputation (TupleSpec (), output, TupleSpec (), nodeName, useMe.getKeyValuePairs()), dbName (dbName), setName (setName) {}
+
 
     std::string getAtomicComputationType() override {
         return std::string("Scan");
@@ -425,6 +481,10 @@ public:
           dbName(dbName),
           setName(setName) {}
 
+	// ss107: New Constructor:
+	WriteSet (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string dbName, std :: string setName, std :: string nodeName, KeyValueList &useMe) :
+		AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()), dbName (dbName), setName (setName) {}
+
     std::string getAtomicComputationType() override {
         return std::string("WriteSet");
     }
@@ -472,6 +532,17 @@ public:
         traversed = false;
         toPartitionLHS = false;
     }
+
+
+	// ss107: New Constructor: Added Jia's correction too:
+	ApplyJoin (TupleSpec &output, TupleSpec &lInput, TupleSpec &rInput, TupleSpec &lProjection, TupleSpec &rProjection, std :: string nodeName, KeyValueList &useMe) :
+		AtomicComputation (lInput, output, lProjection, nodeName, useMe.getKeyValuePairs()), rightInput (rInput),
+		rightProjection (rProjection) {
+        traversed = false;
+        toPartitionLHS = false;
+	}
+
+
 
     TupleSpec& getRightProjection() {
         return rightProjection;
