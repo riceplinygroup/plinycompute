@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 #include "TupleSpec.h"
 
@@ -57,6 +58,7 @@ private:
     TupleSpec projection;
     std::string computationName;
     AtomicComputationPtr me;
+	std::unordered_map <std :: string, std :: string> keyValuePairs;
 
 public:
     // returns the type of this computation
@@ -101,6 +103,18 @@ public:
           output(outputIn),
           projection(projectionIn),
           computationName(computationName) {}
+
+	std::unordered_map<std :: string, std :: string> &getKeyValuePairs () {
+			return keyValuePairs;
+	}
+
+	// DELETE: Delete This Later: (ss107)
+	void printKeyValuePairs() {
+		std::cout << std::endl;
+		for ( auto it = keyValuePairs.begin(); it != keyValuePairs.end(); ++it )
+			std::cout << " " << it->first << ":" << it->second << std::endl;
+	}
+
 
     // remember the shared pointer for this computation
     void setShared(AtomicComputationPtr meIn) {
