@@ -19,6 +19,12 @@ function(add_pdb_integration_test test-name)
     # link it to the required libraries
     target_link_libraries(${test-name} pdb-tests-common)
     target_link_libraries(${test-name} ${GSL_LIBRARIES})
+
+    # add a costum target to run this integration test
+    add_custom_target("Run${test-name}"
+                       python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py ${test-name}
+                       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 endfunction(add_pdb_integration_test)
 
 # include all the integration tests

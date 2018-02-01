@@ -15,6 +15,7 @@
 #!python
 import subprocess
 import time
+import sys
 
 
 class BColor:
@@ -73,13 +74,13 @@ def run_tests(test_list):
     subprocess.call(['bash', './scripts/cleanupNode.sh'])
     print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
     time.sleep(5)
-    
+
     # set the total number of tests
     num_total = len(test_list.items())
 
     # iterate through all the tests and run them
-    for name, command in test_list.items():
-        run_test(name, command)
+    for id, test in test_list.items():
+        run_test(test[0], test[1])
 
     print("#################################")
     print("SUMMARY")
@@ -87,6 +88,14 @@ def run_tests(test_list):
     print(BColor.OK_GREEN + "TOTAL TESTS: " + str(num_total) + BColor.END_C)
     print(BColor.OK_GREEN + "PASSED TESTS: " + str(num_passed) + BColor.END_C)
     print(BColor.FAIL + "FAILED TESTS: " + str(num_errors) + BColor.END_C)
+
+
+def run_specified_test(test_list, test):
+
+    if test in test_list:
+        run_tests({test : test_list[test]})
+    else:
+        print "Test with the name %s does not exist." % test
 
 
 def run_test(test_name, test_command):
@@ -120,27 +129,35 @@ def run_test(test_name, test_command):
 
 
 tests = {
-         "SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE": ['bin/TestAggregationAfterThreeWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "AGGREGATION ON A DOUBLE VECTOR TEST G-2 PIPELINE" : ['bin/TestAggregationOnDoubleVector', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "AGGREGATION WITHOUT COMBINER TEST G-2 PIPELINE" : ['bin/TestAggregationWithoutCombiner', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "ALL SELECTION TEST G-2 PIPELINE" : ['bin/TestAllSelection', 'Y', 'Y', '256', 'localhost', 'Y'],
-         "ALL SELECTION BUILTIN TEST G-2 PIPELINE" : ['bin/TestAllSelectionBuiltIn', 'Y', 'Y', '256', 'localhost', 'Y'],
-         "ALL SELECTION SHARED TEST G-2 PIPELINE" : ['bin/TestAllSelectionShared', 'Y', 'Y', '256', 'localhost', 'Y'],
-         "CONSECUTIVE JOIN WITH TWO SINKS TEST G-2 PIPELINE" : ['bin/TestConsecutiveJoinWithTwoSinks', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "CONSECUTIVE OPTIMIZED JOIN TEST G-2 PIPELINE" : ['bin/TestConsecutiveOptimizedJoin', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "GROUP BY AGGREGATION TEST G-2 PIPELINE" : ['bin/TestGroupByAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "ITERATIVE AGGREGATION TEST G-2 PIPELINE" : ['bin/TestIterativeAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "MULTI SELECTION TEST G-2 PIPELINE" : ['bin/TestMultiSelection', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "MULTI SELECTION WITH JOIN TEST G-2 PIPELINE" : ['bin/TestMultiSelectionWithJoin', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "OPTIMIZED GROUP BY AGGREGATION TEST G-2 PIPELINE" : ['bin/TestOptimizedGroupByAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "OPTIMIZED METHOD JOIN TEST G-2 PIPELINE" : ['bin/TestOptimizedMethodJoin', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "SELF JOIN TEST G-2 PIPELINE" : ['bin/SelfJoin', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "SIMPLE AGGREGATION TEST G-2 PIPELINE" : ['bin/TestSimpleAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "SIMPLE SELECTION TEST G-2 PIPELINE" : ['bin/TestSimpleSelection', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "SIMPLE SELECTION WITH RATIO TEST G-2 PIPELINE" : ['bin/TestSimpleSelectionWithRatio', 'Y', 'Y', '1024', 'localhost', 'Y', '0.01'],
-         "AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE": ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y'],
-         "LDA TEST ON G-2 PIPELINE": ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100'],
-         "TOP K TEST ON G-2 PIPELINE": ['bin/TestTopK', '1024', 'localhost', 'Y', 'Y']
-        }
 
-run_tests(tests)
+    "TestAggregationAfterThreeWayJoin": ("SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE", ['bin/TestAggregationAfterThreeWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestAggregationOnDoubleVector": ("AGGREGATION ON A DOUBLE VECTOR TEST G-2 PIPELINE", ['bin/TestAggregationOnDoubleVector', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestAggregationWithoutCombiner": ("AGGREGATION WITHOUT COMBINER TEST G-2 PIPELINE", ['bin/TestAggregationWithoutCombiner', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestAllSelection": ("ALL SELECTION TEST G-2 PIPELINE", ['bin/TestAllSelection', 'Y', 'Y', '256', 'localhost', 'Y']),
+    "TestAllSelectionBuiltIn": ("ALL SELECTION BUILTIN TEST G-2 PIPELINE", ['bin/TestAllSelectionBuiltIn', 'Y', 'Y', '256', 'localhost', 'Y']),
+    "TestAllSelectionShared": ("ALL SELECTION SHARED TEST G-2 PIPELINE", ['bin/TestAllSelectionShared', 'Y', 'Y', '256', 'localhost', 'Y']),
+    "TestConsecutiveJoinWithTwoSinks": ("CONSECUTIVE JOIN WITH TWO SINKS TEST G-2 PIPELINE", ['bin/TestConsecutiveJoinWithTwoSinks', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestConsecutiveOptimizedJoin": ("CONSECUTIVE OPTIMIZED JOIN TEST G-2 PIPELINE", ['bin/TestConsecutiveOptimizedJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestGroupByAggregation": ("GROUP BY AGGREGATION TEST G-2 PIPELINE", ['bin/TestGroupByAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestIterativeAggregation": ("ITERATIVE AGGREGATION TEST G-2 PIPELINE", ['bin/TestIterativeAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestMultiSelection": ("MULTI SELECTION TEST G-2 PIPELINE", ['bin/TestMultiSelection', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestMultiSelectionWithJoin": ("MULTI SELECTION WITH JOIN TEST G-2 PIPELINE", ['bin/TestMultiSelectionWithJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestOptimizedGroupByAggregation": ("OPTIMIZED GROUP BY AGGREGATION TEST G-2 PIPELINE", ['bin/TestOptimizedGroupByAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestOptimizedMethodJoin": ("OPTIMIZED METHOD JOIN TEST G-2 PIPELINE", ['bin/TestOptimizedMethodJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "SelfJoin": ("SELF JOIN TEST G-2 PIPELINE", ['bin/SelfJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestSimpleAggregation": ("SIMPLE AGGREGATION TEST G-2 PIPELINE", ['bin/TestSimpleAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestSimpleSelection": ("SIMPLE SELECTION TEST G-2 PIPELINE", ['bin/TestSimpleSelection', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestSimpleSelectionWithRatio": ("SIMPLE SELECTION WITH RATIO TEST G-2 PIPELINE", ['bin/TestSimpleSelectionWithRatio', 'Y', 'Y', '1024', 'localhost', 'Y', '0.01']),
+    "TestTwoSelectionOneAggregation": ("AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE", ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
+    "TestTopK": ("TOP K TEST ON G-2 PIPELINE", ['bin/TestTopK', '1024', 'localhost', 'Y', 'Y'])
+}
+
+if len(sys.argv) == 2:
+
+    # runs the test specified in the argument
+    run_specified_test(tests, sys.argv[1])
+else:
+
+    # run all the tests
+    run_tests(tests)
