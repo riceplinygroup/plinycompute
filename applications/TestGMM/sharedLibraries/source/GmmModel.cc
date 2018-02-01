@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef GMM_DATACOUNT_AGGREGATE_CC
-#define GMM_DATACOUNT_AGGREGATE_CC
+#ifndef GMM_MODEL_CC
+#define GMM_MODEL_CC
 
-#include "GMM/GmmDataCountAggregate.h"
+#include "GmmModel.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(GmmDataCountAggregate)
+GET_V_TABLE(GmmModel)
 
 #endif
