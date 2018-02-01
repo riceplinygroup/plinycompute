@@ -21,9 +21,12 @@ function(add_pdb_integration_test test-name)
     target_link_libraries(${test-name} ${GSL_LIBRARIES})
 
     # add a costum target to run this integration test
-    add_custom_target("Run${test-name}"
+    add_custom_target("RunLocal${test-name}"
                        python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py ${test-name}
                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    # add the dependency to the test target
+    add_dependencies("RunLocal${test-name}" ${test-name})
 
 endfunction(add_pdb_integration_test)
 

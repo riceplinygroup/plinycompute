@@ -1,3 +1,4 @@
+
 # PlinyCompute: A Platform for High-Performance, Distributed, Data-Intensive Tool Development
 
 ## Building PDB
@@ -16,7 +17,7 @@
 In order to build the project in the root directory of PDB call :
 > cmake .
 
-> make &lt;target&gt;
+> make -j &lt;number-of-threads&gt; &lt;target&gt;
 
 In the following table are the possible make targets:
 
@@ -29,6 +30,7 @@ In the following table are the possible make targets:
 | run-integration-tests   | This target builds all integration tests and their dependencies, then proceeds on running them one by one.  |
 | clean-integration-tests | If there happens to be a situation where an integration test would fail, this target will remove them. |
 | &lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies. For example running **make TestAllSelection** will build the TestAllSelection test. |
+| RunLocal&lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies, then proceeds on running it. For example running **make RunLocalTestAllSelection** will build the TestAllSelection test and run it in the pseudo cluster mode. |
 | &lt;LibraryName&gt;           | This target builds a particular shared library named &lt;LibraryName&gt;. For example running **make SharedEmployee** will build the SharedEmployee library. |
 
 ### Unit Tests
