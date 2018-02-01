@@ -104,6 +104,23 @@ public:
           projection(projectionIn),
           computationName(computationName) {}
 
+    // simple constructor... gives the tuple specs that this guy (a) accepts as input, (b) produces
+    // as output, and (c)
+    // projects from the input to perform the computation.  It also accepts the name of the
+    // Computation object that
+    // is actually responsible for this computation
+    // this constructor also accepts the key value pairs for the meta info
+    AtomicComputation(TupleSpec inputIn,
+                    TupleSpec outputIn,
+                    TupleSpec projectionIn,
+                    std::string computationName,
+                    std::unordered_map<std::string, std::string> keyValuePairs)
+      : input(inputIn),
+        output(outputIn),
+        projection(projectionIn),
+        computationName(computationName),
+        keyValuePairs(std::move(keyValuePairs)){}
+
 	std::unordered_map<std :: string, std :: string> &getKeyValuePairs () {
 			return keyValuePairs;
 	}

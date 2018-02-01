@@ -19,7 +19,7 @@
 #define GMM_MODEL_H
 
 #include "DoubleVector.h"
-#include "GMM/GmmAggregateNewComp.h"
+#include "GmmAggregateNewComp.h"
 #include "Handle.h"
 #include "LambdaCreationFunctions.h"
 #include "Object.h"

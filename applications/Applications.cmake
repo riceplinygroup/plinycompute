@@ -20,3 +20,6 @@ endfunction(add_pdb_application)
 
 include(${PROJECT_SOURCE_DIR}/applications/TestLDA/CMakeLists.txt)
 include(${PROJECT_SOURCE_DIR}/applications/TPCHBench/CMakeLists.txt)
+include(${PROJECT_SOURCE_DIR}/applications/TestLA/CMakeLists.txt)
+include(${PROJECT_SOURCE_DIR}/applications/TestKMeans/CMakeLists.txt)
+include(${PROJECT_SOURCE_DIR}/applications/TestGMM/CMakeLists.txt)

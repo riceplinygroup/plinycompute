@@ -281,16 +281,21 @@ public:
     ~Flatten() {}
 
     Flatten(TupleSpec& input, TupleSpec& output, TupleSpec& projection, std::string nodeName)
-        : AtomicComputation(input, output, projection, nodeName) {
+        : AtomicComputation(input,
+                            output,
+                            projection,
+                            nodeName) {}
+
 	// ss107: New Constructor:
-    Flatten (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName, KeyValueList &useMe) :
-	                AtomicComputation (input, output, projection, nodeName, useMe.getKeyValuePairs()) {}
-
-
-
-        // std :: cout << "Flatten input tuple spec: " << input << ", output tuple spec: " << output
-        // << ", projection tuple spec: " << projection << std :: endl;
-    }
+    Flatten (TupleSpec &input,
+             TupleSpec &output,
+             TupleSpec &projection,
+             std :: string nodeName,
+             KeyValueList &useMe) : AtomicComputation (input,
+                                                       output,
+                                                       projection,
+                                                       nodeName,
+                                                       useMe.getKeyValuePairs()) {}
 
     std::string getAtomicComputationType() override {
         return std::string("Flatten");

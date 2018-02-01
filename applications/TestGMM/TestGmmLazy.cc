@@ -30,12 +30,12 @@
 #include "ScanUserSet.h"
 #include "WriteUserSet.h"
 
-#include "GMM/GmmAggregateLazy.h"
-#include "GMM/GmmAggregateNewComp.h"
-#include "GMM/GmmAggregateOutputLazy.h"
-#include "GMM/GmmDataCountAggregate.h"
-#include "GMM/GmmModel.h"
-#include "GMM/GmmSampleSelection.h"
+#include "GmmAggregateLazy.h"
+#include "GmmAggregateNewComp.h"
+#include "GmmAggregateOutputLazy.h"
+#include "GmmDataCountAggregate.h"
+#include "GmmModel.h"
+#include "GmmSampleSelection.h"
 #include "Sampler.h"
 
 #include "DataTypes.h"
