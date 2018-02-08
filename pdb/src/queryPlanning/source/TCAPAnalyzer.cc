@@ -809,7 +809,7 @@ bool TCAPAnalyzer::handleSingleConsumerJoin(vector<Handle<AbstractJobStage>> &ph
       sink = makeObject<SetIdentifier>(jobId, outputName + "_repartitionData");
       sink->setPageSize(conf->getBroadcastPageSize());
 
-      // did we previously create a tuple stage that was probing a partitioned hash table
+      // did we previously create a tuple stage that was shuffling the data so we can probe a partitioned hash set
       string sourceTupleSetName = curSource->getOutputName();
       if (!joinSource.empty()) {
         sourceTupleSetName = joinSource;
@@ -862,7 +862,7 @@ bool TCAPAnalyzer::handleSingleConsumerJoin(vector<Handle<AbstractJobStage>> &ph
       sink = makeObject<SetIdentifier>(jobId, outputName + "_broadcastData");
       sink->setPageSize(conf->getBroadcastPageSize());
 
-      // did we previously create a tuple stage that was probing a partitioned hash table
+      // did we previously create a tuple stage that was shuffling the data so we can probe a partitioned hash set
       string sourceTupleSetName = curSource->getOutputName();
       if (!joinSource.empty()) {
         sourceTupleSetName = joinSource;
@@ -920,7 +920,7 @@ bool TCAPAnalyzer::handleSingleConsumerJoin(vector<Handle<AbstractJobStage>> &ph
 
     // at this point we know that the other side of the join has been processed now we need to figure out how?
     // There are two options :
-    // 1. is that it has been partitioned, in this case we are probing a partitioned hash table
+    // 1. is that it has been partitioned, in this case we are shuffling and then probing a partitioned hash table
     // 2. is that it has been broadcasted, in that case we are probing a broadcasted hash table
 
     // check if the other side has been partitioned
@@ -929,12 +929,11 @@ bool TCAPAnalyzer::handleSingleConsumerJoin(vector<Handle<AbstractJobStage>> &ph
       // we have only one consumer node so we know what the next node in line is
       AtomicComputationPtr nextNode = consumers[0];
 
-      // we probe the partitioned hash table
-
+      // we meed to shuffle the data and store it here
       sink = makeObject<SetIdentifier>(jobId, outputName + "_repartitionData");
       sink->setPageSize(conf->getBroadcastPageSize());
 
-      // did we previously create a tuple stage that was probing a partitioned hash table
+      // did we previously create a tuple stage that was shuffling the data so we can probe a partitioned hash set
       string sourceTupleSetName = curSource->getOutputName();
       if (!joinSource.empty()) {
         sourceTupleSetName = joinSource;
