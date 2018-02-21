@@ -19,7 +19,6 @@
 #define PDB_CATALOG_H_
 
 #include <algorithm>
-#include <chrono>
 #include <ctime>
 #include <dirent.h>
 #include <dlfcn.h>

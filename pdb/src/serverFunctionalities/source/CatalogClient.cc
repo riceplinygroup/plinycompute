@@ -19,7 +19,6 @@
 #ifndef CATALOG_CLIENT_CC
 #define CATALOG_CLIENT_CC
 
-#include <chrono>
 #include <ctime>
 #include <fcntl.h>
 #include <fstream>
@@ -241,11 +240,6 @@ bool CatalogClient::getSharedLibraryByTypeName(
       myLogger, port, address, false, 1024 * 1024 * 4,
       [&](Handle<CatalogUserTypeMetadata> result) {
 
-        auto begin = std::chrono::high_resolution_clock::now();
-        auto afterLoad = begin;
-        auto afterWrite = begin;
-        auto afterCopy = begin;
-
         PDB_COUT << "In CatalogClient- Handling CatSharedLibraryByNameRequest "
                     "received from "
                     "CatalogServer..."
@@ -291,11 +285,8 @@ bool CatalogClient::getSharedLibraryByTypeName(
                  << " | " << (*result).getItemKey() << " | "
                  << (*result).getItemName() << endl;
 
-        afterLoad = std::chrono::high_resolution_clock::now();
-
         PDB_COUT << "copying bytes received in CatClient # bytes "
                  << sharedLibraryBytes.size() << endl;
-        afterCopy = std::chrono::high_resolution_clock::now();
 
         // just write the shared library to the file
         int filedesc = open(sharedLibraryFileName.c_str(), O_CREAT | O_WRONLY,
@@ -303,31 +294,8 @@ bool CatalogClient::getSharedLibraryByTypeName(
         PDB_COUT << "Writing file " << sharedLibraryFileName.c_str() << "\n";
         write(filedesc, sharedLibraryBytes.c_str(), sharedLibraryBytes.size());
         close(filedesc);
-        afterWrite = std::chrono::high_resolution_clock::now();
 
         PDB_COUT << "objectFile is written by CatalogClient" << std::endl;
-        PDB_COUT
-            << "Time Duration afterLoad:\t "
-            << std::to_string(
-                   std::chrono::duration_cast<std::chrono::duration<float>>(
-                       afterLoad - begin)
-                       .count())
-            << " secs." << std::endl;
-        PDB_COUT
-            << "Time Duration afterCopy:\t "
-            << std::to_string(
-                   std::chrono::duration_cast<std::chrono::duration<float>>(
-                       afterCopy - afterLoad)
-                       .count())
-            << " secs." << std::endl;
-        PDB_COUT
-            << "Time Duration afterWrite:\t "
-            << std::to_string(
-                   std::chrono::duration_cast<std::chrono::duration<float>>(
-                       afterWrite - afterCopy)
-                       .count())
-            << " secs." << std::endl;
-
         return true;
       },
       identifier, typeNameToSearch);

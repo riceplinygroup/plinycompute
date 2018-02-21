@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <chrono>
 #include <cstddef>
 #include <cstring>
 #include <ctime>
@@ -284,11 +283,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           Handle<CatSharedLibraryByNameRequest> request,
           PDBCommunicatorPtr sendUsingMe) {
 
-        auto begin = std::chrono::high_resolution_clock::now();
-        auto getShared = begin;
-        auto setLib = begin;
-        auto addObject = begin;
-
         string typeName = request->getTypeLibraryName();
         int16_t typeId = 0;
         // if typeName is empty we are searching by typeId, hence retrieves the
@@ -357,8 +351,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                 typeName, response, returnedBytes, errMsg);
 
-            getShared = std::chrono::high_resolution_clock::now();
-
             PDB_COUT << "    Bytes returned YES isMaster: " +
                             std::to_string(returnedBytes.size())
                      << endl;
@@ -369,8 +361,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // copies the bytes of the Shared Library to the object to be sent
             // back to the caller
             response->setLibraryBytes(returnedBytes);
-
-            setLib = std::chrono::high_resolution_clock::now();
 
             PDB_COUT << "Object Id isMaster: " + string(response->getObjectID())
                      << " | " << string(response->getItemKey())
@@ -414,8 +404,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                                                   dummyObjectFile, response,
                                                   returnedBytes, errMsg);
 
-            getShared = std::chrono::high_resolution_clock::now();
-
             PDB_COUT << "     Bytes returned NOT isMaster: "
                      << std::to_string(returnedBytes.size()) << endl;
 
@@ -426,8 +414,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               res = getFunctionality<CatalogServer>().addObjectType(
                   typeId, returnedBytes, errMsg);
             }
-
-            addObject = std::chrono::high_resolution_clock::now();
 
             if (!res) {
               PDB_COUT << "     before sending response Vtable not fixed!!!!!!"
@@ -485,14 +471,10 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                 typeName, response, returnedBytes, errMsg);
 
-            getShared = std::chrono::high_resolution_clock::now();
-
             PDB_COUT << "    Bytes returned No isMaster: "
                      << std::to_string(returnedBytes.size()) << endl;
 
             response->setLibraryBytes(returnedBytes);
-
-            setLib = std::chrono::high_resolution_clock::now();
 
             PDB_COUT << "Object Id isLocal: " << string(response->getObjectID())
                      << " | " << string(response->getItemKey()) << " | "
@@ -510,32 +492,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
           } // end "if" type was found in local catalog or not
         }   // end "if" is Master or Local catalog case
-
-        auto end = std::chrono::high_resolution_clock::now();
-
-        PDB_COUT
-            << "Time Duration for getShared:\t "
-            << std::to_string(
-                   std::chrono::duration_cast<std::chrono::duration<float>>(
-                       getShared - begin)
-                       .count())
-            << " secs." << endl;
-        PDB_COUT
-            << "Time Duration for setLib:\t "
-            << std::to_string(
-                   std::chrono::duration_cast<std::chrono::duration<float>>(
-                       setLib - getShared)
-                       .count()) +
-                   " secs."
-            << endl;
-        PDB_COUT
-            << "Time Duration for addObject:\t "
-            << std::to_string(
-                   std::chrono::duration_cast<std::chrono::duration<float>>(
-                       addObject - getShared)
-                       .count()) +
-                   " secs."
-            << endl;
 
         return make_pair(res, errMsg);
       }));
@@ -1169,7 +1125,6 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
 // Adds Metadata about a Set that has been created into the Catalog
 bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
                            std::string setName, std::string &errMsg) {
-  auto begin = std::chrono::high_resolution_clock::now();
 
   // make sure we are only adding to an existing database
   if (isDatabaseRegistered(databaseName) == false) {
@@ -1207,8 +1162,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
 
   String typeName(typeNameStr);
 
-  auto afterChecks = std::chrono::high_resolution_clock::now();
-
   PDB_COUT << "TypeID for Set with dbName=" << databaseName
            << " and setName=" << setName << " is "
            << std::to_string(typeIdentifier) << endl;
@@ -1245,8 +1198,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
   metadataObject->setTypeId(_typeId);
   metadataObject->setTypeName(typeName);
 
-  auto beforeCallAddUpdate = std::chrono::high_resolution_clock::now();
-
   catalogType = PDBCatalogMsgType::CatalogPDBSet;
 
   // adds metadata to the catalog if this is a new item,
@@ -1257,8 +1208,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
   } else {
     pdbCatalog->updateMetadataInCatalog(metadataObject, catalogType, errMsg);
   }
-
-  auto afterCallAddUpdate = std::chrono::high_resolution_clock::now();
 
   // prepares object for the Database metadata
   catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
@@ -1278,8 +1227,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
       *dbMetadataObject = (*databaseItems)[i];
   }
 
-  auto aftergetMetaFromCat = std::chrono::high_resolution_clock::now();
-
   (*dbMetadataObject).addSet(setNameCatalog);
   (*dbMetadataObject).addType(typeName);
 
@@ -1297,10 +1244,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
     return false;
   }
 
-  auto afterUpdateMeta = std::chrono::high_resolution_clock::now();
-  auto broadCast1 = afterUpdateMeta;
-  auto broadCast2 = afterUpdateMeta;
-
   // after it updated the database metadata in the local catalog, if this is the
   // master catalog iterate over all nodes in the cluster and broadcast the
   // update to the distributed copies of the catalog
@@ -1311,7 +1254,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
     // first, broadcasts the metadata of the new set to the distributed copies
     // of the catalog updating metaddata of the new Set
     broadcastCatalogUpdate(metadataObject, updateResults, errMsg);
-    broadCast1 = std::chrono::high_resolution_clock::now();
 
     for (auto &item : updateResults) {
       PDB_COUT << "Set Metadata broadcasted to node IP: "
@@ -1327,7 +1269,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
     // second, broadcasts the metadata of the DB to which this set has been
     // added, updating the distributed copies of the catalog
     broadcastCatalogUpdate(dbMetadataObject, updateSetResults, errMsg);
-    broadCast2 = std::chrono::high_resolution_clock::now();
 
     for (auto &item : updateSetResults) {
       PDB_COUT << "DB Metadata broadcasted to node IP: "
@@ -1342,58 +1283,6 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
                 "registered locally!"
              << endl;
   }
-
-  auto end = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "Time Duration for check registration:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterChecks - begin)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for Setting Metadata values:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      beforeCallAddUpdate - afterChecks)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for addMetadataToCatalog SET:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterCallAddUpdate - beforeCallAddUpdate)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for getMetadataFromCatalog call:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      aftergetMetaFromCat - afterCallAddUpdate)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for Updte DB Metadata:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterUpdateMeta - aftergetMetaFromCat)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for broadcastCatalogUpdate SET:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      broadCast1 - afterUpdateMeta)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for broadcastCatalogUpdate DB:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      broadCast2 - broadCast1)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "------>Time Duration to AddSet\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs." << endl;
-
   return true;
 }
 
@@ -1531,8 +1420,6 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
   PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
   catServerLogger = make_shared<pdb::PDBLogger>("catalogServer.log");
 
-  auto begin = std::chrono::high_resolution_clock::now();
-
   masterIP = masterIPValue;
   masterPort = masterPortValue;
 
@@ -1636,15 +1523,7 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
     allNodesInCluster.push_back(_nodeAddress);
   }
 
-  auto end = std::chrono::high_resolution_clock::now();
-
   PDB_COUT << "Catalog Metadata successfully loaded!" << endl;
-  PDB_COUT << "--------->Populate CatalogServer Metadata : "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs." << endl;
 }
 
 // invokes a method to retrieve metadata that has changed since a given
@@ -1799,8 +1678,6 @@ bool CatalogServer::updateDatabaseMetadata(
 // adds Metadata of a new Set into the Catalog
 bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
                                    std::string &errMsg) {
-  auto begin = std::chrono::high_resolution_clock::now();
-
   // gets the set name
   string setName = string(setMetadata->getItemName().c_str());
   // gets the database name
@@ -1825,15 +1702,9 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
 
   *metadataObject = *setMetadata;
 
-  auto beforeaddMetaToCat = std::chrono::high_resolution_clock::now();
-
   PDB_COUT << "Adding set metadata for set " << setName << endl;
   pdbCatalog->addMetadataToCatalog(metadataObject, 
                                    metadataCategory, errMsg);
-
-  auto afteraddMetToCat = std::chrono::high_resolution_clock::now();
-  auto beforeBroadCatUpdate = afteraddMetToCat;
-  auto afterBroadCatUpdate = afteraddMetToCat;
 
   // after it registered the Set metadata in the local catalog, if this is the
   // master catalog iterate over all nodes in the cluster and broadcast the
@@ -1842,11 +1713,7 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
 
-    beforeBroadCatUpdate = std::chrono::high_resolution_clock::now();
-
     broadcastCatalogUpdate(metadataObject, updateResults, errMsg);
-
-    afterBroadCatUpdate = std::chrono::high_resolution_clock::now();
 
     for (auto &item : updateResults) {
       PDB_COUT << "Node IP: "
@@ -1860,53 +1727,12 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
                 "registered locally!"
              << endl;
   }
-  auto beforeReturn = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "Time Duration for check and copy:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      beforeaddMetaToCat - begin)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for adding metadata to catalog:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afteraddMetToCat - beforeaddMetaToCat)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for check isMasterCatalog:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      beforeBroadCatUpdate - afteraddMetToCat)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for broadcast update:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterBroadCatUpdate - beforeBroadCatUpdate)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration before return:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      beforeReturn - afterBroadCatUpdate)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "------>Time Duration to Complete addSetMetadata\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      beforeReturn - begin)
-                      .count())
-           << " secs." << endl;
-
   return true;
 }
 
 // Adds the IP of a node to a given set
 bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
                                  std::string setName, std::string &errMsg) {
-  auto begin = std::chrono::high_resolution_clock::now();
-
   // make sure we are only adding to an existing database
   if (isDatabaseRegistered(databaseName) == false) {
     errMsg = "Database does not exist.\n";
@@ -1918,8 +1744,6 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
     errMsg = "Set does not exists.\n";
     return false;
   }
-
-  auto afterRegisteredCheck = std::chrono::high_resolution_clock::now();
 
   PDB_COUT << "...... Calling CatalogServer :: addNodeToSet" << endl;
 
@@ -1949,8 +1773,6 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
   // updates the corresponding database metadata
   catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
-  auto afteraddSetToMap = std::chrono::high_resolution_clock::now();
-
   // if database exists update its metadata
   if (isDatabaseRegistered(databaseName) == true) {
     PDB_COUT << ".......... Invoking updateMetadataInCatalog key: "
@@ -1965,8 +1787,6 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
   } else {
     return false;
   }
-
-  auto afterUpdateDB = std::chrono::high_resolution_clock::now();
 
   // after it registered the Set metadata in the local catalog, if this is the
   // master catalog iterate over all nodes in the cluster and broadcast the
@@ -1995,40 +1815,6 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
                 "registered locally!"
              << endl;
   }
-
-  auto afterBroadcast = std::chrono::high_resolution_clock::now();
-  auto addNodeToSet = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "Time Duration for check registration:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterRegisteredCheck - begin)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for adding set to map:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afteraddSetToMap - afterRegisteredCheck)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for updating db Metadata:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterUpdateDB - afteraddSetToMap)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for broadcast update:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterBroadcast - afterUpdateDB)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "------>Time Duration to Complete addNodeToSet\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      addNodeToSet - begin)
-                      .count())
-           << " secs." << endl;
 
   return true;
 }
@@ -2229,8 +2015,6 @@ bool CatalogServer::broadcastCatalogUpdate(
 
   PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("distCatalogLogger");
 
-  auto beforeLoop = std::chrono::high_resolution_clock::now();
-
   for (auto &item : pdbCatalog->getListOfNodesInCluster()) {
     string nodeAddress = string(item.second.getNodeIP().c_str()) + ":" +
                          to_string(item.second.getNodePort());
@@ -2243,35 +2027,14 @@ bool CatalogServer::broadcastCatalogUpdate(
 
     if (string(item.second.getNodeType().c_str()).compare("master") != 0) {
 
-      auto beforeRegGeneric = std::chrono::high_resolution_clock::now();
-
       // sends the request to a node in the cluster
       res =
           clusterCatalogClient.registerGenericMetadata(metadataToSend, errMsg);
-
-      auto afterRegGeneric = std::chrono::high_resolution_clock::now();
-
-      PDB_COUT << "Time Duration for registerGenericMetadata call to node "
-               << nodeAddress + " \t"
-               << std::to_string(
-                      std::chrono::duration_cast<std::chrono::duration<float>>(
-                          afterRegGeneric - beforeRegGeneric)
-                          .count())
-               << " secs." << endl;
 
       // adds the result of the update
       broadcastResults.insert(make_pair(nodeIP, make_pair(res, errMsg)));
     }
   }
-
-  auto afterLoop = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "------>Time Duration to complete broadcastCatalogUpdate\t"
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      afterLoop - beforeLoop)
-                      .count())
-           << " secs." << endl;
 
   return true;
 }
