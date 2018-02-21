@@ -19,20 +19,9 @@
 
 /* Specialization for adding Database metadata */
 template <>
-bool PDBCatalog::addItemToVector(Handle<CatalogDatabaseMetadata> &item,
-                                 int &key) {
-  auto begin = std::chrono::high_resolution_clock::now();
+bool PDBCatalog::addItemToVector(Handle<CatalogDatabaseMetadata> &item,                                 int &key) {
   registeredDatabasesMetadata->push_back(*item);
   registeredDatabases.insert(make_pair(item->getItemKey().c_str(), *item));
-  auto end = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "----->Time Duration for DB addItemToVector:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs.\n"
-           << endl;
   return true;
 }
 
@@ -47,17 +36,8 @@ bool PDBCatalog::addItemToVector(Handle<CatalogNodeMetadata> &item, int &key) {
 /* Specialization for adding Set metadata */
 template <>
 bool PDBCatalog::addItemToVector(Handle<CatalogSetMetadata> &item, int &key) {
-  auto begin = std::chrono::high_resolution_clock::now();
   registeredSetsMetadata->push_back(*item);
   registeredSets.insert(make_pair(item->getItemKey().c_str(), *item));
-  auto end = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "----->Time Duration for SET addItemToVector:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs." << endl;
   return true;
 }
 
@@ -79,17 +59,8 @@ bool PDBCatalog::addItemToVector(Handle<CatalogUserTypeMetadata> &item,
 template <>
 bool PDBCatalog::updateItemInVector(int &index,
                                     Handle<CatalogDatabaseMetadata> &item) {
-  auto begin = std::chrono::high_resolution_clock::now();
   (*registeredDatabasesMetadata).assign(index, *item);
   registeredDatabases[(*item).getItemKey().c_str()] = (*item);
-  auto end = std::chrono::high_resolution_clock::now();
-
-  PDB_COUT << "----->Time Duration for DB updateItemInVector:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs." << endl;
   return true;
 }
 
@@ -97,15 +68,7 @@ bool PDBCatalog::updateItemInVector(int &index,
 template <>
 bool PDBCatalog::updateItemInVector(int &index,
                                     Handle<CatalogSetMetadata> &item) {
-  auto begin = std::chrono::high_resolution_clock::now();
   (*registeredSetsMetadata).assign(index, *item);
-  auto end = std::chrono::high_resolution_clock::now();
-  PDB_COUT << "----->Time Duration for SET updateItemInVector:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs." << endl;
   return true;
 }
 
@@ -200,7 +163,6 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg) {
 }
 
 PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
-  auto begin = std::chrono::high_resolution_clock::now();
 
   pdb::UseTemporaryAllocationBlock(1024 * 1024 * 128);
 
@@ -288,13 +250,6 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
   mapsPDBArrayOjbect2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBRegisteredObject, "data_types"));
 
-  auto end = std::chrono::high_resolution_clock::now();
-  this->logger->debug(
-      "----->Time Duration for PDBCatalog constructor:\t " +
-      std::to_string(
-          std::chrono::duration_cast<std::chrono::duration<float>>(end - begin)
-              .count()) +
-      " secs.");
 }
 
 PDBCatalog::~PDBCatalog() {
@@ -352,10 +307,6 @@ bool PDBCatalog::getSerializedCatalog(
 }
 
 void PDBCatalog::open() {
-  auto begin = std::chrono::high_resolution_clock::now();
-  auto query = begin;
-  auto load = begin;
-
   sqliteDBHandler = NULL;
   int ret = 0;
   // If database doesn't exist creates database along with tables, otherwise,
@@ -365,7 +316,6 @@ void PDBCatalog::open() {
                                  SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                              NULL)) == SQLITE_OK) {
 
-    query = std::chrono::high_resolution_clock::now();
     // These two SQLite flags optimize insertions/deletions/updates to the
     // tables by buffering data prior to writing to disk
     sqlite3_exec(sqliteDBHandler, "PRAGMA synchronous=OFF", NULL, NULL, NULL);
@@ -396,8 +346,6 @@ void PDBCatalog::open() {
                     "TEXT PRIMARY KEY, "
                     "itemInfo BLOB, timeStamp INTEGER);");
 
-    load = std::chrono::high_resolution_clock::now();
-
     // Loads into memory all metadata so the CatalogServer can access them
     loadsMetadataIntoMemory();
 
@@ -406,32 +354,6 @@ void PDBCatalog::open() {
   } else {
     PDB_COUT << "Error opening catalog database." << endl;
   }
-
-  auto end = std::chrono::high_resolution_clock::now();
-  PDB_COUT << "Time Duration for open SQLite:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      query - begin)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for sqlite CREATES/OPENS:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      load - query)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for loads in memory includes selects in SQLite:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(end -
-                                                                           load)
-                      .count())
-           << " secs." << endl;
-  PDB_COUT << "Time Duration for open:\t "
-           << std::to_string(
-                  std::chrono::duration_cast<std::chrono::duration<float>>(
-                      end - begin)
-                      .count())
-           << " secs." << endl;
 }
 
 void PDBCatalog::loadsMetadataIntoMemory() {
@@ -1021,8 +943,6 @@ bool PDBCatalog::addMetadataToCatalog(
     int &metadataCategory,
     string &errorMessage) {
 
-  auto begin = std::chrono::high_resolution_clock::now();
-  auto realSQLInsert = begin;
   pthread_mutex_lock(&(registerMetadataMutex));
 
   Handle<CatalogMetadataType> metadataObject =
@@ -1045,8 +965,6 @@ bool PDBCatalog::addMetadataToCatalog(
 
   auto metadataBytes = getRecord<CatalogMetadataType>(metadataValue);
   size_t numberOfBytes = metadataBytes->numBytes();
-
-  auto prepareRecord = std::chrono::high_resolution_clock::now();
 
   this->logger->debug(sqlStatement + " with key= " + metadataKey);
   // Prepares statement
@@ -1078,9 +996,6 @@ bool PDBCatalog::addMetadataToCatalog(
   // Runs the insert statement
   if (catalogSqlStep(stmt, errorMessage)) {
     // Metadata item inserted in sqlite then add to pdb :: Vector  in memory
-
-    realSQLInsert = std::chrono::high_resolution_clock::now();
-
     addItemToVector(metadataValue, metadataCategory);
     isSuccess = true;
 
@@ -1099,25 +1014,6 @@ bool PDBCatalog::addMetadataToCatalog(
     this->logger->debug(metadataValue->printShort());
   }
   this->logger->writeLn(errorMessage);
-  auto end = std::chrono::high_resolution_clock::now();
-  this->logger->debug(
-      "Time Duration for Prepare record\t" +
-      std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(
-                         prepareRecord - begin)
-                         .count()) +
-      " secs.");
-  this->logger->debug(
-      "Time Duration for Real INSERT INTO to sqlite:\t " +
-      std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(
-                         realSQLInsert - prepareRecord)
-                         .count()) +
-      " secs.");
-  this->logger->debug(
-      "----->Time Duration for addMetadataToCatalog Total\t " +
-      std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(
-                         end - realSQLInsert)
-                         .count()) +
-      " secs.");
   return isSuccess;
 }
 
@@ -1125,9 +1021,6 @@ template <class CatalogMetadataType>
 bool PDBCatalog::updateMetadataInCatalog(
     pdb::Handle<CatalogMetadataType> &metadataValue, int &metadataCategory,
     string &errorMessage) {
-  auto begin = std::chrono::high_resolution_clock::now();
-  auto prepareRecord = begin;
-  auto realSQLInsert = begin;
 
   pthread_mutex_lock(&(registerMetadataMutex));
 
@@ -1150,7 +1043,6 @@ bool PDBCatalog::updateMetadataInCatalog(
 
   size_t numberOfBytes = metadataBytes->numBytes();
 
-  prepareRecord = std::chrono::high_resolution_clock::now();
   // Prepares statement
   if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1, &stmt,
                           NULL)) != SQLITE_OK) {
@@ -1182,8 +1074,6 @@ bool PDBCatalog::updateMetadataInCatalog(
   // Runs the update statement
   if (catalogSqlStep(stmt, errorMessage)) {
     // if sqlite update goes well, updates container
-    realSQLInsert = std::chrono::high_resolution_clock::now();
-
     updateItemInVector(metadataIndex, metadataValue);
     isSuccess = true;
 
@@ -1197,25 +1087,6 @@ bool PDBCatalog::updateMetadataInCatalog(
   sqlite3_finalize(stmt);
 
   pthread_mutex_unlock(&(registerMetadataMutex));
-  auto end = std::chrono::high_resolution_clock::now();
-  this->logger->debug(
-      "Time Duration for Prepare record\t" +
-      std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(
-                         prepareRecord - begin)
-                         .count()) +
-      " secs.");
-  this->logger->debug(
-      "Time Duration for Real UPDATE INTO to sqlite:\t " +
-      std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(
-                         realSQLInsert - prepareRecord)
-                         .count()) +
-      " secs.");
-  this->logger->debug(
-      "----->Time Duration for updateMetadataInCatalog Total\t " +
-      std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(
-                         end - realSQLInsert)
-                         .count()) +
-      " secs.");
   return isSuccess;
 }
 
