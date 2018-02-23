@@ -13,7 +13,6 @@ pdbRoot_*
 logs/*
 bin/*
 libraries/*
-pdb
 pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h
 pdb/src/objectModel/headers/BuiltinPDBObjects.cc
 pdb/src/objectModel/headers/BuiltinPDBObjects.h

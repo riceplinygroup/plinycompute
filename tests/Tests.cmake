@@ -28,6 +28,9 @@ function(add_pdb_integration_test test-name)
     # add the dependency to the test target
     add_dependencies("RunLocal${test-name}" ${test-name})
 
+    # we also need to build the pdb-server and pdb-cluster
+    add_dependencies("RunLocal${test-name}" pdb-server pdb-cluster)
+
 endfunction(add_pdb_integration_test)
 
 # include all the integration tests

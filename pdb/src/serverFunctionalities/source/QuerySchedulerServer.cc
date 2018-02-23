@@ -22,50 +22,15 @@
 #include "PDBDebug.h"
 #include "InterfaceFunctions.h"
 #include "QuerySchedulerServer.h"
-#include "DistributedStorageManagerClient.h"
-#include "QueryOutput.h"
-#include "ResourceInfo.h"
-#include "ShuffleInfo.h"
 #include "ResourceManagerServer.h"
-#include "SimpleSingleTableQueryProcessor.h"
-#include "InterfaceFunctions.h"
-#include "QueryBase.h"
-#include "PDBVector.h"
-#include "Handle.h"
-#include "ExecuteQuery.h"
-#include "TupleSetExecuteQuery.h"
-#include "ExecuteComputation.h"
-#include "RequestResources.h"
-#include "Selection.h"
 #include "SimpleRequestHandler.h"
-#include "SimpleRequestResult.h"
 #include "GenericWork.h"
-#include "SetExpressionIr.h"
-#include "SelectionIr.h"
-#include "ProjectionIr.h"
-#include "SourceSetNameIr.h"
-#include "ProjectionOperator.h"
-#include "FilterOperator.h"
 #include "IrBuilder.h"
-#include "DataTypes.h"
-#include "ScanUserSet.h"
-#include "WriteUserSet.h"
-#include "ClusterAggregateComp.h"
-#include "QueryGraphAnalyzer.h"
-#include "TCAPAnalyzer.h"
-#include "Configuration.h"
 #include "StorageCollectStats.h"
 #include "StorageCollectStatsResponse.h"
-#include "Configuration.h"
-#include <vector>
-#include <string>
-#include <unordered_map>
+#include "Profiling.h"
 #include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <chrono>
-#include <fcntl.h>
 
 namespace pdb {
 
@@ -237,6 +202,8 @@ void QuerySchedulerServer::prepareAndScheduleStage(Handle<AbstractJobStage> &sta
     int port = this->standardResources->at(node)->getPort();
     std::string ip = this->standardResources->at(node)->getAddress();
 
+    PROFILER_START(scheduleStage)
+
     // create PDBCommunicator
     PDBCommunicatorPtr communicator = getCommunicatorToNode(port, ip);
 
@@ -281,6 +248,8 @@ void QuerySchedulerServer::prepareAndScheduleStage(Handle<AbstractJobStage> &sta
             break;
         }
     }
+
+    PROFILER_END_MESSAGE(scheduleStage, "For stage : " << stage->getStageId() << " on node" << ip)
 
     // if we failed to execute the stage on the node node we signal a failure
     if (!success) {
@@ -656,14 +625,27 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
         std::vector<Handle<AbstractJobStage>> jobStages;
         std::vector<Handle<SetIdentifier>> intermediateSets;
 
+        /// do the physical planning
+        PROFILER_START(physicalPlanning)
+
         extractPipelineStages(jobStageId, jobStages, intermediateSets);
 
-        // create intermediate sets
+        PROFILER_END(physicalPlanning)
+
+        /// create intermediate sets
+        PROFILER_START(createIntermediateSets)
+
         createIntermediateSets(dsmClient, intermediateSets);
 
-        // schedule this job stages
+        PROFILER_END(createIntermediateSets)
+
+        /// schedule this job stages
+        PROFILER_START(scheduleStages)
+
         PDB_COUT << "To schedule the query to run on the cluster" << std::endl;
         getFunctionality<QuerySchedulerServer>().scheduleStages(jobStages, shuffleInfo);
+
+        PROFILER_END(scheduleStages)
 
         // removes the intermediate sets we don't anymore to continue the execution
         removeUnusedIntermediateSets(dsmClient, intermediateSets);
