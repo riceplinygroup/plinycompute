@@ -416,7 +416,20 @@ private:
     std::vector<InactiveAllocationBlock> allInactives;
 
 public:
-    // return true if allocations should not fail due to not enough RAM...
+    // A mapping from the offset ref_object from this allocator, just for experiment, need to
+    // flush this if setupblock is called.
+    std::unordered_map<void*, void*> copied_map;
+
+    unsigned allocatorStamp = 0;
+
+    unsigned getAllocatorStamp();
+
+    void removeCopyMap(void* refPtr);
+
+    // Returns the address this allocator
+    void* getAddress();
+
+  // return true if allocations should not fail due to not enough RAM...
     // in this case, a null pointer is returned on a bad allocate, and NOT
     // an exception
     bool doNotFail();

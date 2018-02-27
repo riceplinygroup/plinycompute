@@ -546,6 +546,27 @@ inline bool MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::contains(void* 
     return (where >= target && where < target + myState.numBytes);
 }
 
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void* MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getAddress() {
+    return (this);
+}
+
+template <typename FirstPolicy, typename... OtherPolicies>
+inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getAllocatorStamp() {
+    return (allocatorStamp);
+};
+
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(void* refPtr) {
+    for(auto it = copied_map.begin(); it != copied_map.end(); it++)
+    {
+      if((it->second) == refPtr)
+      {
+          copied_map.erase(it);
+          break;
+      }
+  }
+};
 
 // returns some RAM... this can throw an exception if the request is too large
 // to be handled because there is not enough RAM in the current allocation block
@@ -753,6 +774,10 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::setupBlock(
     myState.curBlockUserSupplied = false;
     LAST_USED = HEADER_SIZE;
     ALLOCATOR_REF_COUNT = 0;
+
+    // Clear the copied map and update current allocator stamp
+    copied_map.clear();
+    allocatorStamp = (allocatorStamp + 1) % ((1 << 4) - 1);
 }
 
 template <typename FirstPolicy, typename... OtherPolicies>

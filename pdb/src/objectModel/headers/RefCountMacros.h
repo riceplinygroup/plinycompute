@@ -22,6 +22,15 @@
 #ifndef REF_COUNT_PREAMBLE_SIZE
 #define REF_COUNT_PREAMBLE_SIZE (sizeof(unsigned))
 #endif
+#ifndef ALLOCATOR_STAMP_BIT
+#define ALLOCATOR_STAMP_BIT (4)
+#endif
+#ifndef PREAMBLE_BIT
+#define PREAMBLE_BIT (sizeof(unsigned) * 8)
+#endif
+#ifndef ALLOCATOR_STAMP
+#define ALLOCATOR_STAMP ((*((unsigned*)this)) & ((1 << ALLOCATOR_STAMP_BIT) - 1))
+#endif
 #ifndef NUM_COPIES
-#define NUM_COPIES (*((unsigned*)this))
+#define NUM_COPIES (((*((unsigned*)this)) & (((1 << (PREAMBLE_BIT - ALLOCATOR_STAMP_BIT)) - 1) << ALLOCATOR_STAMP_BIT)) >> ALLOCATOR_STAMP_BIT)
 #endif

@@ -43,6 +43,9 @@ template <class ObjType>
 class RefCountedObject {
 
 public:
+    void setAllocatorStamp(unsigned allocatorStamp);
+    unsigned getAllocatorStamp() const;
+
     // set the number of references to this object to a specific value
     void setRefCount(unsigned toMe);
 

@@ -193,6 +193,7 @@ RefCountedObject<ObjType>* makeObject(Args&&... args) {
     // std :: cout << "set reference count = 0" << std :: endl;
     // set the reference count
     returnVal->setRefCount(0);
+    returnVal->setAllocatorStamp(getAllocator().getAllocatorStamp());
 
     // and return it
     return returnVal;

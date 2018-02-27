@@ -34,36 +34,52 @@
 namespace pdb {
 
 template <class ObjType>
+void RefCountedObject<ObjType>::setAllocatorStamp(unsigned allocatorStamp) {
+  (*((unsigned *) this)) = (NUM_COPIES << ALLOCATOR_STAMP_BIT) + allocatorStamp;
+}
+
+
+template <class ObjType>
+unsigned RefCountedObject<ObjType>::getAllocatorStamp() const {
+  //return ALLOCATOR_STAMP;
+  unsigned* first = (unsigned*)this;
+  unsigned second = *first;
+  return (second & ((1 << ALLOCATOR_STAMP_BIT) - 1));
+}
+
+template <class ObjType>
 void RefCountedObject<ObjType>::setRefCount(unsigned toMe) {
 
-    // don't change the ref count for an un-managed object
-    if (!getAllocator().isManaged(this)) {
-        return;
-    }
+  // don't change the ref count for an un-managed object
+  if (!getAllocator().isManaged(this)) {
+      return;
+  }
 
-    NUM_COPIES = toMe;
+  // NUM_COPIES = toMe;
+  (*((unsigned*)this)) = (toMe << ALLOCATOR_STAMP_BIT) + ALLOCATOR_STAMP;
 }
 
 template <class ObjType>
 unsigned RefCountedObject<ObjType>::getRefCount() {
 
-    // an un-managed ref count is always huge
-    if (!getAllocator().isManaged(this)) {
-        return UINT_MAX;
-    }
+  // an un-managed ref count is always huge
+  if (!getAllocator().isManaged(this)) {
+      return UINT_MAX;
+  }
 
-    return NUM_COPIES;
+  return NUM_COPIES;
 }
 
 template <class ObjType>
 void RefCountedObject<ObjType>::incRefCount() {
 
-    // don't change the ref count for an un-managed object
-    if (!getAllocator().isManaged(this)) {
-        return;
-    }
+  // don't change the ref count for an un-managed object
+  if (!getAllocator().isManaged(this)) {
+      return;
+  }
 
-    NUM_COPIES++;
+  // NUM_COPIES++;
+  (*((unsigned*)this)) += (1 << ALLOCATOR_STAMP_BIT);
 }
 
 // remember the ref count
@@ -75,24 +91,29 @@ void RefCountedObject<ObjType>::decRefCount(PDBTemplateBase& typeInfo) {
         return;
     }
 
-    NUM_COPIES--;
+    // NUM_COPIES--;
+    (*((unsigned*)this)) -= (1 << ALLOCATOR_STAMP_BIT);
 
     // if the ref count goes to zero, free the pointed-to object
     if (NUM_COPIES == 0) {
         if (typeInfo.getTypeCode() == 0) {
             PDB_COUT << "RefCountedObject::decRefCount: typeInfo=0 before deleteConstituentObject"
-                     << std::endl;
+                   << std::endl;
         }
         // call the appropriate delete to recursively free, if needed
         typeInfo.deleteConstituentObject(getObject());
 
-// and free the RAM
-#ifdef DEBUG_OBJECT_MODEL
-        getAllocator().freeRAM(CHAR_PTR(this), typeInfo.getTypeCode());
-#else
-        getAllocator().freeRAM(CHAR_PTR(this));
-#endif
-    }
+    // and free the RAM
+    #ifdef DEBUG_OBJECT_MODEL
+            getAllocator().freeRAM(CHAR_PTR(this), typeInfo.getTypeCode());
+    #else
+    //        if (getAllocator().contains(this)) {
+    //            getAllocator().removeCopyMap((void *) this);
+    //        }
+            getAllocator().freeRAM(CHAR_PTR(this));
+
+    #endif
+  }
 }
 
 template <class ObjType>

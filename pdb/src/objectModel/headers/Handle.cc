@@ -501,6 +501,17 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjType>* fro
     // we need to copy it over using a deep copy
     if (!getAllocator().contains((void*)fromMe) && getAllocator().contains(this)) {
 
+        // Check whether this object is already copied to the active block
+        if (fromMe->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
+          if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+            void* target_ad = getAllocator().copied_map[(void *) fromMe];
+            offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
+            getTarget()->incRefCount();
+            DEC_OLD_REF_COUNT;
+            return *this;
+          }
+        }
+
 // get the space... allocate and set up the reference count before it
 #ifdef DEBUG_OBJECT_MODEL
         void* space = getAllocator().getRAM(REF_COUNT_PREAMBLE_SIZE + sizeof(ObjType),
@@ -519,9 +530,11 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjType>* fro
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
+        getAllocator().copied_map[(void*)fromMe] = space;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
+        (const_cast<RefCountedObject<ObjType>*>(fromMe))->setAllocatorStamp(getAllocator().getAllocatorStamp());
 
         // copy over the object; use a virtual method so that we get everything set up and copied
         // correctly
@@ -599,6 +612,16 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjTypeTwo>* 
     // if the RHS is not in the current allocator, but the handle is, then
     // we need to copy it over using a deep copy
     if (!getAllocator().contains((void*)fromMe) && getAllocator().contains(this)) {
+        // Check whether this object is already copied to the active block
+        if (fromMe->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
+            if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+                void* target_ad = getAllocator().copied_map[(void *) fromMe];
+                offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
+                getTarget()->incRefCount();
+                DEC_OLD_REF_COUNT;
+                return *this;
+            }
+        }
 
 // get the space... allocate and set up the reference count before it
 #ifdef DEBUG_OBJECT_MODEL
@@ -618,9 +641,11 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjTypeTwo>* 
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
+        getAllocator().copied_map[(void*)fromMe] = space;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
+        (const_cast<RefCountedObject<ObjTypeTwo>*>(fromMe))->setAllocatorStamp(getAllocator().getAllocatorStamp());
 
         // copy over the object; use a virtual method so that we get everything set up and copied
         // correctly
@@ -686,6 +711,15 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
     // we need to copy it over using a deep copy
     if (!getAllocator().contains(fromMe.getTarget()) && getAllocator().contains(this)) {
 
+        if (refCountedObject->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
+            if (getAllocator().copied_map.find((void *) refCountedObject) != getAllocator().copied_map.end()) {
+                void* target_ad = getAllocator().copied_map[(void *) refCountedObject];
+                offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
+                getTarget()->incRefCount();
+                DEC_OLD_REF_COUNT;
+                return *this;
+            }
+        }
         // get the space... allocate and set up the reference count before it
         RefCountedObject<ObjType>* refCountedObject = fromMe.getTarget();
         ObjType* object = refCountedObject->getObject();
@@ -711,9 +745,11 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
+        getAllocator().copied_map[(void*)refCountedObject] = space;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
+        (const_cast<RefCountedObject<ObjType>*>(fromMe.getTarget()))->setAllocatorStamp(getAllocator().getAllocatorStamp());
 
         // copy over the object; use a virtual method so that we get everything set up and copied
         // correctly
@@ -791,6 +827,15 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
     // if the RHS is not in the current allocator, but the handle is, then
     // we need to copy it over using a deep copy
     if (!getAllocator().contains(fromMe.getTarget()) && getAllocator().contains(this)) {
+        if (fromMe.getTarget()->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
+            if (getAllocator().copied_map.find((void *) fromMe.getTarget()) != getAllocator().copied_map.end()) {
+                void* target_ad = getAllocator().copied_map[(void *) fromMe.getTarget()];
+                offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
+                getTarget()->incRefCount();
+                DEC_OLD_REF_COUNT;
+                return *this;
+            }
+        }
 
 // get the space... allocate and set up the reference count before it
 #ifdef DEBUG_OBJECT_MODEL
@@ -813,9 +858,11 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
+        getAllocator().copied_map[(void*)fromMe.getTarget()] = space;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
+        (const_cast<RefCountedObject<ObjType>*>(fromMe.getTarget()))->setAllocatorStamp(getAllocator().getAllocatorStamp());
 
         // copy over the object; use a virtual method so that we get everything set up and copied
         // correctly
