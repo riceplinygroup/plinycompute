@@ -710,7 +710,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
     // if the RHS is not in the current allocator, but the handle is, then
     // we need to copy it over using a deep copy
     if (!getAllocator().contains(fromMe.getTarget()) && getAllocator().contains(this)) {
-
+        RefCountedObject<ObjType>* refCountedObject = fromMe.getTarget();
         if (refCountedObject->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
             if (getAllocator().copied_map.find((void *) refCountedObject) != getAllocator().copied_map.end()) {
                 void* target_ad = getAllocator().copied_map[(void *) refCountedObject];
@@ -862,7 +862,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
-        (const_cast<RefCountedObject<ObjType>*>(fromMe.getTarget()))->setAllocatorStamp(getAllocator().getAllocatorStamp());
+
 
         // copy over the object; use a virtual method so that we get everything set up and copied
         // correctly
