@@ -721,7 +721,6 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
             }
         }
         // get the space... allocate and set up the reference count before it
-        RefCountedObject<ObjType>* refCountedObject = fromMe.getTarget();
         ObjType* object = refCountedObject->getObject();
 #ifdef DEBUG_OBJECT_MODEL
         void* space =

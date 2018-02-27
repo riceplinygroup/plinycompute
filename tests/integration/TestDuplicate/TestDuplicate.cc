@@ -141,43 +141,43 @@ int main() {
 //    std::cout << newWriteSet->getSetName() << std::endl;
 // ============================================================================================
 
-  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
-  Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
-  Handle<Computation> myQuery = makeObject<EmployeeSelection>();
-  myQuery->setInput(myScanSet);
-  Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");
-  myWriteSet->setInput(myQuery);
-
-  Handle<Vector<Handle<Computation>>> comps = makeObject<Vector<Handle<Computation>>>();
-  comps->push_back(myScanSet);
-  comps->push_back(myQuery);
-  comps->push_back(myWriteSet);
-
-  Handle<Vector<Handle<Computation>>> newComps = makeObject<Vector<Handle<Computation>>>();
-  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
-  newComps = deepCopyToCurrentAllocationBlock(comps);
-  std::cout << (*newComps)[2]->getSetName() << std::endl;
-
-  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
-  Handle<Vector<Handle<Computation>>> newComps2 = makeObject<Vector<Handle<Computation>>>();
-  newComps2 = newComps;
-  std::cout << (*newComps2)[2]->getSetName() << std::endl;
-//    =============================================================================
-
-  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
-  Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
-  Handle<Computation> myQuery = makeObject<EmployeeSelection>();
-  myQuery->setInput(myScanSet);
-  Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");
-  myWriteSet->setInput(myQuery);
-  Handle<Vector<Handle<Computation>>> comps = makeObject<Vector<Handle<Computation>>>();
-  comps->push_back(myScanSet);
-  comps->push_back(myQuery);
-  comps->push_back(myWriteSet);
-
-  Handle<Vector<Handle<Computation>>> newComps = makeObject<Vector<Handle<Computation>>>();
-
-  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
-  newComps = deepCopyToCurrentAllocationBlock(comps);
-  std::cout << (*newComps)[0]->getSetName() << std::endl;
+//  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+//  Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
+//  Handle<Computation> myQuery = makeObject<EmployeeSelection>();
+//  myQuery->setInput(myScanSet);
+//  Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");
+//  myWriteSet->setInput(myQuery);
+//
+//  Handle<Vector<Handle<Computation>>> comps = makeObject<Vector<Handle<Computation>>>();
+//  comps->push_back(myScanSet);
+//  comps->push_back(myQuery);
+//  comps->push_back(myWriteSet);
+//
+//  Handle<Vector<Handle<Computation>>> newComps = makeObject<Vector<Handle<Computation>>>();
+//  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+//  newComps = deepCopyToCurrentAllocationBlock(comps);
+//  std::cout << (*newComps)[2]->getSetName() << std::endl;
+//
+//  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+//  Handle<Vector<Handle<Computation>>> newComps2 = makeObject<Vector<Handle<Computation>>>();
+//  newComps2 = newComps;
+//  std::cout << (*newComps2)[2]->getSetName() << std::endl;
+////    =============================================================================
+//
+//  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+//  Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
+//  Handle<Computation> myQuery = makeObject<EmployeeSelection>();
+//  myQuery->setInput(myScanSet);
+//  Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");
+//  myWriteSet->setInput(myQuery);
+//  Handle<Vector<Handle<Computation>>> comps = makeObject<Vector<Handle<Computation>>>();
+//  comps->push_back(myScanSet);
+//  comps->push_back(myQuery);
+//  comps->push_back(myWriteSet);
+//
+//  Handle<Vector<Handle<Computation>>> newComps = makeObject<Vector<Handle<Computation>>>();
+//
+//  makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+//  newComps = deepCopyToCurrentAllocationBlock(comps);
+//  std::cout << (*newComps)[0]->getSetName() << std::endl;
 }
