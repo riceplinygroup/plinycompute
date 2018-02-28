@@ -113,7 +113,7 @@ std::vector<std::string> parseLine(std::string line) {
 
 
 void dataGenerator(std::string scaleFactor,
-                   pdb::DispatcherClient dispatcherClient,
+                   pdb::PDBClient &pdbClient,
                    int noOfCopies) {
 
     // All files to parse:
@@ -509,10 +509,8 @@ int main(int argc, char* argv[]) {
     int masterPort = 8108;
 
     // register the shared employee class
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
     pdb::PDBClient pdbClient(
-            masterPort, masterHostname, clientLogger, false, true);
+            masterPort, masterHostname, false, true);
 
     string errMsg;
     if (!pdbClient.registerType("libraries/libPart.so", errMsg))
@@ -550,7 +548,7 @@ int main(int argc, char* argv[]) {
     pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
 
     // Generate the data
-    dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopies);
+    dataGenerator(scaleFactor, noOfCopies);
 
     //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList =
     //generateSmallDataset(4);

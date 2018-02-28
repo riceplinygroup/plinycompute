@@ -108,18 +108,11 @@ int main() {
     int masterPort = 8108;
 
     // register the shared employee class
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
     PDBClient pdbClient(
-            masterPort, masterHostname,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
             masterPort,
             masterHostname,
-            clientLogger);
+            false,
+            true);
 
     // now, create the sets for storing Customer Data
     if (!pdbClient.createSet<SumResult>(

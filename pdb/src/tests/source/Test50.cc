@@ -30,12 +30,11 @@
 using namespace pdb;
 int main(int argc, char* argv[]) {
 
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
     // Step 1. Create Database and Set
 
     PDBClient pdbClient(
-            8108, "localhost",
-            clientLogger,
+            8108,
+            "localhost",
             false,
             false);
 

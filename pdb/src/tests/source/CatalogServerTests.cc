@@ -35,7 +35,11 @@ int main(int argc, char *argv[]) {
   }
   std::cout << "Master IP Address is " << masterIp << ":" << port << std::endl;
 
-  PDBClient pdbClient(port, masterIp, clientLogger, false, true);
+    PDBClient pdbClient(
+            port,
+            masterIp,
+            false,
+            true);
 
   CatalogClient catalogClient(port, masterIp, clientLogger);
 

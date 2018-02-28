@@ -177,7 +177,7 @@ int main(int numArgs, const char *args[]) {
   }
 
   pdb::PDBClient pdbClient(conf->getPort(), conf->getServerAddress(),
-                           make_shared<pdb::PDBLogger>("pdbClientLog"), false,
+                           false,
                            false);
 
   // start a storage client

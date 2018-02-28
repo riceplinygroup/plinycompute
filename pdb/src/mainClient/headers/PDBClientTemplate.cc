@@ -47,6 +47,19 @@ bool PDBClient::sendData(std::pair<std::string, std::string> setAndDatabase,
                                              errMsg);
 }
 
+template <class DataType>
+bool PDBClient::sendBytes(std::pair<std::string, std::string> setAndDatabase,
+               char* bytes,
+               size_t numBytes,
+               std::string& errMsg){
+
+    return dispatcherClient.sendBytes<DataType>(
+            setAndDatabase,
+            bytes,
+            numBytes,
+            errMsg);
+}
+
 template <class... Types>
 bool PDBClient::executeComputations(std::string &errMsg,
                                     Handle<Computation> firstParam,

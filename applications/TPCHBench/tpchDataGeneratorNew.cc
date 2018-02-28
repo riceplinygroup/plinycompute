@@ -115,7 +115,7 @@ std::vector<std::string> parseLine(std::string line) {
 }
 
 void dataGenerator(std::string scaleFactor,
-                   pdb::DispatcherClient dispatcherClient,
+                   pdb::PDBClient pdbClient,
                    int noOfCopies) {
 
     // All files to parse:
@@ -445,7 +445,7 @@ void dataGenerator(std::string scaleFactor,
                 if (storeMeCustomerList->size() > 0) {
                     Record<Vector<Handle<Object>>>* myRecord =
                         (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-                    if (!dispatcherClient.sendBytes<Customer>(
+                    if (!pdbClient.sendBytes<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
                             (char*)myRecord,
                             myRecord->numBytes(),
@@ -497,7 +497,7 @@ void dataGenerator(std::string scaleFactor,
     // send the rest of data at the end, it can happen that the exception never happens.
     Record<Vector<Handle<Object>>>* myRecord =
         (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-    if (!dispatcherClient.sendBytes<Customer>(
+    if (!pdbClient.sendBytes<Customer>(
             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
             (char*)myRecord,
             myRecord->numBytes(),
@@ -593,18 +593,11 @@ int main(int argc, char* argv[]) {
     int masterPort = 8108;
 
     // register the shared employee class
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-    PDBClient pdbClient(
-            masterPort, masterHostname,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
+    pdb::PDBClient pdbClient(
             masterPort,
             masterHostname,
-            clientLogger);
+            false,
+            true);
 
     string errMsg;
 
@@ -619,7 +612,7 @@ int main(int argc, char* argv[]) {
         {
             pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
             // Generate the data
-            dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopiesEachRound);
+            dataGenerator(scaleFactor, pdbClient, noOfCopiesEachRound);
             // flush to disk
             pdbClient.flushData(errMsg);
             cout << errMsg << endl;
@@ -635,7 +628,7 @@ int main(int argc, char* argv[]) {
         {
             pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
             // Generate the data
-            dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopiesPartialRound);
+            dataGenerator(scaleFactor, pdbClient, noOfCopiesPartialRound);
             // flush to disk
             pdbClient.flushData(errMsg);
             cout << errMsg << endl;

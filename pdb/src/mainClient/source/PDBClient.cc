@@ -25,12 +25,14 @@ namespace pdb {
 
 PDBClient::PDBClient() {}
 
-PDBClient::PDBClient(int portIn, std::string addressIn, PDBLoggerPtr myLoggerIn,
+PDBClient::PDBClient(int portIn, std::string addressIn, 
                      bool usePangaeaIn, bool useQuerySchedulerIn)
-    : port(portIn), address(addressIn), logger(myLoggerIn),
+    : port(portIn), address(addressIn),
       usePangea(usePangaeaIn), useQueryScheduler(useQuerySchedulerIn) {
 
-  catalogClient = pdb::CatalogClient(
+  logger = make_shared<PDBLogger>("clientLog");
+  
+  catalogClient = std::make_shared<pdb::CatalogClient>(
       portIn, addressIn, make_shared<pdb::PDBLogger>("catalogClientLog"));
 
   dispatcherClient = DispatcherClient(
@@ -46,18 +48,6 @@ PDBClient::PDBClient(int portIn, std::string addressIn, PDBLoggerPtr myLoggerIn,
 }
 
 PDBClient::~PDBClient() {}
-
-pdb::CatalogClient PDBClient::getCatalogClient() { return catalogClient; }
-
-pdb::DispatcherClient PDBClient::getDispatcherClient() {
-  return dispatcherClient;
-}
-
-pdb::DistributedStorageManagerClient PDBClient::getDistributedStorageClient() {
-  return distributedStorageClient;
-}
-
-pdb::QueryClient PDBClient::getQueryClient() { return queryClient; }
 
 void PDBClient::registerHandlers(PDBServer &forMe) {}
 
@@ -173,43 +163,43 @@ bool PDBClient::registerNode(string &localIP, int localPort, string &nodeName,
           String(localIP + ":" + std::to_string(localPort)), String(localIP),
           localPort, String(nodeName), String(nodeType), 1);
 
-  return catalogClient.registerNodeMetadata(nodeInfo, errMsg);
+  return catalogClient->registerNodeMetadata(nodeInfo, errMsg);
 }
 
 bool PDBClient::registerType(std::string fileContainingSharedLib,
                              std::string &errMsg) {
 
-  return catalogClient.registerType(fileContainingSharedLib, errMsg);
+  return catalogClient->registerType(fileContainingSharedLib, errMsg);
 }
 
 string PDBClient::printCatalogMetadata(
     pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch, std::string &errMsg) {
 
-   return catalogClient.printCatalogMetadata (
+   return catalogClient->printCatalogMetadata (
       itemToSearch,
       errMsg) ;
 }
 
 string PDBClient::listAllRegisteredMetadata(std::string &errMsg) {
-   return catalogClient.listAllRegisteredMetadata(errMsg);
+   return catalogClient->listAllRegisteredMetadata(errMsg);
 }
  
 string PDBClient::listRegisteredDatabases(std::string &errMsg) {
-  return catalogClient.listRegisteredDatabases(errMsg);
+  return catalogClient->listRegisteredDatabases(errMsg);
 }
 
 string PDBClient::listRegisteredSetsForADatabase(std::string databaseName,
                                                  std::string &errMsg) {
 
-  return catalogClient.listRegisteredSetsForADatabase(databaseName, errMsg);
+  return catalogClient->listRegisteredSetsForADatabase(databaseName, errMsg);
 }
 
 string PDBClient::listNodesInCluster(std::string &errMsg) {
-  return catalogClient.listNodesInCluster(errMsg);
+  return catalogClient->listNodesInCluster(errMsg);
 }
 
 string PDBClient::listUserDefinedTypes(std::string &errMsg) {
-  return catalogClient.listUserDefinedTypes(errMsg);
+  return catalogClient->listUserDefinedTypes(errMsg);
 }
 
 /****

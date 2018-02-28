@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     port = atoi(argv[1]);
 
     pdb::PDBClient pdbClient(
-        port, "localhost", make_shared<pdb::PDBLogger>("Test405.log"), false, false);
+        port, "localhost", false, false);
 
     std::string err;
 

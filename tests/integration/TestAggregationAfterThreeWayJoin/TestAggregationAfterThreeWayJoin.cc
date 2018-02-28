@@ -109,19 +109,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
     PDBClient pdbClient(
             8108,
             masterIp,
-            clientLogger,
             false,
             true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
 
     string errMsg;
 
@@ -129,28 +122,13 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!pdbClient.createDatabase("test78_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("test78_db", errMsg);
 
         // now, create the int set in that database
-        if (!pdbClient.createSet<int>("test78_db", "test78_set1", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 1.\n";
-        }
+        pdbClient.createSet<int>("test78_db", "test78_set1", errMsg);
 
         // now, create the StringIntPair set in that database
-        if (!pdbClient.createSet<StringIntPair>("test78_db", "test78_set2", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 2.\n";
-        }
+        pdbClient.createSet<StringIntPair>("test78_db", "test78_set2", errMsg);
 
         // Step 2. Add data to set1
         int total = 0;
@@ -242,13 +220,7 @@ int main(int argc, char* argv[]) {
         }
     }
     // now, create a new set in that database to store output data
-    PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<SumResult>("test78_db", "output_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<SumResult>("test78_db", "output_set1", errMsg);
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
