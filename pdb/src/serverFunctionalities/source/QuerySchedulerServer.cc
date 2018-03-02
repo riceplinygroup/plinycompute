@@ -31,6 +31,8 @@
 #include "Profiling.h"
 #include <ctime>
 #include <chrono>
+#include <TCAPOptimizer.h>
+#include <PrologOptimizer.h>
 
 namespace pdb {
 
@@ -612,6 +614,12 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
     if (this->statsForOptimization == nullptr) {
         this->collectStats();
     }
+
+    // create the TCAP optimizer
+    TCAPOptimizerPtr optimizer = make_shared<PrologOptimizer>();
+
+    // optimize the TCAP
+    std::string optimizedTCAP = optimizer->optimize(request->getTCAPString());
 
     // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
     this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,

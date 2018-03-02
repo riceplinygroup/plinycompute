@@ -36,7 +36,7 @@ ADD_DEFINITIONS(-DEVICT_STOP_THRESHOLD=0.95)
 ADD_DEFINITIONS(-DEVICT_STOP_THRESHOLD=0.95)
 ADD_DEFINITIONS(-DENABLE_COMPRESSION)
 ADD_DEFINITIONS(-DPROFILING)
-ADD_DEFINITIONS(-DPDB_DEBUG)
+#ADD_DEFINITIONS(-DPDB_DEBUG)
 
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
@@ -80,6 +80,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sharedLibraries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/mustache/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/mainClient/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/optimizer/headers")
 
 # specify the source files
 file(GLOB SERVER_FUNCTIONALITIES_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/serverFunctionalities/source/*.cc")
@@ -99,6 +100,7 @@ file(GLOB LAMBDAS_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/lambdas/source/*.cc")
 file(GLOB LOGICAL_PLAN_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/source/*.cc")
 file(GLOB LINEAR_ALGEBRA_DSL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/*.cc")
 file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.cc")
+file(GLOB OPTIMIZER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/optimizer/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/pdb/src/sqlite/source/sqlite3.c)
 
 # specify the hearder files
@@ -118,6 +120,10 @@ FIND_PACKAGE(UUID REQUIRED)
 # find the boost package
 FIND_PACKAGE(Boost COMPONENTS program_options filesystem system REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+
+# find the swi prolog
+FIND_PACKAGE(SWIPL REQUIRED)
+INCLUDE_DIRECTORIES(${SWIPL_INCLUDE_DIR})
 
 # setup the commands
 IF (FLEX_FOUND)
@@ -218,6 +224,7 @@ add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
 add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
+add_library(optimizer OBJECT ${OPTIMIZER_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 
 # used to build the pdb-cluster and pdb-server
@@ -237,7 +244,8 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:optimizer>)
 
 # used to link the shared libraries that the shared librarires use
 add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
@@ -256,7 +264,8 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:optimizer>)
 
 # used to link the shared libraries that the test use
 add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
@@ -275,7 +284,8 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:optimizer>)
 
 # link the dependent libraries so that they are made of the public interface
 target_link_libraries(pdb-server-common PRIVATE ${SNAPPY_LIBRARY})
@@ -283,12 +293,14 @@ target_link_libraries(pdb-server-common PUBLIC ${UUID_LIBRARY})
 target_link_libraries(pdb-server-common PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pdb-server-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pdb-server-common PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(pdb-server-common PRIVATE ${SWIPL_LIBRARIES})
 
 target_link_libraries(pdb-tests-common PRIVATE ${SNAPPY_LIBRARY})
 target_link_libraries(pdb-tests-common PUBLIC ${UUID_LIBRARY})
 target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pdb-tests-common PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(pdb-tests-common PRIVATE ${SWIPL_LIBRARIES})
 
 # form the parsers for the logical plan and linear algebra
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})

@@ -15,36 +15,25 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SIMPLE_MOVIE_SELECTION
-#define SIMPLE_MOVIE_SELECTION
 
-#include "Lambda.h"
-#include "LambdaCreationFunctions.h"
-#include "SelectionComp.h"
-#include "PDBVector.h"
-#include "PDBString.h"
+#ifndef PDB_TCAPOPTIMIZER_H
+#define PDB_TCAPOPTIMIZER_H
 
-#include "MovieStar.h"
-#include "StarsIn.h"
+#include <string>
+#include <memory>
 
+class TCAPOptimizer;
+typedef std::shared_ptr<TCAPOptimizer> TCAPOptimizerPtr;
 
-using namespace pdb;
-class SimpleMovieSelection : public SelectionComp<MovieStar, MovieStar> {
+class TCAPOptimizer {
 
 public:
-    ENABLE_DEEP_COPY
+  /**
+   * This method is called to optimize the provided tcap string
+   * @param tcapString - the tcap string we want to optimize
+   */
+  virtual std::string optimize(std::string tcapString) = 0;
 
-    SimpleMovieSelection() {}
-
-    Lambda<bool> getSelection(Handle<MovieStar> checkMe) override {
-        return makeLambdaFromMember(checkMe, birthYear) ==
-            makeLambdaFromMember(checkMe, checkBirthYear);
-    }
-
-    Lambda<Handle<MovieStar>> getProjection(Handle<MovieStar> checkMe) override {
-        return makeLambda(checkMe, [](Handle<MovieStar>& checkMe) { return checkMe; });
-    }
 };
 
-
-#endif
+#endif //PDB_TCAPOPTIMIZER_H
