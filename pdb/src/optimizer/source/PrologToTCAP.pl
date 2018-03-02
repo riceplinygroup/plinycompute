@@ -223,13 +223,10 @@ findLeaves(Leaves):-
 
 	% TCAP generator:
 tcapGenerator:-
-	open('tcapOutput.tcap', write, ID, [alias(tcapOutput)]),
+	open('/tmp/tcapOutput.tcap', write, ID, [alias(tcapOutput)]),
 	findLeaves([H|T]),
 	bottomUpSearch(H, [], [], T, []),
 	close(ID).
-
-getFile(FileName):-
-    absolute_file_name('tcapOutput.tcap', FileName).
 
 		% Print name-list pair: TCAP:
 printNameListPair(ListName, List):-

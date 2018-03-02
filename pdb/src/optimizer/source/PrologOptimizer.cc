@@ -18,9 +18,8 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
-#include <SWI-cpp.h>
 #include <sstream>
-#include <algorithm>
+#include <mustache.hpp>
 #include "PrologGenerator.h"
 #include "PrologOptimizer.h"
 
@@ -41,61 +40,44 @@ std::string PrologOptimizer::optimize(std::string tcapString) {
   // write out the prolog to tcap script
   writePrologToTCAPScript();
 
-  // create the arguments to initialize the prolog engine
-  std::vector<std::string> prologArguments = { "swipl", "-f", storageLocation + "PrologToTCAP.pl", "-s", storageLocation + "input.pl"};
+  // get the prolog command
+  std::string command = getPrologCommand();
 
-  // converts our array of strings to an array of char* so we can pass it in the prolog engine
-  std::vector<char *> argv = toArgv(prologArguments);
+  // run the command
+  system(command.c_str());
 
-  // initialize the prolog engine
-  PlEngine engine((int)prologArguments.size(), argv.data());
-
-  // prepare the query to run the optimizer
-  PlTermv emptyTerm(0);
-  PlQuery optimizeQuery("tcapGenerator", emptyTerm);
-
-  // check if we succeeded in optimizing the query
-  if(!optimizeQuery.next_solution()){
-    std::cout<< "Failed to perform optimization. Will use the unoptimized string" << std::endl;
-    return tcapString;
-  }
-
-  // issue the query to get the file name of the optimized query
-  PlTermv getFileName(1);
-  PlQuery getFileQuery("getFile", getFileName);
-
-  // check if we could get the filename
-  if(!getFileQuery.next_solution()){
-    std::cout<< "Failed to perform optimization. Will use the unoptimized string" << std::endl;
-    return tcapString;
-  }
-
-  // grab the filename
-  std::string fileName((char*) getFileName[0]);
+  // set the output file name
+  std::string outputFileName(storageLocation + "tcapOutput.tcap");
 
   // create a buffer to store the optimized tcap string
   std::ostringstream optimizedString( std::ios::out | std::ios::binary ) ;
 
   // open the file with the tcap string and read it in
-  std::ifstream inFile(fileName.c_str()) ;
+  std::ifstream inFile(outputFileName.c_str()) ;
   std::string line;
   while(std::getline(inFile, line)) {
     optimizedString << line << "\r\n";
   }
 
   // remove the file we just created
-  boost::filesystem::remove(fileName);
+  boost::filesystem::remove(outputFileName);
 
   // return the optimized string
   return optimizedString.str();
 }
-std::vector<char *> PrologOptimizer::toArgv(const std::vector<std::string> &prologArguments) const {
-  std::vector<char*> argv;
-  for (const auto& arg : prologArguments) {
-    argv.push_back((char*)arg.data());
-  }
-  argv.push_back(nullptr);
-  return argv;
+
+std::string PrologOptimizer::getPrologCommand() const {
+
+  // command template
+  mustache::mustache commandTemplate{"swipl -f {{prologToTcap}} -s {{inputFile}} -g \"{{command}}\""};
+
+  // create the command data
+  mustache::data commandData;
+  commandData.set("prologToTcap", storageLocation + "PrologToTCAP.pl");
+  commandData.set("inputFile", storageLocation + "input.pl");
+  commandData.set("command", "tcapGenerator,halt");
+
+  return commandTemplate.render(commandData);
 }
 
 void PrologOptimizer::writePrologToTCAPScript() const {

@@ -63,13 +63,7 @@ private:
    * Writes out the prologToTCAPScript
    */
   void writePrologToTCAPScript() const;
-
-  /**
-   * Converts a vector of strings to a vector of char*
-   * @param prologArguments - the vector of strings
-   * @return the returned char* vector
-   */
-  std::vector<char *> toArgv(const std::vector<std::string> &prologArguments) const;
+  std::string getPrologCommand() const;
 };
 
 #endif //PDB_PROLOGOPTIMIZER_H
