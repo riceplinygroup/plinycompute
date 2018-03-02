@@ -16,6 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <SWI-cpp.h>
 #include <sstream>
@@ -81,6 +82,9 @@ std::string PrologOptimizer::optimize(std::string tcapString) {
   while(std::getline(inFile, line)) {
     optimizedString << line << "\r\n";
   }
+
+  // remove the file we just created
+  boost::filesystem::remove(fileName);
 
   // return the optimized string
   return optimizedString.str();
