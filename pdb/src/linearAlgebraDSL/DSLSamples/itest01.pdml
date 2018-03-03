@@ -1,4 +1,0 @@
-A = ones(20,20,2,2)
-B = identity(20,2)
-C = zeros(20,20,2,2)
-D = A + B + C

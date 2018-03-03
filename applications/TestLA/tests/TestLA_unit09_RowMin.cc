@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_10_CC
-#define TEST_LA_10_CC
+#ifndef TEST_LA_09_CC
+#define TEST_LA_09_CC
 
 
 // by Binhang, May 2017
-// to test matrix colMax implemented by aggregation;
+// to test matrix rowMin implemented by aggregation;
+#include <ctime>
+#include <chrono>
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -32,13 +34,7 @@
 #include "MatrixBlock.h"
 #include "Set.h"
 #include "DataTypes.h"
-#include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <chrono>
-#include <fcntl.h>
-#include "LAColMaxAggregate.h"
+#include "LARowMinAggregate.h"
 
 
 using namespace pdb;
@@ -121,7 +117,7 @@ int main(int argc, char* argv[]) {
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA10_db", errMsg)) {
+        if (!pdbClient.createDatabase("LA09_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -129,7 +125,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA10_db", "LA_input_set", errMsg)) {
+        if (!pdbClient.createSet<MatrixBlock>("LA09_db", "LA_input_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -184,7 +180,7 @@ int main(int argc, char* argv[]) {
                         (*storeMe)[i]->print();
                     }
                     if (!pdbClient.sendData<MatrixBlock>(
-                            std::pair<std::string, std::string>("LA_input_set", "LA10_db"),
+                            std::pair<std::string, std::string>("LA_input_set", "LA09_db"),
                             storeMe,
                             errMsg)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -192,7 +188,7 @@ int main(int argc, char* argv[]) {
                     }
                 } catch (pdb::NotEnoughSpace& n) {
                     if (!pdbClient.sendData<MatrixBlock>(
-                            std::pair<std::string, std::string>("LA_input_set", "LA10_db"),
+                            std::pair<std::string, std::string>("LA_input_set", "LA09_db"),
                             storeMe,
                             errMsg)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -211,7 +207,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA10_db", "LA_colMax_set", errMsg)) {
+    if (!pdbClient.createSet<MatrixBlock>("LA09_db", "LA_rowMin_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -223,18 +219,18 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLAColMaxAggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLARowMinAggregate.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
 
 
-    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA10_db", "LA_input_set");
-    Handle<Computation> myQuery = makeObject<LAColMaxAggregate>();
+    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA09_db", "LA_input_set");
+    Handle<Computation> myQuery = makeObject<LARowMinAggregate>();
     myQuery->setInput(myScanSet);
-    // myQuery->setOutput("LA10_db", "LA_colMax_set");
+    // myQuery->setOutput("LA09_db", "LA_rowMin_set");
 
-    Handle<Computation> myWriteSet = makeObject<LAWriteMatrixBlockSet>("LA10_db", "LA_colMax_set");
+    Handle<Computation> myWriteSet = makeObject<LAWriteMatrixBlockSet>("LA09_db", "LA_rowMin_set");
     myWriteSet->setInput(myQuery);
 
     auto begin = std::chrono::high_resolution_clock::now();
@@ -255,7 +251,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<MatrixBlock> input =
-            pdbClient.getSetIterator<MatrixBlock>("LA10_db", "LA_input_set");
+            pdbClient.getSetIterator<MatrixBlock>("LA09_db", "LA_input_set");
         std::cout << "Query input: " << std::endl;
         int countIn = 0;
         for (auto a : input) {
@@ -268,8 +264,8 @@ int main(int argc, char* argv[]) {
 
 
         SetIterator<MatrixBlock> result =
-            pdbClient.getSetIterator<MatrixBlock>("LA10_db", "LA_colMax_set");
-        std::cout << "ColMax query results: " << std::endl;
+            pdbClient.getSetIterator<MatrixBlock>("LA09_db", "LA_rowMin_set");
+        std::cout << "RowMin query results: " << std::endl;
         int countOut = 0;
         for (auto a : result) {
             countOut++;
@@ -278,14 +274,14 @@ int main(int argc, char* argv[]) {
 
             std::cout << std::endl;
         }
-        std::cout << "ColMax output count:" << countOut << "\n";
+        std::cout << "RowMin output count:" << countOut << "\n";
     }
 
     if (clusterMode == false) {
         // and delete the sets
-        pdbClient.deleteSet("LA10_db", "LA_colMax_set");
+        pdbClient.deleteSet("LA09_db", "LA_rowMin_set");
     } else {
-        if (!pdbClient.removeSet("LA10_db", "LA_colMax_set", errMsg)) {
+        if (!pdbClient.removeSet("LA09_db", "LA_rowMin_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

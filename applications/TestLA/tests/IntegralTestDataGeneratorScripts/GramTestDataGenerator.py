@@ -15,7 +15,6 @@
 # The idea is stolen from Shangyu's ICDE paper, created by Binhang June 2017
 import random
 import sys
-import time
 
 
 data_num = int(sys.argv[1])
@@ -27,11 +26,9 @@ blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize
 
 
-#lines = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv", "w")
-#lines_mtd = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
-fileName = "./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(blockRowSize)+"_"+str(blockColSize)+"_"+str(blockRowNum)+"_"+str(blockColNum)+".data"
+fileName = "./application/TestLA/tests/Benchmark/Gram_M_"+str(blockRowSize)+"_"+str(blockColSize)+"_"+str(blockRowNum)+"_"+str(blockColNum)+".data"
 blocks = open(fileName,"w")
-code = open("./src/linearAlgebraDSL/DSLSamples/Task01_Gram_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
+code = open("./application/TestLA/tests/Benchmark/Task01_Gram_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
 
 
 print "data_num: " + str(data_num) + "	dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
@@ -43,14 +40,6 @@ for i in xrange(data_num):
     for j in xrange(dim):
         row.append(random.random())
     data.append(row)
-
-
-#for i in xrange(data_num):
-#    for j in xrange(dim-1):
-#        lines.write(str(data[i][j]))
-#        lines.write(", ")
-#    lines.write(str(data[i][dim-1]))
-#    lines.write("\n")
 
 
 for i in xrange(data_num/blockRowSize):
@@ -66,12 +55,8 @@ for i in xrange(data_num/blockRowSize):
 		blocks.write("\n")
 
 
-#lines_mtd.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(dim) + ", \"format\": \"csv\"}")
 code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowNum)+","+str(blockColNum)+',\"'+fileName+'\")\n')
 code.write("M = X '* X\n")
 
-
-#lines.close()
-#lines_mtd.close()
 blocks.close()
 code.close()

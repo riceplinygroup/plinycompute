@@ -79,7 +79,7 @@ try:
 
     #run test
     print bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC
-    if sys.argv[1] == './bin/testLA21_Instance':
+    if sys.argv[1] == './bin/TestLA_Instance':
         subprocess.check_call([sys.argv[1], 'Y', 'Y', '256', 'localhost', sys.argv[2]])
     else:
         subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost', 'Y'])

@@ -21,6 +21,8 @@
 
 // by Binhang, May 2017
 // to test matrix colMin implemented by aggregation;
+#include <ctime>
+#include <chrono>
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -32,12 +34,6 @@
 #include "MatrixBlock.h"
 #include "Set.h"
 #include "DataTypes.h"
-#include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <chrono>
-#include <fcntl.h>
 #include "LAColMinAggregate.h"
 
 

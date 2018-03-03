@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_04_CC
-#define TEST_LA_04_CC
+#ifndef TEST_LA_07_CC
+#define TEST_LA_07_CC
 
 
 // by Binhang, May 2017
-// to test matrix multiply implemented by join;
+// to test matrix add implemented by join;
+#include <ctime>
+#include <chrono>
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -32,23 +34,15 @@
 #include "MatrixBlock.h"
 #include "Set.h"
 #include "DataTypes.h"
-#include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <chrono>
-#include <fcntl.h>
-#include "LAMultiply1Join.h"
-#include "LAMultiply2Aggregate.h"
+#include "LAScaleMultiplyJoin.h"
 
 
 using namespace pdb;
 int main(int argc, char* argv[]) {
     bool printResult = true;
     bool clusterMode = false;
-    std::cout
-        << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #SubstractData[Y/N]"
-        << std::endl;
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+              << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
             printResult = false;
@@ -58,8 +52,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Will print result." << std::endl;
         }
     } else {
-        std::cout << "Will print result. If you don't want to print result, you can Substract N as "
-                     "the first parameter to disable result printing."
+        std::cout << "Will print result. If you don't want to print result, you can add N as the "
+                     "first parameter to disable result printing."
                   << std::endl;
     }
 
@@ -71,31 +65,31 @@ int main(int argc, char* argv[]) {
             clusterMode = false;
         }
     } else {
-        std::cout << "Will run on local node. If you want to run on cluster, you can Substract any "
+        std::cout << "Will run on local node. If you want to run on cluster, you can add any "
                      "character as the second parameter to run on the cluster configured by "
                      "$PDB_HOME/conf/serverlist."
                   << std::endl;
     }
 
-    int blockSize = 64;  // by default we Substract 64MB data
+    int blockSize = 64;  // by default we add 64MB data
     if (argc > 3) {
         blockSize = atoi(argv[3]);
     }
     blockSize = 64;  // Force it to be 64 by now.
 
 
-    std::cout << "To Substract data with size: " << blockSize << "MB" << std::endl;
+    std::cout << "To add data with size: " << blockSize << "MB" << std::endl;
 
     std::string masterIp = "localhost";
     if (argc > 4) {
         masterIp = argv[4];
     }
-    std::cout << "Master IP Substractress is " << masterIp << std::endl;
+    std::cout << "Master IP Address is " << masterIp << std::endl;
 
-    bool whetherToSubstractData = true;
+    bool whetherToAddData = true;
     if (argc > 5) {
         if (strcmp(argv[5], "N") == 0) {
-            whetherToSubstractData = false;
+            whetherToAddData = false;
         }
     }
 
@@ -114,16 +108,14 @@ int main(int argc, char* argv[]) {
 
     string errMsg;
 
-    if (whetherToSubstractData == true) {
+    if (whetherToAddData == true) {
         // Step 1. Create Database and Set
         // now, register a type for user data
-        // TODO: once sharedLibrary is supported, Substract this line back!!!
-        pdbClient.registerType("libraries/libMatrixMeta.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixData.so", errMsg);
+        // TODO: once sharedLibrary is supported, add this line back!!!
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA04_db", errMsg)) {
+        if (!pdbClient.createDatabase("LA15_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -131,7 +123,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_input_set1", errMsg)) {
+        if (!pdbClient.createSet<MatrixBlock>("LA15_db", "LA_input_set1", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -139,7 +131,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_input_set2", errMsg)) {
+        if (!pdbClient.createSet<MatrixBlock>("LA15_db", "LA_input_set2", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -147,15 +139,15 @@ int main(int argc, char* argv[]) {
         }
 
 
-        // Step 2. Substract data
+        // Step 2. Add data
         int matrixRowNums = 4;
         int matrixColNums = 4;
         int blockRowNums = 10;
-        int blockColNums = 10;
+        int blockColNums = 5;
 
         int total = 0;
 
-        // Substract Matrix 1
+        // Add Matrix 1
         pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
         pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix1 =
             pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
@@ -167,7 +159,8 @@ int main(int argc, char* argv[]) {
                 // Foo initialization
                 for (int ii = 0; ii < blockRowNums; ii++) {
                     for (int jj = 0; jj < blockColNums; jj++) {
-                        (*(myData->getRawDataHandle()))[ii * blockColNums + jj] = i + j + ii + jj;
+                        (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
+                            i + j + ii + jj + 1.0;
                     }
                 }
 
@@ -179,7 +172,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (!pdbClient.sendData<MatrixBlock>(
-                std::pair<std::string, std::string>("LA_input_set1", "LA04_db"),
+                std::pair<std::string, std::string>("LA_input_set1", "LA15_db"),
                 storeMatrix1,
                 errMsg)) {
             std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -189,7 +182,7 @@ int main(int argc, char* argv[]) {
         // to write back all buffered records
         pdbClient.flushData(errMsg);
 
-        // Substract Matrix 2
+        // Add Matrix 2
         total = 0;
         pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
         pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix2 =
@@ -203,7 +196,7 @@ int main(int argc, char* argv[]) {
                 for (int ii = 0; ii < blockRowNums; ii++) {
                     for (int jj = 0; jj < blockColNums; jj++) {
                         (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
-                            (i == j && ii == jj) ? 1.0 : 0.0;
+                            -1.0 * (i + j + ii + jj);
                     }
                 }
                 std::cout << "New block: " << total << std::endl;
@@ -214,7 +207,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (!pdbClient.sendData<MatrixBlock>(
-                std::pair<std::string, std::string>("LA_input_set2", "LA04_db"),
+                std::pair<std::string, std::string>("LA_input_set2", "LA15_db"),
                 storeMatrix2,
                 errMsg)) {
             std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -227,7 +220,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_product_set", errMsg)) {
+    if (!pdbClient.createSet<MatrixBlock>("LA15_db", "LA_ScaleProduct_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -239,30 +232,26 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLAMultiply1Join.so", errMsg);
-    pdbClient.registerType("libraries/libLAMultiply2Aggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAScaleMultiplyJoin.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
 
 
-    Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA04_db", "LA_input_set1");
-    Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA04_db", "LA_input_set2");
+    Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA15_db", "LA_input_set1");
+    Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA15_db", "LA_input_set2");
 
-    Handle<Computation> myMultiply1Join = makeObject<LAMultiply1Join>();
-    myMultiply1Join->setInput(0, myMatrixSet1);
-    myMultiply1Join->setInput(1, myMatrixSet2);
+    Handle<Computation> myAddJoin = makeObject<LAScaleMultiplyJoin>();
+    myAddJoin->setInput(0, myMatrixSet1);
+    myAddJoin->setInput(1, myMatrixSet2);
 
-    Handle<Computation> myMultiply2Aggregate = makeObject<LAMultiply2Aggregate>();
-    myMultiply2Aggregate->setInput(myMultiply1Join);
-
-    Handle<Computation> myProductWriteSet =
-        makeObject<LAWriteMatrixBlockSet>("LA04_db", "LA_product_set");
-    myProductWriteSet->setInput(myMultiply2Aggregate);
+    Handle<Computation> mySumWriteSet =
+        makeObject<LAWriteMatrixBlockSet>("LA15_db", "LA_ScaleProduct_set");
+    mySumWriteSet->setInput(myAddJoin);
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myProductWriteSet)) {
+    if (!pdbClient.executeComputations(errMsg, mySumWriteSet)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -279,7 +268,7 @@ int main(int argc, char* argv[]) {
         std::cout << "to print result..." << std::endl;
 
         SetIterator<MatrixBlock> input1 =
-            pdbClient.getSetIterator<MatrixBlock>("LA04_db", "LA_input_set1");
+            pdbClient.getSetIterator<MatrixBlock>("LA15_db", "LA_input_set1");
         std::cout << "Input Matrix 1:" << std::endl;
         int countIn1 = 0;
         for (auto a : input1) {
@@ -291,7 +280,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Matrix1 input block nums:" << countIn1 << "\n";
 
         SetIterator<MatrixBlock> input2 =
-            pdbClient.getSetIterator<MatrixBlock>("LA04_db", "LA_input_set2");
+            pdbClient.getSetIterator<MatrixBlock>("LA15_db", "LA_input_set2");
         std::cout << "Input Matrix 2:" << std::endl;
         int countIn2 = 0;
         for (auto a : input2) {
@@ -304,8 +293,8 @@ int main(int argc, char* argv[]) {
 
 
         SetIterator<MatrixBlock> result =
-            pdbClient.getSetIterator<MatrixBlock>("LA04_db", "LA_product_set");
-        std::cout << "Multiply query results: " << std::endl;
+            pdbClient.getSetIterator<MatrixBlock>("LA15_db", "LA_ScaleProduct_set");
+        std::cout << "Scale product query results: " << std::endl;
         int countOut = 0;
         for (auto a : result) {
             countOut++;
@@ -314,14 +303,14 @@ int main(int argc, char* argv[]) {
 
             std::cout << std::endl;
         }
-        std::cout << "Product output count:" << countOut << "\n";
+        std::cout << "Sum output count:" << countOut << "\n";
     }
 
     if (clusterMode == false) {
         // and delete the sets
-        pdbClient.deleteSet("LA04_db", "LA_product_set");
+        pdbClient.deleteSet("LA15_db", "LA_ScaleProduct_set");
     } else {
-        if (!pdbClient.removeSet("LA04_db", "LA_product_set", errMsg)) {
+        if (!pdbClient.removeSet("LA15_db", "LA_ScaleProduct_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

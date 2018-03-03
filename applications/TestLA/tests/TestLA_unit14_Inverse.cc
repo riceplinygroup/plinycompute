@@ -15,12 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_16_CC
-#define TEST_LA_16_CC
+#ifndef TEST_LA_14_CC
+#define TEST_LA_14_CC
 
 
 // by Binhang, May 2017
-// to test matrix rowSum implemented by aggregation;
+#include <ctime>
+#include <chrono>
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -29,16 +30,14 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
+#include "LADimension.h"
 #include "MatrixBlock.h"
+#include "LASingleMatrix.h"
 #include "Set.h"
 #include "DataTypes.h"
-#include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <chrono>
-#include <fcntl.h>
-#include "LARowSumAggregate.h"
+#include "LAInverse1Aggregate.h"
+#include "LAInverse2Selection.h"
+#include "LAInverse3MultiSelection.h"
 
 
 using namespace pdb;
@@ -119,9 +118,11 @@ int main(int argc, char* argv[]) {
         pdbClient.registerType("libraries/libMatrixMeta.so", errMsg);
         pdbClient.registerType("libraries/libMatrixData.so", errMsg);
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
+        pdbClient.registerType("libraries/libLASingleMatrix.so", errMsg);
+
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA16_db", errMsg)) {
+        if (!pdbClient.createDatabase("LA14_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -129,7 +130,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA16_db", "LA_input_set", errMsg)) {
+        if (!pdbClient.createSet<MatrixBlock>("LA14_db", "LA_input_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -159,19 +160,21 @@ int main(int argc, char* argv[]) {
                     pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
                 try {
                     // Write 100 Matrix of size 50 * 50
-                    int matrixRowNums = 4;
-                    int matrixColNums = 4;
-                    int blockRowNums = 10;
-                    int blockColNums = 5;
+                    int matrixRowNums = 5;
+                    int matrixColNums = 5;
+                    int blockRowNums = 4;
+                    int blockColNums = 4;
+                    int totalRows = matrixRowNums * blockRowNums;
+                    int totalCols = matrixColNums * blockColNums;
                     for (int i = 0; i < matrixRowNums; i++) {
                         for (int j = 0; j < matrixColNums; j++) {
-                            pdb::Handle<MatrixBlock> myData =
-                                pdb::makeObject<MatrixBlock>(i, j, blockRowNums, blockColNums);
+                            pdb::Handle<MatrixBlock> myData = pdb::makeObject<MatrixBlock>(
+                                i, j, blockRowNums, blockColNums, totalRows, totalCols);
                             // Foo initialization
                             for (int ii = 0; ii < blockRowNums; ii++) {
                                 for (int jj = 0; jj < blockColNums; jj++) {
                                     (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
-                                        i + j + ii + jj + 0.0;
+                                        (i == j && ii == jj) ? i * blockColNums + ii + 1 : 0.0;
                                 }
                             }
                             std::cout << "New block: " << total << std::endl;
@@ -184,7 +187,7 @@ int main(int argc, char* argv[]) {
                         (*storeMe)[i]->print();
                     }
                     if (!pdbClient.sendData<MatrixBlock>(
-                            std::pair<std::string, std::string>("LA_input_set", "LA16_db"),
+                            std::pair<std::string, std::string>("LA_input_set", "LA14_db"),
                             storeMe,
                             errMsg)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -192,7 +195,7 @@ int main(int argc, char* argv[]) {
                     }
                 } catch (pdb::NotEnoughSpace& n) {
                     if (!pdbClient.sendData<MatrixBlock>(
-                            std::pair<std::string, std::string>("LA_input_set", "LA16_db"),
+                            std::pair<std::string, std::string>("LA_input_set", "LA14_db"),
                             storeMe,
                             errMsg)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -211,7 +214,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA16_db", "LA_rowSum_set", errMsg)) {
+    if (!pdbClient.createSet<MatrixBlock>("LA14_db", "LA_Inverse_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -223,19 +226,29 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLARowSumAggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse1Aggregate.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse2Selection.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse3MultiSelection.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
 
 
-    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA16_db", "LA_input_set");
-    Handle<Computation> myQuery = makeObject<LARowSumAggregate>();
-    myQuery->setInput(myScanSet);
-    // myQuery->setOutput("LA16_db", "LA_rowSum_set");
+    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA14_db", "LA_input_set");
 
-    Handle<Computation> myWriteSet = makeObject<LAWriteMatrixBlockSet>("LA16_db", "LA_rowSum_set");
-    myWriteSet->setInput(myQuery);
+    Handle<Computation> myAgg1 = makeObject<LAInverse1Aggregate>();
+    myAgg1->setInput(myScanSet);
+
+    Handle<Computation> mySelect2 = makeObject<LAInverse2Selection>();
+    mySelect2->setInput(myAgg1);
+
+    LADimension targetDim(4, 4, 5, 5);
+    Handle<Computation> myMultiSelect3 = makeObject<LAInverse3MultiSelection>(targetDim);
+    myMultiSelect3->setInput(mySelect2);
+
+
+    Handle<Computation> myWriteSet = makeObject<LAWriteMatrixBlockSet>("LA14_db", "LA_Inverse_set");
+    myWriteSet->setInput(myMultiSelect3);
 
     auto begin = std::chrono::high_resolution_clock::now();
 
@@ -255,7 +268,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<MatrixBlock> input =
-            pdbClient.getSetIterator<MatrixBlock>("LA16_db", "LA_input_set");
+            pdbClient.getSetIterator<MatrixBlock>("LA14_db", "LA_input_set");
         std::cout << "Query input: " << std::endl;
         int countIn = 0;
         for (auto a : input) {
@@ -268,8 +281,8 @@ int main(int argc, char* argv[]) {
 
 
         SetIterator<MatrixBlock> result =
-            pdbClient.getSetIterator<MatrixBlock>("LA16_db", "LA_rowSum_set");
-        std::cout << "RowSum query results: " << std::endl;
+            pdbClient.getSetIterator<MatrixBlock>("LA14_db", "LA_Inverse_set");
+        std::cout << "Inverse query results: " << std::endl;
         int countOut = 0;
         for (auto a : result) {
             countOut++;
@@ -278,14 +291,14 @@ int main(int argc, char* argv[]) {
 
             std::cout << std::endl;
         }
-        std::cout << "RowSum output count:" << countOut << "\n";
+        std::cout << "Inverse output count:" << countOut << "\n";
     }
 
     if (clusterMode == false) {
         // and delete the sets
-        pdbClient.deleteSet("LA16_db", "LA_rowSum_set");
+        pdbClient.deleteSet("LA14_db", "LA_Inverse_set");
     } else {
-        if (!pdbClient.removeSet("LA16_db", "LA_rowSum_set", errMsg)) {
+        if (!pdbClient.removeSet("LA14_db", "LA_Inverse_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

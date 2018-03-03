@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_01_CC
-#define TEST_LA_01_CC
+#ifndef TEST_LA_12_CC
+#define TEST_LA_12_CC
 
 
 // by Binhang, May 2017
-// to test matrix transpose implemented by selection;
+// to test matrix rowMax implemented by aggregation;
+#include <ctime>
+#include <chrono>
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -29,16 +31,11 @@
 #include "PDBClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
+#include "LADimension.h"
 #include "MatrixBlock.h"
 #include "Set.h"
 #include "DataTypes.h"
-#include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <chrono>
-#include <fcntl.h>
-#include "LATransposeSelection.h"
+#include "LADuplicateRowMultiSelection.h"
 
 
 using namespace pdb;
@@ -116,10 +113,12 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
+        pdbClient.registerType("libraries/libMatrixMeta.so", errMsg);
+        pdbClient.registerType("libraries/libMatrixData.so", errMsg);
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA01_db", errMsg)) {
+        if (!pdbClient.createDatabase("LA12_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -127,7 +126,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA01_db", "LA_input_set", errMsg)) {
+        if (!pdbClient.createSet<MatrixBlock>("LA12_db", "LA_input_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -157,9 +156,9 @@ int main(int argc, char* argv[]) {
                     pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
                 try {
                     // Write 100 Matrix of size 50 * 50
-                    int matrixRowNums = 4;
-                    int matrixColNums = 4;
-                    int blockRowNums = 10;
+                    int matrixRowNums = 1;
+                    int matrixColNums = 10;
+                    int blockRowNums = 1;
                     int blockColNums = 5;
                     for (int i = 0; i < matrixRowNums; i++) {
                         for (int j = 0; j < matrixColNums; j++) {
@@ -168,16 +167,8 @@ int main(int argc, char* argv[]) {
                             // Foo initialization
                             for (int ii = 0; ii < blockRowNums; ii++) {
                                 for (int jj = 0; jj < blockColNums; jj++) {
-                                    if (i < j) {
-                                        (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
-                                            (ii <= jj ? 1.0 : 0.0);
-                                    } else if (i > j) {
-                                        (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
-                                            (ii >= jj ? 1.0 : 0.0);
-                                    } else {
-                                        (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
-                                            (ii == jj ? 1.0 : 0.0);
-                                    }
+                                    (*(myData->getRawDataHandle()))[ii * blockColNums + jj] =
+                                        i + j + ii + jj + 0.0;
                                 }
                             }
                             std::cout << "New block: " << total << std::endl;
@@ -190,7 +181,7 @@ int main(int argc, char* argv[]) {
                         (*storeMe)[i]->print();
                     }
                     if (!pdbClient.sendData<MatrixBlock>(
-                            std::pair<std::string, std::string>("LA_input_set", "LA01_db"),
+                            std::pair<std::string, std::string>("LA_input_set", "LA12_db"),
                             storeMe,
                             errMsg)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -198,7 +189,7 @@ int main(int argc, char* argv[]) {
                     }
                 } catch (pdb::NotEnoughSpace& n) {
                     if (!pdbClient.sendData<MatrixBlock>(
-                            std::pair<std::string, std::string>("LA_input_set", "LA01_db"),
+                            std::pair<std::string, std::string>("LA_input_set", "LA12_db"),
                             storeMe,
                             errMsg)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -217,7 +208,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA01_db", "LA_transpose_set", errMsg)) {
+    if (!pdbClient.createSet<MatrixBlock>("LA12_db", "LA_duplicateRow_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -229,19 +220,19 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLATransposeSelection.so", errMsg);
+    pdbClient.registerType("libraries/libLADuplicateRowMultiSelection.so", errMsg);
     pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
     pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
 
 
 
-    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA01_db", "LA_input_set");
-    Handle<Computation> myQuery = makeObject<LATransposeSelection>();
+    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA12_db", "LA_input_set");
+    LADimension targetDim(2, 5, 4, 10);
+    Handle<Computation> myQuery = makeObject<LADuplicateRowMultiSelection>(targetDim);
     myQuery->setInput(myScanSet);
-    // myQuery->setOutput("LA01_db", "LA_transpose_set");
 
     Handle<Computation> myWriteSet =
-        makeObject<LAWriteMatrixBlockSet>("LA01_db", "LA_transpose_set");
+        makeObject<LAWriteMatrixBlockSet>("LA12_db", "LA_duplicateRow_set");
     myWriteSet->setInput(myQuery);
 
     auto begin = std::chrono::high_resolution_clock::now();
@@ -262,7 +253,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<MatrixBlock> input =
-            pdbClient.getSetIterator<MatrixBlock>("LA01_db", "LA_input_set");
+            pdbClient.getSetIterator<MatrixBlock>("LA12_db", "LA_input_set");
         std::cout << "Query input: " << std::endl;
         int countIn = 0;
         for (auto a : input) {
@@ -275,8 +266,8 @@ int main(int argc, char* argv[]) {
 
 
         SetIterator<MatrixBlock> result =
-            pdbClient.getSetIterator<MatrixBlock>("LA01_db", "LA_transpose_set");
-        std::cout << "Transpose query results: " << std::endl;
+            pdbClient.getSetIterator<MatrixBlock>("LA12_db", "LA_duplicateRow_set");
+        std::cout << "RowMax query results: " << std::endl;
         int countOut = 0;
         for (auto a : result) {
             countOut++;
@@ -285,14 +276,14 @@ int main(int argc, char* argv[]) {
 
             std::cout << std::endl;
         }
-        std::cout << "Transpose output count:" << countOut << "\n";
+        std::cout << "RowMax output count:" << countOut << "\n";
     }
 
     if (clusterMode == false) {
         // and delete the sets
-        pdbClient.deleteSet("LA01_db", "LA_transpose_set");
+        pdbClient.deleteSet("LA12_db", "LA_duplicateRow_set");
     } else {
-        if (!pdbClient.removeSet("LA01_db", "LA_transpose_set", errMsg)) {
+        if (!pdbClient.removeSet("LA12_db", "LA_duplicateRow_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

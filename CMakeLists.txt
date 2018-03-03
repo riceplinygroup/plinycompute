@@ -69,7 +69,6 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/builtInPDBObjects/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapBuilder/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/conf/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapLexer/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/linearAlgebraDSL/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapIntermediaryRepTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sqlite/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/storage/headers")
@@ -97,7 +96,6 @@ file(GLOB STORAGE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/storage/source/*.cc")
 file(GLOB DISTRIBUTION_MANAGER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/distributionManager/source/*.cc")
 file(GLOB LAMBDAS_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/lambdas/source/*.cc")
 file(GLOB LOGICAL_PLAN_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/source/*.cc")
-file(GLOB LINEAR_ALGEBRA_DSL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/*.cc")
 file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/pdb/src/sqlite/source/sqlite3.c)
 
@@ -110,7 +108,6 @@ FIND_PACKAGE(FLEX REQUIRED)
 
 # set the output paths
 SET(LogicalPlanFlexOutput ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Lexer.c)
-SET(LinearAlgebraDSLFlexOutput ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LALexer.c)
 
 # find the UUID package
 FIND_PACKAGE(UUID REQUIRED)
@@ -130,15 +127,6 @@ IF (FLEX_FOUND)
             COMMENT "Generating Logical Plan Lexer!"
             BUILD_BYPRODUCTS ${LogicalPlanFlexOutput}
     )
-    # linear algebra dsl lexer commands
-    ADD_CUSTOM_COMMAND(
-            OUTPUT ${LinearAlgebraDSLFlexOutput}
-            COMMAND ${FLEX_EXECUTABLE}
-            --outfile=${LinearAlgebraDSLFlexOutput}
-            ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LALexer.l
-            COMMENT "Generating Linear Algebra DSL Lexer!"
-            BUILD_BYPRODUCTS ${LinearAlgebraDSLFlexOutput}
-    )
 ENDIF ()
 
 # generate the parser
@@ -146,7 +134,6 @@ FIND_PACKAGE(BISON REQUIRED)
 
 # set the output paths
 SET(LogicalPlanParserOutput ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Parser.c)
-SET(LinearAlgebraDSLParserOutput ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LAParser.c)
 
 # setup the commands
 IF (BISON_FOUND)
@@ -158,15 +145,6 @@ IF (BISON_FOUND)
             ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Parser.y
             COMMENT "Generating Logical Plan Parser"
             BUILD_BYPRODUCTS ${LogicalPlanParserOutput}
-    )
-    # linear algebra dsl parser commands
-    ADD_CUSTOM_COMMAND(
-            OUTPUT ${LinearAlgebraDSLParserOutput}
-            COMMAND ${BISON_EXECUTABLE}
-            --output=${LinearAlgebraDSLParserOutput}
-            ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LAParser.y
-            COMMENT "Generating Linear Algebra DSL Parser"
-            BUILD_BYPRODUCTS ${LinearAlgebraDSLParserOutput}
     )
 ENDIF ()
 
@@ -188,7 +166,7 @@ ADD_CUSTOM_COMMAND(OUTPUT "${BUILT_IN_OBJECT_TYPE_ID}"
 # setup the command to generate the object ids
 SET(BUILT_IN_PDB_OBJECTS ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h)
 SET(BUILT_IN_PDB_OBJECTS_GENERATED ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h
-                                   ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.cc)
+        ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.cc)
 ADD_CUSTOM_COMMAND(
         OUTPUT "${BUILT_IN_PDB_OBJECTS}"
         COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltinPDBObjects
@@ -216,7 +194,6 @@ add_library(storage OBJECT ${STORAGE_SOURCE})
 add_library(distribution-manager OBJECT ${DISTRIBUTION_MANAGER_SOURCE})
 add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
 add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
-add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 
@@ -290,9 +267,8 @@ target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pdb-tests-common PRIVATE ${Boost_LIBRARIES})
 
-# form the parsers for the logical plan and linear algebra
+# form the parsers for the logical plan
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})
-add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearAlgebraDSLParserOutput} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 
 # set the pdb-cluster build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/MasterMain.cc)
