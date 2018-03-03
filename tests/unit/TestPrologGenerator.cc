@@ -70,26 +70,26 @@ int main() {
       "aggOutForClusterAggregationComp4 (aggOutFor4)<= AGGREGATE (nativ_1OutForClusterAggregationComp4(nativ_0_4OutFor, nativ_1_4OutFor),'ClusterAggregationComp_4')\n"
       "out( ) <= OUTPUT ( aggOutForClusterAggregationComp4 ( aggOutFor4 ), 'output_set1', 'test78_db', 'WriteUserSet_5')";
 
-  PrologOptimizer optimizer;
+  //PrologOptimizer optimizer;
 
-  std::cout << "\033[1;31m" << optimizer.optimize(logicalPlan) << "\033[0m";
+  //std::cout << "\033[1;31m" << optimizer.optimize(logicalPlan) << "\033[0m";
 
-//  // add the end character
-//  logicalPlan.push_back('\0');
-//
-//  // create the prolog generator
-//  pdb::PrologGenerator planGenerator;
-//
-//  // parse the TCAP
-//  planGenerator.parseTCAP(logicalPlan);
-//
-//  // grab the prolog rules
-//  auto prologRules = planGenerator.getPrologRules();
-//
-//  //*
-//  // Sort the rules and print on console:
-//  std::sort(prologRules.begin(), prologRules.end());
-//  for (const auto &prologRule : prologRules) {
-//    std::cout << prologRule;
-//  }
+  // add the end character
+  logicalPlan.push_back('\0');
+
+  // create the prolog generator
+  pdb::PrologGenerator planGenerator;
+
+  // parse the TCAP
+  planGenerator.parseTCAP(logicalPlan);
+
+  // grab the prolog rules
+  auto prologRules = planGenerator.getPrologRules();
+
+  //*
+  // Sort the rules and print on console:
+  std::sort(prologRules.begin(), prologRules.end());
+  for (const auto &prologRule : prologRules) {
+    std::cout << prologRule;
+  }
 }

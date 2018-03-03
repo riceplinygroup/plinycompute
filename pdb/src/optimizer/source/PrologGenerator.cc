@@ -81,7 +81,7 @@ void PrologGenerator::parseAtomicComputationList(AtomicComputationList *result) 
 
       // Instead of console pass it to a string stream:
       std::stringstream buffer;
-      buffer << "node(" << outputName << ", " << getLowerCaseFirstLetter(scanSet->getAtomicComputationType()) << ", " << computationName << ", " << info << ")." << std::endl;
+      buffer << "node(" << outputName << ", " << toLowerCase(scanSet->getAtomicComputationType()) << ", " << computationName << ", " << info << ")." << std::endl;
 
       // Extract the prolog rule:
       std::string prologRule = buffer.str();
@@ -149,7 +149,7 @@ void PrologGenerator::parseAtomicComputation(AtomicComputationList* acl,
     } else if (result->getAtomicComputationTypeID() == WriteSetTypeID) {
       buffer << "node(" << outputName << ", " << "output" << ", " << computationName << ", " << info << ")." << std::endl;
     } else {
-      buffer << "node(" << outputName << ", " << getLowerCaseFirstLetter(result->getAtomicComputationType()) << ", " << computationName << ", " << info << ")." << std::endl;
+      buffer << "node(" << outputName << ", " << toLowerCase(result->getAtomicComputationType()) << ", " << computationName << ", " << info << ")." << std::endl;
     }
 
     // Extract the prolog rule:
