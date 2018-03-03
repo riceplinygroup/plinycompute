@@ -15,6 +15,12 @@
 # The idea is stolen from Shangyu's ICDE paper, created by Binhang June 2017
 import random
 import sys
+import os
+
+
+path = "./applications/TestLA/tests/Benchmark/"
+if not os.path.exists(path):
+	os.makedirs(path)
 
 
 data_num = int(sys.argv[1])
@@ -26,9 +32,9 @@ blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize
 
 
-fileName = "./application/TestLA/tests/Benchmark/Gram_M_"+str(blockRowSize)+"_"+str(blockColSize)+"_"+str(blockRowNum)+"_"+str(blockColNum)+".data"
+fileName = path+"Gram_M_"+str(blockRowSize)+"_"+str(blockColSize)+"_"+str(blockRowNum)+"_"+str(blockColNum)+".data"
 blocks = open(fileName,"w")
-code = open("./application/TestLA/tests/Benchmark/Task01_Gram_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
+code = open(path+"Task01_Gram_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
 
 
 print "data_num: " + str(data_num) + "	dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
@@ -40,6 +46,7 @@ for i in xrange(data_num):
     for j in xrange(dim):
         row.append(random.random())
     data.append(row)
+print "Generate Data is done!"
 
 
 for i in xrange(data_num/blockRowSize):
@@ -60,3 +67,4 @@ code.write("M = X '* X\n")
 
 blocks.close()
 code.close()
+print "Write to PDB is done!"

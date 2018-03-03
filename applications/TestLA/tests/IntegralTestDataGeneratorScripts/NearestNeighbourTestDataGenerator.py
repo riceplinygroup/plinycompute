@@ -13,10 +13,15 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 # This a new experiments to replace ICDE paper's outlier dectect task, created by Binhang, June 2017
-import time
 import random
 import numpy as np
 import sys
+import os
+
+
+path = "./applications/TestLA/tests/Benchmark/"
+if not os.path.exists(path):
+    os.makedirs(path)
 
 
 data_num = int(sys.argv[1])
@@ -26,8 +31,6 @@ blockColSize = int(sys.argv[4])
 blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize 
 assert data_num% blockRowSize==0 and dim%blockColSize ==0
-
-
 
 print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
 # Generate the data
@@ -57,13 +60,13 @@ print "Generate Data is done!"
 
 
 
-fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
+fileNameX = path+"NN_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
 blocks_X = open(fileNameX, "w")
-fileNamet = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(dim)+"_"+str(blockColSize)+".data"
+fileNamet = path+"NN_t_"+str(dim)+"_"+str(blockColSize)+".data"
 blocks_t = open(fileNamet, "w")
-fileNameM = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+"_"+str(blockColSize)+".data"
+fileNameM = path+"NN_M_"+str(dim)+"_"+str(blockColSize)+".data"
 blocks_M = open(fileNameM, "w")
-codePDB = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml","w")
+codePDB = open(path+"Task03_NN_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml","w")
 
 for i in xrange(data_num/blockRowSize):
     for j in xrange(dim/blockColSize):

@@ -13,10 +13,14 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 # The idea is stolen from Shangyu's ICDE paper, created by Binhang, June 2017
-import time
 import random
 import sys
+import os
 
+
+path = "./applications/TestLA/tests/Benchmark/"
+if not os.path.exists(path):
+    os.makedirs(path)
 
 data_num = int(sys.argv[1])
 dim = int(sys.argv[2])
@@ -27,16 +31,11 @@ blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize
 
 
-#lines_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv", "w")
-#lines_mtd_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
-#lines_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv", "w")
-#lines_mtd_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv.mtd", "w")
-fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
+fileNameX = path+"L2_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
 blocks_X = open(fileNameX, "w")
-fileNamey = "./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+"_"+str(blockRowSize)+".data"
+fileNamey = path+"L2_y_"+str(data_num)+"_"+str(blockRowSize)+".data"
 blocks_y = open(fileNamey, "w")
-code = open("./src/linearAlgebraDSL/DSLSamples/Task02_L2_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
-
+code = open(path+"Task02_L2_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
 
 print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
 
@@ -57,22 +56,8 @@ for i in xrange(data_num):
     y_i += random.gauss(0,1.0) 
     X.append(x_i)
     y.append(y_i)
+print "Generate Data is done!"
 
-#for i in xrange(data_num):
-#    for j in xrange(dim-1):
-#        lines_X.write(str(X[i][j]))
-#        lines_X.write(str(", "))
-#    lines_X.write(str(str(X[i][dim-1])))
-#    lines_X.write("\n")
-#    lines_y.write(str(y[i]))
-#    lines_y.write("\n")
-#lines_X.close()
-#lines_y.close()
-
-#lines_mtd_X.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(dim) + ", \"format\": \"csv\"}")
-#lines_mtd_y.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(1) + ", \"format\": \"csv\"}")
-#lines_mtd_X.close()
-#lines_mtd_y.close()
 
 for i in xrange(data_num/blockRowSize):
     for j in xrange(dim/blockColSize):
@@ -99,3 +84,4 @@ code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowN
 code.write("y = load("+str(blockRowSize)+", 1, "+str(blockRowNum,)+ ', 1, \"'+fileNamey+'\")\n')
 code.write("beta = (X '* X)^-1 %*% (X '* y)")
 code.close()
+print "Write to PDB is done!"

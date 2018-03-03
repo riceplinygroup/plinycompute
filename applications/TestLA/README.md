@@ -15,7 +15,7 @@ The tests directory includes all the tests. The unit tests are named as TestLA_u
 Here is the instruction to run my linear algebra experiments. The instruction is for a single machine experiment, however, to apply it on a cluster should be straightforward. Make sure you are under the ObjectQueryModel root path.
 
 
-1. To run Gram task: 
+#### To run Gram task: 
 First run: 
 ************************************************************************************
 python ./applications/TestLA/tests/IntegralTestDataGeneratorScripts/GramTestDataGenerator.py N1 N2 N3 N4 
@@ -24,11 +24,11 @@ To generate the simulated data and code for my linear algebra DSL, where N1 is t
 
 Then run: 
 *************************************************************************************************************
-python ./scripts/debugTests.py ./bin/testLA_Instance ./applications/TestLA/tests/DSLSamples/Task01_Gram_XXX.pdml 
+python ./scripts/debugTests.py ./bin/testLA_Instance ./applications/TestLA/tests/Benchmark/Task01_Gram_XXX.pdml 
 *************************************************************************************************************
 
 
-2. To run L2 linear regression task: 
+#### To run L2 linear regression task: 
 First run: 
 **********************************************************************************
 python ./applications/TestLA/tests/IntegralTestDataGeneratorScripts/L2TestDataGenerator.py N1 N2 N3 N4 
@@ -37,11 +37,11 @@ To generate the simulated data and code for my linear algebra DSL, where N1 is t
 
 Then run: 
 ***********************************************************************************************************
-python ./scripts/debugTests.py ./bin/testLA_Instance ./applications/TestLA/tests/DSLSamples/Task02_L2_XXX.pdml
+python ./scripts/debugTests.py ./bin/testLA_Instance ./applications/TestLA/tests/Benchmark/Task02_L2_XXX.pdml
 ***********************************************************************************************************
 
 
-3. To run Nearest Neighbor task:  
+#### To run Nearest Neighbor task:  
 First run: 
 ************************************************************************************************
 python ./applications/TestLA/tests/IntegralTestDataGeneratorScripts/NearestNeighbourTestDataGenerator.py N1 N2 N3 N4 
@@ -50,5 +50,5 @@ To generate the simulated data and code for my linear algebra DSL, where N1 is t
 
 Then run: 
 ***********************************************************************************************************
-python ./scripts/debugTests.py ./bin/testLA_Instance ./applications/TestLA/tests/DSLSamples/Task03_NN_XXX.pdml
+python ./scripts/debugTests.py ./bin/testLA_Instance ./applications/TestLA/tests/Benchmark/Task03_NN_XXX.pdml
 ***********************************************************************************************************
