@@ -40,20 +40,15 @@ ADD_DEFINITIONS(-DPDB_DEBUG)
 
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapParser/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryIrProcessor/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/utilities/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/optimizerBenchmark/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/qunit/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapIntermediaryRep/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/dispatcher/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/logicalPlanTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/bufferMgr/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/lambdas/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapBuilderTests/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapParserTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tpchBench/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/work/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/distributionManager/headers")
@@ -61,18 +56,12 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/communication/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queriesTests/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapLexerTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/serverFunctionalities/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryIntermediaryRep/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/catalog/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/builtInPDBObjects/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapBuilder/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/conf/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapLexer/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapIntermediaryRepTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sqlite/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/storage/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryIntermediaryRepTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/objectModel/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/dummyFolder/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sharedLibraries/headers")
@@ -89,7 +78,6 @@ file(GLOB PDB_SERVER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/source/*.cc
 file(GLOB OBJECT_MODEL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/objectModel/source/*.cc")
 file(GLOB QUERY_EXECUTION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/source/*.cc")
 file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
-file(GLOB QUERY_INTERMEDIARY_REP_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryIntermediaryRep/source/*.cc")
 file(GLOB WORK_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/work/source/*.cc")
 file(GLOB MEMORY_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/memory/source/*.cc")
 file(GLOB STORAGE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/storage/source/*.cc")
@@ -187,7 +175,6 @@ add_library(dispatcher OBJECT ${DISPATCHER_SOURCE})
 add_library(lib-pdb-server OBJECT ${PDB_SERVER_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID})
 add_library(query-execution OBJECT ${QUERY_EXECUTION_SOURCE})
 add_library(query-planning OBJECT ${QUERY_PANNING_SOURCE})
-add_library(query-intermediary-rep OBJECT ${QUERY_INTERMEDIARY_REP_SOURCE})
 add_library(work OBJECT ${WORK_SOURCE})
 add_library(memory OBJECT ${MEMORY_SOURCE})
 add_library(storage OBJECT ${STORAGE_SOURCE})
@@ -210,7 +197,6 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:query-execution>
         $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
@@ -229,7 +215,6 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:query-execution>
         $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
@@ -248,7 +233,6 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:query-execution>
         $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
