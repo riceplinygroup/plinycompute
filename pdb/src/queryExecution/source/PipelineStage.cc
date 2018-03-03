@@ -36,7 +36,6 @@
 #include "InterfaceFunctions.h"
 #include "HermesExecutionServer.h"
 #include "GenericWork.h"
-#include "SingleTableBundleProcessor.h"
 #include "SetSpecifier.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Configuration.h"

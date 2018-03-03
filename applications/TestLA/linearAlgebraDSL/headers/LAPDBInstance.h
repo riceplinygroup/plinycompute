@@ -29,7 +29,6 @@
 
 #include "PDBDebug.h"
 #include "PDBString.h"
-#include "Query.h"
 #include "Lambda.h"
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"

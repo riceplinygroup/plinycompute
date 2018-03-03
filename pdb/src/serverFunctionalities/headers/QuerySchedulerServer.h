@@ -26,7 +26,6 @@
 #include "PDBVector.h"
 #include "QueryBase.h"
 #include "ResourceInfo.h"
-#include "JobStage.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
 #include "TupleSetJobStage.h"

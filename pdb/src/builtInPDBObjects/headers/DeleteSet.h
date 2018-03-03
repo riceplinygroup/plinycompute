@@ -22,7 +22,6 @@
 #include <vector>
 #include <iostream>
 #include <memory>
-#include "Query.h"
 
 // PRELOAD %DeleteSet%
 

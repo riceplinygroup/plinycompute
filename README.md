@@ -160,8 +160,8 @@ by default, it is not defined, and it will run in background using nohup, which 
 ## Compiling shared libraries
 
 (1) Add your shared library header file and source file like following example:
-https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/headers/ChrisSelection.h
-https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/source/ChrisSelection.cc
+https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/headers/AllSelection.h
+https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/source/AllSelection.cc
 
 Note, it MUST be a pdb :: Object instance, and follow all rules of pdb :: Object (Please search Object Model FAQ in the PDB google group). For example, you must include the ENABLE_DEEP_COPY macro in the public statements. You must include the header file "GetVTable.h", and have the GET_V_TABLE macro in the source file.
 

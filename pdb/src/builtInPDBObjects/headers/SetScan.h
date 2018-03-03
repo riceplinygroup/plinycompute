@@ -21,7 +21,6 @@
 
 #include "Object.h"
 #include "Handle.h"
-#include "QueryBase.h"
 #include "PDBString.h"
 
 // PRELOAD %SetScan%

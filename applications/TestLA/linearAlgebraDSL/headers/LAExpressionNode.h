@@ -18,9 +18,8 @@
 #ifndef LA_EXPRESSION_NODE_H
 #define LA_EXPRESSION_NODE_H
 
-#include "LAASTNode.h"
-#include "Query.h"
 #include "Lambda.h"
+#include "LAASTNode.h"
 #include "LAPDBInstance.h"
 #include "LADimension.h"
 
