@@ -107,9 +107,9 @@ void RefCountedObject<ObjType>::decRefCount(PDBTemplateBase& typeInfo) {
     #ifdef DEBUG_OBJECT_MODEL
             getAllocator().freeRAM(CHAR_PTR(this), typeInfo.getTypeCode());
     #else
-    //        if (getAllocator().contains(this)) {
-    //            getAllocator().removeCopyMap((void *) this);
-    //        }
+            if (getAllocator().contains(this)) {
+                getAllocator().removeCopyMap((void *) this);
+            }
             getAllocator().freeRAM(CHAR_PTR(this));
 
     #endif

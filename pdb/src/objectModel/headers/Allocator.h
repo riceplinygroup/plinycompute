@@ -419,6 +419,7 @@ public:
     // A mapping from the offset ref_object from this allocator, just for experiment, need to
     // flush this if setupblock is called.
     std::unordered_map<void*, void*> copied_map;
+    std::unordered_map<void*, void*> reverse_copied_map;
 
     unsigned allocatorStamp = 0;
 

@@ -558,14 +558,20 @@ inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getAllocato
 
 template <typename FirstPolicy, typename... OtherPolicies>
 inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(void* refPtr) {
-    for(auto it = copied_map.begin(); it != copied_map.end(); it++)
-    {
-      if((it->second) == refPtr)
-      {
-          copied_map.erase(it);
-          break;
-      }
-  }
+//    for(auto it = copied_map.begin(); it != copied_map.end(); it++)
+//    {
+//      if((it->second) == refPtr)
+//      {
+//          copied_map.erase(it);
+//          break;
+//      }
+//    }
+    auto it = reverse_copied_map.find((void *) refPtr);
+    if (it != reverse_copied_map.end()) {
+        void* refCountedObject = it->second;
+        reverse_copied_map.erase(it);
+        copied_map.erase(refCountedObject);
+    }}
 };
 
 // returns some RAM... this can throw an exception if the request is too large
