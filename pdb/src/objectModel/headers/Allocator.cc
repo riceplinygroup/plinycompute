@@ -571,7 +571,7 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(v
         void* refCountedObject = it->second;
         reverse_copied_map.erase(it);
         copied_map.erase(refCountedObject);
-    }}
+    }
 };
 
 // returns some RAM... this can throw an exception if the request is too large
