@@ -531,7 +531,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjType>* fro
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
         getAllocator().copied_map[(void*)fromMe] = space;
-        getAllocator().reverse_copied_map[(void*) space] = fromMe;
+        getAllocator().reverse_copied_map[space] = (void*) fromMe;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
@@ -643,7 +643,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjTypeTwo>* 
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
         getAllocator().copied_map[(void*)fromMe] = space;
-        getAllocator().reverse_copied_map[(void*)space] = fromMe;
+        getAllocator().reverse_copied_map[space] = (void*) fromMe;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
@@ -747,7 +747,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
         getAllocator().copied_map[(void*)refCountedObject] = space;
-        getAllocator().reverse_copied_map[(void*) space] = refCountedObject;
+        getAllocator().reverse_copied_map[space] = (void*) refCountedObject;
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
@@ -861,7 +861,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
         getAllocator().copied_map[(void*)fromMe.getTarget()] = space;
-        getAllocator().reverse_copied_map[(void*) space] = fromMe.getTarget();
+        getAllocator().reverse_copied_map[space] = (void*) fromMe.getTarget();
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
