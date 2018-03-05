@@ -115,7 +115,7 @@ std::vector<std::string> parseLine(std::string line) {
 }
 
 void dataGenerator(std::string scaleFactor,
-                   pdb::PDBClient pdbClient,
+                   pdb::PDBClient &pdbClient,
                    int noOfCopies) {
 
     // All files to parse:
@@ -592,12 +592,8 @@ int main(int argc, char* argv[]) {
     string masterHostname = "localhost";
     int masterPort = 8108;
 
-    // register the shared employee class
-    pdb::PDBClient pdbClient(
-            masterPort,
-            masterHostname,
-            false,
-            true);
+    // Create connection to PlinyCompute master node
+    pdb::PDBClient pdbClient(masterPort, masterHostname, false, true);
 
     string errMsg;
 

@@ -123,12 +123,12 @@ def run_test(test_name, test_command):
         num_passed = num_passed + 1
 
     # do the cleanup
-    subprocess.call(['bash', './scripts/cleanupNode.sh'])
-    print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
+    #subprocess.call(['bash', './scripts/cleanupNode.sh'])
+    #print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
     time.sleep(10)
 
 
-tests = {
+tests_a = {
 
     "TestAggregationAfterThreeWayJoin": ("SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE", ['bin/TestAggregationAfterThreeWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
     "TestAggregationOnDoubleVector": ("AGGREGATION ON A DOUBLE VECTOR TEST G-2 PIPELINE", ['bin/TestAggregationOnDoubleVector', 'Y', 'Y', '1024', 'localhost', 'Y']),
@@ -151,6 +151,45 @@ tests = {
     "TestTwoSelectionOneAggregation": ("AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE", ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
     "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
     "TestTopK": ("TOP K TEST ON G-2 PIPELINE", ['bin/TestTopK', '1024', 'localhost', 'Y', 'Y'])
+}
+
+tests_b = {
+    "TestLA01_Transpose": ("TEST LA01_TRANSPOSE", ['bin/TestLA01_Transpose', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA02_Add": ("TEST LA02_ADD", ['bin/TestLA02_Add', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA03_Substract": ("TEST LA03_SUBSTRACT", ['bin/TestLA03_Substract', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA04_Multiply": ("TEST LA04_MULTIPLY", ['bin/TestLA04_Multiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA05_MaxElement": ("TEST LA05_MAXELEMENT", ['bin/TestLA05_MaxElement', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA06_MinElement": ("TEST LA06_MINELEMENT", ['bin/TestLA06_MinElement', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA07_TransposeMultiply": ("TEST LA07_TRANSPOSEMULTIPLY", ['bin/TestLA07_TransposeMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA07_TransposeMultiply_Gram": ("TEST LA07_TRANSPOSEMULTIPLY_GRAM", ['bin/TestLA07_TransposeMultiply_Gram', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA08_RowMax": ("TEST LA08_ROWMAX", ['bin/TestLA08_RowMax', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA09_RowMin": ("TEST LA09_ROWMIN", ['bin/TestLA09_RowMin', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA10_ColMax": ("TEST LA10_COLMAX", ['bin/TestLA11_ColMin', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA11_ColMin": ("TEST LA11_COLMIN", ['bin/TestTopK', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA12_DuplicateRow": ("TEST LA12_DUPLICATEROW", ['bin/TestLA12_DuplicateRow', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA13_DuplicateCol": ("TEST LA13_DUPLICATECOL", ['bin/TestLA13_DuplicateCol', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA14_Inverse": ("TEST LA14_INVERSE", ['bin/TestLA14_Inverse', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA15_ScaleMultiply": ("TEST LA15_SCALEMULTIPLY", ['bin/TestTopK', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA16_RowSum": ("TEST LA16_ROWSUM", ['bin/TestLA15_ScaleMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA17_ColSum": ("TEST LA17_COLSUM", ['bin/TestLA17_ColSum', 'Y', 'Y', '64', 'localhost', 'Y'])
+
+}
+
+tests_c = {
+    "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'N', '256', 'localhost', 'Y', 'Y']),
+    "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'N', 'localhost', 'Y', '1', '10'])
+}
+
+tests = {
+    "tpchRegisterAndCreateSets": ("TEST TPCH REGISTER AND CREATE SETS", ['bin/tpchRegisterAndCreateSets'])
+    #"tpchDataGeneratorNew": ("TEST TPCH DATA GENERATOR NEW", ['bin/tpchDataGeneratorNew', '0.1', '2']),    
+    #"tpchGetCustomerCount": ("TEST TPCH GET CUSTOMER COUNT", ['bin/tpchGetCustomerCount']),    
+    #"tpchQuery": ("TEST TPCH QUERY", ['bin/tpchQuery']),    
+    #"JaccardMain": ("TEST JACCARD MAIN", ['bin/JaccardMain', 'localhost', '20', 'query.text'])
+}
+
+tests_e = {
+    "TestLDA": ("TEST LDA", ['bin/TestLDA', 'localhost', '6', '100',  '10', 'Y', 'N', '100'])
 }
 
 if len(sys.argv) == 2:
