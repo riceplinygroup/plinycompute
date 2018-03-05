@@ -56,6 +56,7 @@ public:
    * useQueryScheduler: true if Query Scheduler is used
    *
    */
+
   PDBClient(int portIn, std::string addressIn, 
             bool usePangeaIn, bool useQuerySchedulerIn);
 

@@ -25,7 +25,6 @@
 #include "ResourceManagerServer.h"
 #include "SimpleRequestHandler.h"
 #include "GenericWork.h"
-#include "IrBuilder.h"
 #include "StorageCollectStats.h"
 #include "StorageCollectStatsResponse.h"
 #include "Profiling.h"

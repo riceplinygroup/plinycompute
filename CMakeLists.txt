@@ -40,42 +40,27 @@ ADD_DEFINITIONS(-DPDB_DEBUG)
 
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapParser/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryIrProcessor/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/utilities/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/optimizerBenchmark/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/qunit/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapIntermediaryRep/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/dispatcher/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/logicalPlanTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/bufferMgr/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/lambdas/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapBuilderTests/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapParserTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tpchBench/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/work/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/distributionManager/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/communication/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queries/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queriesTests/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapLexerTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/serverFunctionalities/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryIntermediaryRep/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/catalog/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/builtInPDBObjects/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapBuilder/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/conf/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapLexer/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/linearAlgebraDSL/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/tcapIntermediaryRepTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sqlite/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/storage/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryIntermediaryRepTests/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/objectModel/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/dummyFolder/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sharedLibraries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/mustache/headers")
@@ -90,14 +75,12 @@ file(GLOB PDB_SERVER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/source/*.cc
 file(GLOB OBJECT_MODEL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/objectModel/source/*.cc")
 file(GLOB QUERY_EXECUTION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/source/*.cc")
 file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
-file(GLOB QUERY_INTERMEDIARY_REP_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryIntermediaryRep/source/*.cc")
 file(GLOB WORK_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/work/source/*.cc")
 file(GLOB MEMORY_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/memory/source/*.cc")
 file(GLOB STORAGE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/storage/source/*.cc")
 file(GLOB DISTRIBUTION_MANAGER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/distributionManager/source/*.cc")
 file(GLOB LAMBDAS_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/lambdas/source/*.cc")
 file(GLOB LOGICAL_PLAN_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/source/*.cc")
-file(GLOB LINEAR_ALGEBRA_DSL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/*.cc")
 file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/pdb/src/sqlite/source/sqlite3.c)
 
@@ -110,7 +93,6 @@ FIND_PACKAGE(FLEX REQUIRED)
 
 # set the output paths
 SET(LogicalPlanFlexOutput ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Lexer.c)
-SET(LinearAlgebraDSLFlexOutput ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LALexer.c)
 
 # find the UUID package
 FIND_PACKAGE(UUID REQUIRED)
@@ -130,15 +112,6 @@ IF (FLEX_FOUND)
             COMMENT "Generating Logical Plan Lexer!"
             BUILD_BYPRODUCTS ${LogicalPlanFlexOutput}
     )
-    # linear algebra dsl lexer commands
-    ADD_CUSTOM_COMMAND(
-            OUTPUT ${LinearAlgebraDSLFlexOutput}
-            COMMAND ${FLEX_EXECUTABLE}
-            --outfile=${LinearAlgebraDSLFlexOutput}
-            ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LALexer.l
-            COMMENT "Generating Linear Algebra DSL Lexer!"
-            BUILD_BYPRODUCTS ${LinearAlgebraDSLFlexOutput}
-    )
 ENDIF ()
 
 # generate the parser
@@ -146,7 +119,6 @@ FIND_PACKAGE(BISON REQUIRED)
 
 # set the output paths
 SET(LogicalPlanParserOutput ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Parser.c)
-SET(LinearAlgebraDSLParserOutput ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LAParser.c)
 
 # setup the commands
 IF (BISON_FOUND)
@@ -158,15 +130,6 @@ IF (BISON_FOUND)
             ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Parser.y
             COMMENT "Generating Logical Plan Parser"
             BUILD_BYPRODUCTS ${LogicalPlanParserOutput}
-    )
-    # linear algebra dsl parser commands
-    ADD_CUSTOM_COMMAND(
-            OUTPUT ${LinearAlgebraDSLParserOutput}
-            COMMAND ${BISON_EXECUTABLE}
-            --output=${LinearAlgebraDSLParserOutput}
-            ${CMAKE_SOURCE_DIR}/pdb/src/linearAlgebraDSL/source/LAParser.y
-            COMMENT "Generating Linear Algebra DSL Parser"
-            BUILD_BYPRODUCTS ${LinearAlgebraDSLParserOutput}
     )
 ENDIF ()
 
@@ -188,7 +151,7 @@ ADD_CUSTOM_COMMAND(OUTPUT "${BUILT_IN_OBJECT_TYPE_ID}"
 # setup the command to generate the object ids
 SET(BUILT_IN_PDB_OBJECTS ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h)
 SET(BUILT_IN_PDB_OBJECTS_GENERATED ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h
-                                   ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.cc)
+        ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.cc)
 ADD_CUSTOM_COMMAND(
         OUTPUT "${BUILT_IN_PDB_OBJECTS}"
         COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltinPDBObjects
@@ -209,14 +172,12 @@ add_library(dispatcher OBJECT ${DISPATCHER_SOURCE})
 add_library(lib-pdb-server OBJECT ${PDB_SERVER_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID})
 add_library(query-execution OBJECT ${QUERY_EXECUTION_SOURCE})
 add_library(query-planning OBJECT ${QUERY_PANNING_SOURCE})
-add_library(query-intermediary-rep OBJECT ${QUERY_INTERMEDIARY_REP_SOURCE})
 add_library(work OBJECT ${WORK_SOURCE})
 add_library(memory OBJECT ${MEMORY_SOURCE})
 add_library(storage OBJECT ${STORAGE_SOURCE})
 add_library(distribution-manager OBJECT ${DISTRIBUTION_MANAGER_SOURCE})
 add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
 add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
-add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 
@@ -233,7 +194,6 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:query-execution>
         $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
@@ -252,7 +212,6 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:query-execution>
         $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
@@ -271,7 +230,6 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:query-execution>
         $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
@@ -290,9 +248,8 @@ target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pdb-tests-common PRIVATE ${Boost_LIBRARIES})
 
-# form the parsers for the logical plan and linear algebra
+# form the parsers for the logical plan
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})
-add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearAlgebraDSLParserOutput} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 
 # set the pdb-cluster build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/MasterMain.cc)

@@ -31,12 +31,7 @@ using namespace pdb;
 int main(int argc, char* argv[]) {
 
     // Step 1. Create Database and Set
-
-    PDBClient pdbClient(
-            8108,
-            "localhost",
-            false,
-            false);
+    pdb::PDBClient pdbClient(8108, "localhost", false, false);
 
     string errMsg;
 

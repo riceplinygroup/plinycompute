@@ -114,13 +114,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBClient pdbClient(
-            8108,
-            masterIp,
-            false,
-            true);
-
-
+    pdb::PDBClient pdbClient(8108, masterIp, false, true);
     string errMsg;
 
     if (whetherToAddData == true) {

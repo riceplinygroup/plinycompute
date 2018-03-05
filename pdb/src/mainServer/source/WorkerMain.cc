@@ -26,7 +26,6 @@
 #include "PangeaStorageServer.h"
 #include "FrontendQueryTestServer.h"
 #include "HermesExecutionServer.h"
-#include "PipelineDummyTestServer.h"
 
 int main(int argc, char* argv[]) {
 

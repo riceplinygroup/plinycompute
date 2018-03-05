@@ -176,7 +176,8 @@ int main(int numArgs, const char *args[]) {
     command = "0";
   }
 
-  pdb::PDBClient pdbClient(conf->getPort(), conf->getServerAddress(),
+  pdb::PDBClient pdbClient(conf->getPort(), 
+                           conf->getServerAddress(),
                            false,
                            false);
 

@@ -22,7 +22,6 @@
 #include <memory>
 #include <vector>
 #include <functional>
-#include "Literal.h"
 #include "Object.h"
 #include "Handle.h"
 #include "Ptr.h"

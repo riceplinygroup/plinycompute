@@ -1,0 +1,2 @@
+A = identity(20,2)
+B = rowSum(A)

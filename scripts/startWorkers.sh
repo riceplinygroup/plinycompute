@@ -1,18 +1,18 @@
-#  Copyright 2018 Rice University                                           
-#                                                                           
-#  Licensed under the Apache License, Version 2.0 (the "License");          
-#  you may not use this file except in compliance with the License.         
-#  You may obtain a copy of the License at                                  
-#                                                                           
-#      http://www.apache.org/licenses/LICENSE-2.0                           
-#                                                                           
-#  Unless required by applicable law or agreed to in writing, software      
-#  distributed under the License is distributed on an "AS IS" BASIS,        
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-#  See the License for the specific language governing permissions and      
-#  limitations under the License.                                           
-#  ======================================================================== 
-#!/bin/bash
+#!/usr/bin/env bash
+#  Copyright 2018 Rice University
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#  ========================================================================    
 
 pem_file=$1
 masterIp=$2
@@ -58,7 +58,7 @@ do
         then
                 echo -e "+++++++++++ to install or update libraries: $ip_addr"
                 ssh -i $pem_file $user@$ip_addr "sudo apt-get update"
-                ssh -i $pem_file $user@$ip_addr "sudo apt-get install libsnappy1v5 libsnappy-dev libeigen3-dev libgsl-dev"
+                ssh -i $pem_file $user@$ip_addr "sudo apt-get install libsnappy1v5 libsnappy-dev libeigen3-dev libgsl-dev libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev"
                 echo -e "\n+++++++++++ start server: $ip_addr"
                 ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $masterIp $ip_addr &" &
                 sleep $PDB_SSH_SLEEP

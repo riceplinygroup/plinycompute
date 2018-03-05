@@ -530,50 +530,6 @@ void dataGenerator(std::string scaleFactor,
     }
 }
 
-// pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
-//
-//	int maxPartsInEachLineItem = 4;
-//	int maxLineItemsInEachOrder = 4;
-//	int maxOrderssInEachCostomer = 4;
-//
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers =
-//pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-//
-//	//4. Make Customers
-//	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
-//		pdb::Handle<pdb::Vector<Order>> orders = pdb::makeObject<pdb::Vector<Order>> ();
-//		//3. Make Order
-//		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
-//			pdb::Handle<pdb::Vector<LineItem>> lineItems = pdb::makeObject<pdb::Vector<LineItem>>
-//();
-//			//2.  Make LineItems
-//			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
-//				pdb::Handle<Part> part = pdb::makeObject<Part>(i, "Part-" + to_string(i), "mfgr",
-//"Brand1", "type1", i, "Container1", 12.1, "Part Comment1");
-//				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(i, "Supplier-" + to_string(i),
-//"address", i, "Phone1", 12.1, "Supplier Comment1");
-//				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i,
-//*supplier, *part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate",
-//"commitDate", "receiptDate",
-//						"sgipingStruct", "shipMode1", "Comment1");
-//				lineItems->push_back(*lineItem);
-//			}
-//
-//			pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, orderID, 1, "orderStatus", 1,
-//"orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
-//			orders->push_back(*order);
-//		}
-//
-//		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID, "CustomerName
-//" + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+
-//to_string(customerID));
-//		customers->push_back(customer);
-//	}
-//
-//	return customers;
-//
-//}
-
 int main(int argc, char* argv[]) {
 
     // TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"

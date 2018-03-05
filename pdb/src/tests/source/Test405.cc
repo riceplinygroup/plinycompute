@@ -33,8 +33,7 @@ int main(int argc, char* argv[]) {
     }
     port = atoi(argv[1]);
 
-    pdb::PDBClient pdbClient(
-        port, "localhost", false, false);
+    pdb::PDBClient pdbClient(port, "localhost", false, false);
 
     std::string err;
 

@@ -16,7 +16,9 @@ libraries/*
 pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h
 pdb/src/objectModel/headers/BuiltinPDBObjects.cc
 pdb/src/objectModel/headers/BuiltinPDBObjects.h
-pdb/src/linearAlgebraDSL/source/LALexer.c
-pdb/src/linearAlgebraDSL/source/LAParser.c
 pdb/src/logicalPlan/source/Lexer.c
 pdb/src/logicalPlan/source/Parser.c
+applications/TestLA/linearAlgebraDSL/source/LALexer.c
+applications/TestLA/linearAlgebraDSL/source/LAParser.c
+applications/TestLA/tests/Benchmark/*.pdml
+applications/TestLA/tests/Benchmark/*.data
