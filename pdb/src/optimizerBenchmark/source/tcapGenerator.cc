@@ -118,11 +118,7 @@ int main() {
     int masterPort = 8108;
 
     // register the shared employee class
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-    pdb::PDBClient pdbClient(
-            masterPort, masterHostname, clientLogger, false, true);
-
+    PDBClient pdbClient(masterPort, masterHostname, false, true);  
     string errMsg;
     if (!pdbClient.registerType("libraries/libMovieStar.so", errMsg))
         cout << "Not able to register type.\n";

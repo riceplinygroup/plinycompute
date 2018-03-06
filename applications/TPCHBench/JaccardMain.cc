@@ -74,14 +74,8 @@ int main(int argc, char* argv[]) {
         myQuery->push_back(next);
     }
 
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-    pdb::PDBClient pdbClient(
-            8108, masterIp, clientLogger, false, true);
+  PDBClient pdbClient(8108, masterIp, false, true);
 
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
 
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",

@@ -104,18 +104,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
+    PDBClient pdbClient(8108, masterIp, false, true);
 
-    PDBClient pdbClient(
-            8108, masterIp,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
     string errMsg;
 
     if (whetherToAddData == true) {

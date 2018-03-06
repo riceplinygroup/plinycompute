@@ -115,7 +115,7 @@ std::vector<std::string> parseLine(std::string line) {
 }
 
 void dataGenerator(std::string scaleFactor,
-                   pdb::DispatcherClient dispatcherClient,
+                   pdb::PDBClient &pdbClient,
                    int noOfCopies) {
 
     // All files to parse:
@@ -445,7 +445,7 @@ void dataGenerator(std::string scaleFactor,
                 if (storeMeCustomerList->size() > 0) {
                     Record<Vector<Handle<Object>>>* myRecord =
                         (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-                    if (!dispatcherClient.sendBytes<Customer>(
+                    if (!pdbClient.sendBytes<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
                             (char*)myRecord,
                             myRecord->numBytes(),
@@ -497,7 +497,7 @@ void dataGenerator(std::string scaleFactor,
     // send the rest of data at the end, it can happen that the exception never happens.
     Record<Vector<Handle<Object>>>* myRecord =
         (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-    if (!dispatcherClient.sendBytes<Customer>(
+    if (!pdbClient.sendBytes<Customer>(
             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
             (char*)myRecord,
             myRecord->numBytes(),
@@ -530,50 +530,6 @@ void dataGenerator(std::string scaleFactor,
     }
 }
 
-// pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
-//
-//	int maxPartsInEachLineItem = 4;
-//	int maxLineItemsInEachOrder = 4;
-//	int maxOrderssInEachCostomer = 4;
-//
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers =
-//pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-//
-//	//4. Make Customers
-//	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
-//		pdb::Handle<pdb::Vector<Order>> orders = pdb::makeObject<pdb::Vector<Order>> ();
-//		//3. Make Order
-//		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
-//			pdb::Handle<pdb::Vector<LineItem>> lineItems = pdb::makeObject<pdb::Vector<LineItem>>
-//();
-//			//2.  Make LineItems
-//			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
-//				pdb::Handle<Part> part = pdb::makeObject<Part>(i, "Part-" + to_string(i), "mfgr",
-//"Brand1", "type1", i, "Container1", 12.1, "Part Comment1");
-//				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(i, "Supplier-" + to_string(i),
-//"address", i, "Phone1", 12.1, "Supplier Comment1");
-//				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i,
-//*supplier, *part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate",
-//"commitDate", "receiptDate",
-//						"sgipingStruct", "shipMode1", "Comment1");
-//				lineItems->push_back(*lineItem);
-//			}
-//
-//			pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, orderID, 1, "orderStatus", 1,
-//"orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
-//			orders->push_back(*order);
-//		}
-//
-//		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID, "CustomerName
-//" + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+
-//to_string(customerID));
-//		customers->push_back(customer);
-//	}
-//
-//	return customers;
-//
-//}
-
 int main(int argc, char* argv[]) {
 
     // TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
@@ -592,19 +548,8 @@ int main(int argc, char* argv[]) {
     string masterHostname = "localhost";
     int masterPort = 8108;
 
-    // register the shared employee class
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-    PDBClient pdbClient(
-            masterPort, masterHostname,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            masterPort,
-            masterHostname,
-            clientLogger);
+    // Create connection to PlinyCompute master node
+    pdb::PDBClient pdbClient(masterPort, masterHostname, false, true);
 
     string errMsg;
 
@@ -619,7 +564,7 @@ int main(int argc, char* argv[]) {
         {
             pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
             // Generate the data
-            dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopiesEachRound);
+            dataGenerator(scaleFactor, pdbClient, noOfCopiesEachRound);
             // flush to disk
             pdbClient.flushData(errMsg);
             cout << errMsg << endl;
@@ -635,7 +580,7 @@ int main(int argc, char* argv[]) {
         {
             pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
             // Generate the data
-            dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopiesPartialRound);
+            dataGenerator(scaleFactor, pdbClient, noOfCopiesPartialRound);
             // flush to disk
             pdbClient.flushData(errMsg);
             cout << errMsg << endl;

@@ -66,20 +66,7 @@ int main(int argc, char* argv[]) {
     }
 
 
-    // for logging
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-    // for connecting to the catalog; necessary to use non-built-in PDB types
-    PDBClient pdbClient(
-            8108, masterIP,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIP,
-            clientLogger);
+    PDBClient pdbClient(8108, masterIP, false, true);
 
     // if we register the types we are going to use to execute the query
     if (registerSharedLibs) {

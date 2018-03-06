@@ -56,7 +56,8 @@ public:
    * useQueryScheduler: true if Query Scheduler is used
    *
    */
-  PDBClient(int portIn, std::string addressIn, PDBLoggerPtr myLoggerIn,
+
+  PDBClient(int portIn, std::string addressIn, 
             bool usePangeaIn, bool useQuerySchedulerIn);
 
   PDBClient();
@@ -64,26 +65,6 @@ public:
   ~PDBClient();
 
   void registerHandlers(PDBServer &forMe); // no - op
-
-  /****
-   * Gets a reference to the Catalog Client
-   */
-  pdb::CatalogClient getCatalogClient();
-
-  /****
-   * Gets a reference to the Dispatcher Client
-   */
-  pdb::DispatcherClient getDispatcherClient();
-
-  /****
-   * Gets a reference to the Distributed Storage Manager Client
-   */
-  pdb::DistributedStorageManagerClient getDistributedStorageClient();
-
-  /****
-   * Gets a reference to the Query Client
-   */
-  pdb::QueryClient getQueryClient();
 
   /****
    * Methods for invoking DistributedStorageManager-related operations
@@ -224,7 +205,7 @@ public:
                                    std::string setName);
 
 private:
-  pdb::CatalogClient catalogClient;
+  std::shared_ptr<pdb::CatalogClient> catalogClient;
   pdb::DispatcherClient dispatcherClient;
   pdb::DistributedStorageManagerClient distributedStorageClient;
   pdb::QueryClient queryClient;
@@ -240,8 +221,8 @@ private:
 };
 }
 
-#include "DispatcherClientTemplate.cc"
 #include "PDBClientTemplate.cc"
+#include "DispatcherClientTemplate.cc"
 #include "StorageClientTemplate.cc"
 
 #endif

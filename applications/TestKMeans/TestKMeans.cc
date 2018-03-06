@@ -147,11 +147,7 @@ int main(int argc, char *argv[]) {
   std::cout << std::endl;
 
   /* Setup the client */
-  pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-  PDBClient pdbClient(8108, masterIp, clientLogger, false, true);
-
-  CatalogClient catalogClient(8108, masterIp, clientLogger);
+  PDBClient pdbClient(8108, masterIp, false, true);
 
   string errMsg;
 

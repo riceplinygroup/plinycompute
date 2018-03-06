@@ -34,26 +34,6 @@ add_dependencies(JaccardMain TopJaccard)
 add_dependencies(JaccardMain AllParts)
 add_dependencies(JaccardMain JaccardResultWriter)
 
-###
-### tpchDataGenerator
-###
-
-# create the target
-#add_pdb_application(tpchDataGenerator)
-
-# add a build dependency to build-tests target
-#add_dependencies(build-tests tpchDataGenerator)
-
-###
-### tpchDataGeneratorAll
-###
-
-# create the target
-#add_pdb_application(tpchDataGeneratorAll)
-
-# add a build dependency to build-tests target
-#add_dependencies(build-tests tpchDataGeneratorAll)
-
 # add build dependencies to shared libraries it uses
 #add_dependencies(tpchDataGeneratorAll Part)
 #add_dependencies(tpchDataGeneratorAll Supplier)
@@ -79,16 +59,6 @@ add_pdb_application(tpchDataGeneratorNew)
 
 # add a build dependency to build-tests target
 add_dependencies(build-tests tpchDataGeneratorNew)
-
-###
-### tcphFlushToDisk
-###
-
-# create the target
-add_pdb_application(tpchFlushToDisk)
-
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchFlushToDisk)
 
 ###
 ### tpchGetCustomerCount
