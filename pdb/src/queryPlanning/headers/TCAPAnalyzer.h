@@ -15,9 +15,10 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TCAP_ANALYZER
-#define TCAP_ANALYZER
+#ifndef PDB_TCAPANALYZERNEW_H
+#define PDB_TCAPANALYZERNEW_H
 
+#include <set>
 #include "AggregationJobStage.h"
 #include "AtomicComputationList.h"
 #include "BroadcastJoinBuildHTJobStage.h"
@@ -29,16 +30,13 @@
 #include "PDBLogger.h"
 #include "Statistics.h"
 #include "TupleSetJobStage.h"
+#include "AbstractTCAPAnalyzerNodeFactory.h"
 
 namespace pdb {
 
 /**
- * This class encapsulates the analyzer for the TCAP DAG.
- * You can use this class transform a TCAP string into a physical plan, a
- * sequence of AbstractJobStage instances
- *
- * It analyzes the TCAP program as a DAG based on a cost model using a greedy algorithm.
- * The goal is to minimize the volume of intermediate data.
+ * This class takes in the computations and the TCAP string that are sent from the client and iteratively creates a
+ * series of partial physical plans, that we can execute to get a result.
  *
  * This is accomplished by iteratively calling the method getNextStagesOptimized to generate a sequence of JobStages.
  * As an input to the getNextStagesOptimized we have to provide the storage statistics, so
@@ -59,15 +57,14 @@ namespace pdb {
  * -- HashRight - is a computation that applies a hash to a particular attribute in a tuple set (if right child of equals lambda)
  * -- HashOne -  is a computation that adds 1 to each tuple of a tuple set
  * -- Flatten - is a computation that flatten each tuple of a tuple set
- * -- ApplyFilter - is a computation that performs a filer over a tuple set
+ * -- ApplyFilter - is a computation that performs a filter over a tuple set
  * -- ApplyAgg -  is a computation that aggregates a tuple set
  * -- ScanSet - is a computation that produces a tuple set by scanning a set stored in the database
  * -- WriteSet - is a computation that writes out a tuple set
  * -- ApplyJoin - is a computation that performs the join of two sets
  */
 class TCAPAnalyzer {
-
-public:
+ public:
 
   /**
    * The constructor for the TCAPAnalyzer from a TCAP string and a list of computations associated with it
@@ -78,27 +75,22 @@ public:
    * @param conf the configuration of the nodes, used to fill the necessary information in the JobStages
    */
   TCAPAnalyzer(std::string &jobId,
-               Handle<Vector<Handle<Computation>>> myComputations,
-               std::string myTCAPString,
-               PDBLoggerPtr logger,
-               ConfigurationPtr &conf);
+                  PDBLoggerPtr logger,
+                  ConfigurationPtr &conf,
+                  std::string TCAPString,
+                  pdb::Handle<pdb::Vector<pdb::Handle<pdb::Computation>>> computations);
 
   /**
-   * Called to clean up the TCAPAnalyzer
-   */
-  ~TCAPAnalyzer();
-
-  /**
-   * Returns a sequence of job stages that, make up a partial physical plan. After the execution we gather the
-   * statistics about the newly created sets and use them to generate the next partial plan.
-   * @param physicalPlanToOutput a list where we want to put the sequence of job stages
-   * @param interGlobalSets a list of intermediates sets that need to be created
-   * @param stats the statistics about
-   * @param jobStageId the id of the current job stage
-   * @return true if we succeeded in creating the partial physical plan.
-   */
-  bool getNextStagesOptimized(std::vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-                              std::vector<Handle<SetIdentifier>> &interGlobalSets,
+     * Returns a sequence of job stages that, make up a partial physical plan. After the execution we gather the
+     * statistics about the newly created sets and use them to generate the next partial plan.
+     * @param physicalPlanToOutput a list where we want to put the sequence of job stages
+     * @param interGlobalSets a list of intermediates sets that need to be created
+     * @param stats the statistics about
+     * @param jobStageId the id of the current job stage
+     * @return true if we succeeded in creating the partial physical plan.
+     */
+  bool getNextStagesOptimized(std::vector<pdb::Handle<AbstractJobStage>> &physicalPlanToOutput,
+                              std::vector<pdb::Handle<SetIdentifier>> &interGlobalSets,
                               StatisticsPtr &stats,
                               int &jobStageId);
 
@@ -116,454 +108,34 @@ public:
   bool hasConsumers(std::string &name);
 
 
-private:
+  /**
+   * Returns the best source node based on heuristics
+   * @return the node
+   */
+  AbstractTCAPAnalyzerNodePtr getBestNode(StatisticsPtr &ptr);
+
+ private:
 
   /**
-   * Go through all the source TCAP nodes (ScanSets) and form the following variables :
-   *
-   * 1. curSourceSetNames - vector of the names for each source set in the form "databaseName:setName"
-   * 2. curSourceSets - hash map where the key is the name of the source set in the form of "databaseName:setName"
-   * and the set SetIdentifier associated with it
-   * 3. curProcessedConsumers - is a hash map that keeps track of the currently processed consumers for a certain source
-   * set, the key is in form of "databaseName:setName", the values after initialization are 0
-   * (no consumers are processed)
-   * 4. curSourceNodes - hash map where the key is the name of the source set in the form of "databaseName:setName"
-   * and the AtomicComputation (ScanSet at the beginning) associated with it.
+   * This is the factor applied to the cost of the source if penalized
    */
-  void initializeSourceSets();
+  static constexpr double SOURCE_PENALIZE_FACTOR = 1000.00;
 
   /**
-   * Removes the specified source
-   * @param setName source set name in the form of "databaseName:setName"
-   */
-  void removeSource(std::string setName);
+    * Hash map where the key is the name of the source set in the form of "databaseName:setName"
+    * and the AbstractTCAPAnalyzerNodePtr associated with it.
+    */
+  std::map<std::string, AbstractTCAPAnalyzerNodePtr> sourceNodes;
 
   /**
-   * This methods goes through all the sources, and finds the one with the lowest cost, based on the heuristics.
-   * If the statistics are not provided, it simply returns an the first source in the list.
-   * @param stats the statistics about the sets in the database
-   * @return the name of the source
+   * The starting sources as AtomicComputations
    */
-  std::string getBestSource(const StatisticsPtr &stats);
+  std::vector<AtomicComputationPtr> sourcesComputations;
 
   /**
-   * Returns the remaining number of consumers for a certain source
-   * @param name is the name of the source in the form of "databaseName:setName"
+   * Penalized source sets in the form databaseName:setName
    */
-  unsigned int getNumConsumers(std::string &name);
-
-  /**
-   * This method calculates the cost of the provided source. The cost is calculated by the formula :
-   * cost = number_of_bytes / 1000000
-   * @param source is the name of the source in the form of "databaseName:setName"
-   * @param stats the statistics about the sets in the database
-   * @return the cost value
-   */
-  double getCostOfSource(const std::string &source, StatisticsPtr stats);
-
-  /**
-   * Returns the SetIdentifier associated with the source provided
-   * @param name source set name in the form of "databaseName:setName"
-   * @return the SetIdentifier
-   */
-  Handle<SetIdentifier> getSourceSetIdentifier(std::string name);
-
-  /**
-   * Returns the index of the next consumer for a given source
-   * @param name is the name of the source in the form of "databaseName:setName"
-   * @return the index of the next consumer
-   */
-  unsigned int getNextConsumerIndex(std::string name);
-
-  /**
-   * Increments the number of processed consumers, for a certain source.
-   * After the increment the number for that source curProcessedConsumers will be set to the
-   * index of the consumer that is next in line to be processed
-   * @param name the name of the source in the form of "databaseName:setName"
-   */
-  void incrementConsumerIndex(std::string name);
-
-  /**
-   * Returns the (TCAP) computation associated with the given source
-   * @param name is the name of the source in the form of "databaseName:setName"
-   * @return the computation
-   */
-  AtomicComputationPtr getSourceComputation(std::string name);
-
-  /**
-   * This method is used to update source set names
-   * @param oldSet the
-   * @param newSet
-   * @param newAtomicComp
-   */
-  void updateSourceSets(Handle<SetIdentifier> oldSet,
-                        Handle<SetIdentifier> newSet,
-                        AtomicComputationPtr newAtomicComp);
-
-  /**
-   * Used to analyze sub-graph rooted at any node (curNode) and get a physical plan
-   * @param physicalPlanToOutput - is a reference to the vector where the JobStages that we need to executed will be stored
-   * @param interGlobalSets - is a reference to the vector of intermediate sets that we need to create
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param curNode - this is the current TCAP node that is being processed
-   * @param prevComputation - this is the previous node that was processed
-   * @param curSource - is the source this pipeline will read from
-   * @param sourceComputation - the computation associated with the source
-   * @param curInputSetIdentifier - the input set identifier for the current source
-   * @param jobStageId - the id of the next job stage
-   * @param isProbing - true if we encountered a join,
-   * that has one side broadcasted or hashed and now we need to probe that table
-   * @param joinSource - did we previously create a tuple stage that was probing a partitioned hash table,
-   * if so we have a join source (the starting source of the analyze method)
-   * @param allocatorPolicy - the allocation policy of the current node
-   * @return true if we succeeded
-   */
-  bool analyze(std::vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-               std::vector<Handle<SetIdentifier>> &interGlobalSets,
-               std::vector<std::string> &buildTheseTupleSets,
-               AtomicComputationPtr curNode,
-               AtomicComputationPtr prevComputation,
-               AtomicComputationPtr curSource,
-               Handle<Computation> sourceComputation,
-               Handle<SetIdentifier> curInputSetIdentifier,
-               int &jobStageId,
-               bool isProbing,
-               std::string joinSource,
-               AllocatorPolicy allocatorPolicy);
-
-  /**
-   * This method generates a set identifier from the computation
-   */
-  Handle<SetIdentifier> getSetIdentifierFromComputation(Handle<Computation> computation);
-
-  /**
-   * Prints out the all the current sources in the format of "databaseName:setName"
-   */
-  void printSourceSetNames() const;
-
-  /**
-   * This method handles the the analysis of the TCAP graph in the case that our current node is being outputted.
-   * In this case this is definitely a pipeline breaker, therefore we need to handle two cases :
-   * 1. The current operator is an aggregation so we need a TupleSetJobStage with a shuffle sink
-   * and an AggregationJobStage
-   * 2. We just need a TupleSetJobStage job stage since it is not an aggregation
-   * @param physicalPlanToOutput - is a reference to the vector where the JobStages that we need to executed will be stored
-   * @param interGlobalSets - is a reference to the vector of intermediate sets that we need to create
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param curSource - the TCAP computation associated with the source set, we started from
-   * @param curInputSetIdentifier the input set identifier of the current TCAP computation
-   * @param curNode the current computation
-   * @param jobStageId the id of the current job stage id
-   * @param isProbing true if we are probing a hash set in some job stage
-   * @param myPolicy the allocation policy specified in the computation
-   * @param joinSource - did we previously create a tuple stage that was probing a partitioned hash table,
-   * if so we have a join source (the starting source of the analyze method)
-   * @param outputName - the output name of the current TCAP node
-   * @param computationSpecifier - the specifier of the computation associated with the current TCAP node
-   * @param comp - the computation associated with the current TCAP node
-   * @return true if we succeeded false otherwise
-   */
-  bool analyzeOutputComputation(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-                                vector<Handle<SetIdentifier>> &interGlobalSets,
-                                const vector<string> &buildTheseTupleSets,
-                                AtomicComputationPtr &curSource,
-                                const Handle<SetIdentifier> &curInputSetIdentifier,
-                                AtomicComputationPtr &curNode,
-                                int &jobStageId,
-                                bool isProbing,
-                                const AllocatorPolicy &myPolicy,
-                                string &joinSource,
-                                const string &outputName,
-                                const string &computationSpecifier,
-                                Handle<Computation> &comp);
-
-  /**
-   * This method handles the the analysis of the TCAP graph in the case that our current node is
-   * @param physicalPlanToOutput is a reference to the vector where the JobStages that we need to executed will be stored
-   * @param interGlobalSets is a reference to the vector of intermediate sets that we need to create
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param curSource the TCAP computation associated with the source set, we started from
-   * @param sourceComputation - the computation associated with the source
-   * @param curInputSetIdentifier - the input set identifier of the current TCAP computation
-   * @param curNode the current TCAP computation
-   * @param jobStageId - the id of the current job stage id
-   * @param prevNode - the previous TCAP computation
-   * @param isProbing - true if we are probing a hash set in some job stage
-   * @param allocationPolicy - the allocation policy specified in the computation
-   * @param joinSource - did we previously create a tuple stage that was probing a partitioned hash table,
-   * if so we have a join source (the starting source of the analyze method)
-   * @param outputName - the output name of the current TCAP node
-   * @param consumers - the TCAP computations that are consuming the current node
-   * @param computationSpecifier - the specifier of the computation associated with the current TCAP node
-   * @param curComp - the computation associated with the current TCAP node
-   * @return true if we succeeded false otherwise
-   */
-  bool analyzeSingleConsumerComputation(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-                                        vector<Handle<SetIdentifier>> &interGlobalSets,
-                                        vector<string> &buildTheseTupleSets,
-                                        AtomicComputationPtr &curSource,
-                                        const Handle<Computation> &sourceComputation,
-                                        const Handle<SetIdentifier> &curInputSetIdentifier,
-                                        AtomicComputationPtr &curNode,
-                                        int &jobStageId, AtomicComputationPtr &prevNode,
-                                        bool isProbing,
-                                        const AllocatorPolicy &allocationPolicy,
-                                        string &joinSource,
-                                        const string &outputName,
-                                        const vector<AtomicComputationPtr> &consumers,
-                                        const string &computationSpecifier,
-                                        Handle<Computation> &curComp);
-
-  /**
-   * This method handles the the analysis of the TCAP graph in the case that our current node has multiple consumers
-   * In this case this is definitely a pipeline breaker, therefore we need to handle two cases :
-   * 1. The current operator is an aggregation so we need a TupleSetJobStage with a shuffle sink
-   * and an AggregationJobStage
-   * 2. We just need a TupleSetJobStage job stage since it is not an aggregation
-   * TODO: check whether I am the final operator in a computation. If I am not the final operator in a computation,
-   * there is an error.
-   * TODO: ask Jia whether there is a computation that is unsupported
-   * @param physicalPlanToOutput - is a reference to the vector where the JobStages that we need to executed will be stored
-   * @param interGlobalSets - is a reference to the vector of intermediate sets that we need to create
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param curSource - the TCAP computation associated with the source set, we started from analyzing
-   * @param curInputSetIdentifier - the input set identifier of the current TCAP computation
-   * @param curNode - the current TCAP computation
-   * @param jobStageId - the id of the current job stage
-   * @param isProbing - true if we are probing a hash set in some job stage
-   * @param allocatorPolicy - the allocation policy specified in the computation
-   * @param joinSource - did we previously create a tuple stage that was probing a partitioned hash table,
-   * if so we have a join source (the starting source of the analyze method)
-   * @param outputName - the output name of the current TCAP node
-   * @param computationSpecifier - the specifier of the computation associated with the current TCAP node
-   * @param curComp - the computation associated with the current TCAP node
-   * @return true if we succeeded false otherwise
-   */
-  bool analyzeMultiConsumerComputation(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-                                       vector<Handle<SetIdentifier>> &interGlobalSets,
-                                       vector<string> &buildTheseTupleSets,
-                                       AtomicComputationPtr &curSource,
-                                       const Handle<SetIdentifier> &curInputSetIdentifier,
-                                       AtomicComputationPtr &curNode,
-                                       int &jobStageId,
-                                       bool isProbing,
-                                       const AllocatorPolicy &allocatorPolicy,
-                                       string &joinSource,
-                                       const string &outputName,
-                                       const string &computationSpecifier,
-                                       Handle<Computation> &curComp);
-  /**
-   * This method handles the the analysis of the TCAP graph in the case that our current node is an aggregation with
-   * a single consumer. It creates a tuple stage with a shuffle sink and then an aggregation stage.
-   * @param physicalPlanToOutput - is a reference to the vector where the JobStages that we need to executed will be stored
-   * @param interGlobalSets - is a reference to the vector of intermediate sets that we need to create
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param curSource - the TCAP computation associated with the source set, we started from analyzing
-   * @param curInputSetIdentifier - the input set identifier of the current TCAP computation
-   * @param curNode - the current TCAP computation
-   * @param jobStageId - the id of the current job stage
-   * @param isProbing - true if we are probing a hash set in some job stage
-   * @param allocationPolicy - the allocation policy specified in the computation
-   * @param joinSource - did we previously create a tuple stage that was probing a partitioned hash table,
-   * if so we have a join source (the starting source of the analyze method)
-   * @param outputName - the output name of the current TCAP node
-   * @param computationSpecifier - the specifier of the computation associated with the current TCAP node
-   * @param curComp - the computation associated with the current TCAP node
-   * @return true if we succeeded false otherwise
-   */
-  bool handleSingleConsumerAggregation(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-                                       vector<Handle<SetIdentifier>> &interGlobalSets,
-                                       const vector<string> &buildTheseTupleSets,
-                                       AtomicComputationPtr &curSource,
-                                       const Handle<SetIdentifier> &curInputSetIdentifier,
-                                       AtomicComputationPtr &curNode,
-                                       int &jobStageId,
-                                       bool isProbing,
-                                       const AllocatorPolicy &allocationPolicy,
-                                       string &joinSource,
-                                       const string &outputName,
-                                       const string &computationSpecifier,
-                                       Handle<Computation> &curComp);
-  /**
-   * This method handles the the analysis of the TCAP graph in the case that our current node is a join with
-   * a single consumer. It handles two distinct cases :
-   * 1. This is the first time we are processing this join therefore no side of the join has been hashed
-   * and then broadcasted or partitioned, therefore we can not probe it
-   * 2. This is the second time we are processing this join therefore the one side of the join is hashed and then
-   * broadcasted or partitioned, we can therefore probe it!
-   * @param physicalPlanToOutput - is a reference to the vector where the JobStages that we need to executed will be stored
-   * @param interGlobalSets is a reference to the vector of intermediate sets that we need to create
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param curSource the TCAP computation associated with the source set, we started from analyzing
-   * @param sourceComputation - the computation associated with the source
-   * @param curInputSetIdentifier - the input set identifier of the current TCAP computation
-   * @param curNode - the current TCAP computation
-   * @param jobStageId - the id of the current job stage
-   * @param prevNode - the previous TCAP computation
-   * @param isProbing - true if we are probing a hash set in some job stage
-   * @param allocatorPolicy - the allocation policy specified in the computation
-   * @param joinSource - did we previously create a tuple stage that was probing a partitioned hash table,
-   * if so we have a join source (the starting source of the analyze method)
-   * @param outputName - the output name of the current TCAP node
-   * @param consumers - the TCAP computations that are consuming the current node
-   * @param computationSpecifier - the specifier of the computation associated with the current TCAP node
-   * @param curComp - the computation associated with the current TCAP node
-   * @return true if we succeeded false otherwise
-   */
-  bool handleSingleConsumerJoin(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
-                                vector<Handle<SetIdentifier>> &interGlobalSets,
-                                vector<string> &buildTheseTupleSets,
-                                AtomicComputationPtr &curSource,
-                                const Handle<Computation> &sourceComputation,
-                                const Handle<SetIdentifier> &curInputSetIdentifier,
-                                AtomicComputationPtr &curNode,
-                                int &jobStageId,
-                                AtomicComputationPtr &prevNode,
-                                bool isProbing,
-                                const AllocatorPolicy &allocatorPolicy,
-                                string &joinSource,
-                                const string &outputName,
-                                const vector<AtomicComputationPtr> &consumers,
-                                const string &computationSpecifier,
-                                Handle<Computation> &curComp);
-
-  /**
-   * This method is used to create tuple set job stage
-   * @param jobStageId the id of the current job stage
-   * @param sourceTupleSetName - the tuple set we use for the source
-   * @param targetTupleSetName - the tuple set we use for the sink
-   * @param targetComputationName - the name of the computation
-   * @param buildTheseTupleSets - is a list of outputs of TCAP computations that we included in our current pipeline,
-   * we use them later to execute the computations that correspond to them. (we build them)
-   * @param outputTypeName - TODO ask Jia what this is
-   * @param sourceContext - set identifier of the current source
-   * @param combinerContext - set identifier where the data for the combiner will be stored
-   * @param sinkContext - set identifier where the data of the pipeline will be stored
-   * @param isBroadcasting - are we using a broadcast sink
-   * @param isRepartitioning - should be true if we are using a shuffle sink
-   * @param isProbing - true if we are probing a hash set in some job stage
-   * @param policy - the allocation policy specified in the computation
-   * @param isRepartitionJoin - are we running a pipeline for the hash partitioned join
-   * @param isCollectAsMap - should the aggregation that follows be performed on N=numNodesToCollect nodes or should
-   * we use all available nodes
-   * @param numNodesToCollect - if isCollectAsMap as map is true the aggregation is perfomed on the first
-   * numNodesToCollect nodes
-   * @return the created TupleSetJobStage
-   */
-  Handle<TupleSetJobStage> createTupleSetJobStage(int &jobStageId,
-                                                  std::string sourceTupleSetName,
-                                                  std::string targetTupleSetName,
-                                                  std::string targetComputationName,
-                                                  std::vector<std::string> buildTheseTupleSets,
-                                                  std::string outputTypeName,
-                                                  Handle<SetIdentifier> sourceContext,
-                                                  Handle<SetIdentifier> combinerContext,
-                                                  Handle<SetIdentifier> sinkContext,
-                                                  bool isBroadcasting,
-                                                  bool isRepartitioning,
-                                                  bool isProbing = false,
-                                                  AllocatorPolicy policy = defaultAllocator,
-                                                  bool isRepartitionJoin = false,
-                                                  bool isCollectAsMap = false,
-                                                  int numNodesToCollect = 0);
-
-  /**
-   * This method is used to create broadcast join build hash table stage
-   * @param jobStageId the id of the current job stage
-   * @param sourceTupleSetName - the tuple set we use for the source TODO Jia from what I observed in the this is never used
-   * @param targetTupleSetName - the tuple set we use for the sink, used to get the appropriate merger
-   * @param targetComputationName - the name of the computation associated with the join, used to get the appropriate merger
-   * @param sourceContext - set identifier of the current source
-   * @param hashSetName - the name of the hash set. It is used by the HashSetManager to identify the hash
-   * set we are about to build (shared hash set)
-   * @return the created BroadcastJoinBuildHTJobStage stage
-   */
-  Handle<BroadcastJoinBuildHTJobStage> createBroadcastJoinBuildHTJobStage(int &jobStageId,
-                                                                          std::string sourceTupleSetName,
-                                                                          std::string targetTupleSetName,
-                                                                          std::string targetComputationName,
-                                                                          Handle<SetIdentifier> sourceContext,
-                                                                          std::string hashSetName);
-
-  /**
-   * This method is used to create hash partitioned join stage
-   * @param jobStageId the id of the current job stage
-   * @param sourceTupleSetName - the tuple set we use for the source TODO Jia from what I observed in the this is never used
-   * @param targetTupleSetName - the tuple set we use for the sink, used to get the appropriate merger
-   * @param targetComputationName - the name of the computation associated with the join, used to get the appropriate merger
-   * @param sourceContext - set identifier of the current source
-   * @param hashSetName - the name of the hash set. It is used by the HashSetManager to identify the hash
-   * set we are about to build (partitioned hash set)
-   * @return the created HashPartitionedJoinBuildHTJobStage
-   */
-  Handle<HashPartitionedJoinBuildHTJobStage> createHashPartitionedJoinBuildHTJobStage(int &jobStageId,
-                                                                                      std::string sourceTupleSetName,
-                                                                                      std::string targetTupleSetName,
-                                                                                      std::string targetComputationName,
-                                                                                      Handle<SetIdentifier> sourceContext,
-                                                                                      std::string hashSetName);
-
-  /**
-   * This method is used to create aggregation job stage
-   * @param jobStageId the id of the current job stage
-   * @param aggComp the aggregation computation that is to be executed.
-   * @param sourceContext the identifier of the source set
-   * @param sinkContext the identifier of the sink set
-   * @param materializeOrNot should we materialize the output of this job stage or not?
-   * @return the created AggregationJobStage
-   */
-  Handle<AggregationJobStage> createAggregationJobStage(int &jobStageId,
-                                                        Handle<AbstractAggregateComp> aggComp,
-                                                        Handle<SetIdentifier> sourceContext,
-                                                        Handle<SetIdentifier> sinkContext,
-                                                        bool materializeOrNot);
-
-  /**
-   * Hash sets we to probe in current stage, this map needs to be cleared after execution of each stage
-   */
-  Handle<Map<String, String>> hashSetsToProbe;
-
-  /**
-   * Output for current joinSets operation
-   */
-  std::vector<String> outputForJoinSets;
-
-  /**
-   * The Computation objects for this query that we provided as an input to the TCAPAnalyzer
-   */
-  Handle<Vector<Handle<Computation>>> computations;
-
-  /**
-   * The TCAP string we provided as an input to the TCAPAnalyzer
-   */
-  std::string tcapString;
-
-  /**
-   * The ComputePlan generated from input computations and the input TCAP string
-   */
-  Handle<ComputePlan> computePlan;
-
-  /**
-   * Logical plan generated from the compute plan
-   */
-  LogicalPlanPtr logicalPlan;
-
-  /**
-   * The computation graph generated from the logical plan
-   */
-  AtomicComputationList computationGraph;
-
-  /**
-   * Hash map where the key is the name of the source set in the form of "databaseName:setName"
-   * and the AtomicComputation (TCAP) associated with it.
-   */
-  std::vector<AtomicComputationPtr> sources;
+  std::set<std::string> penalizedSets;
 
   /**
    * An instance of the PDBLogger
@@ -576,51 +148,23 @@ private:
   ConfigurationPtr conf;
 
   /**
-   * The jobId for this query (can be any string that is can be a database name)
-   */
-  std::string jobId;
+ * The ComputePlan generated from input computations and the input TCAP string
+ */
+  Handle<ComputePlan> computePlan;
 
   /**
-   * Hash map where the key is the name of the source set in the form of "databaseName:setName"
-   * and the set SetIdentifier associated with it. This is updated after executing a sequence of JobStages
+   * Logical plan generated from the compute plan
    */
-  std::map<std::string, Handle<SetIdentifier>> curSourceSets;
+  LogicalPlanPtr logicalPlan;
 
   /**
-   * Hash map where the key is the name of the source set in the form of "databaseName:setName"
-   * and the AtomicComputations (TCAP) associated with it. This is updated after executing a sequence of JobStages
+   * The computation graph generated from the logical plan
    */
-  std::map<std::string, std::vector<AtomicComputationPtr>> curSourceNodes;
-
-  /**
-   * Hash map that keeps track of the currently processed consumers for a certain source
-   * set, the key is in form of "databaseName:setName", the values after initialization are 0. This is updated after
-   * executing a sequence of JobStages
-   */
-  std::map<std::string, unsigned int> curProcessedConsumers;
-
-  /**
-   * A vector of the names for each source set in the form "databaseName:setName" This is updated after executing a
-   * sequence of JobStages
-   */
-  std::vector<std::string> curSourceSetNames;
-
-  /**
-   * The cost of the source currently being considered. Set when calling the @see TCAPAnalyzer#getBestSource
-   */
-  double costOfCurSource;
-
-  /**
-   * The name of current chosen source set, in the form of "databaseName:setName"
-   */
-  std::string curSourceSetName;
-
-  /**
-   * A list of the source sets whose cost we want to penalize with a factor of thousand
-   */
-  std::vector<std::string> penalizedSourceSets;
+  AtomicComputationList computationGraph;
 
 };
+
 }
 
-#endif
+
+#endif //PDB_TCAPANALYZERNEW_H

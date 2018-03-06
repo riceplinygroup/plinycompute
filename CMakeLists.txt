@@ -75,7 +75,7 @@ file(GLOB DISPATCHER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/dispatcher/source/*.c
 file(GLOB PDB_SERVER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/source/*.cc")
 file(GLOB OBJECT_MODEL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/objectModel/source/*.cc")
 file(GLOB QUERY_EXECUTION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/source/*.cc")
-file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
+file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/*.cc" "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
 file(GLOB WORK_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/work/source/*.cc")
 file(GLOB MEMORY_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/memory/source/*.cc")
 file(GLOB STORAGE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/storage/source/*.cc")
@@ -86,7 +86,7 @@ file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.c
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/pdb/src/sqlite/source/sqlite3.c)
 
 # specify the hearder files
-file(GLOB PDB_HEADERS "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/*.h")
+file(GLOB PDB_HEADERS "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/*.h" "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/**/*.h")
 add_custom_target(HEADER_ONLY_TARGET SOURCES "${PDB_HEADERS}")
 
 # generate lexers

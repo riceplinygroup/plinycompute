@@ -15,35 +15,53 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef ABSTRACT_JOBSTAGE_H
-#define ABSTRACT_JOBSTAGE_H
+#include "AbstractTCAPAnalyzerNodeFactory.h"
 
-#include <DataTypes.h>
-#include <PDBString.h>
+#ifndef PDB_SIMPLETCAPANALYZERNODE_H
+#define PDB_SIMPLETCAPANALYZERNODE_H
 
 namespace pdb {
 
-//this class encapsulates the common interface for JobStages
-class AbstractJobStage : public Object {
+class SimpleTCAPAnalyzerNodeFactory;
+typedef std::shared_ptr<SimpleTCAPAnalyzerNodeFactory> SimpleTCAPAnalyzerNodeFactoryPtr;
 
+/**
+ * This class is a factory for the nodes of a SimpleTCAPAnalyzer graph
+ */
+class SimpleTCAPAnalyzerNodeFactory : public AbstractTCAPAnalyzerNodeFactory {
 public:
-    void setJobId(std::string jobId) {
-        this->jobId = jobId;
-    }
 
-    std::string getJobId() {
-        return this->jobId;
-    }
+  SimpleTCAPAnalyzerNodeFactory(const string &jobId,
+                                const Handle<ComputePlan> &computePlan,
+                                const ConfigurationPtr &conf);
 
+  /**
+   * Depending on the type of the tcapNode we are dealing with create the appropriate SimpleTCAPAnalyzerNode
+   * Currently we are differentiating between three types of nodes :
+   * 1. ApplyAggTypeID -> SimpleTCAPAnalyzerAggregationNode
+   * 2. ApplyJoinTypeID -> SimpleTCAPAnalyzerJoinNode
+   * 3. Any other node -> SimpleTCAPAnalyzerNode
+   *
+   * @param tcapNode the TCAP node we are analyzing
+   * @return the created node
+   */
+  AbstractTCAPAnalyzerNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) override;
 
-    virtual int16_t getJobStageTypeID() = 0;
-    virtual std::string getJobStageType() = 0;
-    virtual JobStageID getStageId() = 0;
-    virtual void print() = 0;
+private:
 
-protected:
-    String jobId;
+  /**
+   * The id of the job we are trying to generate a physical plan for
+   */
+  std::string jobId;
+
+  /**
+   * A configuration object for this cluster node
+   */
+  ConfigurationPtr conf;
+
 };
+
 }
 
-#endif
+
+#endif //PDB_SIMPLETCAPANALYZERNODE_H
