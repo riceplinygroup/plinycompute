@@ -31,7 +31,6 @@
 #include "HermesExecutionServer.h"
 #include "PartitionedHashSet.h"
 #include "SetSpecifier.h"
-#include "DataPacket.h"
 #include <vector>
 #include <memory>
 #include <unordered_map>
