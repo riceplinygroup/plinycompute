@@ -1,3 +1,0 @@
-A = load(2,2,2,2,"./src/linearAlgebraDSL/TestDataGenerator/foo.data")
-B = load(2,2,2,2,"./src/linearAlgebraDSL/TestDataGenerator/foo.data")
-C = A '* B

@@ -1,2 +1,0 @@
-X1 = load(100,10,100,1,"./src/linearAlgebraDSL/TestDataGenerator/m_10000_10_100_10.data")
-Result = X1 '* X1

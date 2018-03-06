@@ -1,3 +1,0 @@
-A = ones(20,20,2,2)
-B = identity(20,2)
-C = A * B
