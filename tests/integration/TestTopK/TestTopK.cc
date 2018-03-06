@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     }
 
 
-    PDBClient pdbClient(8108, masterIp, false, true);
+    PDBClient pdbClient(8108, masterIP, false, true);
 
     // if we register the types we are going to use to execute the query
     if (registerSharedLibs) {
