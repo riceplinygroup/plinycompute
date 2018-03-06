@@ -613,8 +613,7 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
     }
 
     // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
-  // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
-  this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,
+    this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,
                                                     this->logger,
                                                     this->conf,
                                                     request->getTCAPString(),
