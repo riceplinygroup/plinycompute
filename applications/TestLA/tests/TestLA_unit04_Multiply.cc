@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
                 storeMatrix1);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
         // to write back all buffered records
-        pdbClient.flushData(errMsg);
+        pdbClient.flushData();
 
         // Substract Matrix 2
         total = 0;
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
                 storeMatrix2);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
         // to write back all buffered records
-        pdbClient.flushData(errMsg);
+        pdbClient.flushData();
     }
     // now, create a new set in that database to store output data
 
