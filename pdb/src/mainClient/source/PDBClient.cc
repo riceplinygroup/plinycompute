@@ -198,7 +198,7 @@ namespace pdb {
 
       string errMsg;
 
-      bool result = distributedStorageClient.flushData();
+      bool result = distributedStorageClient.flushData(errMsg);
       if (result==false) {
           std::cout << "Not able to flush data: " + errMsg;
           exit(-1);
