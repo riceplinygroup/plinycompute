@@ -155,12 +155,10 @@ int main(int argc, char* argv[]) {
         pdbClient.createDatabase("LDA_db");
 
         pdbClient.removeSet("LDA_db", "LDA_input_set");
-        pdbClient.createSet<LDADocument>("LDA_db",
-                                         "LDA_input_set");
+        pdbClient.createSet<LDADocument>("LDA_db", "LDA_input_set");
 
         pdbClient.removeSet("LDA_db", "LDA_meta_data_set");
-        pdbClient.createSet<int>("LDA_db",
-                                 "LDA_meta_data_set");
+        pdbClient.createSet<int>("LDA_db", "LDA_meta_data_set");
 
         int blockSize = 8;
 
@@ -199,8 +197,7 @@ int main(int argc, char* argv[]) {
 
                     } catch (pdb::NotEnoughSpace& n) {
                         pdbClient.sendData<LDADocument>(
-                                std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
-                                storeMe);
+                                std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe);
                         pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
                         storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>>();
                     }
@@ -210,8 +207,7 @@ int main(int argc, char* argv[]) {
             /* Handle the last few entries */
             if (storeMe->size() > 0) {
                 pdbClient.sendData<LDADocument>(
-                        std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
-                        storeMe);
+                        std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe);
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
             }
 
@@ -224,8 +220,7 @@ int main(int argc, char* argv[]) {
             }
 
             pdbClient.sendData<int>(
-                    std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"),
-                    storeMeToo);
+                    std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"), storeMeToo);
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
 
             pdbClient.flushData();
@@ -274,6 +269,7 @@ int main(int argc, char* argv[]) {
 
             }
 
+
             inFile.close();
 
 	    /* Add the data for the dictionary. One wordID per entry. */
@@ -289,6 +285,7 @@ int main(int argc, char* argv[]) {
                     storeMeToo);
             pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
             pdbClient.flushData();
+        }
     }
 
     /* Create sets to store the intermediate data that will be used between iterations */
