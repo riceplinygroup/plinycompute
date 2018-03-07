@@ -173,12 +173,12 @@ int main(int argc, char *argv[]) {
   /* Data does not need to be loaded */
   if (whetherToAddData == false) {
 
-    if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
+    pdbClient.createDatabase("kmeans_db", errMsg)) {
       std::cout << "Not able to create database: " + errMsg;
       exit(-1);
     }
 
-    if (!pdbClient.createSet<double[]>("kmeans_db", "kmeans_input_set",
+    pdbClient.createSet<double[]>("kmeans_db", "kmeans_input_set",
                                        errMsg)) {
       std::cout << "Not able to create set: " + errMsg;
       exit(-1);
@@ -189,13 +189,13 @@ int main(int argc, char *argv[]) {
   else {
 
     /* Create a new database */
-    if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
+    pdbClient.createDatabase("kmeans_db", errMsg)) {
       std::cout << "Not able to create database: " + errMsg;
       exit(-1);
     }
 
     /* Create a new set */
-    if (!pdbClient.createSet<double[NUM_KMEANS_DIMENSIONS]>(
+    pdbClient.createSet<double[NUM_KMEANS_DIMENSIONS]>(
             "kmeans_db", "kmeans_input_set", errMsg)) {
       std::cout << "Not able to create set: " + errMsg;
       exit(-1);
@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
         end = true;
 
         /* Send the data to the database */
-        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+        pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                 std::pair<std::string, std::string>("kmeans_input_set",
                                                     "kmeans_db"),
                 storeMe, errMsg)) {
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
         }
         pdbClient.flushData(errMsg);
       } catch (pdb::NotEnoughSpace &n) {
-        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+        pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                 std::pair<std::string, std::string>("kmeans_input_set",
                                                     "kmeans_db"),
                 storeMe, errMsg)) {
@@ -274,28 +274,28 @@ int main(int argc, char *argv[]) {
   }
 
   /* Create a new set to store the normalized inpu data */
-  if (!pdbClient.createSet<KMeansDoubleVector>(
+  pdbClient.createSet<KMeansDoubleVector>(
           "kmeans_db", "kmeans_norm_vector_set", errMsg)) {
     std::cout << "Not able to create set: " + errMsg;
     exit(-1);
   }
 
   /* Create a new set to store the data count */
-  if (!pdbClient.createSet<SumResult>("kmeans_db", "kmeans_data_count_set",
+  pdbClient.createSet<SumResult>("kmeans_db", "kmeans_data_count_set",
                                       errMsg)) {
     std::cout << "Not able to create set: " + errMsg;
     exit(-1);
   }
 
   /* Create a new set to store the initial model */
-  if (!pdbClient.createSet<KMeansDoubleVector>(
+  pdbClient.createSet<KMeansDoubleVector>(
           "kmeans_db", "kmeans_initial_model_set", errMsg)) {
     std::cout << "Not able to create set: " + errMsg;
     exit(-1);
   }
 
   /* Create a new set to store output data */
-  if (!pdbClient.createSet<KMeansAggregateOutputType>(
+  pdbClient.createSet<KMeansAggregateOutputType>(
           "kmeans_db", "kmeans_output_set", errMsg)) {
     std::cout << "Not able to create set: " + errMsg;
     exit(-1);
@@ -313,7 +313,7 @@ int main(int argc, char *argv[]) {
                                              "kmeans_norm_vector_set");
   myNormVectorWriter->setInput(myNormVectorMap);
 
-  if (!pdbClient.executeComputations(errMsg, myNormVectorWriter)) {
+  pdbClient.executeComputations(errMsg, myNormVectorWriter)) {
     std::cout << "Query failed. Message was: " << errMsg << "\n";
     return 1;
   }
@@ -327,7 +327,7 @@ int main(int argc, char *argv[]) {
       makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
   myWriter->setInput(myDataCount);
 
-  if (!pdbClient.executeComputations(errMsg, myWriter)) {
+  pdbClient.executeComputations(errMsg, myWriter)) {
     std::cout << "Query failed. Message was: " << errMsg << "\n";
     return 1;
   }
@@ -360,7 +360,7 @@ int main(int argc, char *argv[]) {
         "kmeans_db", "kmeans_initial_model_set");
     myWriteSet->setInput(myDataSample);
 
-    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
+    pdbClient.executeComputations(errMsg, myWriteSet)) {
       std::cout << "Query failed. Message was: " << errMsg << "\n";
       return 1;
     }
@@ -439,7 +439,7 @@ int main(int argc, char *argv[]) {
     myQuery->setInput(myScanSet);
     myQuery->setOutput("kmeans_db", "kmeans_output_set");
 
-    if (!pdbClient.executeComputations(errMsg, myQuery)) {
+    pdbClient.executeComputations(errMsg, myQuery)) {
       std::cout << "Query failed. Message was: " << errMsg << "\n";
       return 1;
     }
@@ -519,18 +519,18 @@ int main(int argc, char *argv[]) {
     pdbClient.deleteSet("kmeans_db", "kmeans_norm_vector_set");
 
   } else {
-    if (!pdbClient.removeSet("kmeans_db", "kmeans_output_set", errMsg)) {
+    pdbClient.removeSet("kmeans_db", "kmeans_output_set", errMsg)) {
       std::cout << "Not able to remove set: " + errMsg;
       exit(-1);
-    } else if (!pdbClient.removeSet("kmeans_db", "kmeans_initial_model_set",
+    } else pdbClient.removeSet("kmeans_db", "kmeans_initial_model_set",
                                     errMsg)) {
       std::cout << "Not able to remove set: " + errMsg;
       exit(-1);
-    } else if (!pdbClient.removeSet("kmeans_db", "kmeans_data_count_set",
+    } else pdbClient.removeSet("kmeans_db", "kmeans_data_count_set",
                                     errMsg)) {
       std::cout << "Not able to remove set: " + errMsg;
       exit(-1);
-    } else if (!pdbClient.removeSet("kmeans_db", "kmeans_norm_vector_set",
+    } else pdbClient.removeSet("kmeans_db", "kmeans_norm_vector_set",
                                     errMsg)) {
       std::cout << "Not able to remove set: " + errMsg;
       exit(-1);

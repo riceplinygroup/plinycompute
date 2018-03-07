@@ -236,15 +236,7 @@ int main(int numArgs, const char *args[]) {
     std::string nodeType = vm["node-type"].as<std::string>();
     int status = 0;
 
-    if (!pdbClient.registerNode(nodeIP, nodePort, nodeName, nodeType, 1,
-                                errMsg)) {
-      std::cout << "Not able to register node metadata: " + errMsg << std::endl;
-      std::cout << "Please change the parameters: nodeIP, port, nodeName, "
-                   "nodeType, status."
-                << std::endl;
-    } else {
-      std::cout << "Node metadata successfully added.\n";
-    }
+    pdbClient.registerNode(nodeIP, nodePort, nodeName, nodeType, 1);
     cout << "Done.\n";
 
   } else if (command.compare("retrieve-node") == 0) {
@@ -256,22 +248,13 @@ int main(int numArgs, const char *args[]) {
   } else if (command.compare("register-db") == 0) {
     std::string databaseName = vm["db-name"].as<std::string>();
 
-    if (!pdbClient.createDatabase(databaseName, errMsg)) {
-      std::cout << "Not able to create database: " + errMsg << std::endl;
-    } else {
-      std::cout << "Database and its metadata successfully created.\n";
-    }
+    pdbClient.createDatabase(databaseName);
     cout << "Done.\n";
 
   } else if (command.compare("remove-db") == 0) {
     std::string databaseName = vm["db-name"].as<std::string>();
 
-    if (!pdbClient.removeDatabase (databaseName, errMsg)) {
-        std :: cout << "Not able to remove database: " + errMsg <<
-        std::endl;
-    } else {
-        std :: cout << "Database and its metadata successfully removed.\n";
-    }
+    pdbClient.removeDatabase (databaseName);
     cout << "Done.\n";
 
   } else if (command.compare("list-catalog") == 0) {
@@ -293,13 +276,8 @@ int main(int numArgs, const char *args[]) {
 
     // now create a new set in that database
     if (typeName.compare("SharedEmployee") == 0) {
-      if (!pdbClient.createSet(databaseName, setName, typeName, errMsg,
-                               DEFAULT_PAGE_SIZE)) {
-        std::cout << "Could not create set due to error: " + errMsg
-                  << std::endl;
-      } else {
-        std::cout << "Set and its metadata successfully created.\n";
-      }
+      pdbClient.createSet(databaseName, setName, typeName,
+                               DEFAULT_PAGE_SIZE);
     } else {
       std::cout << "Error type " << typeName << " is not registered.\n";
     }
@@ -320,12 +298,7 @@ int main(int numArgs, const char *args[]) {
 
     // now the set from the database
     if (typeName.compare("SharedEmployee") == 0) {
-      if (!pdbClient.removeSet(databaseName, setName, errMsg)) {
-        std::cout << "Could not delete set due to error: " + errMsg
-                  << std::endl;
-      } else {
-        std::cout << "Set and its metadata successfully deleted.\n";
-      }
+      pdbClient.removeSet(databaseName, setName);
     } else {
     }
 

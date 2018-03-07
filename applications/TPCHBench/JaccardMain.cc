@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                                   "libraries/libJaccardResultWriter.so"};
 
     for (auto& a : v) {
-        if (!pdbClient.registerType(a, errMsg)) {
+        pdbClient.registerType(a, errMsg)) {
             std::cout << "could not load library: " << errMsg << "\n";
         } else {
             std::cout << "loaded library: " << a << "\n";
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     }
 
     pdbClient.removeSet("TPCH_db", "result", errMsg);
-    if (!pdbClient.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result", errMsg)) {
+    pdbClient.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myWriter = makeObject<JaccardResultWriter>("TPCH_db", "result");
     myWriter->setInput(myTopK);
     auto begin = std::chrono::high_resolution_clock::now();
-    if (!pdbClient.executeComputations(errMsg, myWriter)) {
+    pdbClient.executeComputations(errMsg, myWriter)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }

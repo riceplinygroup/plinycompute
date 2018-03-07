@@ -38,11 +38,7 @@ int main(int argc, char* argv[]) {
     std::string err;
 
     if (argv[2][0] == 't') {
-        if (!pdbClient.registerType("libraries/libSharedEmployee.so", err)) {
-            std::cout << "Not able to register type: " << err << std::endl;
-        } else {
-            std::cout << "Registered type" << std::endl;
-        }
+        pdbClient.registerType("libraries/libSharedEmployee.so");
     }
 
     if (argv[2][0] == 'd') {
@@ -106,13 +102,9 @@ int main(int argc, char* argv[]) {
             }
             for (int i = 0; i < 10; i++) {
                 std::cout << "Dispatching a vector of size " << storeMe->size() << std::endl;
-                if (!pdbClient.sendData<SharedEmployee>(
+                pdbClient.sendData<SharedEmployee>(
                         std::pair<std::string, std::string>("joseph_set", "joseph_db"),
-                        storeMe,
-                        err)) {
-                    std::cout << "Failed to send data to dispatcher server" << std::endl;
-                    return 1;
-                }
+                        storeMe);
             }
         }
         free(storage);

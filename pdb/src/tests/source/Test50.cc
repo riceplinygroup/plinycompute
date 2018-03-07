@@ -36,30 +36,15 @@ int main(int argc, char* argv[]) {
     string errMsg;
 
     // now, create a new database
-    if (!pdbClient.createDatabase("chris_db", errMsg)) {
-        cout << "Not able to create database: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created database.\n";
-    }
+    pdbClient.createDatabase("chris_db");
 
     // now, create a new set in that database
-    if (!pdbClient.createSet("chris_db", "chris_set", "pdb::Supervisor", errMsg, DEFAULT_PAGE_SIZE)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet("chris_db", "chris_set", "pdb::Supervisor", DEFAULT_PAGE_SIZE);
 
 
     // now, create a new set in that database
-    if (!pdbClient.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>>(
-            "chris_db", "output_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>>(
+            "chris_db", "output_set1");
 
     system("scripts/cleanupSoFiles.sh");
 }

@@ -120,52 +120,31 @@ int main() {
     // register the shared employee class
     PDBClient pdbClient(masterPort, masterHostname, false, true);  
     string errMsg;
-    if (!pdbClient.registerType("libraries/libMovieStar.so", errMsg))
+    pdbClient.registerType("libraries/libMovieStar.so");
         cout << "Not able to register type.\n";
 
-    if (!pdbClient.registerType("libraries/libStarsIn.so", errMsg))
-        cout << "Not able to register type.\n";
+    pdbClient.registerType("libraries/libStarsIn.so");
 
-    if (!pdbClient.registerType("libraries/libScanMovieStarSet.so", errMsg))
-        cout << "Not able to register type.\n";
+    pdbClient.registerType("libraries/libScanMovieStarSet.so");
 
-    if (!pdbClient.registerType("libraries/libScanStarsInSet.so", errMsg))
-        cout << "Not able to register type.\n";
+    pdbClient.registerType("libraries/libScanStarsInSet.so");
 
-    if (!pdbClient.registerType("libraries/libSimpleMovieJoin.so", errMsg))
-        cout << "Not able to register type.\n";
+    pdbClient.registerType("libraries/libSimpleMovieJoin.so");
 
-    if (!pdbClient.registerType("libraries/libSimpleMovieSelection.so", errMsg))
-        cout << "Not able to register type.\n";
+    pdbClient.registerType("libraries/libSimpleMovieSelection.so");
 
-    if (!pdbClient.registerType("libraries/libSimpleMovieWrite.so", errMsg))
-        cout << "Not able to register type.\n";
+    pdbClient.registerType("libraries/libSimpleMovieWrite.so");
 
 
     // Create a new database:
-    if (!pdbClient.createDatabase("TCAP_db", errMsg)) {
-        cout << "Not able to create database: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created database.\n";
-    }
+    pdbClient.createDatabase("TCAP_db");
 
     // Create the sets for storing MovieStar data:
-    if (!pdbClient.createSet<MovieStar>(
-            "TCAP_db", "tcap_bench_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<MovieStar>(
+            "TCAP_db", "tcap_bench_set1");
 
     // Create the sets for storing StarsIn data:
-    if (!pdbClient.createSet<StarsIn>("TCAP_db", "tcap_bench_set2", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<StarsIn>("TCAP_db", "tcap_bench_set2");
 
     pdb::makeObjectAllocatorBlock((size_t)200 * MB, true);
 
@@ -223,103 +202,8 @@ int main() {
     cout << "TCAP OUTPUT:" << endl;
     cout << tcapString << endl;
 
-
     cout << "Sourav: Done till here!\n";
 
-    /*
-        //
-        // Generate the data
-        // TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
-        string scaleFactor = "0.1";
-    //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList =
-    dataGenerator(scaleFactor);
-        pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList =
-    generateSmallDataset(4);
-
-        pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>>
-    (storeMeCustomerList);
-        size_t sizeOfCustomers = myBytes->numBytes();
-        cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
-
-        // store copies of the same dataset.
-        for (int i = 1; i <= noOfCopies; ++i) {
-            cout << "Storing Vector of Customers - Copy Number : " << i << endl;
-
-            if (!dispatcherClient.sendData<Customer>(std::pair<std::string,
-    std::string>("tpch_bench_set1", "TCAP_db"), storeMeCustomerList, errMsg)) {
-                std::cout << "Failed to send data to dispatcher server" << std::endl;
-                return -1;
-            }
-        }
-        // flush to disk
-        distributedStorageManagerClient.flushData(errMsg);
-
-        if (!pdbClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
-            cout << "Not able to register type libCustomerMultiSelection.\n";
-
-        if (!pdbClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
-            cout << "Not able to register type  libOrderMultiSelection.\n";
-
-        if (!pdbClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
-            cout << "Not able to register type libOrderWriteSet.\n";
-
-        if (!pdbClient.registerType("libraries/libScanCustomerSet.so", errMsg))
-            cout << "Not able to register type libScanCustomerSet. \n";
-
-        // now, create the sets for storing Customer Data
-        if (!distributedStorageManagerClient.createSet<CustomerSupplierPart>("TCAP_db",
-    "t_output_se1", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
-
-        // for allocations
-        const UseTemporaryAllocationBlock tempBlock {(size_t) 128 * MB };
-
-        // make the query graph
-        Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TCAP_db", "tpch_bench_set1");
-
-        Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
-        myFlatten->setInput(myScanSet);
-
-        Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TCAP_db",
-    "t_output_se1");
-        myWriteSet->setInput(myFlatten);
-
-
-
-        auto begin = std::chrono::high_resolution_clock::now();
-        if (!queryClient.executeComputations(errMsg, myWriteSet)) {
-            std::cout << "Query failed. Message was: " << errMsg << "\n";
-            return 1;
-        }
-
-        std::cout << std::endl;
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds> (end
-    - begin).count() << " ns." << std::endl;
-
-        std::cout << "to print result..." << std::endl;
-        SetIterator<CustomerSupplierPart> result =
-    queryClient.getSetIterator<CustomerSupplierPart>("TCAP_db", "t_output_se1");
-
-        std::cout << "Query results: ";
-        int count = 0;
-        for (auto a : result) {
-            count++;
-    //		if (count % 10 == 0) {
-                std::cout << count << endl;
-                cout << a->getPartKey() << endl;
-                cout << a->getCustomerName()->c_str() << endl;
-                cout << a->getSupplierName()->c_str() << endl;
-
-    //		}
-        }
-        std::cout << "multi-selection output count:" << count << "\n";
-
-    */
     // Clean up the SO files.
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

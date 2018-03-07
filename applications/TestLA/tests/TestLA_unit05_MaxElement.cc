@@ -107,10 +107,10 @@ int main(int argc, char* argv[]) {
         pdbClient.registerType("libraries/libLAMaxElementOutputType.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA05_db");
+        pdbClient.createDatabase("LA05_db");
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA05_db", "LA_input_set");
+        pdbClient.createSet<MatrixBlock>("LA05_db", "LA_input_set");
 
 
         // Step 2. Add data
@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
                     for (int i = 0; i < storeMe->size(); i++) {
                         (*storeMe)[i]->print();
                     }
-                    if (!pdbClient.sendData<MatrixBlock>(
+                    pdbClient.sendData<MatrixBlock>(
                             std::pair<std::string, std::string>("LA_input_set", "LA05_db"),
                             storeMe);
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!pdbClient.sendData<MatrixBlock>(
+                    pdbClient.sendData<MatrixBlock>(
                             std::pair<std::string, std::string>("LA_input_set", "LA05_db"),
                             storeMe);
                 }
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA05_db", "LA_max_set");
+    pdbClient.createSet<MatrixBlock>("LA05_db", "LA_max_set");
 
     // Step 3. To execute a Query
     // for allocations
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(myWriteSet);
+    pdbClient.executeComputations(myWriteSet);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("LA05_db", "LA_max_set");
     } else {
-        if (!pdbClient.removeSet("LA05_db", "LA_max_set");
+        pdbClient.removeSet("LA05_db", "LA_max_set");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

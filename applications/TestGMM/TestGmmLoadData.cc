@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 
   if (whetherToAddData == true) {
     // now, create a new database
-    if (!pdbClient.createDatabase("gmm_db", errMsg)) {
+    pdbClient.createDatabase("gmm_db", errMsg)) {
       COUT << "Not able to create database: " + errMsg;
       exit(-1);
     } else {
@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
     }
 
     // now, create a new set in that database
-    if (!pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set", errMsg)) {
+    pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set", errMsg)) {
       COUT << "Not able to create set: " + errMsg;
       exit(-1);
     } else {
@@ -252,7 +252,7 @@ int main(int argc, char *argv[]) {
           COUT << "Added " << storeMe->size() << " Total: " << addedData
                << std::endl;
 
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
                   storeMe, errMsg)) {
@@ -262,7 +262,7 @@ int main(int argc, char *argv[]) {
         } catch (pdb::NotEnoughSpace &n) {
           COUT << "Added " << storeMe->size() << " Total: " << addedData
                << std::endl;
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
                   storeMe, errMsg)) {
@@ -332,7 +332,7 @@ int main(int argc, char *argv[]) {
           // send the rest of data at the end, it can happen that the exception
           // never
           // happens.
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
                   storeMe, errMsg)) {
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
 
           pdbClient.flushData(errMsg);
         } catch (pdb::NotEnoughSpace &n) {
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
                   storeMe, errMsg)) {

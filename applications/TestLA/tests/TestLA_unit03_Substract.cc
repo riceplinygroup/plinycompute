@@ -105,13 +105,13 @@ int main(int argc, char* argv[]) {
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA03_db");
+        pdbClient.createDatabase("LA03_db");
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA03_db", "LA_input_set1");
+        pdbClient.createSet<MatrixBlock>("LA03_db", "LA_input_set1");
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA03_db", "LA_input_set2");
+        pdbClient.createSet<MatrixBlock>("LA03_db", "LA_input_set2");
 
 
         // Step 2. Substract data
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (!pdbClient.sendData<MatrixBlock>(
+        pdbClient.sendData<MatrixBlock>(
                 std::pair<std::string, std::string>("LA_input_set1", "LA03_db"),
                 storeMatrix1);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (!pdbClient.sendData<MatrixBlock>(
+        pdbClient.sendData<MatrixBlock>(
                 std::pair<std::string, std::string>("LA_input_set2", "LA03_db"),
                 storeMatrix2);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA03_db", "LA_diff_set");
+    pdbClient.createSet<MatrixBlock>("LA03_db", "LA_diff_set");
 
     // Step 3. To execute a Query
     // for allocations
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(mySumWriteSet);
+    pdbClient.executeComputations(mySumWriteSet);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("LA03_db", "LA_diff_set");
     } else {
-        if (!pdbClient.removeSet("LA03_db", "LA_diff_set");
+        pdbClient.removeSet("LA03_db", "LA_diff_set");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

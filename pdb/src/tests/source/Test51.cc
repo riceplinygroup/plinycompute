@@ -45,30 +45,15 @@ int main(int argc, char* argv[]) {
     string errMsg;
 
     // now, create a new database
-    if (!temp.createDatabase("chris_db", errMsg)) {
-        cout << "Not able to create database: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created database.\n";
-    }
+    if (!temp.createDatabase("chris_db");
 
     // now, create a new set in that database
-    if (!temp.createSet("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    if (!temp.createSet("chris_db", "chris_set", "pdb::Supervisor");
 
 
     // now, create a new set in that database
     if (!temp.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>>(
-            "chris_db", "output_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+            "chris_db", "output_set1");
 
 
     if (!temp.removeSet("chris_db", "output_set1", errMsg)) {
