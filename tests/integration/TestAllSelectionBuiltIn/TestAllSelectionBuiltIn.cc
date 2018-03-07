@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
     }
     // now, create a new set in that database to store output data

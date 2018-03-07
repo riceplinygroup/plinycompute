@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
                     storeMeToo);
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
 
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
 
 	/* Add data from the input file */
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
                     std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"),
                     storeMeToo);
             pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
     }
 
     /* Create sets to store the intermediate data that will be used between iterations */

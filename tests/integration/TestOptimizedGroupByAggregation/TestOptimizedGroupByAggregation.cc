@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
                                     std::pair<std::string, std::string>("test90_set", "test90_db"),
                                     storeMe);
                             std::cout << "total = " << total << std::endl;
-                            pdbClient.flushData(errMsg);
+                            pdbClient.flushData();
                             return 0;
                         }
                     }
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
     }
 

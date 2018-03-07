@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             std::cout << "input set 1: total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
 
         // Step 3. Add data to set2
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
             std::cout << "input set 2: total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
 
         // Step 4. Add data to set3
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
             std::cout << "input set 3: total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
     }
 

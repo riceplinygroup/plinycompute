@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     }
 
     // and shut down the server
-    temp.flushData(errMsg);
+    temp.flushData();
     /*
         if (!temp.shutDownServer (errMsg))
             std :: cout << "Shut down not clean: " << errMsg << "\n";
