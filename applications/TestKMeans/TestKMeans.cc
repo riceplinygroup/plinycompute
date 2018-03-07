@@ -398,10 +398,7 @@ int main(int argc, char *argv[]) {
     myQuery->setInput(myScanSet);
     myQuery->setOutput("kmeans_db", "kmeans_output_set");
 
-    pdbClient.executeComputations(errMsg, myQuery)) {
-      std::cout << "Query failed. Message was: " << errMsg << "\n";
-      return 1;
-    }
+    pdbClient.executeComputations(myQuery);
 
     /* Update the model */
     SetIterator<KMeansAggregateOutputType> result =
