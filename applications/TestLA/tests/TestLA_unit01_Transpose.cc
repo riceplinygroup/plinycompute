@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
-        pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
+        pdbClient.registerType("libraries/libMatrixBlock.so");
 
         // now, create a new database
         pdbClient.createDatabase("LA01_db");

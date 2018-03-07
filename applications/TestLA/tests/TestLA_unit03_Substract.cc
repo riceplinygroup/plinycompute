@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, Substract this line back!!!
-        pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
+        pdbClient.registerType("libraries/libMatrixBlock.so");
 
         // now, create a new database
         pdbClient.createDatabase("LA03_db");
@@ -193,9 +193,9 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLASubstractJoin.so", errMsg);
-    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
-    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
+    pdbClient.registerType("libraries/libLASubstractJoin.so");
+    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so");
+    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so");
 
 
 

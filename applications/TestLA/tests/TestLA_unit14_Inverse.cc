@@ -104,10 +104,10 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
-        pdbClient.registerType("libraries/libMatrixMeta.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixData.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
-        pdbClient.registerType("libraries/libLASingleMatrix.so", errMsg);
+        pdbClient.registerType("libraries/libMatrixMeta.so");
+        pdbClient.registerType("libraries/libMatrixData.so");
+        pdbClient.registerType("libraries/libMatrixBlock.so");
+        pdbClient.registerType("libraries/libLASingleMatrix.so");
 
 
         // now, create a new database
@@ -192,11 +192,11 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLAInverse1Aggregate.so", errMsg);
-    pdbClient.registerType("libraries/libLAInverse2Selection.so", errMsg);
-    pdbClient.registerType("libraries/libLAInverse3MultiSelection.so", errMsg);
-    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
-    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
+    pdbClient.registerType("libraries/libLAInverse1Aggregate.so");
+    pdbClient.registerType("libraries/libLAInverse2Selection.so");
+    pdbClient.registerType("libraries/libLAInverse3MultiSelection.so");
+    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so");
+    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so");
 
 
 

@@ -103,19 +103,19 @@ int main(int argc, char* argv[]) {
     string errMsg;
 
     cout << "Register Types Part, Supplier, LineItem, Order, Customer \n";
-    pdbClient.registerType("libraries/libPart.so", errMsg))
+    pdbClient.registerType("libraries/libPart.so"))
         cout << "Not able to register libPart type.\n";
 
-    pdbClient.registerType("libraries/libSupplier.so", errMsg))
+    pdbClient.registerType("libraries/libSupplier.so"))
         cout << "Not able to register libSupplier type.\n";
 
-    pdbClient.registerType("libraries/libLineItem.so", errMsg))
+    pdbClient.registerType("libraries/libLineItem.so"))
         cout << "Not able to register libLineItem type.\n";
 
-    pdbClient.registerType("libraries/libOrder.so", errMsg))
+    pdbClient.registerType("libraries/libOrder.so"))
         cout << "Not able to register libOrder type.\n";
 
-    pdbClient.registerType("libraries/libCustomer.so", errMsg))
+    pdbClient.registerType("libraries/libCustomer.so"))
         cout << "Not able to register libCustomer type.\n";
 
     cout << errMsg << endl;
@@ -142,34 +142,34 @@ int main(int argc, char* argv[]) {
     cout << "Register further Types ... \n";
 
 
-    pdbClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
+    pdbClient.registerType("libraries/libSumResultWriteSet.so"))
         cout << "Not able to register type libSumResultWriteSet.\n";
 
-    pdbClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
+    pdbClient.registerType("libraries/libCustomerWriteSet.so"))
         cout << "Not able to register type libCustomerWriteSet.\n";
 
-    pdbClient.registerType("libraries/libScanCustomerSet.so", errMsg))
+    pdbClient.registerType("libraries/libScanCustomerSet.so"))
         cout << "Not able to register type libScanCustomerSet. \n";
 
-    pdbClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
+    pdbClient.registerType("libraries/libCustomerMultiSelection.so"))
         cout << "Not able to register type libCustomerMapSelection. \n";
 
-    pdbClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
+    pdbClient.registerType("libraries/libCustomerSupplierPartGroupBy.so"))
         cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
-    pdbClient.registerType("libraries/libSupplierInfo.so", errMsg))
+    pdbClient.registerType("libraries/libSupplierInfo.so"))
         cout << "Not able to register type  libSupplierInfo\n";
 
-    pdbClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
+    pdbClient.registerType("libraries/libCustomerSupplierPartFlat.so"))
         cout << "Not able to register type  libCustomerSupplierPartFlat\n";
 
-    pdbClient.registerType("libraries/libCountAggregation.so", errMsg))
+    pdbClient.registerType("libraries/libCountAggregation.so"))
         cout << "Not able to register type  libCountAggregation\n";
 
-    pdbClient.registerType("libraries/libCountCustomer.so", errMsg))
+    pdbClient.registerType("libraries/libCountCustomer.so"))
         cout << "Not able to register type  libCountCustomer\n";
 
-    pdbClient.registerType("libraries/libSupplierInfoWriteSet.so", errMsg))
+    pdbClient.registerType("libraries/libSupplierInfoWriteSet.so"))
         cout << "Not able to register type libSupplierInfoWriteSet\n";
 
     cout << errMsg << endl;

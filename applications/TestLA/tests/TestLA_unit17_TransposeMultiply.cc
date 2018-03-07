@@ -103,9 +103,9 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, Substract this line back!!!
-        pdbClient.registerType("libraries/libMatrixMeta.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixData.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
+        pdbClient.registerType("libraries/libMatrixMeta.so");
+        pdbClient.registerType("libraries/libMatrixData.so");
+        pdbClient.registerType("libraries/libMatrixBlock.so");
 
         // now, create a new database
         pdbClient.createDatabase("LA07_db");
@@ -201,10 +201,10 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLATransposeMultiply1Join.so", errMsg);
-    pdbClient.registerType("libraries/libLAMultiply2Aggregate.so", errMsg);
-    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
-    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
+    pdbClient.registerType("libraries/libLATransposeMultiply1Join.so");
+    pdbClient.registerType("libraries/libLAMultiply2Aggregate.so");
+    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so");
+    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so");
 
 
 
