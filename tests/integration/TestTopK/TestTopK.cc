@@ -73,14 +73,11 @@ int main(int argc, char* argv[]) {
 
         std::string errMsg;
         bool result = true;
-        result = result && pdbClient.registerType("libraries/libEmpWithVector.so");
-        result = result && pdbClient.registerType("libraries/libTopKTest.so");
-        result = result && pdbClient.registerType("libraries/libScanEmpWithVector.so");
-        result = result && pdbClient.registerType("libraries/libWriteEmpWithVector.so");
-        if (!result) {
-            std::cout << "Registering type failed: " << errMsg << "\n";
-            exit(1);
-        }
+        pdbClient.registerType("libraries/libEmpWithVector.so");
+        pdbClient.registerType("libraries/libTopKTest.so");
+        pdbClient.registerType("libraries/libScanEmpWithVector.so");
+        pdbClient.registerType("libraries/libWriteEmpWithVector.so");
+
     }
 
     // if we add data
