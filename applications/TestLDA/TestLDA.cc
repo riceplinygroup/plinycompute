@@ -154,20 +154,17 @@ int main(int argc, char* argv[]) {
         /* Create the Database and Sets */
         pdbClient.createDatabase("LDA_db");
 
-        pdbClient.removeSet("LDA_db", "LDA_input_set", errMsg);
+        pdbClient.removeSet("LDA_db", "LDA_input_set");
         pdbClient.createSet<LDADocument>("LDA_db",
                                          "LDA_input_set");
-	    std::cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        }
 
-        pdbClient.removeSet("LDA_db", "LDA_meta_data_set", errMsg);
+        pdbClient.removeSet("LDA_db", "LDA_meta_data_set");
         pdbClient.createSet<int>("LDA_db",
                                  "LDA_meta_data_set");
 
         int blockSize = 8;
 
-	/* Add synthetic data */
+	    /* Add synthetic data */
         if (!whetherAddFromFile && numDoc > 0) {
 
             pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
@@ -304,19 +301,19 @@ int main(int argc, char* argv[]) {
     std::string myNextWriterForTopicsPerDocSetName =
         std::string("TopicsPerDoc") + std::to_string(1);
 
-    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerDocSetName, errMsg);
+    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerDocSetName);
     pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextReaderForTopicsPerDocSetName);
 
-    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerWordSetName, errMsg);
+    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerWordSetName);
     pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextReaderForTopicsPerWordSetName);
 
-    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerDocSetName, errMsg);
+    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerDocSetName);
     pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextWriterForTopicsPerDocSetName);
 
-    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerWordSetName, errMsg);
+    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerWordSetName);
     pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
                                              myNextWriterForTopicsPerWordSetName);
 
