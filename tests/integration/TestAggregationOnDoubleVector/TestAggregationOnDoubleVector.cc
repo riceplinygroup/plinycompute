@@ -111,20 +111,10 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!pdbClient.createDatabase("test83_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("test83_db");
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<DoubleVector>("test83_db", "test83_set", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<DoubleVector>("test83_db", "test83_set");
 
 
         // Step 2. Add data
@@ -163,13 +153,9 @@ int main(int argc, char* argv[]) {
                             ((*storeMe)[i])->print();
                         }
                     }
-                    if (!pdbClient.sendData<DoubleVector>(
+                    pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("test83_set", "test83_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -182,18 +168,13 @@ int main(int argc, char* argv[]) {
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<DoubleVector>("test83_db", "output_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<DoubleVector>("test83_db", "output_set1");
 
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    pdbClient.registerType("libraries/libDoubleVectorAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libDoubleVectorAggregation.so");
 
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("test83_db", "test83_set");
@@ -202,10 +183,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myAgg)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myAgg);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -249,12 +227,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("test83_db", "output_set1");
     } else {
-        if (!pdbClient.removeSet("test83_db", "output_set1", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        pdbClient.removeSet("test83_db", "output_set1");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

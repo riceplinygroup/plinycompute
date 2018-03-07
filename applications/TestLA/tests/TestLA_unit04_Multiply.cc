@@ -108,28 +108,13 @@ int main(int argc, char* argv[]) {
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA04_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        if (!pdbClient.createDatabase("LA04_db");
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_input_set1", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_input_set1");
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_input_set2", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_input_set2");
 
 
         // Step 2. Substract data
@@ -165,11 +150,7 @@ int main(int argc, char* argv[]) {
 
         if (!pdbClient.sendData<MatrixBlock>(
                 std::pair<std::string, std::string>("LA_input_set1", "LA04_db"),
-                storeMatrix1,
-                errMsg)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-        }
+                storeMatrix1);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
         // to write back all buffered records
         pdbClient.flushData(errMsg);
@@ -200,11 +181,7 @@ int main(int argc, char* argv[]) {
 
         if (!pdbClient.sendData<MatrixBlock>(
                 std::pair<std::string, std::string>("LA_input_set2", "LA04_db"),
-                storeMatrix2,
-                errMsg)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-        }
+                storeMatrix2);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
         // to write back all buffered records
         pdbClient.flushData(errMsg);
@@ -212,12 +189,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_product_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    if (!pdbClient.createSet<MatrixBlock>("LA04_db", "LA_product_set");
 
     // Step 3. To execute a Query
     // for allocations
@@ -247,10 +219,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myProductWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    if (!pdbClient.executeComputations(myProductWriteSet);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -306,12 +275,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("LA04_db", "LA_product_set");
     } else {
-        if (!pdbClient.removeSet("LA04_db", "LA_product_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        if (!pdbClient.removeSet("LA04_db", "LA_product_set");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

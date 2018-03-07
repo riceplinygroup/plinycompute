@@ -22,55 +22,96 @@
 
 namespace pdb {
 
-template <class DataType>
-bool PDBClient::createSet(const std::string &databaseName,
-                          const std::string &setName, std::string &errMsg, size_t pageSize) {
+    template <class DataType>
+    void PDBClient::createSet(const std::string &databaseName,
+                              const std::string &setName, size_t pageSize) {
 
-  return distributedStorageClient.createSet<DataType>(
-        databaseName, setName, errMsg, pageSize);
-}
+      string errMsg;
 
-template <class DataType>
-bool PDBClient::createSet(const std::string &databaseName,
-                          const std::string &setName, std::string &errMsg) {
+      bool result = distributedStorageClient.createSet<DataType>(
+            databaseName, setName, errMsg, pageSize);
 
-  return distributedStorageClient.createSet<DataType>(
-      databaseName, setName, errMsg, DEFAULT_PAGE_SIZE);
-}
+      if (result==false) {
+          std::cout << "Not able to create set: " + errMsg;
+          exit(-1);
+      } else {
+          std::cout << "Created set.\n";
+      }
+    }
 
-template <class DataType>
-bool PDBClient::sendData(std::pair<std::string, std::string> setAndDatabase,
-                         Handle<Vector<Handle<DataType>>> dataToSend,
-                         std::string &errMsg) {
+    template <class DataType>
+    void PDBClient::createSet(const std::string &databaseName,
+                              const std::string &setName) {
 
-  return dispatcherClient.sendData<DataType>(setAndDatabase, dataToSend,
-                                             errMsg);
-}
+      string errMsg;
 
-template <class DataType>
-bool PDBClient::sendBytes(std::pair<std::string, std::string> setAndDatabase,
-               char* bytes,
-               size_t numBytes,
-               std::string& errMsg){
+      bool result = distributedStorageClient.createSet<DataType>(
+          databaseName, setName, errMsg, DEFAULT_PAGE_SIZE);
 
-    return dispatcherClient.sendBytes<DataType>(
-            setAndDatabase,
-            bytes,
-            numBytes,
-            errMsg);
-}
+      if (result==false) {
+          std::cout << "Not able to create set: " + errMsg;
+          exit(-1);
+      } else {
+          std::cout << "Created set.\n";
+      }
+    }
 
-template <class... Types>
-bool PDBClient::executeComputations(std::string &errMsg,
-                                    Handle<Computation> firstParam,
-                                    Handle<Types>... args) {
-  return queryClient.executeComputations(errMsg, firstParam, args...);
-}
+    template <class DataType>
+    void PDBClient::sendData(std::pair<std::string, std::string> setAndDatabase,
+                             Handle<Vector<Handle<DataType>>> dataToSend) {
 
-template <class Type>
-SetIterator<Type> PDBClient::getSetIterator(std::string databaseName,
-                                            std::string setName) {
-  return queryClient.getSetIterator<Type>(databaseName, setName);
-}
+      string errMsg;
+
+      bool result = dispatcherClient.sendData<DataType>(setAndDatabase, dataToSend,
+                                                 errMsg);
+
+      if (result==false) {
+          std::cout << "Not able to send data: " + errMsg;
+          exit(-1);
+      } else {
+          std::cout << "Data sent.\n";
+      }
+    }
+
+    template <class DataType>
+    void PDBClient::sendBytes(std::pair<std::string, std::string> setAndDatabase,
+                   char* bytes,
+                   size_t numBytes){
+
+      string errMsg;
+
+      bool result = dispatcherClient.sendBytes<DataType>(
+                setAndDatabase,
+                bytes,
+                numBytes,
+                errMsg);
+
+        if (result==false) {
+            std::cout << "Not able to send bytes: " + errMsg;
+            exit(-1);
+        } else {
+            std::cout << "Bytes sent.\n";
+        }
+    }
+
+    template <class... Types>
+    void PDBClient::executeComputations(Handle<Computation> firstParam,
+                                        Handle<Types>... args) {
+      string errMsg;
+
+      bool result = queryClient.executeComputations(errMsg, firstParam, args...);
+
+      if (result==false) {
+          std::cout << "Not able to execute computations: " + errMsg;
+          exit(-1);
+      }
+    }
+
+    template <class Type>
+    SetIterator<Type> PDBClient::getSetIterator(std::string databaseName,
+                                                std::string setName) {
+
+      return queryClient.getSetIterator<Type>(databaseName, setName);
+    }
 }
 #endif

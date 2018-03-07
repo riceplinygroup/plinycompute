@@ -208,19 +208,9 @@ int main(int argc, char *argv[]) {
 
   if (whetherToAddData == true) {
     // now, create a new database
-    if (!pdbClient.createDatabase("gmm_db", errMsg)) {
-      COUT << "Not able to create database: " + errMsg;
-      exit(-1);
-    } else {
-      COUT << "Created database.\n";
-    }
+    pdbClient.createDatabase("gmm_db");
 
-    if (!pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set", errMsg)) {
-      COUT << "Not able to create set: " + errMsg;
-      exit(-1);
-    } else {
-      COUT << "Created set.\n";
-    }
+    pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set");
   }
 
   // Step 2. Add data

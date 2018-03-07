@@ -121,20 +121,10 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!pdbClient.createDatabase("test90_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("test90_db");
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<OptimizedSupervisor>("test90_db", "test90_set", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<OptimizedSupervisor>("test90_db", "test90_set");
 
 
         // Step 2. Add data
@@ -203,14 +193,9 @@ int main(int argc, char* argv[]) {
                         storeMe->push_back(myData);
                         total++;
                         if (total == numObjects) {
-                            if (!pdbClient.sendData<OptimizedSupervisor>(
+                            pdbClient.sendData<OptimizedSupervisor>(
                                     std::pair<std::string, std::string>("test90_set", "test90_db"),
-                                    storeMe,
-                                    errMsg)) {
-                                std::cout << "Failed to send data to dispatcher server"
-                                          << std::endl;
-                                return -1;
-                            }
+                                    storeMe);
                             std::cout << "total = " << total << std::endl;
                             pdbClient.flushData(errMsg);
                             return 0;
@@ -218,13 +203,9 @@ int main(int argc, char* argv[]) {
                     }
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!pdbClient.sendData<OptimizedSupervisor>(
+                    pdbClient.sendData<OptimizedSupervisor>(
                             std::pair<std::string, std::string>("test90_set", "test90_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -240,18 +221,13 @@ int main(int argc, char* argv[]) {
     if (strcmp(argv[5], "JustStoreData") != 0) {
 
         PDB_COUT << "to create a new set for storing output data" << std::endl;
-        if (!pdbClient.createSet<OptimizedDepartmentEmployees>("test90_db", "output_set", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<OptimizedDepartmentEmployees>("test90_db", "output_set");
 
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
         // register this query class
-        pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
+        pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so");
 
         // create all of the computation objects
         Handle<Computation> myScanSet =
@@ -262,10 +238,7 @@ int main(int argc, char* argv[]) {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!pdbClient.executeComputations(errMsg, myAgg)) {
-            std::cout << "Query failed. Message was: " << errMsg << "\n";
-            return 1;
-        }
+        pdbClient.executeComputations(myAgg);
         std::cout << std::endl;
 
         auto end = std::chrono::high_resolution_clock::now();
@@ -293,12 +266,7 @@ int main(int argc, char* argv[]) {
             // and delete the sets
             pdbClient.deleteSet("test90_db", "output_set");
         } else {
-            if (!pdbClient.removeSet("test90_db", "output_set", errMsg)) {
-                cout << "Not able to remove set: " + errMsg;
-                exit(-1);
-            } else {
-                cout << "Removed set.\n";
-            }
+            pdbClient.removeSet("test90_db", "output_set");
         }
 
         std::cout << "Time Duration: "

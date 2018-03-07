@@ -104,20 +104,10 @@ int main(int argc, char* argv[]) {
         pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA01_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("LA01_db");
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA01_db", "LA_input_set", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<MatrixBlock>("LA01_db", "LA_input_set");
 
 
         // Step 2. Add data
@@ -174,21 +164,13 @@ int main(int argc, char* argv[]) {
                     for (int i = 0; i < storeMe->size(); i++) {
                         (*storeMe)[i]->print();
                     }
-                    if (!pdbClient.sendData<MatrixBlock>(
+                    pdbClient.sendData<MatrixBlock>(
                             std::pair<std::string, std::string>("LA_input_set", "LA01_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!pdbClient.sendData<MatrixBlock>(
+                    pdbClient.sendData<MatrixBlock>(
                             std::pair<std::string, std::string>("LA_input_set", "LA01_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -202,23 +184,16 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA01_db", "LA_transpose_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<MatrixBlock>("LA01_db", "LA_transpose_set");
 
     // Step 3. To execute a Query
     // for allocations
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLATransposeSelection.so", errMsg);
-    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
-    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
-
-
+    pdbClient.registerType("libraries/libLATransposeSelection.so");
+    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so");
+    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so");
 
     Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA01_db", "LA_input_set");
     Handle<Computation> myQuery = makeObject<LATransposeSelection>();
@@ -231,10 +206,8 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriteSet);
+
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -277,12 +250,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("LA01_db", "LA_transpose_set");
     } else {
-        if (!pdbClient.removeSet("LA01_db", "LA_transpose_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        pdbClient.removeSet("LA01_db", "LA_transpose_set");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {
