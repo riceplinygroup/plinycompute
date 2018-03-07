@@ -208,7 +208,7 @@ namespace pdb {
     }
 
     std::function<bool(Handle<SimpleRequestResult>)>
-    PDBClient::generateResponseHandler(std::string description) {
+    PDBClient::generateResponseHandler(std::string description, std::string &errMsg) {
 
       return [&](Handle<SimpleRequestResult> result) {
         if (result != nullptr) {
@@ -265,29 +265,34 @@ namespace pdb {
 
     void PDBClient::printCatalogMetadata(
         pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch) {
-
-        cout << catalogClient->printCatalogMetadata (
+      string errMsg;
+      cout << catalogClient->printCatalogMetadata (
           itemToSearch,
           errMsg) ;
     }
 
     void PDBClient::listAllRegisteredMetadata() {
+      string errMsg;
       cout <<  catalogClient->listAllRegisteredMetadata(errMsg);
     }
 
     void PDBClient::listRegisteredDatabases() {
+      string errMsg;
       cout << catalogClient->listRegisteredDatabases(errMsg);
     }
 
     void PDBClient::listRegisteredSetsForADatabase(std::string databaseName) {
+      string errMsg;
       cout << catalogClient->listRegisteredSetsForADatabase(databaseName, errMsg);
     }
 
     void PDBClient::listNodesInCluster() {
+      string errMsg;
       cout << catalogClient->listNodesInCluster(errMsg);
     }
 
     void PDBClient::listUserDefinedTypes() {
+      string errMsg;
       cout << catalogClient->listUserDefinedTypes(errMsg);
     }
 
