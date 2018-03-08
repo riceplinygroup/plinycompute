@@ -1,11 +1,13 @@
-**Acknowledgements**: PlinyCompute's coding style for C
+***Acknowledgements***: 
+
+PlinyCompute's coding style for C
 ++ is customized from following coding standards:
 
 (1) Peloton coding style: https://github.com/cmu-db/peloton/edit/master/script/coding_style.md
 
 (2) Google C++ coding style: https://google.github.io/styleguide/cppguide.html
 
-
+***Standards***
 
 
 **VARIABLE AND FUNCTION NAMES**: Use descriptive variable and function names. 
