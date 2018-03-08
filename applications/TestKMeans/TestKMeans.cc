@@ -248,6 +248,7 @@ int main(int argc, char *argv[]) {
                 std::pair<std::string, std::string>("kmeans_input_set",
                                                     "kmeans_db"),
                 storeMe);
+        pdbClient.flushData();
         rollback = true;
       }
     }
