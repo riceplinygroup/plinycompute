@@ -185,7 +185,6 @@ namespace pdb {
                                                errMsg);
       if (result==false) {
           std::cout << "Not able to clear set: " + errMsg;
-          exit(-1);
       } else {
           std::cout << "Set has been cleared.\n";
       }
