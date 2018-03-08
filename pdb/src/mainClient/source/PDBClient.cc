@@ -125,7 +125,6 @@ namespace pdb {
       bool result = distributedStorageClient.removeDatabase(databaseName, errMsg);
        if (result==false) {
            std::cout << "Not able to remove database: " + errMsg;
-           exit(-1);
        } else {
            std::cout << "Database has been removed.\n";
        }
@@ -139,7 +138,6 @@ namespace pdb {
       bool result = distributedStorageClient.removeSet(databaseName, setName, errMsg);
       if (result==false) {
           std::cout << "Not able to remove set: " + errMsg;
-          exit(-1);
       } else {
           std::cout << "Set has been removed.\n";
       }
@@ -155,7 +153,6 @@ namespace pdb {
                                                     errMsg);
       if (result==false) {
           std::cout << "Not able to remove Temp set: " + errMsg;
-          exit(-1);
       } else {
           std::cout << "Temp set removed.\n";
       }
