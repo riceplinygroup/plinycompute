@@ -87,6 +87,7 @@ namespace pdb {
         } else {
             cout << "Bytes sent.\n";
         }
+        return result;
     }
 
     template <class... Types>
