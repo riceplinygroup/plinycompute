@@ -479,12 +479,12 @@ int main(int argc, char* argv[]) {
             std::string("TopicsPerDoc") + std::to_string(n % 2);
         if (!pdbClient.clearSet(
                 "LDA_db", myReaderForTopicsPerWordSetName, "pdb::IntDoubleVectorPair", errMsg)) {
-	    std::cout << "Not able to create set: " + errMsg;
+	    std::cout << "Not able to clear set: " + errMsg;
             exit(-1);
         }
         if (!pdbClient.clearSet(
                 "LDA_db", myReaderForTopicsPerDocSetName, "pdb::IntDoubleVectorPair", errMsg)) {
-	    std::cout << "Not able to create set: " + errMsg;
+	    std::cout << "Not able to clear set: " + errMsg;
             exit(-1);
         }
 
