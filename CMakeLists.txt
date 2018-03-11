@@ -151,36 +151,44 @@ include_directories(${GSL_INCLUDE_DIRS} ${GSLCBLAS_INCLUDE_DIRS})
 #find snappy
 FIND_PACKAGE(Snappy REQUIRED)
 
-# setup the command to generate the object ids
-SET(BUILT_IN_OBJECT_TYPE_ID ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h)
-ADD_CUSTOM_COMMAND(OUTPUT "${BUILT_IN_OBJECT_TYPE_ID}"
-        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltInObjectTypeIDs
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/pdb"
-        COMMENT "Generating type codes!"
-        BUILD_BYPRODUCTS "${BUILT_IN_OBJECT_TYPE_ID}")
-
-# setup the command to generate the object ids
-SET(BUILT_IN_PDB_OBJECTS ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h)
+# the files generated from the type codes
+SET(BUILT_IN_OBJECT_TYPE_ID        ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h)
+SET(BUILT_IN_PDB_OBJECTS           ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h)
 SET(BUILT_IN_PDB_OBJECTS_GENERATED ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.h
-        ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.cc)
-ADD_CUSTOM_COMMAND(
-        OUTPUT "${BUILT_IN_PDB_OBJECTS}"
-        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltinPDBObjects
+                                   ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltinPDBObjects.cc)
+
+# mark the files as generated
+SET_SOURCE_FILES_PROPERTIES(${BUILT_IN_PDB_OBJECTS_GENERATED} PROPERTIES GENERATED TRUE)
+SET_SOURCE_FILES_PROPERTIES(${BUILT_IN_OBJECT_TYPE_ID} PROPERTIES GENERATED TRUE)
+
+# add the commands to generate the type ids
+add_custom_command (
+        OUTPUT  object-type-ids-command
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
+        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltInObjectTypeIDs ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
+        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltinPDBObjects ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/pdb"
         COMMENT "Generating type codes!"
-        BUILD_BYPRODUCTS "${BUILT_IN_PDB_OBJECTS_GENERATED}"
 )
+
+# create a target to run the command and make every other target depend on it so it gets to run first
+add_custom_target(object-type-ids ALL
+        DEPENDS object-type-ids-command
+)
+
+# include the directory we just created in the clean target
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/type-id-data)
 
 # find the threads library
 find_package(Threads)
 
 # setup the libraries
 add_library(sql-lite OBJECT ${SOURCE_FILES_SQL_LITE})
-add_library(server-functionalities OBJECT ${SERVER_FUNCTIONALITIES_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID})
-add_library(communication OBJECT ${COMMUNICATION_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID})
+add_library(server-functionalities OBJECT ${SERVER_FUNCTIONALITIES_SOURCE})
+add_library(communication OBJECT ${COMMUNICATION_SOURCE})
 add_library(catalog OBJECT ${CATALOG_SOURCE})
 add_library(dispatcher OBJECT ${DISPATCHER_SOURCE})
-add_library(lib-pdb-server OBJECT ${PDB_SERVER_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID})
+add_library(lib-pdb-server OBJECT ${PDB_SERVER_SOURCE})
 add_library(query-execution OBJECT ${QUERY_EXECUTION_SOURCE})
 add_library(query-planning OBJECT ${QUERY_PANNING_SOURCE})
 add_library(work OBJECT ${WORK_SOURCE})
@@ -188,9 +196,18 @@ add_library(memory OBJECT ${MEMORY_SOURCE})
 add_library(storage OBJECT ${STORAGE_SOURCE})
 add_library(distribution-manager OBJECT ${DISTRIBUTION_MANAGER_SOURCE})
 add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
-add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
-add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
-add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
+add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE})
+add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
+add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE})
+
+# add the dependencies to the object type generationg
+add_dependencies(server-functionalities object-type-ids)
+add_dependencies(communication object-type-ids)
+add_dependencies(object-model object-type-ids)
+add_dependencies(pdb-client object-type-ids)
+add_dependencies(logical-plan object-type-ids)
+add_dependencies(lib-pdb-server object-type-ids)
+add_dependencies(distribution-manager object-type-ids)
 
 # used to build the pdb-cluster and pdb-server
 add_library(pdb-server-common $<TARGET_OBJECTS:catalog>

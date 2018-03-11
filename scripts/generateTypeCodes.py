@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+import hashlib
 from os import listdir
 from os.path import isfile, join, abspath
 
@@ -13,11 +14,73 @@ only_files = [abspath(join(object_headers, f))
               for f in listdir(object_headers) if isfile(join(object_headers, f)) and f[-2:] == '.h']
 
 
+def check_if_changed(includes, classes):
+
+    # if the size of the arguments is not three we are not doing anything
+    if len(sys.argv) != 3:
+        return False
+
+    # hash file name
+    hash_file = '%s/.__type_codes_hash_%s' % (sys.argv[2], sys.argv[1])
+
+    # check if hash file exits
+    if os.path.isfile(hash_file):
+
+        # if so open it
+        with open(hash_file, "rb") as file:
+            hash = file.read()
+    else:
+        hash = ""
+
+    # get the hash
+    m = get_hash(classes, includes)
+
+    # return true if they are equal
+    return hash != m
+
+
+def write_out_hash(includes, classes):
+
+    # if the size of the arguments is not three we are not doing anything
+    if len(sys.argv) != 3:
+        return
+
+    # hash file name
+    hash_file = '%s/.__type_codes_hash_%s' % (sys.argv[2], sys.argv[1])
+
+    # get the hash
+    m = get_hash(classes, includes)
+
+    with open(hash_file, 'wb') as file:
+        file.write(m)
+
+
+def get_hash(classes, includes):
+
+    # initialize tha hash object
+    m = hashlib.sha256()
+
+    # go through all the classes
+    for c in classes:
+        m.update(c.encode('utf-8'))
+
+    # go through all the includes
+    for i in includes:
+        m.update(i.encode('utf-8'))
+
+    # return the hash
+    return m.digest()
+
+
 def extract_code(sources):
     # Sort the class names so that we have consistent type ids
     scanned = list(scan_class_names(sources))
     scanned.sort()
-    write_files(includes=sources, classes=scanned)
+
+    # check if there has been a change
+    if check_if_changed(includes=sources, classes=scanned):
+        write_files(includes=sources, classes=scanned)
+        write_out_hash(includes=sources, classes=scanned)
 
 
 def scan_class_names(includes):
@@ -38,15 +101,16 @@ def scan_class_names(includes):
 
 
 def write_files(includes, classes):
-    if len(sys.argv[1]) == 2 and sys.argv[1] == "BuiltinPDBObjects":
+    if len(sys.argv) == 3 and sys.argv[1] == "BuiltinPDBObjects":
         write_include_file(includes)
         write_code_file(classes)
-    elif len(sys.argv[1]) == 2 and sys.argv[1] == "BuiltInObjectTypeIDs":
+    elif len(sys.argv) == 3 and sys.argv[1] == "BuiltInObjectTypeIDs":
         write_type_codes_file(classes)
     else:
         write_include_file(includes)
         write_code_file(classes)
         write_type_codes_file(classes)
+
 
 def path_split(p, rest=None):
     if rest is None:
@@ -55,6 +119,7 @@ def path_split(p, rest=None):
     if len(h) < 1: return [t]+rest
     if len(t) < 1: return [h]+rest
     return path_split(h, [t] + rest)
+
 
 def common_path(l1, l2, common=None):
     if common is None:
@@ -65,6 +130,7 @@ def common_path(l1, l2, common=None):
     if l1[0] != l2[0]: return common, l1, l2
     return common_path(l1[1:], l2[1:], common + [l1[0]])
 
+
 def rel_path(p1, p2):
     (common,l1,l2) = common_path(path_split(p1), path_split(p2))
     p = []
@@ -72,6 +138,7 @@ def rel_path(p1, p2):
         p = [ '../' * len(l1) ]
     p = p + l2
     return os.path.join( *p )
+
 
 def write_include_file(includes):
     #
@@ -126,5 +193,6 @@ def write_type_codes_file(classes):
         # Remove the namespace if any
         class_name = class_name.rsplit("::")[-1]
         type_codes_file.write('#define ' + class_name + '_TYPEID ' + str(2 + counter) + '\n')
+
 
 extract_code(only_files)

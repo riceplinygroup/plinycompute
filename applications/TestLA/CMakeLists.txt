@@ -50,7 +50,10 @@ IF (BISON_FOUND)
 ENDIF ()
 
 add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
-add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearAlgebraDSLParserOutput} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
+add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearAlgebraDSLParserOutput})
+
+# add a dependency to the object type generation
+add_dependencies(linear-algebra object-type-ids)
 
 ###
 ### Linear algebra nit Tests
