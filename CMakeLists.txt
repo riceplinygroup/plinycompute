@@ -59,13 +59,16 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/serverFunctionalities/headers
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/catalog/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/builtInPDBObjects/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/conf/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sqlite/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/mainClient/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/storage/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/objectModel/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sharedLibraries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/mustache/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/mainClient/headers")
+
+# add the third party libraries as includes
+include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
+include_directories("${PROJECT_SOURCE_DIR}/third-party/sqlite/headers")
+
 
 # specify the source files
 file(GLOB SERVER_FUNCTIONALITIES_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/serverFunctionalities/source/*.cc")
@@ -83,11 +86,18 @@ file(GLOB DISTRIBUTION_MANAGER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/distributio
 file(GLOB LAMBDAS_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/lambdas/source/*.cc")
 file(GLOB LOGICAL_PLAN_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/source/*.cc")
 file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.cc")
-set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/pdb/src/sqlite/source/sqlite3.c)
+set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/third-party/sqlite/source/sqlite3.c)
 
 # specify the hearder files
-file(GLOB PDB_HEADERS "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/*.h" "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/**/*.h")
-add_custom_target(HEADER_ONLY_TARGET SOURCES "${PDB_HEADERS}")
+file(GLOB PDB_HEADERS "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/*.h"
+                      "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/**/*.h")
+
+
+# specify the third party headers
+file(GLOB THIRD_PARTY_HEADERS "${PROJECT_SOURCE_DIR}/third-party/*/headers/*.h"
+                              "${PROJECT_SOURCE_DIR}/third-party/*/headers/**/*.h")
+
+add_custom_target(HEADER_ONLY_TARGET SOURCES "${PDB_HEADERS}" "${THIRD_PARTY_HEADERS}")
 
 # generate lexers
 FIND_PACKAGE(FLEX REQUIRED)

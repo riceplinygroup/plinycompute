@@ -24,7 +24,7 @@
 #include "Ptr.h"
 #include "TupleSet.h"
 #include <vector>
-#include "mustache.hpp"
+#include "mustache.h"
 #include "SimpleComputeExecutor.h"
 #include "TupleSetMachine.h"
 

@@ -29,7 +29,7 @@
 #include "DataTypes.h"
 #include "DataProxy.h"
 #include "Configuration.h"
-#include "mustache.hpp"
+#include "mustache.h"
 
 namespace pdb {
 
