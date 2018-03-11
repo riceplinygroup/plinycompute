@@ -20,7 +20,7 @@
 #define DEREF_LAM_H
 
 #include <vector>
-#include "mustache.hpp"
+#include "mustache.h"
 #include "LambdaHelperClasses.h"
 #include "ComputeExecutor.h"
 #include "SimpleComputeExecutor.h"

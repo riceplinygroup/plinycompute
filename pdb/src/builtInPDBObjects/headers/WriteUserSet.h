@@ -8,7 +8,7 @@
 #include "VectorSink.h"
 #include "PDBString.h"
 #include "TypeName.h"
-#include "mustache.hpp"
+#include "mustache.h"
 
 
 namespace pdb {

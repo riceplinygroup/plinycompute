@@ -31,7 +31,7 @@
 #include "ShuffleSink.h"
 #include "CombinedShuffleSink.h"
 #include "MapTupleSetIterator.h"
-#include "mustache.hpp"
+#include "mustache.h"
 
 
 namespace pdb {

@@ -4,7 +4,7 @@
 
 #include "Computation.h"
 #include "TypeName.h"
-#include "mustache.hpp"
+#include "mustache.h"
 
 namespace pdb {
 

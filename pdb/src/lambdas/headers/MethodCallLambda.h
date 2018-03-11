@@ -22,7 +22,7 @@
 #include <vector>
 #include "Lambda.h"
 #include "ComputeExecutor.h"
-#include "mustache.hpp"
+#include "mustache.h"
 
 namespace pdb {
 

@@ -42,9 +42,21 @@ endforeach()
 # include the unit tests
 include(tests/unit/CMakeLists.txt)
 
-# add a costum target to run the integration tests
+# add a custom target to run the integration tests
 add_custom_target(run-integration-tests
                   python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+add_custom_target(run-tpch-tests
+                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py tpch
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+add_custom_target(run-la-tests
+                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py la
+                  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+add_custom_target(run-ml-tests
+                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py ml
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # add a costum target to run the integration tests
@@ -54,6 +66,9 @@ add_custom_target(run-docker-integration-tests
 
 # add the dependency for building tests
 add_dependencies(run-integration-tests build-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-tpch-tests build-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-la-tests build-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-ml-tests build-tests shared-libraries pdb-server pdb-cluster)
 
 # clean integration tests target
 add_custom_target(clean-integration-tests
