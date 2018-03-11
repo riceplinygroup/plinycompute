@@ -33,7 +33,7 @@
  * This macro is used to end profiling the code and it is supposed to be used within the same block as the PROFILER_START macro
  * @param id - the id used to track the profiler
  */
-#define PROFILER_END(id) PDB_COUT << "Time Duration for " << #id << " : " << std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - ___begin_##id).count() << " seconds.\n";
+#define PROFILER_END(id) std::cout << "Time Duration for " << #id << " : " << std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - ___begin_##id).count() << " seconds.\n";
 
 /**
  * This macro is used to end profiling the code and it is supposed to be used within the same block as the PROFILER_START macro
@@ -41,7 +41,7 @@
  * @param id - the id used to track the profiler
  * @param message - the message we want to print out
  */
-#define PROFILER_END_MESSAGE(id, message) PDB_COUT << message << "\n"; PROFILER_END(id)
+#define PROFILER_END_MESSAGE(id, message) std::cout << message << "\n"; PROFILER_END(id)
 
 #else
 
