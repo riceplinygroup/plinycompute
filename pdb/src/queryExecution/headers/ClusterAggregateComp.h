@@ -267,8 +267,8 @@ public:
         int lambdaLabel = 0;
 
         std::vector<std::string> columnsToApply;
-        for (int i = 0; i < inputColumnsToApply.size(); i++) {
-            columnsToApply.push_back(inputColumnsToApply[i]);
+        for (const auto &i : inputColumnsToApply) {
+            columnsToApply.push_back(i);
         }
 
         std::string tcapString;

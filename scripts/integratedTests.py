@@ -32,6 +32,9 @@ class BColor:
 thread_num = "1"
 shared_memory_size = "2048"
 
+# list of failed tests
+failed_tests = []
+
 num_total = 0
 num_errors = 0
 num_passed = 0
@@ -89,6 +92,10 @@ def run_tests(test_list):
     print(BColor.OK_GREEN + "PASSED TESTS: " + str(num_passed) + BColor.END_C)
     print(BColor.FAIL + "FAILED TESTS: " + str(num_errors) + BColor.END_C)
 
+    # printout each test that failed
+    for test in failed_tests:
+        print "TEST %s FAILED" % test
+
 
 def run_specified_test(test_list, test):
 
@@ -117,6 +124,9 @@ def run_test(test_name, test_command):
         print(BColor.FAIL + "[ERROR] in running %s" % test_name + BColor.END_C)
         print(e.returncode)
         num_errors = num_errors + 1
+
+        # add the test to the list of failed tests
+        failed_tests.append(test_name)
 
     else:
         print(BColor.OK_BLUE + "[PASSED] %s" % test_name + BColor.END_C)

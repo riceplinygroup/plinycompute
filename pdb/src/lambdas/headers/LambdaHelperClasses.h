@@ -22,6 +22,8 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <mustache.h>
+#include <mustache_helper.h>
 #include "Object.h"
 #include "Handle.h"
 #include "Ptr.h"
@@ -236,47 +238,65 @@ public:
     // gets a particular child of this Lambda
     virtual GenericLambdaObjectPtr getChild(int which) = 0;
 
-    // takes inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName,
-    // outputColumnName, outputColumns, TCAP operation name as inputs, and outputs a TCAP string
-    // with one TCAP operation.
 
-    std::string getTCAPString(std::string inputTupleSetName,
-                              std::vector<std::string>& inputColumnNames,
-                              std::vector<std::string>& inputColumnsToApply,
-                              std::string outputTupleSetName,
-                              std::vector<std::string>& outputColumns,
-                              std::string outputColumnName,
-                              std::string tcapOperation,
-                              std::string computationNameAndLabel,
-                              std::string lambdaNameAndLabel) {
 
-        std::string tcapString = outputTupleSetName + "(" + outputColumns[0];
-        for (int i = 1; i < outputColumns.size(); i++) {
-            tcapString += ",";
-            tcapString += outputColumns[i];
-        }
-        tcapString += ") <= " + tcapOperation + " (";
-        tcapString += inputTupleSetName + "(" + inputColumnsToApply[0];
-        for (int i = 1; i < inputColumnsToApply.size(); i++) {
-            tcapString += ",";
-            tcapString += inputColumnsToApply[i];
-        }
-        if (inputColumnNames.size() > 0) {
-            tcapString += "), " + inputTupleSetName + "(" + inputColumnNames[0];
-            for (int i = 1; i < inputColumnNames.size(); i++) {
-                tcapString += ",";
-                tcapString += inputColumnNames[i];
-            }
-        } else {
-            tcapString += "), " + inputTupleSetName + "(";
-        }
-        if (lambdaNameAndLabel != "") {
-            tcapString += "), '" + computationNameAndLabel + "', '" + lambdaNameAndLabel + "')\n";
-        } else {
-            tcapString += "), '" + computationNameAndLabel + "')\n";
-        }
+    /**
+     * takes inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName,
+     * outputColumnName, outputColumns, TCAP operation name as inputs, and outputs a TCAP string
+     * with one TCAP operation.
+     * //TODO add proper descriptions of the parameters
+     * @param inputTupleSetName
+     * @param inputColumnNames
+     * @param inputColumnsToApply
+     * @param outputTupleSetName
+     * @param outputColumns
+     * @param outputColumnName
+     * @param tcapOperation
+     * @param computationNameAndLabel
+     * @param lambdaNameAndLabel
+     * @return the generated tcap string
+     */
+    std::string getTCAPString(const std::string &inputTupleSetName,
+                              const std::vector<std::string> &inputColumnNames,
+                              const std::vector<std::string> &inputColumnsToApply,
+                              const std::string &outputTupleSetName,
+                              const std::vector<std::string> &outputColumns,
+                              const std::string &outputColumnName,
+                              const std::string &tcapOperation,
+                              const std::string &computationNameAndLabel,
+                              const std::string &lambdaNameAndLabel) {
 
-        return tcapString;
+        mustache::mustache outputTupleSetNameTemplate{"{{outputTupleSetName}}({{#outputColumns}}{{value}}{{^isLast}}, {{/isLast}}{{/outputColumns}}) <= "
+                                                      "{{tcapOperation}} ({{inputTupleSetName}}({{#inputColumnsToApply}}{{value}}{{^isLast}}, {{/isLast}}{{/inputColumnsToApply}}), "
+                                                      "{{inputTupleSetName}}({{#hasColumnNames}}{{#inputColumnNames}}{{value}}{{^isLast}}, {{/isLast}}{{/inputColumnNames}}{{/hasColumnNames}}), "
+                                                      "'{{computationNameAndLabel}}', "
+                                                      "{{#hasLambdaNameAndLabel}}'{{lambdaNameAndLabel}}'{{/hasLambdaNameAndLabel}})"};
+
+        // create the data for the output columns
+        mustache::data outputColumnData = mustache::from_vector<std::string>(outputColumns);
+
+        // create the data for the input columns to apply
+        mustache::data inputColumnsToApplyData = mustache::from_vector<std::string>(inputColumnsToApply);
+
+        // create the data for the input columns to apply
+        mustache::data inputColumnNamesData = mustache::from_vector<std::string>(inputColumnNames);
+
+        // create the data for the filter
+        mustache::data lambdaData;
+
+        lambdaData.set("outputTupleSetName", outputTupleSetName);
+        lambdaData.set("outputColumns", outputColumnData);
+        lambdaData.set("tcapOperation", tcapOperation);
+        lambdaData.set("inputTupleSetName", inputTupleSetName);
+        lambdaData.set("inputColumnsToApply", inputColumnsToApplyData);
+        lambdaData.set("hasColumnNames", !inputColumnNames.empty());
+        lambdaData.set("inputColumnNames", inputColumnNamesData);
+        lambdaData.set("inputTupleSetName", inputTupleSetName);
+        lambdaData.set("computationNameAndLabel", computationNameAndLabel);
+        lambdaData.set("hasLambdaNameAndLabel", !lambdaNameAndLabel.empty());
+        lambdaData.set("lambdaNameAndLabel", lambdaNameAndLabel);
+
+        return outputTupleSetNameTemplate.render(lambdaData);
     }
 
     virtual std::string toTCAPStringForCartesianJoin(int lambdaLabel,
