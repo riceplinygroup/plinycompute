@@ -18,10 +18,6 @@
 #ifndef TEST_LDA1_CC
 #define TEST_LDA1_CC
 
-
-// By Shangyu, June 2017
-// LDA using Gibbs Sampling;
-
 #include "PDBDebug.h"
 #include "PDBVector.h"
 #include "Query.h"
@@ -74,8 +70,7 @@ int main(int argc, char* argv[]) {
         myQuery->push_back(next);
     }
 
-  PDBClient pdbClient(8108, masterIp, false, true);
-
+    PDBClient pdbClient(8108, masterIp, false, true);
 
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",
@@ -95,14 +90,13 @@ int main(int argc, char* argv[]) {
     pdbClient.removeSet("TPCH_db", "result");
     pdbClient.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result");
 
-    // Some meta data
-
-    // Initialize the (wordID, topic prob vector)
+    // Create computations
     Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
     Handle<Computation> myTopK = makeObject<TopJaccard>(k, *myQuery);
     myTopK->setInput(myScanSet);
     Handle<Computation> myWriter = makeObject<JaccardResultWriter>("TPCH_db", "result");
     myWriter->setInput(myTopK);
+
     auto begin = std::chrono::high_resolution_clock::now();
     pdbClient.executeComputations(myWriter);
     auto end = std::chrono::high_resolution_clock::now();

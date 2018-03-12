@@ -14,25 +14,25 @@ endforeach()
 
 
 ###
-### JaccardMain
+### tpchJaccard
 ###
 
 # create the target
-add_pdb_application(JaccardMain)
+add_pdb_application(tpchJaccard)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests JaccardMain)
+add_dependencies(build-tests tpchJaccard)
 
 # add build dependencies to shared libraries it uses
-add_dependencies(JaccardMain Customer)
-add_dependencies(JaccardMain LineItem)
-add_dependencies(JaccardMain Order)
-add_dependencies(JaccardMain Part)
-add_dependencies(JaccardMain Supplier)
-add_dependencies(JaccardMain ScanCustomerSet)
-add_dependencies(JaccardMain TopJaccard)
-add_dependencies(JaccardMain AllParts)
-add_dependencies(JaccardMain JaccardResultWriter)
+add_dependencies(tpchJaccard Customer)
+add_dependencies(tpchJaccard LineItem)
+add_dependencies(tpchJaccard Order)
+add_dependencies(tpchJaccard Part)
+add_dependencies(tpchJaccard Supplier)
+add_dependencies(tpchJaccard ScanCustomerSet)
+add_dependencies(tpchJaccard TopJaccard)
+add_dependencies(tpchJaccard AllParts)
+add_dependencies(tpchJaccard JaccardResultWriter)
 
 # add build dependencies to shared libraries it uses
 #add_dependencies(tpchDataGeneratorAll Part)
@@ -55,10 +55,10 @@ add_dependencies(JaccardMain JaccardResultWriter)
 ###
 
 # create the target
-add_pdb_application(tpchDataGeneratorNew)
+add_pdb_application(tpchDataGenerator)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests tpchDataGeneratorNew)
+add_dependencies(build-tests tpchDataGenerator)
 
 ###
 ### tpchGetCustomerCount

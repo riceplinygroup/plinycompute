@@ -212,10 +212,10 @@ test_tpch_main = {
 }
 
 tests_tpch = {
-    "tpchDataGeneratorNew": ("TEST TPCH DATA GENERATOR NEW", ['bin/tpchDataGeneratorNew', '0.1', '2']),
+    "tpchDataGenerator": ("TEST TPCH DATA GENERATOR NEW", ['bin/tpchDataGenerator', '0.1', '2']),
     "tpchGetCustomerCount": ("TEST TPCH GET CUSTOMER COUNT", ['bin/tpchGetCustomerCount']),
     "tpchQuery": ("TEST TPCH QUERY", ['bin/tpchQuery']),
-    "tpchJaccard": ("TEST JACCARD MAIN", ['bin/JaccardMain', 'localhost', '20', 'query.text'])
+    "tpchJaccard": ("TEST JACCARD MAIN", ['bin/tpchJaccard', 'localhost', '20', 'query.txt'])
 }
 
 if len(sys.argv) > 1:
