@@ -122,6 +122,7 @@ def run_specified_test(test_list, test):
 
 def run_test(id, test_name, test_command):
     # we want to use the global variables
+    global what_tests    
     global num_errors
     global num_passed
 
@@ -218,7 +219,6 @@ tests_tpch = {
 }
 
 if len(sys.argv) > 1:
-   global what_tests
    what_tests = sys.argv[1]
 
 if len(sys.argv) == 3:
