@@ -52,8 +52,28 @@ ENDIF ()
 add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
 add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearAlgebraDSLParserOutput} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 
+# add a build dependency to build-tests target
+add_dependencies(build-tests TestLA_unit01_Transpose)
+add_dependencies(build-tests TestLA_unit02_Add)
+add_dependencies(build-tests TestLA_unit03_Substract)
+add_dependencies(build-tests TestLA_unit04_Multiply)
+add_dependencies(build-tests TestLA_unit05_MaxElement)
+add_dependencies(build-tests TestLA_unit06_MinElement)
+add_dependencies(build-tests TestLA_unit07_ScaleMultiply)
+add_dependencies(build-tests TestLA_unit08_RowMax)
+add_dependencies(build-tests TestLA_unit09_RowMin)
+add_dependencies(build-tests TestLA_unit10_ColMax)
+add_dependencies(build-tests TestLA_unit11_ColMin)
+add_dependencies(build-tests TestLA_unit12_DuplicateRow)
+add_dependencies(build-tests TestLA_unit13_DuplicateCol)
+add_dependencies(build-tests TestLA_unit14_Inverse)
+add_dependencies(build-tests TestLA_unit15_RowSum)
+add_dependencies(build-tests TestLA_unit16_ColSum)
+add_dependencies(build-tests TestLA_unit17_TransposeMultiply)
+add_dependencies(build-tests TestLA_unit18_TransposeMultiply_Gram)
+
 ###
-### Linear algebra nit Tests
+### Linear algebra unit Tests
 ###
 
 add_pdb_LA_application(TestLA_unit01_Transpose)
