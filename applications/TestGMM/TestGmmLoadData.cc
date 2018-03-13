@@ -204,20 +204,10 @@ int main(int argc, char *argv[]) {
 
   if (whetherToAddData == true) {
     // now, create a new database
-    if (!pdbClient.createDatabase("gmm_db", errMsg)) {
-      COUT << "Not able to create database: " + errMsg;
-      exit(-1);
-    } else {
-      COUT << "Created database.\n";
-    }
+    pdbClient.createDatabase("gmm_db");
 
     // now, create a new set in that database
-    if (!pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set", errMsg)) {
-      COUT << "Not able to create set: " + errMsg;
-      exit(-1);
-    } else {
-      COUT << "Created set.\n";
-    }
+    pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set");
   }
 
   // Step 2. Add data
@@ -252,30 +242,24 @@ int main(int argc, char *argv[]) {
           COUT << "Added " << storeMe->size() << " Total: " << addedData
                << std::endl;
 
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
-                  storeMe, errMsg)) {
-            COUT << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-          }
+                  storeMe);
         } catch (pdb::NotEnoughSpace &n) {
           COUT << "Added " << storeMe->size() << " Total: " << addedData
                << std::endl;
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
-                  storeMe, errMsg)) {
-            COUT << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-          }
+                  storeMe);
         }
         COUT << blocksize << "MB data sent to dispatcher server~~" << std::endl;
 
       } // End while
 
       // to write back all buffered records
-      pdbClient.flushData(errMsg);
+      pdbClient.flushData();
 
     } else { // Load from file
 
@@ -332,27 +316,21 @@ int main(int argc, char *argv[]) {
           // send the rest of data at the end, it can happen that the exception
           // never
           // happens.
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
-                  storeMe, errMsg)) {
-            COUT << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-          }
+                  storeMe);
 
           numData += storeMe->size();
           COUT << "Added " << storeMe->size() << " Total: " << numData
                << std::endl;
 
-          pdbClient.flushData(errMsg);
+          pdbClient.flushData();
         } catch (pdb::NotEnoughSpace &n) {
-          if (!pdbClient.sendData<DoubleVector>(
+          pdbClient.sendData<DoubleVector>(
                   std::pair<std::string, std::string>("gmm_input_set",
                                                       "gmm_db"),
-                  storeMe, errMsg)) {
-            COUT << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-          }
+                  storeMe);
 
           numData += storeMe->size();
           COUT << "Added " << storeMe->size() << " Total: " << numData

@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
 
     std::string errMsg;
-    bool ret = temp.exportSet(databaseName, setName, outputFilePath, outputFormat, errMsg);
+    bool ret = temp.exportSet(databaseName, setName, outputFilePath, outputFormat);
     if (ret == false) {
         std::cout << errMsg << std::endl;
     } else {

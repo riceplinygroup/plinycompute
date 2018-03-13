@@ -73,14 +73,11 @@ int main(int argc, char* argv[]) {
 
         std::string errMsg;
         bool result = true;
-        result = result && pdbClient.registerType("libraries/libEmpWithVector.so", errMsg);
-        result = result && pdbClient.registerType("libraries/libTopKTest.so", errMsg);
-        result = result && pdbClient.registerType("libraries/libScanEmpWithVector.so", errMsg);
-        result = result && pdbClient.registerType("libraries/libWriteEmpWithVector.so", errMsg);
-        if (!result) {
-            std::cout << "Registering type failed: " << errMsg << "\n";
-            exit(1);
-        }
+        pdbClient.registerType("libraries/libEmpWithVector.so");
+        pdbClient.registerType("libraries/libTopKTest.so");
+        pdbClient.registerType("libraries/libScanEmpWithVector.so");
+        pdbClient.registerType("libraries/libWriteEmpWithVector.so");
+
     }
 
     // if we add data
@@ -92,19 +89,9 @@ int main(int argc, char* argv[]) {
 
         if (createNewDBAndSet) {
 
-            if (!pdbClient.createDatabase("topK_db", errMsg)) {
-                cout << "Not able to create database: " + errMsg;
-                exit(-1);
-            } else {
-                cout << "Created database.\n";
-            }
+            pdbClient.createDatabase("topK_db");
 
-            if (!pdbClient.createSet<EmpWithVector>("topK_db", "topK_set", errMsg)) {
-                cout << "Not able to create data set: " + errMsg;
-                exit(-1);
-            } else {
-                cout << "Created data set.\n";
-            }
+            pdbClient.createSet<EmpWithVector>("topK_db", "topK_set");
         }
 
         for (int i = 0; i < numOfMb; i++) {
@@ -138,30 +125,22 @@ int main(int argc, char* argv[]) {
                 } catch (NotEnoughSpace& e) {
 
                     // add the next MB of data
-                    if (!pdbClient.sendData<EmpWithVector>(
+                    pdbClient.sendData<EmpWithVector>(
                             std::pair<std::string, std::string>("topK_set", "topK_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    } else {
+                            storeMe);
 
                         std::cout << "Added " << j << " EmpWithVector objects to the database.\n";
                         break;
-                    }
+
                 }
             }
         }
     }
 
     // now we create the output set
-    if (!pdbClient.removeSet("topK_db", "topKOutput_set", errMsg)) {
-        cout << "Not able to delete output data set: " + errMsg;
-    }
-    if (!pdbClient.createSet<TopKQueue<double, Handle<EmpWithVector>>>(
-            "topK_db", "topKOutput_set", errMsg)) {
-        cout << "Not able to create output data set: " + errMsg;
-    }
+    pdbClient.removeSet("topK_db", "topKOutput_set");
+    pdbClient.createSet<TopKQueue<double, Handle<EmpWithVector>>>(
+            "topK_db", "topKOutput_set");
 
     // for building the query
     pdb::makeObjectAllocatorBlock(1024 * 1024, true);
@@ -182,10 +161,7 @@ int main(int argc, char* argv[]) {
     myWriter->setInput(myQuery);
 
     // execute the query
-    if (!pdbClient.executeComputations(errMsg, myWriter)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 0;
-    }
+    pdbClient.executeComputations(myWriter);
 
     // now iterate through the result
     SetIterator<TopKQueue<double, Handle<EmpWithVector>>> result =

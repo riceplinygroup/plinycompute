@@ -146,38 +146,23 @@ int main(int argc, char* argv[]) {
                                   "libraries/libLDAWordTopicAggregate.so"};
 
     for (auto& a : v) {
-        if (!pdbClient.registerType(a, errMsg)) {
-            std::cout << "could not load library: " << errMsg << "\n";
-	}
+        pdbClient.registerType(a);
     }
 
     if (whetherToAddData == true) {
 
         /* Create the Database and Sets */
-        if (!pdbClient.createDatabase("LDA_db", errMsg)) {
-	    std::cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        }
+        pdbClient.createDatabase("LDA_db");
 
-        pdbClient.removeSet("LDA_db", "LDA_input_set", errMsg);
-        if (!pdbClient.createSet<LDADocument>("LDA_db",
-                                         "LDA_input_set",
-                                         errMsg)) {
-	    std::cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        }
+        pdbClient.removeSet("LDA_db", "LDA_input_set");
+        pdbClient.createSet<LDADocument>("LDA_db", "LDA_input_set");
 
-        pdbClient.removeSet("LDA_db", "LDA_meta_data_set", errMsg);
-        if (!pdbClient.createSet<int>("LDA_db",
-                                 "LDA_meta_data_set",
-                                 errMsg)) {
-	    std::cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        }
+        pdbClient.removeSet("LDA_db", "LDA_meta_data_set");
+        pdbClient.createSet<int>("LDA_db", "LDA_meta_data_set");
 
         int blockSize = 8;
 
-	/* Add synthetic data */
+	    /* Add synthetic data */
         if (!whetherAddFromFile && numDoc > 0) {
 
             pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
@@ -211,13 +196,8 @@ int main(int argc, char* argv[]) {
                         }
 
                     } catch (pdb::NotEnoughSpace& n) {
-                        if (!pdbClient.sendData<LDADocument>(
-                                std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
-                                storeMe,
-                                errMsg)) {
-                            std::cout << "Failed to send data to dispatcher server" << std::endl;
-                            return -1;
-                        }
+                        pdbClient.sendData<LDADocument>(
+                                std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe);
                         pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
                         storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>>();
                     }
@@ -226,13 +206,8 @@ int main(int argc, char* argv[]) {
 
             /* Handle the last few entries */
             if (storeMe->size() > 0) {
-                if (!pdbClient.sendData<LDADocument>(
-                        std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
-                        storeMe,
-                        errMsg)) {
-                    std::cout << "Failed to send data to dispatcher server" << std::endl;
-                    return -1;
-                }
+                pdbClient.sendData<LDADocument>(
+                        std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe);
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
             }
 
@@ -244,16 +219,11 @@ int main(int argc, char* argv[]) {
                 storeMeToo->push_back(me);
             }
 
-            if (!pdbClient.sendData<int>(
-                    std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"),
-                    storeMeToo,
-                    errMsg)) {
-                std::cout << "Failed to send data to dispatcher server" << std::endl;
-                return -1;
+            pdbClient.sendData<int>(
+                    std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"), storeMeToo);
                 pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-            }
 
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
 
 	/* Add data from the input file */
@@ -286,26 +256,19 @@ int main(int argc, char* argv[]) {
                         myData->setCount(countNum);
                         storeMe->push_back(myData);
                     }
-                    if (!pdbClient.sendData<LDADocument>(
+                    pdbClient.sendData<LDADocument>(
                             std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!pdbClient.sendData<LDADocument>(
+                    pdbClient.sendData<LDADocument>(
                             std::pair<std::string, std::string>("LDA_input_set", "LDA_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                     rollback = false;
                 }
 
             }
+
 
             inFile.close();
 
@@ -317,15 +280,11 @@ int main(int argc, char* argv[]) {
                 storeMeToo->push_back(me);
             }
 
-            if (!pdbClient.sendData<int>(
+            pdbClient.sendData<int>(
                     std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"),
-                    storeMeToo,
-                    errMsg)) {
-                std::cout << "Failed to send data to dispatcher server" << std::endl;
-                return -1;
-                pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-            }
-            pdbClient.flushData(errMsg);
+                    storeMeToo);
+            pdb::makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+            pdbClient.flushData();
         }
     }
 
@@ -339,37 +298,21 @@ int main(int argc, char* argv[]) {
     std::string myNextWriterForTopicsPerDocSetName =
         std::string("TopicsPerDoc") + std::to_string(1);
 
-    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerDocSetName, errMsg);
-    if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
-                                             myNextReaderForTopicsPerDocSetName,
-                                             errMsg)) {
-	std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    }
+    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerDocSetName);
+    pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
+                                             myNextReaderForTopicsPerDocSetName);
 
-    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerWordSetName, errMsg);
-    if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
-                                             myNextReaderForTopicsPerWordSetName,
-                                             errMsg)) {
-	std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    }
+    pdbClient.removeSet("LDA_db", myNextReaderForTopicsPerWordSetName);
+    pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
+                                             myNextReaderForTopicsPerWordSetName);
 
-    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerDocSetName, errMsg);
-    if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
-                                             myNextWriterForTopicsPerDocSetName,
-                                             errMsg)) {
-	std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    }
+    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerDocSetName);
+    pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
+                                             myNextWriterForTopicsPerDocSetName);
 
-    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerWordSetName, errMsg);
-    if (!pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
-                                             myNextWriterForTopicsPerWordSetName,
-                                             errMsg)) {
-	std::cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    }
+    pdbClient.removeSet("LDA_db", myNextWriterForTopicsPerWordSetName);
+    pdbClient.createSet<IntDoubleVectorPair>("LDA_db",
+                                             myNextWriterForTopicsPerWordSetName);
 
     /* Main LDA Program */
 
@@ -464,11 +407,8 @@ int main(int argc, char* argv[]) {
         myWriterForTopicsPerDoc->setInput(myDocTopicProb);
 
 	/* Excute the computations */
-        if (!pdbClient.executeComputations(
-                errMsg, myWriterForTopicsPerWord, myWriterForTopicsPerDoc)) {
-            std::cout << "Query failed. Message was: " << errMsg << "\n";
-            return 1;
-        }
+        pdbClient.executeComputations(
+                myWriterForTopicsPerWord, myWriterForTopicsPerDoc);
 
 	/* [5] Prepare sets for the next iteration */
 
@@ -477,16 +417,10 @@ int main(int argc, char* argv[]) {
             std::string("TopicsPerWord") + std::to_string(n % 2);
         std::string myReaderForTopicsPerDocSetName =
             std::string("TopicsPerDoc") + std::to_string(n % 2);
-        if (!pdbClient.clearSet(
-                "LDA_db", myReaderForTopicsPerWordSetName, "pdb::IntDoubleVectorPair", errMsg)) {
-	    std::cout << "Not able to clear set: " + errMsg;
-            exit(-1);
-        }
-        if (!pdbClient.clearSet(
-                "LDA_db", myReaderForTopicsPerDocSetName, "pdb::IntDoubleVectorPair", errMsg)) {
-	    std::cout << "Not able to clear set: " + errMsg;
-            exit(-1);
-        }
+        pdbClient.clearSet(
+                "LDA_db", myReaderForTopicsPerWordSetName, "pdb::IntDoubleVectorPair");
+        pdbClient.clearSet(
+                "LDA_db", myReaderForTopicsPerDocSetName, "pdb::IntDoubleVectorPair");
 
         /* Finally, create the new readers */
         input2 = makeObject<ScanTopicsPerWord>("LDA_db", myWriterForTopicsPerWordSetName);

@@ -76,11 +76,7 @@ int main(int argc, char* argv[]) {
     ConfigurationPtr conf = make_shared<Configuration>();
     std::string jobId = "TestSelectionJob";
 
-    TCAPAnalyzer tcapAnalyzer(jobId,
-                              logger,
-                              conf,
-                              tcapString,
-                              computationsToSend);
+    TCAPAnalyzer tcapAnalyzer(jobId, logger, conf, tcapString, computationsToSend);
     std::vector<Handle<AbstractJobStage>> queryPlan;
     std::vector<Handle<SetIdentifier>> interGlobalSets;
     std::cout << "PARSE TCAP STRING..." << std::endl;

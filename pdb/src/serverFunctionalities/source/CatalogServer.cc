@@ -763,7 +763,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             PDB_COUT << "Got objectSize=" << objectSize << std::endl;
             bool res;
             std::string errMsg;
-            void *memory = malloc(objectSize);
+            void *memory = malloc(objectSize + 2048);
             Handle<Vector<char>> myFile =
                 sendUsingMe->getNextObject<Vector<char>>(memory, res, errMsg);
             PDB_COUT << "Received all data" << std::endl;

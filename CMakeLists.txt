@@ -37,6 +37,15 @@ ADD_DEFINITIONS(-DEVICT_STOP_THRESHOLD=0.95)
 ADD_DEFINITIONS(-DENABLE_COMPRESSION)
 ADD_DEFINITIONS(-DPROFILING)
 
+# used to enable debug
+if (USE_DEBUG)
+   message("PDB_DEBUG is ON")
+   ADD_DEFINITIONS(-DPDB_DEBUG)
+elseif (NOT USE_DEBUG)
+   REMOVE_DEFINITIONS(-DPDB_DEBUG)
+   message("PDB_DEBUG is OFF")
+endif (USE_DEBUG)
+
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/utilities/headers")

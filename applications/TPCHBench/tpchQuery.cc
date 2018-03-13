@@ -111,13 +111,8 @@ int main() {
     PDBClient pdbClient(masterPort, masterHostname, false, true);
 
     // now, create the sets for storing Customer Data
-    if (!pdbClient.createSet<SumResult>(
-            "TPCH_db", "t_output_set_1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<SumResult>(
+            "TPCH_db", "t_output_set_1");
 
     // for allocations
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
@@ -150,10 +145,7 @@ int main() {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriteSet);
 
     std::cout << std::endl;
     auto end = std::chrono::high_resolution_clock::now();
@@ -209,12 +201,7 @@ int main() {
 
 #endif
     // Remove the output set
-    if (!pdbClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
-        cout << "Not able to remove the set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Set removed. \n";
-    }
+    pdbClient.removeSet("TPCH_db", "t_output_set_1");
 
     // Clean up the SO files.
     int code = system("scripts/cleanupSoFiles.sh");
