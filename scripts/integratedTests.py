@@ -17,6 +17,10 @@ import subprocess
 import time
 import sys
 
+# ensures that environment is clean
+subprocess.call(['bash', './scripts/cleanupNode.sh'])
+print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+time.sleep(5)
 
 class BColor:
     HEADER = '\033[95m'
@@ -203,19 +207,20 @@ tests_la = {
 tests_ml = {
     "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
     "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
-    "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001', 'dataFile'])
+    "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001', 'applications/TestKMeans/kmeans_data'])
 }
 
-# TPCH tests
+# TPCH test (generates storage and register shared libraries)
 test_tpch_main = {
     "tpchRegisterAndCreateSets": ("TEST TPCH REGISTER AND CREATE SETS", ['bin/tpchRegisterAndCreateSets'])
 }
 
+# TPCH benchmark tests (to be run after "test_tpch_main"
 tests_tpch = {
     "tpchDataGenerator": ("TEST TPCH DATA GENERATOR NEW", ['bin/tpchDataGenerator', '0.1', '2']),
     "tpchGetCustomerCount": ("TEST TPCH GET CUSTOMER COUNT", ['bin/tpchGetCustomerCount']),
     "tpchQuery": ("TEST TPCH QUERY", ['bin/tpchQuery']),
-    "tpchJaccard": ("TEST JACCARD MAIN", ['bin/tpchJaccard', 'localhost', '20', 'query.txt'])
+    "tpchJaccard": ("TEST TPCH JACCARD", ['bin/tpchJaccard', 'localhost', '20', 'applications/TPCHBench/query.txt'])
 }
 
 if len(sys.argv) > 1:
