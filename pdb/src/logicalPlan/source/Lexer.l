@@ -90,6 +90,10 @@
 
 "("    	        	return ('(');
 
+"["                 return ('[');
+
+"]"                 return (']');
+
 ","			return (',');
 
 [A-Za-z][A-Za-z0-9_-]* {yylval->myChar = strdup (yytext);

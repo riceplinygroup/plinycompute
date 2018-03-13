@@ -208,6 +208,7 @@ class DereferenceLambda : public TypedLambdaObject<OutType> {
         }
         outputColumns.push_back(outputColumnName);
         std::string computationNameWithLabel = computationName + std::to_string(computationLabel);
+
         tcapString += this->getTCAPString(inputTupleSetName,
                                           inputColumnNames,
                                           inputColumnsToApply,
@@ -216,7 +217,8 @@ class DereferenceLambda : public TypedLambdaObject<OutType> {
                                           outputColumnName,
                                           hashOperator,
                                           computationNameWithLabel,
-                                          parentLambdaName);;
+                                          parentLambdaName,
+                                          std::map<std::string, std::string>());
       }
       if (!isSelfJoin) {
         for (unsigned int i = 0; i < multiInputsComp->getNumInputs(); i++) {

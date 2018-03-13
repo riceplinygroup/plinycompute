@@ -227,8 +227,8 @@ public:
                 std::string leftOutputColumnName = "OneFor_left_" +
                     std::to_string(computationLabel) + "_" + std::to_string(lambdaLabel);
                 std::vector<std::string> leftOutputColumns;
-                for (unsigned int i = 0; i < lhsColumnNames.size(); i++) {
-                    leftOutputColumns.push_back(lhsColumnNames[i]);
+                for (const auto &lhsColumnName : lhsColumnNames) {
+                    leftOutputColumns.push_back(lhsColumnName);
                 }
                 leftOutputColumns.push_back(leftOutputColumnName);
                 tcapString += this->getTCAPString(leftTupleSetName,
@@ -239,21 +239,19 @@ public:
                                                   leftOutputColumnName,
                                                   "HASHONE",
                                                   myComputationName,
-                                                  "");
+                                                  "",
+                                                  std::map<std::string, std::string>());
 
                 // hashone for rhs
-                std::string rightTupleSetName =
-                    multiInputsComp->getTupleSetNameForIthInput(rightIndex);
+                std::string rightTupleSetName = multiInputsComp->getTupleSetNameForIthInput(rightIndex);
                 std::string rightColumnToApply = rhsInputNames[0];
                 std::vector<std::string> rightColumnsToApply;
                 rightColumnsToApply.push_back(rightColumnToApply);
-                std::string rightOutputTupleSetName = "hashOneFor_" + rightColumnToApply + "_" +
-                    std::to_string(computationLabel) + "_" + std::to_string(lambdaLabel);
-                std::string rightOutputColumnName = "OneFor_right_" +
-                    std::to_string(computationLabel) + "_" + std::to_string(lambdaLabel);
+                std::string rightOutputTupleSetName = "hashOneFor_" + rightColumnToApply + "_" + std::to_string(computationLabel) + "_" + std::to_string(lambdaLabel);
+                std::string rightOutputColumnName = "OneFor_right_" + std::to_string(computationLabel) + "_" + std::to_string(lambdaLabel);
                 std::vector<std::string> rightOutputColumns;
-                for (unsigned int i = 0; i < rhsColumnNames.size(); i++) {
-                    rightOutputColumns.push_back(rhsColumnNames[i]);
+                for (const auto &rhsColumnName : rhsColumnNames) {
+                    rightOutputColumns.push_back(rhsColumnName);
                 }
                 rightOutputColumns.push_back(rightOutputColumnName);
                 tcapString += this->getTCAPString(rightTupleSetName,
@@ -264,7 +262,8 @@ public:
                                                   rightOutputColumnName,
                                                   "HASHONE",
                                                   myComputationName,
-                                                  "");
+                                                  "",
+                                                  std::map<std::string, std::string>());
 
                 // cartesian join lhs and rhs
                 tcapString += "\n/* CartesianJoin ( " + lhsInputNames[0];

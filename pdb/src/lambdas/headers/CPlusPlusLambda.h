@@ -366,8 +366,8 @@ public:
                     curLeftHashColumnName = "OneFor_0_" + std::to_string(computationLabel) + "_" +
                         std::to_string(lambdaLabel);
                     std::vector<std::string> curOutputColumnNames;
-                    for (unsigned int j = 0; j < curLeftColumnsToKeep.size(); j++) {
-                        curOutputColumnNames.push_back(curLeftColumnsToKeep[j]);
+                    for (const auto &j : curLeftColumnsToKeep) {
+                        curOutputColumnNames.push_back(j);
                     }
                     curOutputColumnNames.push_back(curLeftHashColumnName);
                     tcapString += this->getTCAPString(curLeftInputTupleSetName,
@@ -378,7 +378,8 @@ public:
                                                       curLeftHashColumnName,
                                                       "HASHONE",
                                                       myComputationName,
-                                                      "");
+                                                      "",
+                                                      std::map<std::string, std::string>());
                 }
 
                 // HashOne for the (i+1)-th table
@@ -412,7 +413,8 @@ public:
                                                   curOutputColumnName,
                                                   "HASHONE",
                                                   myComputationName,
-                                                  "");
+                                                  "",
+                                                  std::map<std::string, std::string>());
 
 
                 // Join the two tables
@@ -488,10 +490,17 @@ public:
         std::string curOutputColumnName =
             "nativOut_" + std::to_string(lambdaLabel) + "_" + std::to_string(computationLabel);
         std::vector<std::string> curOutputColumnNames;
-        for (unsigned int i = 0; i < curLeftColumnsToKeep.size(); i++) {
-            curOutputColumnNames.push_back(curLeftColumnsToKeep[i]);
+        for (const auto &i : curLeftColumnsToKeep) {
+            curOutputColumnNames.push_back(i);
         }
         curOutputColumnNames.push_back(curOutputColumnName);
+
+        // the additional info about this attribute access lambda
+        std::map<std::string, std::string> info;
+
+        // set the info
+        info["lambdaType"] = getTypeOfLambda();
+
         tcapString += this->getTCAPString(curLeftTupleSetName,
                                           curLeftColumnsToKeep,
                                           curInputColumnsToApply,
@@ -500,7 +509,8 @@ public:
                                           curOutputColumnName,
                                           "APPLY",
                                           myComputationName,
-                                          myLambdaName);
+                                          myLambdaName,
+                                          info);
 
         // Step 4. do a filter to remove false rows
         outputColumns.clear();

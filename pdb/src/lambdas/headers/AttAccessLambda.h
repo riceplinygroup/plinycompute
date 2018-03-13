@@ -149,6 +149,16 @@ class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
 
       // generate the TCAP string for the lambda
       std::string tcapString;
+
+      // the additional info about this attribute access lambda
+      std::map<std::string, std::string> info;
+
+      // fill in the info
+      info["lambdaType"] = getTypeOfLambda();
+      info["inputTypeName"] = inputTypeName;
+      info["attName"] = attName;
+      info["attTypeName"] = attTypeName;
+
       tcapString += this->getTCAPString(inputTupleSetName,
                                         inputColumnNames,
                                         inputColumnsToApply,
@@ -157,7 +167,8 @@ class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
                                         outputColumnName,
                                         "APPLY",
                                         computationNameWithLabel,
-                                        lambdaName);
+                                        lambdaName,
+                                        info);
 
       if (multiInputsComp != nullptr) {
           if (amILeftChildOfEqualLambda || amIRightChildOfEqualLambda) {
@@ -188,7 +199,8 @@ class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
                                                 outputColumnName,
                                                 hashOperator,
                                                 computationNameWithLabel,
-                                                parentLambdaName);
+                                                parentLambdaName,
+                                                std::map<std::string, std::string>());
           }
 
           if (!isSelfJoin) {

@@ -189,25 +189,6 @@ public:
         return getRightHasher(inputSchema, attsToOperateOn, attsToIncludeInOutput);
     }
 
-    // JiaNote: we do not need this, because HashOne is now a separate executor
-
-    /*
-            // this gets an executor that appends 1 to the end of each tuple; implemented, for
-       example, by CPlusPlusLambda, and all one input lambdas that may return boolean
-            virtual ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec
-       &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
-                    std :: cout << "getOneHasher not implemented for this type!!\n";
-                    exit (1);
-            }
-
-
-            // version of the above that accepts ComputeInfo
-            virtual ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec
-       &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
-                    return getOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
-            }
-    */
-
     // returns the name of this LambdaBase type, as a string
     virtual std::string getTypeOfLambda() = 0;
 
@@ -264,13 +245,15 @@ public:
                               const std::string &outputColumnName,
                               const std::string &tcapOperation,
                               const std::string &computationNameAndLabel,
-                              const std::string &lambdaNameAndLabel) {
+                              const std::string &lambdaNameAndLabel,
+                              const std::map<std::string, std::string> &info) {
 
-        mustache::mustache outputTupleSetNameTemplate{"{{outputTupleSetName}}({{#outputColumns}}{{value}}{{^isLast}}, {{/isLast}}{{/outputColumns}}) <= "
-                                                      "{{tcapOperation}} ({{inputTupleSetName}}({{#inputColumnsToApply}}{{value}}{{^isLast}}, {{/isLast}}{{/inputColumnsToApply}}), "
-                                                      "{{inputTupleSetName}}({{#hasColumnNames}}{{#inputColumnNames}}{{value}}{{^isLast}}, {{/isLast}}{{/inputColumnNames}}{{/hasColumnNames}}), "
+        mustache::mustache outputTupleSetNameTemplate{"{{outputTupleSetName}}({{#outputColumns}}{{value}}{{^isLast}},{{/isLast}}{{/outputColumns}}) <= "
+                                                      "{{tcapOperation}} ({{inputTupleSetName}}({{#inputColumnsToApply}}{{value}}{{^isLast}},{{/isLast}}{{/inputColumnsToApply}}), "
+                                                      "{{inputTupleSetName}}({{#hasColumnNames}}{{#inputColumnNames}}{{value}}{{^isLast}},{{/isLast}}{{/inputColumnNames}}{{/hasColumnNames}}), "
                                                       "'{{computationNameAndLabel}}', "
-                                                      "{{#hasLambdaNameAndLabel}}'{{lambdaNameAndLabel}}'{{/hasLambdaNameAndLabel}})"};
+                                                      "{{#hasLambdaNameAndLabel}}'{{lambdaNameAndLabel}}'{{/hasLambdaNameAndLabel}}, "
+                                                      "[{{#info}}('{{key}}', '{{value}}'){{^isLast}}, {{/isLast}}{{/info}}])\n"};
 
         // create the data for the output columns
         mustache::data outputColumnData = mustache::from_vector<std::string>(outputColumns);
@@ -281,7 +264,10 @@ public:
         // create the data for the input columns to apply
         mustache::data inputColumnNamesData = mustache::from_vector<std::string>(inputColumnNames);
 
-        // create the data for the filter
+        // create the info data
+        mustache::data infoData = mustache::from_map(info);
+
+        // create the data for the lambda
         mustache::data lambdaData;
 
         lambdaData.set("outputTupleSetName", outputTupleSetName);
@@ -295,6 +281,7 @@ public:
         lambdaData.set("computationNameAndLabel", computationNameAndLabel);
         lambdaData.set("hasLambdaNameAndLabel", !lambdaNameAndLabel.empty());
         lambdaData.set("lambdaNameAndLabel", lambdaNameAndLabel);
+        lambdaData.set("info", infoData);
 
         return outputTupleSetNameTemplate.render(lambdaData);
     }
@@ -354,8 +341,7 @@ public:
         }
 
 
-        std::string computationNameWithLabel =
-            computationName + "_" + std::to_string(computationLabel);
+        std::string computationNameWithLabel = computationName + "_" + std::to_string(computationLabel);
         myLambdaName = getTypeOfLambda() + "_" + std::to_string(lambdaLabel);
         std::string inputTupleSetName = inputTupleSetNames[0];
         std::string tupleSetMidTag = "OutFor";
@@ -406,6 +392,11 @@ public:
         }
         outputColumns.push_back(outputColumnName);
 
+        // the additional info about this attribute access lambda
+        std::map<std::string, std::string> info;
+
+        // fill in the info
+        info["lambdaType"] = getTypeOfLambda();
 
         tcapString += getTCAPString(inputTupleSetName,
                                     inputColumnNames,
@@ -415,7 +406,8 @@ public:
                                     outputColumnName,
                                     "APPLY",
                                     computationNameWithLabel,
-                                    myLambdaName);
+                                    myLambdaName,
+                                    info);
 
         if (multiInputsComp != nullptr) {
             if (amILeftChildOfEqualLambda || amIRightChildOfEqualLambda) {
@@ -453,7 +445,8 @@ public:
                                             outputColumnName,
                                             hashOperator,
                                             computationNameWithLabel,
-                                            parentLambdaName);
+                                            parentLambdaName,
+                                            std::map<std::string, std::string>());
             }
             if (isSelfJoin == false) {
                 for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
