@@ -17,11 +17,6 @@ import subprocess
 import time
 import sys
 
-# ensures that environment is clean
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
-print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
-time.sleep(5)
-
 class BColor:
     HEADER = '\033[95m'
     OK_BLUE = '\033[94m'
@@ -35,6 +30,11 @@ class BColor:
 
 thread_num = "1"
 shared_memory_size = "2048"
+
+# ensures that environment is clean
+subprocess.call(['bash', './scripts/cleanupNode.sh'])
+print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+time.sleep(5)
 
 # by default it runs the ml test if no
 # test suite is specified
