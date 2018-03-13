@@ -18,10 +18,6 @@
 #ifndef TEST_LDA1_CC
 #define TEST_LDA1_CC
 
-
-// By Shangyu, June 2017
-// LDA using Gibbs Sampling;
-
 #include "PDBDebug.h"
 #include "PDBVector.h"
 #include "Query.h"
@@ -74,8 +70,7 @@ int main(int argc, char* argv[]) {
         myQuery->push_back(next);
     }
 
-  PDBClient pdbClient(8108, masterIp, false, true);
-
+    PDBClient pdbClient(8108, masterIp, false, true);
 
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",
@@ -89,34 +84,21 @@ int main(int argc, char* argv[]) {
                                   "libraries/libJaccardResultWriter.so"};
 
     for (auto& a : v) {
-        if (!pdbClient.registerType(a, errMsg)) {
-            std::cout << "could not load library: " << errMsg << "\n";
-        } else {
-            std::cout << "loaded library: " << a << "\n";
-        }
+        pdbClient.registerType(a);
     }
 
-    pdbClient.removeSet("TPCH_db", "result", errMsg);
-    if (!pdbClient.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set result.\n";
-    }
+    pdbClient.removeSet("TPCH_db", "result");
+    pdbClient.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result");
 
-    // Some meta data
-
-    // Initialize the (wordID, topic prob vector)
+    // Create computations
     Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
     Handle<Computation> myTopK = makeObject<TopJaccard>(k, *myQuery);
     myTopK->setInput(myScanSet);
     Handle<Computation> myWriter = makeObject<JaccardResultWriter>("TPCH_db", "result");
     myWriter->setInput(myTopK);
+
     auto begin = std::chrono::high_resolution_clock::now();
-    if (!pdbClient.executeComputations(errMsg, myWriter)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriter);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::cout << "The query is executed successfully!" << std::endl;

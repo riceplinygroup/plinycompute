@@ -119,13 +119,8 @@ int main(int argc, char* argv[]) {
     // WE CHECK THE NUBMER OF STORED CUSTOMERS
 
     // now, create the sets for storing Customer Data
-    if (!pdbClient.createSet<SumResultWriteSet>(
-            "TPCH_db", "output_setCustomer", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<SumResultWriteSet>(
+            "TPCH_db", "output_setCustomer");
 
 
     // for allocations
@@ -150,10 +145,7 @@ int main(int argc, char* argv[]) {
     // execute the query
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriteSet);
     std::cout << std::endl;
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Time Duration: "
@@ -176,12 +168,7 @@ int main(int argc, char* argv[]) {
 
 
     // CLEAN UP. Remove the Customer output set
-    if (!pdbClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
-        cout << "Not able to remove the set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Set removed. \n";
-    }
+    pdbClient.removeSet("TPCH_db", "output_setCustomer");
 
     // Clean up the SO files.
     int code = system("scripts/cleanupSoFiles.sh");

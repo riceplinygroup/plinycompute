@@ -32,6 +32,7 @@
 #include "DataProxy.h"
 #include "PageScanner.h"
 #include "PageCircularBufferIterator.h"
+#include "BlockQueryProcessor.h"
 #include "InterfaceFunctions.h"
 #include "HermesExecutionServer.h"
 #include "GenericWork.h"

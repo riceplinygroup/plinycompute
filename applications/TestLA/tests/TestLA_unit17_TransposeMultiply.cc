@@ -103,33 +103,18 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, Substract this line back!!!
-        pdbClient.registerType("libraries/libMatrixMeta.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixData.so", errMsg);
-        pdbClient.registerType("libraries/libMatrixBlock.so", errMsg);
+        pdbClient.registerType("libraries/libMatrixMeta.so");
+        pdbClient.registerType("libraries/libMatrixData.so");
+        pdbClient.registerType("libraries/libMatrixBlock.so");
 
         // now, create a new database
-        if (!pdbClient.createDatabase("LA07_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("LA07_db");
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA07_db", "LA_input_set1", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<MatrixBlock>("LA07_db", "LA_input_set1");
 
         // now, create the first matrix set in that database
-        if (!pdbClient.createSet<MatrixBlock>("LA07_db", "LA_input_set2", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<MatrixBlock>("LA07_db", "LA_input_set2");
 
 
         // Step 2. Multiply data
@@ -163,16 +148,12 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (!pdbClient.sendData<MatrixBlock>(
+        pdbClient.sendData<MatrixBlock>(
                 std::pair<std::string, std::string>("LA_input_set1", "LA07_db"),
-                storeMatrix1,
-                errMsg)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-        }
+                storeMatrix1);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
         // to write back all buffered records
-        pdbClient.flushData(errMsg);
+        pdbClient.flushData();
 
         // Matrix 2
         int matrix2RowNums = 4;
@@ -203,36 +184,27 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (!pdbClient.sendData<MatrixBlock>(
+        pdbClient.sendData<MatrixBlock>(
                 std::pair<std::string, std::string>("LA_input_set2", "LA07_db"),
-                storeMatrix2,
-                errMsg)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-        }
+                storeMatrix2);
         PDB_COUT << total << " MatrixBlock data sent to dispatcher server~~" << std::endl;
         // to write back all buffered records
-        pdbClient.flushData(errMsg);
+        pdbClient.flushData();
     }
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<MatrixBlock>("LA07_db", "LA_product_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<MatrixBlock>("LA07_db", "LA_product_set");
 
     // Step 3. To execute a Query
     // for allocations
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libLATransposeMultiply1Join.so", errMsg);
-    pdbClient.registerType("libraries/libLAMultiply2Aggregate.so", errMsg);
-    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
-    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
+    pdbClient.registerType("libraries/libLATransposeMultiply1Join.so");
+    pdbClient.registerType("libraries/libLAMultiply2Aggregate.so");
+    pdbClient.registerType("libraries/libLAScanMatrixBlockSet.so");
+    pdbClient.registerType("libraries/libLAWriteMatrixBlockSet.so");
 
 
 
@@ -252,10 +224,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myProductWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myProductWriteSet);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -311,12 +280,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("LA07_db", "LA_product_set");
     } else {
-        if (!pdbClient.removeSet("LA07_db", "LA_product_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        pdbClient.removeSet("LA07_db", "LA_product_set");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

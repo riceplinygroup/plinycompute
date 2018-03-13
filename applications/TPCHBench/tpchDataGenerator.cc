@@ -445,13 +445,10 @@ void dataGenerator(std::string scaleFactor,
                 if (storeMeCustomerList->size() > 0) {
                     Record<Vector<Handle<Object>>>* myRecord =
                         (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-                    if (!pdbClient.sendBytes<Customer>(
+                    pdbClient.sendBytes<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
                             (char*)myRecord,
-                            myRecord->numBytes(),
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                    }
+                            myRecord->numBytes());
                     sendingObjectSize += storeMeCustomerList->size();
 
                     std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
@@ -497,13 +494,10 @@ void dataGenerator(std::string scaleFactor,
     // send the rest of data at the end, it can happen that the exception never happens.
     Record<Vector<Handle<Object>>>* myRecord =
         (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-    if (!pdbClient.sendBytes<Customer>(
+    pdbClient.sendBytes<Customer>(
             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
             (char*)myRecord,
-            myRecord->numBytes(),
-            errMsg)) {
-        std::cout << "Failed to send data to dispatcher server" << std::endl;
-    }
+            myRecord->numBytes());
     sendingObjectSize += storeMeCustomerList->size();
 
     std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
@@ -566,7 +560,7 @@ int main(int argc, char* argv[]) {
             // Generate the data
             dataGenerator(scaleFactor, pdbClient, noOfCopiesEachRound);
             // flush to disk
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
             cout << errMsg << endl;
         }
 
@@ -582,7 +576,7 @@ int main(int argc, char* argv[]) {
             // Generate the data
             dataGenerator(scaleFactor, pdbClient, noOfCopiesPartialRound);
             // flush to disk
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
             cout << errMsg << endl;
         }
 
