@@ -146,8 +146,6 @@ IF (BISON_FOUND)
             OUTPUT ${LogicalPlanParserOutput}
             COMMAND ${BISON_EXECUTABLE}
             --output=${LogicalPlanParserOutput}
-            --debug
-            -t
             ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Parser.y
             COMMENT "Generating Logical Plan Parser"
             BUILD_BYPRODUCTS ${LogicalPlanParserOutput}
