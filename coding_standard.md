@@ -1,4 +1,5 @@
-***Acknowledgements***: 
+# New Document
+***Acknowledgements***:
 
 PlinyCompute's coding style for C
 ++ is customized from following coding standards:
@@ -10,13 +11,20 @@ PlinyCompute's coding style for C
 ***Standards***
 
 
-**VARIABLE AND FUNCTION NAMES**: Use descriptive variable and function names. 
+**VARIABLE AND FUNCTION NAMES**: Use descriptive variable and function names.
 
 **INDENTATION** We use 2-column tabs for indentation. Don't put multiple assignments on a single line either. Avoid tricky expressions. Get a decent editor and don't leave whitespace at the end of lines.
 
 **BREAKING LONG LINES** Coding style is all about readability and maintainability using commonly available tools. The limit on the length of lines is 80 columns and this is a strongly preferred limit. Statements longer than 80 columns will be broken into sensible chunks, unless exceeding 80 columns significantly increases readability and does not hide information. Descendants are always substantially shorter than the parent and are placed substantially to the right. The same applies to function headers with a long argument list. Make use of vertical spaces to separate different steps of a function.
 
-**COMMENTS** Add comments for functions, function parameters, and logic inside the function. Please remember that code is often written once but read many times. Comments are good, but there is also a danger of over-commenting.  NEVER try to explain HOW your code works in a comment: it's much better to write the code so that the _working_ is obvious, and it's a waste of time to explain badly written code. Generally, you want your comments to tell WHAT your code does, not HOW. The style for comments is the C99-style "// ..." comments, not the C89 "/* ... */" style.
+**COMMENTS** Add comments for functions, function parameters, and logic inside the function. Please remember that code is often written once but read many times. Comments are good, but there is also a danger of over-commenting.  NEVER try to explain HOW your code works in a comment: it's much better to write the code so that the _working_ is obvious, and it's a waste of time to explain badly written code. Generally, you want your comments to tell WHAT your code does, not HOW. The style for comments is the C99-style "// ..." comments in the .cc files, and we use the JavaDoc style, which consist of a C-style comment block starting with two \*'s, like this:
+```C++
+/**
+ * ... text ...
+ * @param ... name and decription ...
+ * @return ... description ...
+ */
+```
 
 **FUNCTIONS** Functions should be short and sweet, and do just one thing.  They should fit on one or two screenfuls of text, and do one thing and do that well. The maximum length of a function is inversely proportional to the complexity and indentation level of that function.  So, if you have a conceptually simple function that is just one long (but simple) case-statement, where you have to do lots of small things for a lot of different cases, it's OK to have a longer function. However, if you have a complex function, and you suspect that a less-than-gifted first-year high-school student might not even understand what the function is all about, you should adhere to the maximum limits all the more closely.  Use helper functions with descriptive names (you can ask the compiler to in-line them if you think it's performance-critical, and it will probably do a better job of it than you would have done).
 
