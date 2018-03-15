@@ -252,7 +252,7 @@ public:
                                                       "{{tcapOperation}} ({{inputTupleSetName}}({{#inputColumnsToApply}}{{value}}{{^isLast}},{{/isLast}}{{/inputColumnsToApply}}), "
                                                       "{{inputTupleSetName}}({{#hasColumnNames}}{{#inputColumnNames}}{{value}}{{^isLast}},{{/isLast}}{{/inputColumnNames}}{{/hasColumnNames}}), "
                                                       "'{{computationNameAndLabel}}', "
-                                                      "{{#hasLambdaNameAndLabel}}'{{lambdaNameAndLabel}}'{{/hasLambdaNameAndLabel}}, "
+                                                      "{{#hasLambdaNameAndLabel}}'{{lambdaNameAndLabel}}', {{/hasLambdaNameAndLabel}}"
                                                       "[{{#info}}('{{key}}', '{{value}}'){{^isLast}}, {{/isLast}}{{/info}}])\n"};
 
         // create the data for the output columns
