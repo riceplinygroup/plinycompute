@@ -69,7 +69,7 @@ The example above illustrates a valid use of the `inline` keyword for the defini
 
 **ALLOCATING MEMORY** Always use smart pointers, such as `std::shared_ptr` whenever possible, to simplify memory management.
 
-**PRINTING MESSAGES** Developers like to be seen as literate. Do mind the spelling of messages to make a good impression. Do not use crippled words like "dont"; use "do not" or "don't" instead.  Make the messages concise, clear, and unambiguous. Use appropriate log levels, such as TRACE, in `PDBLogger.h`. Coming up with good debugging messages can be quite a challenge; and once you have them, they can be a huge help for troubleshooting.
+**PRINTING MESSAGES** Developers like to be seen as literate. Do mind the spelling of messages to make a good impression. Do not use crippled words like "dont"; use "do not" or "don't" instead.  Make the messages concise, clear, and unambiguous. Use appropriate log levels, such as TRACE, in `PDBLogger.h`. Coming up with good debugging messages can be quite a challenge; and once you have them, they can be a huge help for troubleshooting. Do not use `std::cout` statements on server-side code, instead use the logging facilities or `PDB_COUT` for debugging messages.
 
 **MACROS, ENUMS** Names of macros defining constants and labels in enums are capitalized. `#define CONSTANT 0x12345`. Enums are preferred when defining several related constants. CAPITALIZED macro names are appreciated but macros resembling functions may be named in lower case. Generally, inline functions are preferable to macros resembling functions.
 
