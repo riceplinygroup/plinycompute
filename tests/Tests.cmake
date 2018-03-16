@@ -44,7 +44,7 @@ include(tests/unit/CMakeLists.txt)
 
 # add a custom target to run the integration tests
 add_custom_target(run-integration-tests
-                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py
+                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py int
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_target(run-tpch-tests
