@@ -238,6 +238,10 @@ public:
     // This is to improve the performance of current pipeline bundling
     Handle<ObjType>& shallowCopyToCurrentAllocationBlock(const Handle<ObjType>& copyMe);
 
+    static std::uintptr_t get_middle_12_bits(void* on_block);
+
+    void set_copied_map(void* on_block, void* off_block)
+
 private:
     template <class ObjTypeTwo>
     friend class Handle;

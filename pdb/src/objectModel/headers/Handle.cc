@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+#include <cstdint>
 
 #include "PDBDebug.h"
 #include "TypeName.h"
@@ -476,6 +477,21 @@ Handle<ObjType>::Handle(const Handle<ObjTypeTwo>& fromMe) {
 /* Here are the four assignment operators */
 /******************************************/
 
+template <class ObjType>
+void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
+    std::uintptr_t middle12 = get_middle_12_bits(on_block);
+    if (getAllocator().reverse_copied_map[middle12] == NULL) {
+      getAllocator().reverse_copied_map[middle12] = (char*) off_block;
+      getAllocator().copied_map[off_block] = on_block;
+    }
+}
+
+template <class ObjType>
+std::uintptr_t Handle<ObjType>::get_middle_12_bits(void* on_block) {
+  std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
+  return ((i >> 5) & ((1 << 12) - 1));
+}
+
 /****************************************************************/
 /* Here are the two assignment operators from RefCountedObjects */
 /****************************************************************/
@@ -530,8 +546,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjType>* fro
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
-        getAllocator().copied_map[(void*)fromMe] = space;
-        getAllocator().reverse_copied_map[space] = (void*) fromMe;
+        set_copied_map(space, (void *) fromMe);
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
@@ -642,8 +657,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjTypeTwo>* 
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
-        getAllocator().copied_map[(void*)fromMe] = space;
-        getAllocator().reverse_copied_map[space] = (void*) fromMe;
+        set_copied_map(space, (void *) fromMe);
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
@@ -746,8 +760,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
-        getAllocator().copied_map[(void*)refCountedObject] = space;
-        getAllocator().reverse_copied_map[space] = (void*) refCountedObject;
+        set_copied_map(space, (void*)refCountedObject);
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);
@@ -860,8 +873,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
         }
 
         offset = CHAR_PTR(space) - CHAR_PTR(this);
-        getAllocator().copied_map[(void*)fromMe.getTarget()] = space;
-        getAllocator().reverse_copied_map[space] = (void*) fromMe.getTarget();
+        set_copied_map(space, (void*)fromMe.getTarget());
 
         // set the reference count to one then decrement the old ref count
         getTarget()->setRefCount(1);

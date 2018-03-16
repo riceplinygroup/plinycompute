@@ -71,6 +71,8 @@
 #include <math.h>
 #include <random>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 
 using namespace pdb;
@@ -527,6 +529,12 @@ int main(int argc, char* argv[]) {
     std::cout << "Time Duration: "
          << std::chrono::duration_cast<std::chrono::duration<float>>(end - total_begin).count()
          << " secs." << std::endl;
+    std::ofstream myfile;
+    myfile.open (std::to_string(iter) + '_' + std::to_string(numWord) + '_' + std::to_string(numTopic) + '_' + std::to_string(numDoc) + '.txt');
+    myfile << "Time Duration: "
+           << std::chrono::duration_cast<std::chrono::duration<float>>(end - total_begin).count()
+           << " secs.";
+    myfile.close();
 }
 
 #endif

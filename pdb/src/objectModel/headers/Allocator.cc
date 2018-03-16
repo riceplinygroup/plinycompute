@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+#include <cstdint>
 
 namespace pdb {
 
@@ -566,13 +567,19 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(v
 //          break;
 //      }
 //    }
-    auto it = reverse_copied_map.find((void *) refPtr);
-    if (it != reverse_copied_map.end()) {
-        void* refCountedObject = it->second;
-        reverse_copied_map.erase(it);
-        copied_map.erase(refCountedObject);
+    std::uintptr_t middle12 = Handle::get_middle_12_bits(refPtr);
+    if (reverse_copied_map[middle12]!= nullptr) {
+      void* off_block = (void *) reverse_copied_map[middle12];
+
+      auto it = copied.find((void *) off_block);
+
+      if (it != copied_map.end() && it-> second == refPtr) {
+        copied_map.erase(it);
+        reverse_copied_map[middle12] = nullptr;
+      }
+
     }
-};
+}
 
 // returns some RAM... this can throw an exception if the request is too large
 // to be handled because there is not enough RAM in the current allocation block
@@ -783,6 +790,7 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::setupBlock(
 
     // Clear the copied map and update current allocator stamp
     copied_map.clear();
+    std::fill(reverse_copied_map, reverse_copied_map + 1 << 12, nullptr);
     allocatorStamp = (allocatorStamp + 1) % ((1 << 4) - 1);
 }
 
