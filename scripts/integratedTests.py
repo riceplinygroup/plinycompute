@@ -51,7 +51,7 @@ num_passed = 0
 # Returns a dictionary of tests, given its name
 # as a string
 def list_of_tests(test_list_name):
-    # machine learnig tests
+    # machine learning tests
     if test_list_name == 'ml':
         return tests_ml
     # tpch benchmark tests
@@ -61,7 +61,10 @@ def list_of_tests(test_list_name):
     elif test_list_name == 'la':
         return tests_la
     # integration tests
+    elif test_list_name == 'int':
+        return tests
     else:
+        # default is integration tests
         return tests
 
 

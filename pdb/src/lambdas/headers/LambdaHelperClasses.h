@@ -482,6 +482,12 @@ public:
         return tcapString;
     }
 
+    /**
+     * This method returns all the additional information about this lambda
+     * @return the map with the additional information
+     */
+    virtual std::map<std::string, std::string> getInfo() = 0;
+
     // returns a string containing the type that is returned when this lambda is executed
     virtual std::string getOutputType() = 0;
 

@@ -241,6 +241,18 @@ class DereferenceLambda : public TypedLambdaObject<OutType> {
     return tcapString;
   }
 
+  /**
+  * Returns the additional information about this lambda currently lambda type
+  * @return the map
+  */
+  std::map<std::string, std::string> getInfo() override {
+
+    // fill in the info
+    return std::map<std::string, std::string>{
+        std::make_pair ("lambdaType", getTypeOfLambda()),
+    };
+  };
+
   int getNumChildren() override {
     return 1;
   }

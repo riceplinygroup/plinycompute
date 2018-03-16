@@ -162,13 +162,6 @@ class MethodCallLambda : public TypedLambdaObject<Out> {
     // the additional info about this attribute access lambda
     std::map<std::string, std::string> info;
 
-    // fill out the info
-    info["lambdaType"] = getTypeOfLambda();
-    info["inputTypeName"] = inputTypeName;
-    info["methodName"] = methodName;
-    info["returnTypeName"] = returnTypeName;
-
-
     // generate the TCAP string for the lambda
     std::string tcapString;
     tcapString += this->getTCAPString(inputTupleSetName,
@@ -180,7 +173,7 @@ class MethodCallLambda : public TypedLambdaObject<Out> {
                                       "APPLY",
                                       computationNameWithLabel,
                                       lambdaName,
-                                      info);
+                                      getInfo());
 
     // is a multi input computation just return the tcapString
     if (multiInputsComp == nullptr) {
@@ -244,6 +237,21 @@ class MethodCallLambda : public TypedLambdaObject<Out> {
 
     return tcapString;
   }
+  /**
+   * Returns the additional information about this lambda currently lambda type,
+   * inputTypeName, methodName and returnTypeName
+   * @return the map
+   */
+  std::map<std::string, std::string> getInfo() override {
+
+    // fill in the info
+    return std::map<std::string, std::string>{
+        std::make_pair ("lambdaType", getTypeOfLambda()),
+        std::make_pair ("inputTypeName", inputTypeName),
+        std::make_pair ("methodName", methodName),
+        std::make_pair ("returnTypeName", returnTypeName)
+    };
+  };
 
   int getNumChildren() override {
     return 0;

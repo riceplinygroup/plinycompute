@@ -2,7 +2,7 @@
 add_pdb_integration_test(TestConsecutiveOptimizedJoin)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestConsecutiveOptimizedJoin)
+add_dependencies(build-integration-tests TestConsecutiveOptimizedJoin)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestConsecutiveOptimizedJoin OptimizedMethodJoin)

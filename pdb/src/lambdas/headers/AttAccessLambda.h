@@ -153,12 +153,6 @@ class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
       // the additional info about this attribute access lambda
       std::map<std::string, std::string> info;
 
-      // fill in the info
-      info["lambdaType"] = getTypeOfLambda();
-      info["inputTypeName"] = inputTypeName;
-      info["attName"] = attName;
-      info["attTypeName"] = attTypeName;
-
       tcapString += this->getTCAPString(inputTupleSetName,
                                         inputColumnNames,
                                         inputColumnsToApply,
@@ -168,7 +162,7 @@ class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
                                         "APPLY",
                                         computationNameWithLabel,
                                         lambdaName,
-                                        info);
+                                        getInfo());
 
       if (multiInputsComp != nullptr) {
           if (amILeftChildOfEqualLambda || amIRightChildOfEqualLambda) {
@@ -229,6 +223,23 @@ class AttAccessLambda : public TypedLambdaObject<pdb::Ptr<Out>> {
       }
       return tcapString;
   }
+
+  /**
+   * Returns the additional information about this lambda currently lambda type,
+   * inputTypeName, attName and attTypeName
+   * @return the map
+   */
+  std::map<std::string, std::string> getInfo() override {
+
+      // fill in the info
+      return std::map<std::string, std::string>{
+
+          std::make_pair ("lambdaType", getTypeOfLambda()),
+          std::make_pair ("inputTypeName", inputTypeName),
+          std::make_pair ("attName", attName),
+          std::make_pair ("attTypeName", attTypeName)
+      };
+  };
 
   int getNumChildren() override {
       return 0;

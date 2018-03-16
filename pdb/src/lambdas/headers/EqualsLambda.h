@@ -130,12 +130,6 @@ class EqualsLambda : public TypedLambdaObject<bool> {
       }
       outputColumns.push_back(outputColumnName);
 
-      // the additional info about this attribute access lambda
-      std::map<std::string, std::string> info;
-
-      // fill in the info
-      info["lambdaType"] = getTypeOfLambda();
-
       tcapString += "\n/* Apply selection predicate on " + inputColumnsToApply[0] + " and " + inputColumnsToApply[1] + "*/\n";
       tcapString += this->getTCAPString(inputTupleSetName,
                                         inputColumnNames,
@@ -146,7 +140,7 @@ class EqualsLambda : public TypedLambdaObject<bool> {
                                         "APPLY",
                                         computationNameWithLabel,
                                         myLambdaName,
-                                        info);
+                                        getInfo());
 
     } else {
 
@@ -236,9 +230,6 @@ class EqualsLambda : public TypedLambdaObject<bool> {
       // the additional info about this attribute access lambda
       std::map<std::string, std::string> info;
 
-      // fill in the info
-      info["lambdaType"] = getChild(0)->getTypeOfLambda();
-
       tcapString += this->getTCAPString(inputTupleSetName,
                                         inputColumnNames,
                                         inputColumnsToApply,
@@ -248,7 +239,7 @@ class EqualsLambda : public TypedLambdaObject<bool> {
                                         "APPLY",
                                         computationNameWithLabel,
                                         childrenLambdaNames[0],
-                                        info);
+                                        getChild(0)->getInfo());
 
       inputTupleSetName = outputTupleSetName;
       inputColumnNames.push_back(outputColumnName);
@@ -257,10 +248,6 @@ class EqualsLambda : public TypedLambdaObject<bool> {
       outputTupleSetName = tupleSetNamePrefix + "_WithBOTHExtracted";
       outputColumnName = "RHSExtractedFor_" + std::to_string(lambdaLabel) + "_" + std::to_string(computationLabel);
       outputColumns.push_back(outputColumnName);
-
-      // clear the info and fill it in with the lambda type
-      info.clear();
-      info["lambdaType"] = getChild(1)->getTypeOfLambda();
 
       // add the tcap string
       tcapString += this->getTCAPString(inputTupleSetName,
@@ -272,7 +259,7 @@ class EqualsLambda : public TypedLambdaObject<bool> {
                                         "APPLY",
                                         computationNameWithLabel,
                                         childrenLambdaNames[1],
-                                        info);
+                                        getChild(1)->getInfo());
 
       inputTupleSetName = outputTupleSetName;
       inputColumnsToApply.clear();
@@ -288,10 +275,6 @@ class EqualsLambda : public TypedLambdaObject<bool> {
       outputColumns.push_back(outputColumnName);
       outputTupleSetName = tupleSetNamePrefix + "_BOOL";
 
-      // clear the info and fill it in
-      info.clear();
-      info["lambdaType"] = getTypeOfLambda();
-
       tcapString += this->getTCAPString(inputTupleSetName,
                                         inputColumnNames,
                                         inputColumnsToApply,
@@ -301,7 +284,7 @@ class EqualsLambda : public TypedLambdaObject<bool> {
                                         "APPLY",
                                         computationNameWithLabel,
                                         myLambdaName,
-                                        info);
+                                        getInfo());
 
       inputTupleSetName = outputTupleSetName;
       outputColumnName = "";
@@ -333,6 +316,18 @@ class EqualsLambda : public TypedLambdaObject<bool> {
     }
     return tcapString;
   }
+
+  /**
+   * Returns the additional information about this lambda currently just the lambda type
+   * @return the map
+   */
+  std::map<std::string, std::string> getInfo() override {
+
+    // fill in the info
+    return std::map<std::string, std::string>{
+        std::make_pair ("lambdaType", getTypeOfLambda())
+    };
+  };
 
   unsigned int getNumInputs() override {
     return 2;

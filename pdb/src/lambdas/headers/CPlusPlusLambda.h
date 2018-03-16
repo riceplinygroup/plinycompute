@@ -237,63 +237,6 @@ public:
             "nativeLambda");
     }
 
-    // JiaNote: comment below, because now HashOne is a separate TCAP executor
-    /*
-            //Jia Note: add 1 to each tuple set for cartesian join
-            ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn,
-       TupleSpec &attsToIncludeInOutput) override {
-
-                    // create the output tuple set
-                    TupleSetPtr output = std :: make_shared <TupleSet> ();
-
-                    // create the machine that is going to setup the output tuple set, using the
-       input tuple set
-                    TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine>
-       (inputSchema, attsToIncludeInOutput);
-
-                    // these are the input attributes that we will process
-                    std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
-                    int firstAtt = inputAtts[0];
-
-
-                    // this is the output attribute
-                    int outAtt = attsToIncludeInOutput.getAtts ().size ();
-
-                    return std :: make_shared <SimpleComputeExecutor> (
-                            output,
-                            [=] (TupleSetPtr input) {
-
-                                    // set up the output tuple set
-                                    myMachine->setup (input, output);
-
-                                    // get the columns to get size of tuples
-                                    //std :: vector <Handle<ParamOne>> & firstColumn =
-       input->getColumn<Handle<ParamOne>> (firstAtt);
-
-                                    // create the output attribute, if needed
-                                    if (!output->hasColumn (outAtt)) {
-                                            std :: vector <size_t> *outColumn = new std :: vector
-       <size_t>;
-                                            output->addColumn (outAtt, outColumn, true);
-                                    }
-
-                                    // get the output column
-                                    std :: vector <size_t> &outColumn = output->getColumn <size_t>
-       (outAtt);
-
-                                    // loop down the columns, setting the output
-                                    //int numTuples = firstColumn.size();
-                                    int numTuples = input->getNumRows(firstAtt);
-                                    outColumn.resize (numTuples);
-                                    for (int i = 0; i < numTuples; i++) {
-                                            outColumn [i] = 1;
-                                    }
-                                    return output;
-                            }
-                    );
-           }
-    */
-
     // JiaNote: we need this to generate TCAP for a cartesian join
     std::string toTCAPStringForCartesianJoin(int lambdaLabel,
                                              std::string computationName,
@@ -332,8 +275,7 @@ public:
             inputPartitions[curTupleSetName].push_back(index);
         }
 
-        for (unsigned int i = 0; i < inputTupleSetNames.size(); i++) {
-            std::string curTupleSetName = inputTupleSetNames[i];
+        for (auto curTupleSetName : inputTupleSetNames) {
             std::vector<unsigned int> curVec = inputPartitions[curTupleSetName];
         }
 
@@ -401,8 +343,8 @@ public:
                 std::string curOutputColumnName = "OneFor_" + std::to_string(i + 1) + "_" +
                     std::to_string(computationLabel) + "_" + std::to_string(lambdaLabel);
                 std::vector<std::string> curOutputColumnNames;
-                for (unsigned int j = 0; j < curInputColumnNames.size(); j++) {
-                    curOutputColumnNames.push_back(curInputColumnNames[j]);
+                for (const auto &curInputColumnName : curInputColumnNames) {
+                    curOutputColumnNames.push_back(curInputColumnName);
                 }
                 curOutputColumnNames.push_back(curOutputColumnName);
                 tcapString += this->getTCAPString(curInputTupleSetName,
@@ -495,12 +437,6 @@ public:
         }
         curOutputColumnNames.push_back(curOutputColumnName);
 
-        // the additional info about this attribute access lambda
-        std::map<std::string, std::string> info;
-
-        // set the info
-        info["lambdaType"] = getTypeOfLambda();
-
         tcapString += this->getTCAPString(curLeftTupleSetName,
                                           curLeftColumnsToKeep,
                                           curInputColumnsToApply,
@@ -510,7 +446,7 @@ public:
                                           "APPLY",
                                           myComputationName,
                                           myLambdaName,
-                                          info);
+                                          getInfo());
 
         // Step 4. do a filter to remove false rows
         outputColumns.clear();
@@ -541,6 +477,19 @@ public:
         }
         return tcapString;
     }
+
+    /**
+    * Returns the additional information about this lambda currently lambda type
+    * @return the map
+    */
+    std::map<std::string, std::string> getInfo() override {
+
+      // fill in the info
+      return std::map<std::string, std::string>{
+
+          std::make_pair ("lambdaType", getTypeOfLambda()),
+      };
+    };
 };
 }
 

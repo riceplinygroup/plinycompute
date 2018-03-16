@@ -20,8 +20,8 @@ endforeach()
 # create the target
 add_pdb_application(tpchJaccard)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchJaccard)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchJaccard)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(tpchJaccard Customer)
@@ -57,8 +57,8 @@ add_dependencies(tpchJaccard JaccardResultWriter)
 # create the target
 add_pdb_application(tpchDataGenerator)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchDataGenerator)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchDataGenerator)
 
 ###
 ### tpchGetCustomerCount
@@ -67,8 +67,8 @@ add_dependencies(build-tests tpchDataGenerator)
 # create the target
 add_pdb_application(tpchGetCustomerCount)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchGetCustomerCount)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchGetCustomerCount)
 
 ###
 ### tpchQuery
@@ -77,8 +77,8 @@ add_dependencies(build-tests tpchGetCustomerCount)
 # create the target
 add_pdb_application(tpchQuery)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchQuery)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchQuery)
 
 ###
 ### tpchRegisterAndCreateSets
@@ -87,8 +87,8 @@ add_dependencies(build-tests tpchQuery)
 # create the target
 add_pdb_application(tpchRegisterAndCreateSets)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchRegisterAndCreateSets)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchRegisterAndCreateSets)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(tpchRegisterAndCreateSets Part)

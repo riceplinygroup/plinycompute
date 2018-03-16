@@ -2,7 +2,20 @@
 enable_testing()
 
 # add the costum target for building tests
+add_custom_target(build-tpch-tests)
+add_custom_target(build-la-tests)
+add_custom_target(build-ml-tests)
+add_custom_target(build-integration-tests)
+
+# this one is the big guy it builds all the tests
 add_custom_target(build-tests)
+
+# add all the other build tests targets to him
+add_dependencies(build-tests build-tpch-tests)
+add_dependencies(build-tests build-la-tests)
+add_dependencies(build-tests build-ml-tests)
+add_dependencies(build-tests build-integration-tests)
+
 
 # adds one pdb integration test to CMAKE
 function(add_pdb_integration_test test-name)
@@ -65,10 +78,10 @@ add_custom_target(run-docker-integration-tests
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # add the dependency for building tests
-add_dependencies(run-integration-tests build-tests shared-libraries pdb-server pdb-cluster)
-add_dependencies(run-tpch-tests build-tests shared-libraries pdb-server pdb-cluster)
-add_dependencies(run-la-tests build-tests shared-libraries pdb-server pdb-cluster)
-add_dependencies(run-ml-tests build-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-integration-tests build-integration-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-tpch-tests build-tpch-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-la-tests build-la-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-ml-tests build-ml-tests shared-libraries pdb-server pdb-cluster)
 
 # clean integration tests target
 add_custom_target(clean-integration-tests

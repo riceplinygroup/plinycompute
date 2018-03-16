@@ -167,7 +167,7 @@ public:
                              std::string parentLambdaName = "",
                              bool isSelfJoin = false) override {
 
-        if ((multiInputsComp != nullptr) && (amIPartOfJoinPredicate == true)) {
+        if ((multiInputsComp != nullptr) && amIPartOfJoinPredicate) {
             std::string tcapString = "";
             std::string myComputationName =
                 computationName + "_" + std::to_string(computationLabel);
@@ -325,6 +325,19 @@ public:
             return "";
         }
     }
+
+  /**
+   * Returns the additional information about this lambda currently just the lambda type
+   * @return the map
+   */
+  std::map<std::string, std::string> getInfo() override {
+
+    // fill in the info
+    return std::map<std::string, std::string>{
+        std::make_pair ("lambdaType", getTypeOfLambda())
+    };
+  };
+
 };
 }
 
