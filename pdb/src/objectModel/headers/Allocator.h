@@ -428,6 +428,8 @@ public:
 
     void removeCopyMap(void* refPtr);
 
+    std::uintptr_t get_middle_12_bits(void* on_block);
+
     // Returns the address this allocator
     void* getAddress();
 

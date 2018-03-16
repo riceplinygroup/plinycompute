@@ -558,20 +558,18 @@ inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getAllocato
 };
 
 template <typename FirstPolicy, typename... OtherPolicies>
+inline std::uintptr_t MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::get_middle_12_bits(void* on_block) {
+  std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
+  return ((i >> 5) & ((1 << 12) - 1));
+}
+
+template <typename FirstPolicy, typename... OtherPolicies>
 inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(void* refPtr) {
-//    for(auto it = copied_map.begin(); it != copied_map.end(); it++)
-//    {
-//      if((it->second) == refPtr)
-//      {
-//          copied_map.erase(it);
-//          break;
-//      }
-//    }
-    std::uintptr_t middle12 = Handle::get_middle_12_bits(refPtr);
+    std::uintptr_t middle12 = get_middle_12_bits(refPtr);
     if (reverse_copied_map[middle12]!= nullptr) {
       void* off_block = (void *) reverse_copied_map[middle12];
 
-      auto it = copied.find((void *) off_block);
+      auto it = copied_map.find((void *) off_block);
 
       if (it != copied_map.end() && it-> second == refPtr) {
         copied_map.erase(it);
@@ -790,7 +788,7 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::setupBlock(
 
     // Clear the copied map and update current allocator stamp
     copied_map.clear();
-    std::fill(reverse_copied_map, reverse_copied_map + 1 << 12, nullptr);
+    std::fill(reverse_copied_map, reverse_copied_map + (1 << 12), nullptr);
     allocatorStamp = (allocatorStamp + 1) % ((1 << 4) - 1);
 }
 

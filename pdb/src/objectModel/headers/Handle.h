@@ -240,7 +240,7 @@ public:
 
     static std::uintptr_t get_middle_12_bits(void* on_block);
 
-    void set_copied_map(void* on_block, void* off_block)
+    void set_copied_map(void* on_block, void* off_block);
 
 private:
     template <class ObjTypeTwo>
