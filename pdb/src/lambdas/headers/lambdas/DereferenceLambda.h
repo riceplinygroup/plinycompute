@@ -21,7 +21,7 @@
 
 #include <vector>
 #include "mustache.h"
-#include "LambdaHelperClasses.h"
+#include "GenericLambdaObject.h"
 #include "ComputeExecutor.h"
 #include "SimpleComputeExecutor.h"
 #include "TupleSetMachine.h"

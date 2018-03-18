@@ -114,7 +114,7 @@ public:
         int secondAtt = inputAtts[1];
 
         // this is the output attribute
-        int outAtt = attsToIncludeInOutput.getAtts().size();
+        auto outAtt = (int) attsToIncludeInOutput.getAtts().size();
 
         return std::make_shared<SimpleComputeExecutor>(
             output,
@@ -129,7 +129,7 @@ public:
 
                 // create the output attribute, if needed
                 if (!output->hasColumn(outAtt)) {
-                    std::vector<bool>* outColumn = new std::vector<bool>;
+                    auto outColumn = new std::vector<bool>;
                     output->addColumn(outAtt, outColumn, true);
                 }
 
@@ -137,7 +137,7 @@ public:
                 std::vector<bool>& outColumn = output->getColumn<bool>(outAtt);
 
                 // loop down the columns, setting the output
-                int numTuples = leftColumn.size();
+                auto numTuples = leftColumn.size();
                 outColumn.resize(numTuples);
                 for (int i = 0; i < numTuples; i++) {
                     outColumn[i] = checkAnd(leftColumn[i], rightColumn[i]);
@@ -168,16 +168,14 @@ public:
                              bool isSelfJoin = false) override {
 
         if ((multiInputsComp != nullptr) && amIPartOfJoinPredicate) {
-            std::string tcapString = "";
-            std::string myComputationName =
-                computationName + "_" + std::to_string(computationLabel);
+            std::string tcapString;
+            std::string myComputationName = computationName + "_" + std::to_string(computationLabel);
             // Step 1. get list of input names in LHS
             unsigned int leftIndex = lhs.getInputIndex(0);
             std::vector<std::string> lhsColumnNames =
                 multiInputsComp->getInputColumnsForIthInput(leftIndex);
             std::vector<std::string> lhsInputNames;
-            for (unsigned int i = 0; i < lhsColumnNames.size(); i++) {
-                std::string curColumnName = lhsColumnNames[i];
+            for (const auto &curColumnName : lhsColumnNames) {
                 for (int j = 0; j < multiInputsComp->getNumInputs(); j++) {
                     if (multiInputsComp->getNameForIthInput(j) == curColumnName) {
                         lhsInputNames.push_back(curColumnName);
@@ -191,8 +189,7 @@ public:
             std::vector<std::string> rhsColumnNames =
                 multiInputsComp->getInputColumnsForIthInput(rightIndex);
             std::vector<std::string> rhsInputNames;
-            for (unsigned int i = 0; i < rhsColumnNames.size(); i++) {
-                std::string curColumnName = rhsColumnNames[i];
+            for (const auto &curColumnName : rhsColumnNames) {
                 for (int j = 0; j < multiInputsComp->getNumInputs(); j++) {
                     if (multiInputsComp->getNameForIthInput(j) == curColumnName) {
                         rhsInputNames.push_back(curColumnName);
@@ -204,15 +201,15 @@ public:
             // Step 3. if two lists are disjoint do a cartesian join, otherwise return ""
             std::vector<std::string> inputNamesIntersection;
 
-            for (unsigned int i = 0; i < lhsInputNames.size(); i++) {
-                for (unsigned int j = 0; j < rhsInputNames.size(); j++) {
-                    if (lhsInputNames[i] == rhsInputNames[j]) {
-                        inputNamesIntersection.push_back(lhsInputNames[i]);
+            for (const auto &lhsInputName : lhsInputNames) {
+                for (const auto &rhsInputName : rhsInputNames) {
+                    if (lhsInputName == rhsInputName) {
+                        inputNamesIntersection.push_back(lhsInputName);
                     }
                 }
             }
 
-            if (inputNamesIntersection.size() != 0) {
+            if (!inputNamesIntersection.empty()) {
                 return "";
             } else {
                 // we need a cartesian join

@@ -16,17 +16,27 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LAMBDA_CREATION_H
-#define LAMBDA_CREATION_H
+#ifndef PDB_SELFLAMBDA_H
+#define PDB_SELFLAMBDA_H
+
+#include <Handle.h>
+#include <Ptr.h>
+#include <SelfLambda.h>
+#include <LambdaTree.h>
+
+namespace pdb {
 
 /**
- * Include all the lambda creation functions
+ * creates a PDB lambda that simply returns the argument itself
+ * @tparam ClassType // TODO add proper description
+ * @param var // TODO add proper description
+ * @return // TODO add proper description
  */
-#include "AndLambdaCreationFunctions.h"
-#include "AttAccessLambdaCreationFunctions.h"
-#include "CPPLambdaCreationFunctions.h"
-#include "EqualsLambda.h"
-#include "MethodCallLambda.h"
-#include "SelfLambda.h"
+template <typename ClassType> LambdaTree<Ptr<ClassType>> makeLambdaFromSelf(Handle<ClassType>& var) {
+  PDB_COUT << "makeLambdaFromSelf: input type code is " << var.getExactTypeInfoValue() << std::endl;
+  return LambdaTree<Ptr<ClassType>>(std::make_shared<SelfLambda<ClassType>>(var));
+}
 
-#endif
+}
+
+#endif //PDB_SELFLAMBDA_H

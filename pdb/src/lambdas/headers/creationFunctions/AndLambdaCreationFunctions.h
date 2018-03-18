@@ -16,17 +16,27 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LAMBDA_CREATION_H
-#define LAMBDA_CREATION_H
+#ifndef PDB_ANDLAMBDACREATIONFUNCTIONS_H
+#define PDB_ANDLAMBDACREATIONFUNCTIONS_H
+
+#include <LambdaTree.h>
+#include <AndLambda.h>
+
+namespace pdb {
 
 /**
- * Include all the lambda creation functions
+ * creates a PDB lambda from an && operator
+ * @tparam LeftType // TODO add proper description
+ * @tparam RightType // TODO add proper description
+ * @param lhs // TODO add proper description
+ * @param rhs // TODO add proper description
+ * @return // TODO add proper description
  */
-#include "AndLambdaCreationFunctions.h"
-#include "AttAccessLambdaCreationFunctions.h"
-#include "CPPLambdaCreationFunctions.h"
-#include "EqualsLambda.h"
-#include "MethodCallLambda.h"
-#include "SelfLambda.h"
+template <typename LeftType, typename RightType>
+LambdaTree<bool> operator&&(LambdaTree<LeftType> lhs, LambdaTree<RightType> rhs) {
+  return LambdaTree<bool>(std::make_shared<AndLambda<LeftType, RightType>>(lhs, rhs));
+}
 
-#endif
+}
+
+#endif //PDB_ANDLAMBDACREATIONFUNCTIONS_H
