@@ -28,7 +28,6 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
 #include "SelectionComp.h"
-#include "AggregateComp.h"
 #include "ScanSupervisorSet.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"

@@ -19,13 +19,14 @@
 #ifndef COMPUTE_PLAN_CC
 #define COMPUTE_PLAN_CC
 
+#include "JoinCompBase.h"
 #include "ComputePlan.h"
 #include "FilterExecutor.h"
 #include "HashOneExecutor.h"
 #include "FlattenExecutor.h"
 #include "AtomicComputationClasses.h"
 #include "EqualsLambda.h"
-#include "JoinCompBase.h"
+#include "AbstractJoinComp.h"
 #include "Lexer.h"
 #include "Parser.h"
 
@@ -515,8 +516,7 @@ inline PipelinePtr ComputePlan::buildPipeline(std::vector<std::string> buildThes
         } else if (a->getAtomicComputationType() == "JoinSets") {
 
             // join is weird, because there are two inputs...
-            JoinCompBase& myComp =
-                (JoinCompBase&)myPlan->getNode(a->getComputationName()).getComputation();
+            AbstractJoinComp& myComp = (AbstractJoinComp&)myPlan->getNode(a->getComputationName()).getComputation();
             ApplyJoin* myJoin = (ApplyJoin*)(a.get());
 
             // check if we are pipelinining the right input
@@ -814,8 +814,7 @@ inline PipelinePtr ComputePlan::buildPipeline(std::string sourceTupleSetName,
             // "] => " << a->getOutput () << "\n";
 
             // join is weird, because there are two inputs...
-            JoinCompBase& myComp =
-                (JoinCompBase&)myPlan->getNode(a->getComputationName()).getComputation();
+            AbstractJoinComp& myComp = (AbstractJoinComp&)myPlan->getNode(a->getComputationName()).getComputation();
             ApplyJoin* myJoin = (ApplyJoin*)(a.get());
 
             // check if we are pipelinining the right input

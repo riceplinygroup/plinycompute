@@ -15,53 +15,51 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SIMPLE_MOVIE_WRITE_H
-#define SIMPLE_MOVIE_WRITE_H
 
-// by Sourav, Jun 2017
+#ifndef JOIN_COMP
+#define JOIN_COMP
 
-//#include "VectorSink.h"
-//#include "ComputePlan.h"
-//#include "TupleSpec.h"
-#include "Handle.h"
-#include "Lambda.h"
-#include "Supervisor.h"
-#include "Employee.h"
-#include "LambdaCreationFunctions.h"
-#include "UseTemporaryAllocationBlock.h"
-#include "Pipeline.h"
-#include "SetWriter.h"
-#include "SelectionComp.h"
-#include "AggregateComp.h"
-#include "JoinComp.h"
-#include "ScanSet.h"
-#include "VectorSink.h"
-#include "HashSink.h"
-#include "MapTupleSetIterator.h"
-#include "VectorTupleSetIterator.h"
+#include "Computation.h"
+#include "JoinTests.h"
 #include "ComputePlan.h"
-#include "StringIntPair.h"
-#include "QueryGraphAnalyzer.h"
+#include "JoinTuple.h"
+#include "AbstractJoinComp.h"
+#include "MultiInputsBase.h"
+#include "PageCircularBufferIterator.h"
+#include "DataProxy.h"
+#include "PDBPage.h"
+#include "JoinCompBase.h"
 
-#include "MovieStar.h"
-#include "StarsIn.h"
+namespace pdb {
 
-using namespace pdb;
+/**
+ * // TODO Add proper description
+ * @tparam Out - the output type
+ * @tparam In1 - the first input type
+ * @tparam In2 - the second input type
+ * @tparam Rest - the rest of the input types
+ */
+template <typename Out, typename In1, typename In2, typename... Args>
+class JoinComp : public JoinCompBase<Out, In1, In2, Args... > {
 
-class SimpleMovieWrite : public SetWriter<MovieStar> {
+  /**
+   * The computation returned by this method is called to see if a data item should be returned in the output set
+   * @param in1 - first input
+   * @param in2 - second input
+   * @param otherArgs - the rest of the inputs
+   * @return the projection lambda
+   */
+  virtual Lambda<bool> getSelection(Handle<In1> in1, Handle<In2> in2, Handle<Args>... otherArgs) = 0;
 
-public:
-    ENABLE_DEEP_COPY
-
-    // eventually, this method should be moved into a class that works with the system to
-    // iterate through pages that are pulled from disk/RAM by the system... a programmer
-    // should not provide this particular method
-    ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
-                                  TupleSpec& whichAttsToOpOn,
-                                  TupleSpec& projection,
-                                  ComputePlan& plan) override {
-        return std::make_shared<VectorSink<MovieStar>>(consumeMe, projection);
-    }
+  /**
+   * The computation returned by this method is called to produce output tuples from this method
+   * @param in1 - first input
+   * @param in2 - second input
+   * @param otherArgs - the rest of the inputs
+   * @return the projection lambda
+   */
+  virtual Lambda<Handle<Out>> getProjection(Handle<In1> in1, Handle<In2> in2, Handle<Args>... otherArgs) = 0;
 };
+}
 
 #endif

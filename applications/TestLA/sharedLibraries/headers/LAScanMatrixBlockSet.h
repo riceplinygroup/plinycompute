@@ -20,7 +20,6 @@
 #define LA_SCAN_MATRIXBLOCK_SET_H
 
 #include "ScanUserSet.h"
-//#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 
 // By Binhang, May 2017

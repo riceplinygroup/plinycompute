@@ -20,7 +20,7 @@
 
 // by Jia, May 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "DoubleVector.h"
 #include "DoubleVectorResult.h"
 #include "LambdaCreationFunctions.h"
@@ -29,7 +29,7 @@
 using namespace pdb;
 
 class DoubleVectorAggregation
-    : public ClusterAggregateComp<DoubleVectorResult, DoubleVector, int, DoubleVector> {
+    : public AggregateComp<DoubleVectorResult, DoubleVector, int, DoubleVector> {
 
 public:
     ENABLE_DEEP_COPY

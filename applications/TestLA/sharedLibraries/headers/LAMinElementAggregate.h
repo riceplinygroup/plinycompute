@@ -22,7 +22,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "LAMinElementValueType.h"
 #include "LAMinElementOutputType.h"
 #include "MatrixBlock.h"
@@ -31,7 +31,7 @@
 using namespace pdb;
 
 class LAMinElementAggregate
-    : public ClusterAggregateComp<LAMinElementOutputType, MatrixBlock, int, LAMinElementValueType> {
+    : public AggregateComp<LAMinElementOutputType, MatrixBlock, int, LAMinElementValueType> {
 
 public:
     ENABLE_DEEP_COPY

@@ -20,7 +20,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "KMeansDoubleVector.h"
 #include "limits.h"
 #include "KMeansCentroid.h"
@@ -32,7 +32,7 @@
  */
 using namespace pdb;
 
-class KMeansAggregate : public ClusterAggregateComp<KMeansAggregateOutputType,
+class KMeansAggregate : public AggregateComp<KMeansAggregateOutputType,
                                                     KMeansDoubleVector,
                                                     int,
                                                     KMeansCentroid> {

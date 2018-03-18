@@ -27,7 +27,6 @@
 #include "Pipeline.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
-#include "AggregateComp.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"

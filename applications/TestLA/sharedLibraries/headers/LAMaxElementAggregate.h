@@ -22,7 +22,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "LAMaxElementValueType.h"
 #include "LAMaxElementOutputType.h"
 #include "MatrixBlock.h"
@@ -31,7 +31,7 @@
 using namespace pdb;
 
 class LAMaxElementAggregate
-    : public ClusterAggregateComp<LAMaxElementOutputType, MatrixBlock, int, LAMaxElementValueType> {
+    : public AggregateComp<LAMaxElementOutputType, MatrixBlock, int, LAMaxElementValueType> {
 
 public:
     ENABLE_DEEP_COPY

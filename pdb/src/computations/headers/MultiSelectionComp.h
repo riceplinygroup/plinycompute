@@ -15,36 +15,39 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SIMPLE_MOVIE_SELECTION
-#define SIMPLE_MOVIE_SELECTION
 
-#include "Lambda.h"
-#include "LambdaCreationFunctions.h"
-#include "SelectionComp.h"
-#include "PDBVector.h"
-#include "PDBString.h"
+#ifndef MULTISELECTION_COMP_H
+#define MULTISELECTION_COMP_H
 
-#include "MovieStar.h"
-#include "StarsIn.h"
+#include "MultiSelectionCompBase.h"
 
+namespace pdb {
 
-using namespace pdb;
-class SimpleMovieSelection : public SelectionComp<MovieStar, MovieStar> {
+/**
+ * TODO add proper description
+ * @tparam OutputClass
+ * @tparam InputClass
+ */
+template<class OutputClass, class InputClass>
+class MultiSelectionComp : public MultiSelectionCompBase<OutputClass, InputClass> {
 
-public:
-    ENABLE_DEEP_COPY
+ public:
 
-    SimpleMovieSelection() {}
+  /**
+   * the computation returned by this method is called to see if a data item should be returned in the output set
+   * @param checkMe
+   * @return
+   */
+  virtual pdb::Lambda<bool> getSelection(pdb::Handle<InputClass> checkMe) = 0;
 
-    Lambda<bool> getSelection(Handle<MovieStar> checkMe) override {
-        return makeLambdaFromMember(checkMe, birthYear) ==
-            makeLambdaFromMember(checkMe, checkBirthYear);
-    }
+  /**
+   * the computation returned by this method is called to produce output tuples from this method
+   * @param checkMe
+   * @return
+   */
+  virtual pdb::Lambda<pdb::Vector<pdb::Handle<OutputClass>>> getProjection(pdb::Handle<InputClass> checkMe) = 0;
 
-    Lambda<Handle<MovieStar>> getProjection(Handle<MovieStar> checkMe) override {
-        return makeLambda(checkMe, [](Handle<MovieStar>& checkMe) { return checkMe; });
-    }
 };
-
+}
 
 #endif

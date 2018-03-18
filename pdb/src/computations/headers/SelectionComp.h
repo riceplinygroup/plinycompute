@@ -15,12 +15,34 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SIMPLE_MOVIE_JOIN_CC
-#define SIMPLE_MOVIE_JOIN_CC
 
-#include "SimpleMovieJoin.h"
-#include "GetVTable.h"
+#ifndef SELECTION_COMP
+#define SELECTION_COMP
 
-GET_V_TABLE(SimpleMovieJoin)
+#include "SelectionCompBase.h"
+
+namespace pdb {
+
+template<class OutputClass, class InputClass>
+class SelectionComp : public SelectionCompBase<OutputClass, InputClass> {
+public:
+
+  /**
+   * The computation returned by this method is called to see if a data item should be returned in the output set
+   * @param checkMe
+   * @return
+   */
+  virtual Lambda<bool> getSelection(Handle<InputClass> checkMe) = 0;
+
+  /**
+   * the computation returned by this method is called to perfom a transformation on the input
+   * item before it is inserted into the output set
+   * @param checkMe
+   * @return
+   */
+  virtual Lambda<Handle<OutputClass>> getProjection(Handle<InputClass> checkMe) = 0;
+
+};
+}
 
 #endif

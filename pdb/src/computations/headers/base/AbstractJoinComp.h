@@ -21,9 +21,28 @@
 
 namespace pdb {
 
-class JoinCompBase : public Computation {
+/**
+ * This class defines the interfaces for AggregateComp
+ * This class is used in backend when type information is unknown
+ */
+class AbstractJoinComp : public Computation {
 
 public:
+
+    /**
+     * Gets an execute that can run a scan join...
+     *
+     * @param needToSwapAtts - is true if the atts that are currently stored in the hash table need to
+     * come SECOND in the output tuple sets...
+     * @param hashedInputSchema - hashedInputSchema tells us the schema for the attributes that are
+     * currently stored in the hash table...
+     * @param pipelinedInputSchema - tells us the schema for the attributes that will be coming through the pipeline...
+     * @param pipelinedAttsToOperateOn - is the identity of the hash attribute...
+     * @param pipelinedAttsToIncludeInOutput - tells us the set of attributes that are coming through the pipeline
+     * that we actually have to write to the output stream
+     * @param arg - parameters that are sent into a pipeline when it is built
+     * @return - the executor
+     */
     virtual ComputeExecutorPtr getExecutor(bool needToSwapAtts,
                                            TupleSpec& hashedInputSchema,
                                            TupleSpec& pipelinedInputSchema,
@@ -31,13 +50,30 @@ public:
                                            TupleSpec& pipelinedAttsToIncludeInOutput,
                                            ComputeInfoPtr arg) = 0;
 
+    /**
+     * Gets an execute that can run a scan join...
+     *
+     * @param needToSwapAtts - is true if the atts that are currently stored in the hash table need to
+     * come SECOND in the output tuple sets...
+     * @param hashedInputSchema - hashedInputSchema tells us the schema for the attributes that are
+     * currently stored in the hash table...
+     * @param pipelinedInputSchema - tells us the schema for the attributes that will be coming through the pipeline...
+     * @param pipelinedAttsToOperateOn - is the identity of the hash attribute...
+     * @param pipelinedAttsToIncludeInOutput - tells us the set of attributes that are coming through the pipeline
+     * that we actually have to write to the output stream
+     * @param arg - parameters that are sent into a pipeline when it is built
+     * @return - the executor
+     */
     virtual ComputeExecutorPtr getExecutor(bool needToSwapAtts,
                                            TupleSpec& hashedInputSchema,
                                            TupleSpec& pipelinedInputSchema,
                                            TupleSpec& pipelinedAttsToOperateOn,
                                            TupleSpec& pipelinedAttsToIncludeInOutput) = 0;
 
-    // to return the type if of this computation
+    /**
+     * Used to return the type if of this computation
+     * @return
+     */
     ComputationTypeID getComputationTypeID() override {
         return JoinCompBaseTypeID;
     }

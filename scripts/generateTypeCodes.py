@@ -8,10 +8,30 @@ from os import listdir
 from os.path import isfile, join, abspath
 
 SRC_ROOT = os.path.join(os.path.abspath("."), "src")
+
+# the headers for the built in objects
 object_headers = os.path.join(SRC_ROOT, 'builtInPDBObjects', 'headers')
+
+# the computations
+computation_headers = os.path.join(SRC_ROOT, 'computations', 'headers')
+
+# the computations
+base_computation_headers = os.path.join(SRC_ROOT, 'computations', 'headers', 'base')
+
+# this is where we want to dump the generated files
 objectTargetDir = os.path.join(SRC_ROOT, 'objectModel', 'headers')
+
+# grab all the headers from the built in files
 only_files = [abspath(join(object_headers, f))
               for f in listdir(object_headers) if isfile(join(object_headers, f)) and f[-2:] == '.h']
+
+# grab all the headers from the computations
+only_files.extend([abspath(join(computation_headers, f))
+                  for f in listdir(computation_headers) if isfile(join(computation_headers, f)) and f[-2:] == '.h'])
+
+# grab all the headers from the base computations
+only_files.extend([abspath(join(base_computation_headers, f))
+                   for f in listdir(base_computation_headers) if isfile(join(base_computation_headers, f)) and f[-2:] == '.h'])
 
 
 def check_if_changed(includes, classes):

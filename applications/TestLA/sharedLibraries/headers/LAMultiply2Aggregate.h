@@ -20,7 +20,7 @@
 
 // by Binhang, May 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "MatrixBlock.h"
 #include "LambdaCreationFunctions.h"
 
@@ -28,7 +28,7 @@
 using namespace pdb;
 
 class LAMultiply2Aggregate
-    : public ClusterAggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
+    : public AggregateComp<MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
 
 public:
     ENABLE_DEEP_COPY

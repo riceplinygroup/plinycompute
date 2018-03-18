@@ -50,29 +50,38 @@ enum ComputationTypeID {
     ClusterAggregationCompTypeID
 };
 
-// all nodes in a user-supplied computation are descended from this
+/**
+ * All nodes in a user-supplied computation are descended from this
+ */
 class Computation : public Object {
 
 public:
-    // this is implemented by the actual computation object... as the name implies, it is used
-    // to extract the lambdas from the computation
+
+    /**
+    * This is implemented by the actual computation object... as the name implies, it is used
+    * to extract the lambdas from the computation
+    */
     virtual void extractLambdas(std::map<std::string, GenericLambdaObjectPtr>& returnVal) {}
 
-    // if this particular computation can be used as a compute source in a pipeline, this
-    // method will return the compute source object associated with the computation...
-    //
-    // In the general case, this method accepts the logical plan that this guy is a part of,
-    // as well as the actual TupleSpec that this guy is supposed to produce, and then returns
-    // a pointer to a ComputeSource object that can actually produce TupleSet objects corresponding
-    // to that particular TupleSpec
+    /**
+     * If this particular computation can be used as a compute source in a pipeline, this
+     * method will return the compute source object associated with the computation...
+     *
+     * In the general case, this method accepts the logical plan that this guy is a part of,
+     * as well as the actual TupleSpec that this guy is supposed to produce, and then returns
+     * a pointer to a ComputeSource object that can actually produce TupleSet objects corresponding
+     * to that particular TupleSpec
+     */
     virtual ComputeSourcePtr getComputeSource(TupleSpec& produceMe, ComputePlan& plan) {
         return nullptr;
     }
 
-    // likewise, if this particular computation can be used as a compute sink in a pipeline, this
-    // method will return the compute sink object associated with the computation.  It requires the
-    // TupleSpec that should be processed, as well as the projection of that TupleSpec that will
-    // be put into the sink
+    /**
+     * likewise, if this particular computation can be used as a compute sink in a pipeline, this
+     * method will return the compute sink object associated with the computation.  It requires the
+     * TupleSpec that should be processed, as well as the projection of that TupleSpec that will
+     * be put into the sink
+     */
     virtual ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
                                           TupleSpec& projection,
                                           ComputePlan& plan) {
@@ -86,7 +95,9 @@ public:
         return getComputeSink(consumeMe, projection, plan);
     }
 
-    // JiaNote: add below interface for merging multiple join map sinks for broadcast join
+    /**
+     * interface for merging multiple join map sinks for broadcast join
+     */
     virtual SinkMergerPtr getSinkMerger(TupleSpec& consumeMe,
                                         TupleSpec& projection,
                                         ComputePlan& plan) {
@@ -101,7 +112,8 @@ public:
         return getSinkMerger(consumeMe, projection, plan);
     }
 
-    // JiaNote: add below interface for shuffling multiple join map sinks for hash partitioned join
+    /// JiaNote: add below interface for shuffling multiple join map sinks for hash partitioned join
+
     virtual SinkShufflerPtr getSinkShuffler(TupleSpec& consumeMe,
                                             TupleSpec& projection,
                                             ComputePlan& plan) {
@@ -126,31 +138,48 @@ public:
                                      std::vector<std::string>& outputColumnNames,
                                      std::string& addedOutputColumnName) = 0;
 
-    // JiaNote: below functions are added to construct a query graph
-    // Those functions are borrowed from Chris' QueryBase class
-
-    // gets the name of the i^th input type...
+    /**
+     * gets the name of the i^th input type...
+     * @param i
+     * @return
+     */
     virtual std::string getIthInputType(int i) = 0;
 
     bool hasInput() {
         return !inputs.isNullPtr();
     }
 
-    // get a handle to the i^th input to this query, which is also a query
+    /**
+     * get a handle to the i^th input to this query, which is also a query
+     * @param i
+     * @return
+     */
     Handle<Computation>& getIthInput(int i) const {
         return (*inputs)[i];
     }
 
-    // get the number of inputs to this query type
+    /**
+     * get the number of inputs to this query type
+     * @return
+     */
     virtual int getNumInputs() = 0;
 
-    // gets the output type of this query as a string
+    /**
+     * gets the output type of this query as a string
+     * @return
+     */
     virtual std::string getOutputType() = 0;
 
-    // gets the output type if of this query
+    /**
+     * gets the output type if of this query
+     * @return
+     */
     virtual ComputationTypeID getComputationTypeID() = 0;
 
-    // get the number of consumers of this query
+    /**
+     * get the number of consumers of this query
+     * @return
+     */
     int getNumConsumers() {
         return numConsumers;
     }
@@ -159,13 +188,21 @@ public:
         this->numConsumers = numConsumers;
     }
 
-    // set the first slot, by default
+    /**
+     * Set the first slot, by default
+     * @param toMe
+     * @return
+     */
     bool setInput(Handle<Computation> toMe) {
         return setInput(0, toMe);
     }
 
-    // sets the i^th input to be the output of a specific query... returns
-    // true if this is OK, false if it is not
+    /**
+     * sets the i^th input to be the output of a specific query... returns true if this is OK, false if it is not
+     * @param whichSlot
+     * @param toMe
+     * @return
+     */
     bool setInput(int whichSlot, Handle<Computation> toMe) {
 
         // set the array of inputs if it is a nullptr
@@ -198,53 +235,68 @@ public:
     }
 
 
-    // JiaNote: below methods are added to facilitate analyzing the query graph
-
-
-    // whether the node has been traversed or not
+    /**
+     * Whether the node has been traversed or not
+     * @return
+     */
     bool isTraversed() {
 
         return traversed;
     }
 
-    // set the node to have been traversed
+    /**
+     * set the node to have been traversed
+     * @param traversed
+     */
     void setTraversed(bool traversed) {
 
         this->traversed = traversed;
     }
 
-    // get output TupleSet name if the node has been traversed already
+    /**
+     * get output TupleSet name if the node has been traversed already
+     * @return
+     */
     std::string getOutputTupleSetName() {
 
-        if (traversed == true) {
+        if (traversed) {
             return outputTupleSetName;
         }
         return "";
     }
 
-    // set output TupleSet name. This method should be invoked by the TCAP string generation method
+    /**
+     * set output TupleSet name. This method should be invoked by the TCAP string generation method
+     * @param outputTupleSetName
+     */
     void setOutputTupleSetName(std::string outputTupleSetName) {
         this->outputTupleSetName = outputTupleSetName;
     }
 
-    // get output column name to apply if the node has been traversed already
+    /**
+     * get output column name to apply if the node has been traversed already
+     * @return
+     */
     std::string getOutputColumnToApply() {
 
-        if (traversed == true) {
+        if (traversed) {
             return outputColumnToApply;
         }
         return "";
     }
 
-    // set output column name to apply. This method should be invoked by the TCAP string generation
-    // method
+    /**
+     * Set output column name to apply. This method should be invoked by the TCAP string generation method
+     */
     void setOutputColumnToApply(std::string outputColumnToApply) {
         this->outputColumnToApply = outputColumnToApply;
     }
 
-    // set user set for output when necessary (e.g. results need to be materialized)
-    // by default it do nothing, subclasses shall override this function to handle the case when
-    // results need to be materialized.
+    /**
+     * set user set for output when necessary (e.g. results need to be materialized)
+     * by default it do nothing, subclasses shall override this function to handle the case when
+     * results need to be materialized.
+     */
     virtual void setOutput(std::string dbName, std::string setName) {}
 
     virtual std::string getDatabaseName() {
@@ -268,7 +320,6 @@ public:
 
     virtual void setUsingCombiner(bool useCombinerOrNot) {
         std::cout << "Only aggregation needs to set flag for combiner" << std::endl;
-        return;
     }
 
 
@@ -288,24 +339,35 @@ public:
         return this->myObjectPolicy;
     }
 
-    // to set collectAsMap
+    /**
+     * to set collectAsMap
+     * @param collectAsMapOrNot
+     */
     virtual void setCollectAsMap(bool collectAsMapOrNot){};
 
-    // to check whether to do collectAsMap
+    /**
+     * to check whether to do collectAsMap
+     * @return
+     */
     virtual bool isCollectAsMap() {
         return false;
     }
 
-    // to get number of nodes to collect aggregation results
+    /**
+     * to get number of nodes to collect aggregation results
+     * @return
+     */
     virtual int getNumNodesToCollect() {
         return 0;
     }
 
-    // to set number of nodes to collect aggregation results
+    /**
+     * to set number of nodes to collect aggregation results
+     * @param numNodesToCollect
+     */
     virtual void setNumNodesToCollect(int numNodesToCollect) {}
 
 private:
-    // JiaNote: added to construct query graph
 
     Handle<Vector<Handle<Computation>>> inputs = nullptr;
 

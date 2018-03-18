@@ -39,7 +39,7 @@
 #include "SetSpecifier.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Configuration.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "SharedHashSet.h"
 #include "JoinComp.h"
 #include "SimpleSendObjectRequest.h"
@@ -427,8 +427,8 @@ void PipelineStage::executePipelineWork(int i,
                 unsafeCast<MultiSelectionComp<Object, Object>, Computation>(computation);
             scanner = multiSelection->getOutputSetScanner();
         } else if (computation->getComputationType() == "ClusterAggregationComp") {
-            Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator =
-                unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(
+            Handle<AggregateComp<Object, Object, Object, Object>> aggregator =
+                unsafeCast<AggregateComp<Object, Object, Object, Object>, Computation>(
                     computation);
             scanner = aggregator->getOutputSetScanner();
         } else {
@@ -461,8 +461,8 @@ void PipelineStage::executePipelineWork(int i,
 
     } else {
         // input are hash tables
-        Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator =
-            unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(
+        Handle<AggregateComp<Object, Object, Object, Object>> aggregator =
+            unsafeCast<AggregateComp<Object, Object, Object, Object>, Computation>(
                 computation);
         void* pagePointer = hashSet->getPage(i);
         if (pagePointer != nullptr) {

@@ -21,13 +21,13 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "TopicAssignment.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 
 using namespace pdb;
 
 /* Aggregation for topic assignment */
 class LDATopicWordAggregate
-    : public ClusterAggregateComp<TopicAssignment, TopicAssignment, unsigned, TopicAssignment> {
+    : public AggregateComp<TopicAssignment, TopicAssignment, unsigned, TopicAssignment> {
 
 public:
     ENABLE_DEEP_COPY

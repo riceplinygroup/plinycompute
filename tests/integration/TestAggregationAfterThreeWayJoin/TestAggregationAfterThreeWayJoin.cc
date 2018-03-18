@@ -26,7 +26,6 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
 #include "SelectionComp.h"
-#include "AggregateComp.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"

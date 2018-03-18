@@ -20,7 +20,7 @@
 
 // by Binhang, May 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "MatrixBlock.h"
 #include "LASingleMatrix.h"
 #include "LambdaCreationFunctions.h"
@@ -31,7 +31,7 @@ using namespace pdb;
 
 // This aggregation will
 class LAInverse1Aggregate
-    : public ClusterAggregateComp<SingleMatrix, MatrixBlock, int, MatrixBlock> {
+    : public AggregateComp<SingleMatrix, MatrixBlock, int, MatrixBlock> {
 
 public:
     ENABLE_DEEP_COPY

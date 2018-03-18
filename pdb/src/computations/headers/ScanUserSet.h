@@ -15,12 +15,43 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SIMPLE_MOVIE_SELECTION_CC
-#define SIMPLE_MOVIE_SELECTION_CC
 
-#include "SimpleMovieSelection.h"
-#include "GetVTable.h"
+#ifndef SCAN_USER_SET_H
+#define SCAN_USER_SET_H
 
-GET_V_TABLE(SimpleMovieSelection)
+// PRELOAD %ScanUserSet <Nothing>%
+
+#include "ScanUserSetBase.h"
+
+namespace pdb {
+
+/**
+ * to scan a user set
+ * @tparam OutputClass
+ */
+template<class OutputClass>
+class ScanUserSet : public ScanUserSetBase<OutputClass> {
+
+public:
+
+  /**
+ * This constructor is for constructing builtin object
+ */
+  ScanUserSet() = default;
+
+  /**
+   * The following should be used to crate the ScanUserSet
+   * @param dbName
+   * @param setName
+   */
+  ScanUserSet(std::string dbName, std::string setName) {
+    this->dbName = dbName;
+    this->setName = setName;
+    this->outputType = getTypeName<OutputClass>();
+    this->batchSize = -1;
+  }
+
+};
+}
 
 #endif

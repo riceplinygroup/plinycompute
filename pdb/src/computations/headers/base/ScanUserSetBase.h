@@ -16,10 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SCAN_USER_SET_H
-#define SCAN_USER_SET_H
-
-// PRELOAD %ScanUserSet <Nothing>%
+#ifndef PDB_SCANUSERSETBASE_H
+#define PDB_SCANUSERSETBASE_H
 
 #include "TypeName.h"
 #include "Computation.h"
@@ -33,19 +31,41 @@
 
 namespace pdb {
 
-//to scan a user set
 template<class OutputClass>
-class ScanUserSet : public Computation {
+class ScanUserSetBase : public Computation {
 
  public:
 
-  // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
-  // Array is the one variable-sized type that we allow, we need to manually override
-  // these methods
+  /**
+   * This constructor is for constructing builtin object
+   */
+  ScanUserSetBase() = default;
+
+  /**
+   * User should only use following constructor
+   * @param dbName
+   * @param setName
+   */
+  ScanUserSetBase(std::string dbName, std::string setName) {
+    this->dbName = dbName;
+    this->setName = setName;
+    this->outputType = getTypeName<OutputClass>();
+    this->batchSize = -1;
+  }
+
+  ~ScanUserSetBase() {
+    this->iterator = nullptr;
+    this->proxy = nullptr;
+  }
+
+  /**
+   * Normally these would be defined by the ENABLE_DEEP_COPY macro, but because Array is the one variable-sized
+   * type that we allow, we need to manually override these methods
+   */
   void setUpAndCopyFrom(void *target, void *source) const override {
-    new(target) ScanUserSet<OutputClass>();
-    ScanUserSet<OutputClass> &fromMe = *((ScanUserSet<OutputClass> *) source);
-    ScanUserSet<OutputClass> &toMe = *((ScanUserSet<OutputClass> *) target);
+    new(target) ScanUserSetBase<OutputClass>();
+    ScanUserSetBase<OutputClass> &fromMe = *((ScanUserSetBase<OutputClass> *) source);
+    ScanUserSetBase<OutputClass> &toMe = *((ScanUserSetBase<OutputClass> *) target);
     toMe.iterator = fromMe.iterator;
     toMe.proxy = fromMe.proxy;
     toMe.batchSize = fromMe.batchSize;
@@ -60,22 +80,7 @@ class ScanUserSet : public Computation {
   }
 
   size_t getSize(void *forMe) override {
-    return sizeof(ScanUserSet<OutputClass>);
-  }
-
-  //this constructor is for constructing builtin object
-  ScanUserSet() {}
-
-  //user should only use following constructor
-  ScanUserSet(std::string dbName, std::string setName) {
-    this->dbName = dbName;
-    this->setName = setName;
-    this->outputType = getTypeName<OutputClass>();
-  }
-
-  ~ScanUserSet() {
-    this->iterator = nullptr;
-    this->proxy = nullptr;
+    return sizeof(ScanUserSetBase<OutputClass>);
   }
 
   ComputeSourcePtr getComputeSource(TupleSpec &schema, ComputePlan &plan) override {
@@ -85,7 +90,7 @@ class ScanUserSet : public Computation {
           if (this->iterator == nullptr) {
             return nullptr;
           }
-          while (this->iterator->hasNext() == true) {
+          while (this->iterator->hasNext()) {
 
             PDBPagePtr page = this->iterator->next();
             if (page != nullptr) {
@@ -123,7 +128,10 @@ class ScanUserSet : public Computation {
     );
   }
 
-  // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
+  /**
+   * Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
+   * @param iterator
+   */
   void setIterator(PageCircularBufferIteratorPtr iterator) {
     this->iterator = iterator;
   }
@@ -165,12 +173,23 @@ class ScanUserSet : public Computation {
     return std::string("ScanUserSet");
   }
 
-  // to return the type if of this computation
+  /**
+   * to return the type if of this computation
+   * @return
+   */
   ComputationTypeID getComputationTypeID() override {
     return ScanSetTypeID;
   }
 
-  // below function implements the interface for parsing computation into a TCAP string
+  /**
+   * below function implements the interface for parsing computation into a TCAP string
+   * @param inputTupleSets
+   * @param computationLabel
+   * @param outputTupleSetName
+   * @param outputColumnNames
+   * @param addedOutputColumnName
+   * @return
+   */
   std::string toTCAPString(std::vector<InputTupleSetSpecifier> &inputTupleSets,
                            int computationLabel,
                            std::string &outputTupleSetName,
@@ -178,7 +197,7 @@ class ScanUserSet : public Computation {
                            std::string &addedOutputColumnName) override {
 
     InputTupleSetSpecifier inputTupleSet;
-    if (inputTupleSets.size() > 0) {
+    if (!inputTupleSets.empty()) {
       inputTupleSet = inputTupleSets[0];
     }
     return toTCAPString(inputTupleSet.getTupleSetName(),
@@ -190,7 +209,17 @@ class ScanUserSet : public Computation {
                         addedOutputColumnName);
   }
 
-  // below function returns a TCAP string for this Computation
+  /**
+   * Below function returns a TCAP string for this Computation
+   * @param inputTupleSetName
+   * @param inputColumnNames
+   * @param inputColumnsToApply
+   * @param computationLabel
+   * @param outputTupleSetName
+   * @param outputColumnNames
+   * @param addedOutputColumnName
+   * @return
+   */
   std::string toTCAPString(std::string inputTupleSetName,
                            std::vector<std::string> &inputColumnNames,
                            std::vector<std::string> &inputColumnsToApply,
@@ -250,7 +279,10 @@ class ScanUserSet : public Computation {
   }
 
  protected:
-  // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
+
+  /**
+   * Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
+   */
   PageCircularBufferIteratorPtr iterator = nullptr;
 
   DataProxyPtr proxy = nullptr;
@@ -259,11 +291,13 @@ class ScanUserSet : public Computation {
 
   String setName;
 
-  int batchSize;
+  int batchSize{};
 
   String outputType = "";
-
 };
+
 }
 
-#endif
+
+
+#endif //PDB_SCANUSERSETBASE_H

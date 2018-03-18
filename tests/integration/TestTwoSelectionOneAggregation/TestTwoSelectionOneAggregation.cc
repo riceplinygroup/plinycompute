@@ -29,7 +29,6 @@
 #include "Pipeline.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
-#include "AggregateComp.h"
 #include "ScanUserSet.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"

@@ -20,7 +20,7 @@
 
 // by Jia, Mar 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "DepartmentTotal.h"
 #include "SimpleEmployee.h"
 #include "LambdaCreationFunctions.h"
@@ -29,7 +29,7 @@
 using namespace pdb;
 
 class Simple_Aggregation
-    : public ClusterAggregateComp<DepartmentTotal, SimpleEmployee, String, double> {
+    : public AggregateComp<DepartmentTotal, SimpleEmployee, String, double> {
 
 public:
     ENABLE_DEEP_COPY

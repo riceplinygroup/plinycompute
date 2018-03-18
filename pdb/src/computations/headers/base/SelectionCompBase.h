@@ -16,49 +16,69 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef MULTISELECTION_COMP_H
-#define MULTISELECTION_COMP_H
+#ifndef PDB_SELECTIONCOMPBASE_H
+#define PDB_SELECTIONCOMPBASE_H
 
 #include "Computation.h"
-#include "ComputePlan.h"
 #include "VectorSink.h"
 #include "ScanUserSet.h"
 #include "TypeName.h"
 
 namespace pdb {
-
 template<class OutputClass, class InputClass>
-class MultiSelectionComp : public Computation {
+class SelectionCompBase : public Computation {
 
-public:
-  // the computation returned by this method is called to see if a data item should be returned in
-  // the output set
+ public:
+
+  /**
+   * The computation returned by this method is called to see if a data item should be returned in the output set
+   * @param checkMe
+   * @return
+   */
   virtual Lambda<bool> getSelection(Handle<InputClass> checkMe) = 0;
 
-  // the computation returned by this method is called to produce output tuples from this method
-  virtual Lambda<Vector<Handle<OutputClass>>> getProjection(Handle<InputClass> checkMe) = 0;
+  /**
+   * the computation returned by this method is called to perfom a transformation on the input
+   * item before it is inserted into the output set
+   * @param checkMe
+   * @return
+   */
+  virtual Lambda<Handle<OutputClass>> getProjection(Handle<InputClass> checkMe) = 0;
 
-  // calls getProjection and getSelection to extract the lambdas
+  /**
+   * calls getProjection and getSelection to extract the lambdas
+   * @param returnVal
+   */
   void extractLambdas(std::map<std::string, GenericLambdaObjectPtr> &returnVal) override {
     int suffix = 0;
     Handle<InputClass> checkMe = nullptr;
     Lambda<bool> selectionLambda = getSelection(checkMe);
-    Lambda<Vector<Handle<OutputClass>>> projectionLambda = getProjection(checkMe);
+    Lambda<Handle<OutputClass>> projectionLambda = getProjection(checkMe);
     selectionLambda.toMap(returnVal, suffix);
     projectionLambda.toMap(returnVal, suffix);
   }
 
-  // this is a MultiSelection computation
+  /**
+   * this is a selection computation
+   * @return
+   */
   std::string getComputationType() override {
-    return std::string("MultiSelectionComp");
+    return std::string("SelectionComp");
   }
 
-  // to return the type if of this computation
+  /**
+   * to return the type if of this computation
+   * @return
+   */
   ComputationTypeID getComputationTypeID() override {
-    return MultiSelectionCompTypeID;
+    return SelectionCompTypeID;
   }
 
-  // gets the name of the i^th input type...
+  /**
+   * gets the name of the i^th input type...
+   * @param i
+   * @return
+   */
   std::string getIthInputType(int i) override {
     if (i == 0) {
       return getTypeName<InputClass>();
@@ -67,24 +87,38 @@ public:
     }
   }
 
-  // get the number of inputs to this query type
+  /**
+   * get the number of inputs to this query type
+   * @return
+   */
   int getNumInputs() override {
     return 1;
   }
 
-  // return the output type
+  /**
+   * gets the output type of this query as a string
+   * @return
+   */
   std::string getOutputType() override {
     return getTypeName<OutputClass>();
   }
 
-  // below function implements the interface for parsing computation into a TCAP string
+  /**
+   * below function implements the interface for parsing computation into a TCAP string
+   * @param inputTupleSets
+   * @param computationLabel
+   * @param outputTupleSetName
+   * @param outputColumnNames
+   * @param addedOutputColumnName
+   * @return
+   */
   std::string toTCAPString(std::vector<InputTupleSetSpecifier> &inputTupleSets,
                            int computationLabel,
                            std::string &outputTupleSetName,
                            std::vector<std::string> &outputColumnNames,
                            std::string &addedOutputColumnName) override {
 
-    if (inputTupleSets.size() == 0) {
+    if (inputTupleSets.empty()) {
       return "";
     }
     InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
@@ -101,7 +135,19 @@ public:
                         myLambdaName);
   }
 
-  // to return Selection tcap string
+  /**
+   * to return Selection tcap string
+   * @param inputTupleSetName
+   * @param inputColumnNames
+   * @param inputColumnsToApply
+   * @param childrenLambdaNames
+   * @param computationLabel
+   * @param outputTupleSetName
+   * @param outputColumnNames
+   * @param addedOutputColumnName
+   * @param myLambdaName
+   * @return
+   */
   std::string toTCAPString(std::string inputTupleSetName,
                            std::vector<std::string> &inputColumnNames,
                            std::vector<std::string> &inputColumnsToApply,
@@ -111,18 +157,19 @@ public:
                            std::vector<std::string> &outputColumnNames,
                            std::string &addedOutputColumnName,
                            std::string &myLambdaName) {
-    PDB_COUT << "To GET TCAP STRING FOR SELECTION" << std::endl;
 
+    PDB_COUT << "ABOUT TO GET TCAP STRING FOR SELECTION" << std::endl;
     Handle<InputClass> checkMe = nullptr;
-    PDB_COUT << "TO GET TCAP STRING FOR SELECTION LAMBDA" << std::endl;
-    Lambda<bool> selectionLambda = getSelection(checkMe);
     std::string tupleSetName;
     std::vector<std::string> columnNames;
     std::string addedColumnName;
     int lambdaLabel = 0;
 
+    PDB_COUT << "ABOUT TO GET TCAP STRING FOR SELECTION LAMBDA" << std::endl;
+    Lambda<bool> selectionLambda = getSelection(checkMe);
+
     std::string tcapString;
-    tcapString += "\n/* Apply MultiSelection filtering */\n";
+    tcapString += "\n/* Apply selection filtering */\n";
     tcapString += selectionLambda.toTCAPString(inputTupleSetName,
                                                inputColumnNames,
                                                inputColumnsToApply,
@@ -136,8 +183,8 @@ public:
                                                myLambdaName,
                                                false);
 
-    PDB_COUT << "tcapString after parsing selection lambda: " << tcapString << std::endl;
-    PDB_COUT << "lambdaLabel=" << lambdaLabel << std::endl;
+    PDB_COUT << "The tcapString after parsing selection lambda: " << tcapString << "\n";
+    PDB_COUT << "lambdaLabel=" << lambdaLabel << "\n";
 
     // create the data for the column names
     mustache::data inputColumnData = mustache::data::type::list;
@@ -160,23 +207,24 @@ public:
     selectionCompData.set("tupleSetName", tupleSetName);
     selectionCompData.set("addedColumnName", addedColumnName);
 
-    // set the new tuple set name
+    // tupleSetName1(att1, att2, ...) <= FILTER (tupleSetName(methodCall_0OutFor_isFrank), methodCall_0OutFor_SelectionComp1(in0), 'SelectionComp_1')
+    mustache::mustache scanSetTemplate{"filteredInputFor{{computationType}}{{computationLabel}}({{#inputColumns}}{{columnName}}{{^isLast}}, {{/isLast}}{{/inputColumns}}) "
+                                           "<= FILTER ({{tupleSetName}}({{addedColumnName}}), {{tupleSetName}}({{#inputColumns}}{{columnName}}{{^isLast}}, {{/isLast}}{{/inputColumns}}), '{{computationType}}_{{computationLabel}}')\n"};
+
+    // generate the TCAP string for the FILTER
+    tcapString += scanSetTemplate.render(selectionCompData);
+
+    // template for the new tuple set name
     mustache::mustache newTupleSetNameTemplate{"filteredInputFor{{computationType}}{{computationLabel}}"};
+
+    // generate the new tuple set name
     std::string newTupleSetName = newTupleSetNameTemplate.render(selectionCompData);
 
-    mustache::mustache filterTemplate{"filteredInputFor{{computationType}}{{computationLabel}}"
-                                          "({{#inputColumns}}{{columnName}}{{^isLast}}, {{/isLast}}{{/inputColumns}}) "
-                                          "<= FILTER ({{tupleSetName}}({{addedColumnName}}), {{tupleSetName}}"
-                                          "({{#inputColumns}}{{columnName}}{{^isLast}}, {{/isLast}}{{/inputColumns}}), "
-                                          "'{{computationType}}_{{computationLabel}}')\n"};
-    tcapString += filterTemplate.render(selectionCompData);
+    PDB_COUT << "TO GET TCAP STRING FOR PROJECTION LAMBDA\n";
+    Lambda<Handle<OutputClass>> projectionLambda = getProjection(checkMe);
 
-    PDB_COUT << "tcapString after adding filter operation: " << tcapString << std::endl;
-    PDB_COUT << "TO GET TCAP STRING FOR PROJECTION LAMBDA" << std::endl;
-    PDB_COUT << "lambdaLabel=" << lambdaLabel << std::endl;
-
-    Lambda<Vector<Handle<OutputClass>>> projectionLambda = getProjection(checkMe);
-    tcapString += "\n/* Apply MultiSelection projection */\n";
+    // generate the TCAP string for the FILTER
+    tcapString += "\n/* Apply selection projection */\n";
     tcapString += projectionLambda.toTCAPString(newTupleSetName,
                                                 inputColumnNames,
                                                 inputColumnsToApply,
@@ -190,35 +238,12 @@ public:
                                                 myLambdaName,
                                                 true);
 
-    // add the new data
-    selectionCompData.set("addedOutputColumnName", addedOutputColumnName);
-    selectionCompData.set("computationType", getComputationType());
-    selectionCompData.set("computationLabel", std::to_string(computationLabel));
-    selectionCompData.set("outputTupleSetName", outputTupleSetName);
-
-
-    // create the new tuple set name
-    newTupleSetNameTemplate = {"flattenedOutFor{{computationType}}{{computationLabel}}"};
-    newTupleSetName = newTupleSetNameTemplate.render(selectionCompData);
-
-    // create the new output column name
-    mustache::mustache newOutputColumnNameTemplate = {"flattened_{{addedOutputColumnName}}"};
-    std::string newOutputColumnName = newOutputColumnNameTemplate.render(selectionCompData);
-
-    // add flatten
-    mustache::mustache flattenTemplate{"flattenedOutFor{{computationType}}{{computationLabel}}(flattened_{{addedOutputColumnName}})"
-                                       " <= FLATTEN ({{outputTupleSetName}}({{addedOutputColumnName}}), "
-                                       "{{outputTupleSetName}}(), '{{computationType}}_{{computationLabel}}')\n"};
-    tcapString += flattenTemplate.render(selectionCompData);
-
+    // update the state of the computation
     this->setTraversed(true);
-    this->setOutputTupleSetName(newTupleSetName);
-    outputTupleSetName = newTupleSetName;
-    this->setOutputColumnToApply(newOutputColumnName);
-    addedOutputColumnName = newOutputColumnName;
-    outputColumnNames.clear();
-    outputColumnNames.push_back(addedOutputColumnName);
+    this->setOutputTupleSetName(outputTupleSetName);
+    this->setOutputColumnToApply(addedOutputColumnName);
 
+    // return the TCAP string
     return tcapString;
   }
 
@@ -235,33 +260,51 @@ public:
     }
   }
 
-  // to return the database name
+  /**
+   * to return the database name
+   * @return
+   */
   std::string getDatabaseName() override {
     return this->outputSetScanner->getDatabaseName();
   }
 
-  // to return the set name
+  /**
+   * to return the set name
+   * @return
+   */
   std::string getSetName() override {
     return this->outputSetScanner->getSetName();
   }
 
-  // source for consumer to read selection output, which has been written to a user set
+  /**
+   * source for consumer to read selection output, which has been written to a user set
+   * @param outputScheme
+   * @param plan
+   * @return
+   */
   ComputeSourcePtr getComputeSource(TupleSpec &outputScheme, ComputePlan &plan) override {
 
-    if (this->materializeSelectionOut == true) {
+    if (this->materializeSelectionOut) {
       if (this->outputSetScanner != nullptr) {
         return outputSetScanner->getComputeSource(outputScheme, plan);
       }
     }
+    std::cout << "ERROR: get compute source for " << outputScheme << " returns nullptr" << std::endl;
     return nullptr;
   }
 
-  // sink to write selection output
+  /**
+   * Sink to write selection output
+   * @param consumeMe
+   * @param projection
+   * @param plan
+   * @return
+   */
   ComputeSinkPtr getComputeSink(TupleSpec &consumeMe,
                                 TupleSpec &projection,
                                 ComputePlan &plan) override {
 
-    if (this->materializeSelectionOut == true) {
+    if (this->materializeSelectionOut) {
       return std::make_shared<VectorSink<OutputClass>>(consumeMe, projection);
     }
     return nullptr;
@@ -275,10 +318,11 @@ public:
     return outputSetScanner;
   }
 
-private:
+ private:
   bool materializeSelectionOut = false;
   Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
 };
+
 }
 
-#endif
+#endif //PDB_SELECTIONCOMPBASE_H

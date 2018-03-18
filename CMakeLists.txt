@@ -72,6 +72,9 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/storage/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/objectModel/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/sharedLibraries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers/base")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
