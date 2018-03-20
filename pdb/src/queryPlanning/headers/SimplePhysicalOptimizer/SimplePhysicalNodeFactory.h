@@ -17,8 +17,8 @@
  *****************************************************************************/
 #include "AbstractPhysicalNodeFactory.h"
 
-#ifndef PDB_SIMPLEPHYSICALNODE_H
-#define PDB_SIMPLEPHYSICALNODE_H
+#ifndef PDB_SIMPLEPHYSICALNODE_FACTORY_H
+#define PDB_SIMPLEPHYSICALNODE_FACTORY_H
 
 namespace pdb {
 
@@ -86,4 +86,4 @@ private:
 }
 
 
-#endif //PDB_SIMPLEPHYSICALNODE_H
+#endif //PDB_SIMPLEPHYSICALNODE_FACTORY_H

@@ -49,9 +49,9 @@ protected:
    * @return the result will contain a partial physical plan
    */
   PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimplePhysicalNodePtr &prevNode,
-                                              const StatisticsPtr &stats,
-                                              int nextStageID) override;
+                                                   SimplePhysicalNodePtr &prevNode,
+                                                   const StatisticsPtr &stats,
+                                                   int nextStageID) override;
 
   /**
    * In the case that this aggregation is the output this method is called.
