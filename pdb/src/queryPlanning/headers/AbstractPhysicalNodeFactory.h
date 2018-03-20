@@ -25,30 +25,30 @@
 namespace pdb {
 
 class AbstractPhysicalNodeFactory;
-typedef std::shared_ptr<AbstractPhysicalNodeFactory> AbstractTCAPAnalyzerNodeFactoryPtr;
+typedef std::shared_ptr<AbstractPhysicalNodeFactory> AbstractPhysicalNodeFactoryPtr;
 
 class AbstractPhysicalNodeFactory {
 public:
 
   /**
-   * This can only be called from the constructor of a class the inherits the AbstractTCAPAnalyzerNodeFactory
+   * This can only be called from the constructor of a class the inherits the AbstractPhysicalNodeFactory
    * @param computePlan the compute plan the nodes belong to
    */
   explicit AbstractPhysicalNodeFactory(const Handle<ComputePlan> &computePlan);
 
   /**
-   * Takes in an AtomicComputation and creates a TCAPAnalyzerNode out of it.
+   * Takes in an AtomicComputation and creates a PhysicalNode out of it.
    * @param tcapNode the AtomicComputation
-   * @return the TCAPAnalyzerNode that corresponds to the AtomicComputation
+   * @return the PhysicalNode that corresponds to the AtomicComputation
    */
-  virtual AbstractTCAPAnalyzerNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) = 0;
+  virtual AbstractPhysicalNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) = 0;
 
   /**
    * This method is used to generate a TCAP analyzer graph, it is recursing
    * @param sources
    * @return
    */
-  virtual std::vector<AbstractTCAPAnalyzerNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) = 0;
+  virtual std::vector<AbstractPhysicalNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) = 0;
 
  protected:
 

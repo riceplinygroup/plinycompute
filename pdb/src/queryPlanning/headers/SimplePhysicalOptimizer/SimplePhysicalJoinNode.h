@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_SIMPLETCAPANALYZERJOINNODE_H
-#define PDB_SIMPLETCAPANALYZERJOINNODE_H
+#ifndef PDB_SIMPLEPHYSICALJOINNODE_H
+#define PDB_SIMPLEPHYSICALJOINNODE_H
 
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
 #include "SimplePhysicalNode.h"
@@ -44,8 +44,8 @@ public:
    *
    * @return - non existent
    */
-  TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &ptr,
-                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &ptr,
+                                      SimplePhysicalNodePtr &prevNode,
                                       const StatisticsPtr &stats,
                                       int nextStageID) override;
 
@@ -66,8 +66,8 @@ public:
    *
    * @return the result of the analysis
    */
-  TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                              SimplePhysicalNodePtr &prevNode,
                                               const StatisticsPtr &stats,
                                               int nextStageID) override;
 
@@ -93,4 +93,4 @@ private:
 }
 
 
-#endif //PDB_SIMPLETCAPANALYZERJOINNODE_H
+#endif //PDB_SIMPLEPHYSICALJOINNODE_H

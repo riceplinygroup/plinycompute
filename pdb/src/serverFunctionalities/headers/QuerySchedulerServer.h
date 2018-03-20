@@ -356,11 +356,11 @@ protected:
     double partitionToCoreRatio;
 
     /**
-     * An instance of the TCAPAnalyzer. We use it to do the dynamic planning.
+     * An instance of the PhyscialAnalyzer. We use it to do the dynamic planning.
      * More specifically to find the source that is we should start from using heuristics and
      * to generate pipeline stages starting from this source
      */
-    std::shared_ptr<PhysicalOptimizer> tcapAnalyzerPtr;
+    std::shared_ptr<PhysicalOptimizer> physicalOptimizerPtr;
 
     /**
      * Contains the information about every set on every node,

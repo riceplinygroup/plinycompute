@@ -620,15 +620,15 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
       auto sourcesComputations = computationGraph.getAllScanSets();
 
       // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
-      AbstractTCAPAnalyzerNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
+      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
                                                                                                           computePlan,
                                                                                                           conf);
 
       // generate the analysis graph (it is a list of source nodes for that graph)
       auto graph = analyzerNodeFactory->generateAnalyzerGraph(sourcesComputations);
 
-      // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
-      this->tcapAnalyzerPtr = make_shared<PhysicalOptimizer>(graph, this->logger);
+      // initialize the physicalAnalyzer - used to generate the pipelines and pipeline stages we need to execute
+      this->physicalOptimizerPtr = make_shared<PhysicalOptimizer>(graph, this->logger);
     }
     catch (pdb::NotEnoughSpace &n) {
 
@@ -639,7 +639,7 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
     }
 
     int jobStageId = 0;
-    while (this->tcapAnalyzerPtr->hasSources()) {
+    while (this->physicalOptimizerPtr->hasSources()) {
 
         std::vector<Handle<AbstractJobStage>> jobStages;
         std::vector<Handle<SetIdentifier>> intermediateSets;
@@ -697,7 +697,7 @@ void QuerySchedulerServer::removeUnusedIntermediateSets(DistributedStorageManage
 
         // check whether intermediateSet is a source set and has consumers
         string setName = intermediateSet->toSourceSetName();
-        if (this->tcapAnalyzerPtr->hasConsumers(setName)) {
+        if (this->physicalOptimizerPtr->hasConsumers(setName)) {
 
             // if it does then we need to remember this set and not remove it, because it will be used later
             this->interGlobalSets.push_back(intermediateSet);
@@ -779,10 +779,10 @@ void QuerySchedulerServer:: extractPipelineStages(int &jobStageId,
 
     // try to get a sequence of stages, if we have any sources left
     bool success = false;
-    while (this->tcapAnalyzerPtr->hasSources() && !success) {
+    while (this->physicalOptimizerPtr->hasSources() && !success) {
 
         // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
-        success = this->tcapAnalyzerPtr->getNextStagesOptimized(jobStages,
+        success = this->physicalOptimizerPtr->getNextStagesOptimized(jobStages,
                                                                 intermediateSets,
                                                                 statsForOptimization,
                                                                 jobStageId);

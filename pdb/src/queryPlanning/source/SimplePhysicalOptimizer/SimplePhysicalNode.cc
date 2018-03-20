@@ -33,7 +33,7 @@ SimplePhysicalNode::SimplePhysicalNode(string jobId,
                                                                                                  conf),
                                                                                                  handle(nullptr) {}
 
-TCAPAnalyzerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
 
   // create a job stage builder
   TupleSetJobStageBuilderPtr jobStageBuilder = make_shared<TupleSetJobStageBuilder>();
@@ -54,7 +54,7 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, in
   jobStageBuilder->setComputePlan(computePlan);
 
   // this is a source so there is no last node
-  SimpleTCAPAnalyzerNodePtr prevNode = nullptr;
+  SimplePhysicalNodePtr prevNode = nullptr;
 
   // run the recursive analysis it will essentially grab the first consumer of the source node
   // and analyze it as if the source had just one consumer
@@ -76,8 +76,8 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, in
   return result;
 }
 
-TCAPAnalyzerResultPtr SimplePhysicalNode::analyze(TupleSetJobStageBuilderPtr &jobStageBuilder,
-                                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(TupleSetJobStageBuilderPtr &jobStageBuilder,
+                                                      SimplePhysicalNodePtr &prevNode,
                                                       const StatisticsPtr &stats,
                                                       int nextStageID) {
 
@@ -98,7 +98,7 @@ bool SimplePhysicalNode::hasConsumers() {
   return !activeConsumers.empty();
 }
 
-void SimplePhysicalNode::addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) {
+void SimplePhysicalNode::addConsumer(const AbstractPhysicalNodePtr &consumer) {
   // call the consumer
   AbstractPhysicalNode::addConsumer(consumer);
 
@@ -125,8 +125,8 @@ double SimplePhysicalNode::getCost(Handle<SetIdentifier> source, const Statistic
   return double((size_t) cost / 1000000);
 }
 
-TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                    SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                    SimplePhysicalNodePtr &prevNode,
                                                                     const StatisticsPtr &stats,
                                                                     int nextStageID) {
 
@@ -134,10 +134,10 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStage
   tupleStageBuilder->addTupleSetToBuildPipeline(node->getOutputName());
 
   // this is a source so there is no last node
-  SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
+  SimplePhysicalNodePtr newPrevNode = getHandle();
 
   // go to the next node
-  TCAPAnalyzerResultPtr result = activeConsumers.front()->analyze(tupleStageBuilder,
+  PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(tupleStageBuilder,
                                                                   newPrevNode,
                                                                   stats,
                                                                   nextStageID);
@@ -150,8 +150,8 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStage
   return result;
 }
 
-TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                            SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                            SimplePhysicalNodePtr &prevNode,
                                                             const StatisticsPtr &stats,
                                                             int nextStageID) {
 
@@ -173,7 +173,7 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBuilderP
   Handle<TupleSetJobStage> jobStage = tupleStageBuilder->build();
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
@@ -183,13 +183,13 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBuilderP
   return result;
 }
 
-TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleSetJobStageBuilder,
-                                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleSetJobStageBuilder,
+                                                                       SimplePhysicalNodePtr &prevNode,
                                                                        const StatisticsPtr &stats,
                                                                        int nextStageID) {
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // grab the output of the current node
   std::string outputName = node->getOutputName();
@@ -240,7 +240,7 @@ TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSetJobSt
   return result;
 }
 
-SimpleTCAPAnalyzerNodePtr SimplePhysicalNode::getHandle() {
+SimplePhysicalNodePtr SimplePhysicalNode::getHandle() {
 
   // if we do not have a handle to this node already
   if(handle == nullptr) {

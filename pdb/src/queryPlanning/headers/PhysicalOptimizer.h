@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPANALYZERNEW_H
-#define PDB_TCAPANALYZERNEW_H
+#ifndef PDB_PHYSICAL_OPTIMIZER_H
+#define PDB_PHYSICAL_OPTIMIZER_H
 
 #include <set>
 #include "AggregationJobStage.h"
@@ -35,8 +35,8 @@
 namespace pdb {
 
 /**
- * This class takes in the computations and the TCAP string that are sent from the client and iteratively creates a
- * series of partial physical plans, that we can execute to get a result.
+ * This class takes in as input a graph made out of @see AbstractPhysicalNode objects and preforms PhysicalOptimization
+ * on them.
  *
  * This is accomplished by iteratively calling the method getNextStagesOptimized to generate a sequence of JobStages.
  * As an input to the getNextStagesOptimized we have to provide the storage statistics, so
@@ -56,11 +56,11 @@ class PhysicalOptimizer {
  public:
 
   /**
-   * The constructor for the TCAPAnalyzer from a TCAP string and a list of computations associated with it
+   * The constructor for the PhysicalOptimizer from a TCAP string and a list of computations associated with it
    * @param sources the source nodes of the graph to analyze
    * @param logger an instance of the PDBLogger
    */
-  PhysicalOptimizer(std::vector<AbstractTCAPAnalyzerNodePtr> &sources, PDBLoggerPtr &logger);
+  PhysicalOptimizer(std::vector<AbstractPhysicalNodePtr> &sources, PDBLoggerPtr &logger);
 
   /**
      * Returns a sequence of job stages that, make up a partial physical plan. After the execution we gather the
@@ -94,7 +94,7 @@ class PhysicalOptimizer {
    * Returns the best source node based on heuristics
    * @return the node
    */
-  AbstractTCAPAnalyzerNodePtr getBestNode(StatisticsPtr &ptr);
+  AbstractPhysicalNodePtr getBestNode(StatisticsPtr &ptr);
 
  private:
 
@@ -107,7 +107,7 @@ class PhysicalOptimizer {
     * Hash map where the key is the name of the source set in the form of "databaseName:setName"
     * and the AbstractTCAPAnalyzerNodePtr associated with it.
     */
-  std::map<std::string, AbstractTCAPAnalyzerNodePtr> sourceNodes;
+  std::map<std::string, AbstractPhysicalNodePtr> sourceNodes;
 
   /**
    * Penalized source sets in the form databaseName:setName
@@ -124,4 +124,4 @@ class PhysicalOptimizer {
 }
 
 
-#endif //PDB_TCAPANALYZERNEW_H
+#endif //PDB_PHYSICAL_OPTIMIZER_H

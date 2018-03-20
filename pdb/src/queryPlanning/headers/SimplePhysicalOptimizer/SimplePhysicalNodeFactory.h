@@ -17,16 +17,16 @@
  *****************************************************************************/
 #include "AbstractPhysicalNodeFactory.h"
 
-#ifndef PDB_SIMPLETCAPANALYZERNODE_H
-#define PDB_SIMPLETCAPANALYZERNODE_H
+#ifndef PDB_SIMPLEPHYSICALNODE_H
+#define PDB_SIMPLEPHYSICALNODE_H
 
 namespace pdb {
 
 class SimplePhysicalNodeFactory;
-typedef std::shared_ptr<SimplePhysicalNodeFactory> SimpleTCAPAnalyzerNodeFactoryPtr;
+typedef std::shared_ptr<SimplePhysicalNodeFactory> SimplePhysicalNodeFactoryPtr;
 
 /**
- * This class is a factory for the nodes of a SimpleTCAPAnalyzer graph
+ * This class is a factory for the nodes of a SimplePhysicalNode graph
  */
 class SimplePhysicalNodeFactory : public AbstractPhysicalNodeFactory {
 public:
@@ -36,16 +36,16 @@ public:
                                 const ConfigurationPtr &conf);
 
   /**
-   * Depending on the type of the tcapNode we are dealing with create the appropriate SimpleTCAPAnalyzerNode
+   * Depending on the type of the tcapNode we are dealing with create the appropriate SimplePhysicalNode
    * Currently we are differentiating between three types of nodes :
-   * 1. ApplyAggTypeID -> SimpleTCAPAnalyzerAggregationNode
-   * 2. ApplyJoinTypeID -> SimpleTCAPAnalyzerJoinNode
-   * 3. Any other node -> SimpleTCAPAnalyzerNode
+   * 1. ApplyAggTypeID -> SimplePhysicalAggregationNode
+   * 2. ApplyJoinTypeID -> SimplePhysicalJoinNode
+   * 3. Any other node -> SimplePhysicalNode
    *
    * @param tcapNode the TCAP node we are analyzing
    * @return the created node
    */
-  AbstractTCAPAnalyzerNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) override;
+  AbstractPhysicalNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) override;
 
 
 private:
@@ -55,20 +55,20 @@ private:
    * @param sources
    * @return
    */
-  std::vector<AbstractTCAPAnalyzerNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) override;
+  std::vector<AbstractPhysicalNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) override;
 
   /**
    * This method generates the node that is consuming this source and adds it to the list of its consumers
-   * @param source - the source AbstractTCAPAnalyzerNode we are coming from
+   * @param source - the source AbstractPhysicalNode we are coming from
    * @param node - the AtomicComputation from which we are going to create the consumer node
    */
-  void generateConsumerNode(AbstractTCAPAnalyzerNodePtr source, AtomicComputationPtr node);
+  void generateConsumerNode(AbstractPhysicalNodePtr source, AtomicComputationPtr node);
 
   /**
    * This map is used to store nodes we created to avoid creating duplicates.
    * The key is the outputName of the AtomicComputation the value is the created node.
    */
-  std::map<std::string, AbstractTCAPAnalyzerNodePtr> nodes;
+  std::map<std::string, AbstractPhysicalNodePtr> nodes;
 
 
   /**
@@ -86,4 +86,4 @@ private:
 }
 
 
-#endif //PDB_SIMPLETCAPANALYZERNODE_H
+#endif //PDB_SIMPLEPHYSICALNODE_H

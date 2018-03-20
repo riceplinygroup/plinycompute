@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_SIMPLETCAPANALYZERPROCESSINGNODE_H
-#define PDB_SIMPLETCAPANALYZERPROCESSINGNODE_H
+#ifndef PDB_SIMPLEPHYSICALNODE_H
+#define PDB_SIMPLEPHYSICALNODE_H
 
 #include "BroadcastJoinBuildHTJobStage.h"
 #include "HashPartitionedJoinBuildHTJobStage.h"
@@ -28,7 +28,7 @@
 namespace pdb {
 
 class SimplePhysicalNode;
-typedef std::shared_ptr<SimplePhysicalNode> SimpleTCAPAnalyzerNodePtr;
+typedef std::shared_ptr<SimplePhysicalNode> SimplePhysicalNodePtr;
 
 class SimplePhysicalNode : public AbstractPhysicalNode {
 
@@ -41,11 +41,11 @@ public:
                          ConfigurationPtr conf);
 
   /**
-   * This method starts the analysis for the simple TCAPAnalyzer.
+   * This method starts the analysis for the simple physical optimizer.
    * What it does is it sets up a TupleStageBuilder and then calls recursively the other analyze method
    * @return the resulting partial plan if succeeded
    */
-  TCAPAnalyzerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
+  PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
 
   /**
    * Depending on the number of active consumers this node has it either :
@@ -57,8 +57,8 @@ public:
    * @param shared_ptr
    * @return the resulting partial plan if succeeded
    */
-  TCAPAnalyzerResultPtr analyze(TupleSetJobStageBuilderPtr &shared_ptr,
-                                SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyze(TupleSetJobStageBuilderPtr &shared_ptr,
+                                SimplePhysicalNodePtr &prevNode,
                                 const StatisticsPtr &stats,
                                 int nextStageID);
 
@@ -67,7 +67,7 @@ public:
    * This method calls the base method but also adds the consumer to the list of @see activeConsumers.
    * @param consumer
    */
-  void addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) override;
+  void addConsumer(const AbstractPhysicalNodePtr &consumer) override;
 
   /**
    * Returns true if this node has any unprocessed consumers, false otherwise
@@ -88,7 +88,7 @@ public:
    * Returns the shared_pointer to this node
    * @return the handle
    */
-  SimpleTCAPAnalyzerNodePtr getHandle();
+  SimplePhysicalNodePtr getHandle();
 
 protected:
 
@@ -104,8 +104,8 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  virtual TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+  virtual PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                      SimplePhysicalNodePtr &prevNode,
                                                       const StatisticsPtr &stats,
                                                       int nextStageID);
 
@@ -121,8 +121,8 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  virtual TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
+  virtual PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                              SimplePhysicalNodePtr &prevNode,
                                               const StatisticsPtr &stats,
                                               int nextStageID);
 
@@ -139,22 +139,22 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  virtual TCAPAnalyzerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
-                                                         SimpleTCAPAnalyzerNodePtr &prevNode,
+  virtual PhysicalOptimizerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
+                                                         SimplePhysicalNodePtr &prevNode,
                                                          const StatisticsPtr &stats,
                                                          int nextStageID);
   /**
    * A list of consumers of this node
    */
-  std::list<SimpleTCAPAnalyzerNodePtr> activeConsumers;
+  std::list<SimplePhysicalNodePtr> activeConsumers;
 
   /**
    * A shared pointer to an instance of this node
    */
-  SimpleTCAPAnalyzerNodePtr handle;
+  SimplePhysicalNodePtr handle;
 
 };
 
 }
 
-#endif //PDB_SIMPLETCAPANALYZERPROCESSINGNODE_H
+#endif //PDB_SIMPLEPHYSICALNODE_H

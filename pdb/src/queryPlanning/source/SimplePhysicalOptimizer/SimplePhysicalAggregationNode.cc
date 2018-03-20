@@ -32,13 +32,13 @@ SimplePhysicalAggregationNode::SimplePhysicalAggregationNode(string jobId,
                                                                                                                      logicalPlan,
                                                                                                                      std::move(conf)) {}
 
-TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                       SimplePhysicalNodePtr &prevNode,
                                                                        const StatisticsPtr &stats,
                                                                        int nextStageID) {
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this aggregation
   std::string computationSpecifier = node->getComputationName();
@@ -110,12 +110,12 @@ TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeOutput(TupleSetJobSt
   return result;
 }
 
-TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                               SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                               SimplePhysicalNodePtr &prevNode,
                                                                                const StatisticsPtr &stats,
                                                                                int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this aggregation
   std::string computationSpecifier = node->getComputationName();
@@ -197,12 +197,12 @@ TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(Tuple
   return result;
 }
 
-TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                                  SimplePhysicalNodePtr &prevNode,
                                                                                   const StatisticsPtr &stats,
                                                                                   int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this aggregation
   std::string computationSpecifier = node->getComputationName();

@@ -76,17 +76,17 @@ int main(int argc, char* argv[]) {
     ConfigurationPtr conf = make_shared<Configuration>();
     std::string jobId = "TestSelectionJob";
 
-    PhysicalOptimizer tcapAnalyzer(jobId, logger, conf, tcapString, computationsToSend);
+    PhysicalOptimizer physicalOptimizer(jobId, logger, conf, tcapString, computationsToSend);
     std::vector<Handle<AbstractJobStage>> queryPlan;
     std::vector<Handle<SetIdentifier>> interGlobalSets;
     std::cout << "PARSE TCAP STRING..." << std::endl;
     
     int jobStageId = 0;
     StatisticsPtr statsForOptimization = nullptr;
-    while (tcapAnalyzer.hasSources()) {
+    while (physicalOptimizer.hasSources()) {
 
         // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
-        bool success = tcapAnalyzer.getNextStagesOptimized(queryPlan,
+        bool success = physicalOptimizer.getNextStagesOptimized(queryPlan,
                                                            interGlobalSets,
                                                            statsForOptimization,
                                                            jobStageId);

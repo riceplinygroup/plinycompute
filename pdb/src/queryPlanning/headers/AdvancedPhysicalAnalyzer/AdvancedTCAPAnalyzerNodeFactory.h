@@ -16,10 +16,10 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDTCAPANALYZERNODEFACTORY_H
-#define PDB_ADVANCEDTCAPANALYZERNODEFACTORY_H
+#ifndef PDB_ADVANCEDPHYSICALNODEFACTORY_H
+#define PDB_ADVANCEDPHYSICALNODEFACTORY_H
 
 
 
 
-#endif //PDB_ADVANCEDTCAPANALYZERNODEFACTORY_H
+#endif //PDB_ADVANCEDPHYSICALNODEFACTORY_H

@@ -22,7 +22,7 @@
 
 namespace pdb {
 
-PhysicalOptimizer::PhysicalOptimizer(std::vector<AbstractTCAPAnalyzerNodePtr> &sources, PDBLoggerPtr &logger) {
+PhysicalOptimizer::PhysicalOptimizer(std::vector<AbstractPhysicalNodePtr> &sources, PDBLoggerPtr &logger) {
 
   // this is the logger
   this->logger = logger;
@@ -91,10 +91,10 @@ bool PhysicalOptimizer::hasConsumers(std::string &name) {
   return sourceNodes[name]->hasConsumers();
 }
 
-AbstractTCAPAnalyzerNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
+AbstractPhysicalNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
 
   // the default is to just use the first node
-  AbstractTCAPAnalyzerNodePtr ret = sourceNodes.begin()->second;
+  AbstractPhysicalNodePtr ret = sourceNodes.begin()->second;
   double cost = std::numeric_limits<double>::max();
 
   // go through all source nodes

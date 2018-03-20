@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
-#define PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
+#ifndef PDB_SIMPLEPHYSICALAGGREGATIONNODE_H
+#define PDB_SIMPLEPHYSICALAGGREGATIONNODE_H
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include "SimplePhysicalNode.h"
@@ -48,8 +48,8 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                              SimplePhysicalNodePtr &prevNode,
                                               const StatisticsPtr &stats,
                                               int nextStageID) override;
 
@@ -65,8 +65,8 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                      SimplePhysicalNodePtr &prevNode,
                                       const StatisticsPtr &stats,
                                       int nextStageID) override;
 
@@ -82,8 +82,8 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                 SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                 SimplePhysicalNodePtr &prevNode,
                                                  const StatisticsPtr &stats,
                                                  int nextStageID) override;
 
@@ -92,4 +92,4 @@ protected:
 
 
 
-#endif //PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
+#endif //PDB_SIMPLEPHYSICALAGGREGATIONNODE_H

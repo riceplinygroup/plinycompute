@@ -27,7 +27,7 @@ SimplePhysicalNodeFactory::SimplePhysicalNodeFactory(const string &jobId,
                                                                                              jobId(jobId),
                                                                                              conf(conf) {}
 
-AbstractTCAPAnalyzerNodePtr SimplePhysicalNodeFactory::createAnalyzerNode(AtomicComputationPtr tcapNode) {
+AbstractPhysicalNodePtr SimplePhysicalNodeFactory::createAnalyzerNode(AtomicComputationPtr tcapNode) {
 
   // check the type of the atomic computation
   switch (tcapNode->getAtomicComputationTypeID()){
@@ -49,9 +49,9 @@ AbstractTCAPAnalyzerNodePtr SimplePhysicalNodeFactory::createAnalyzerNode(Atomic
   }
 }
 
-std::vector<AbstractTCAPAnalyzerNodePtr> SimplePhysicalNodeFactory::generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) {
+std::vector<AbstractPhysicalNodePtr> SimplePhysicalNodeFactory::generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) {
 
-  std::vector<AbstractTCAPAnalyzerNodePtr> ret;
+  std::vector<AbstractPhysicalNodePtr> ret;
 
   for(const auto &source : sources) {
 
@@ -75,9 +75,9 @@ std::vector<AbstractTCAPAnalyzerNodePtr> SimplePhysicalNodeFactory::generateAnal
   return ret;
 }
 
-void SimplePhysicalNodeFactory::generateConsumerNode(AbstractTCAPAnalyzerNodePtr source,
+void SimplePhysicalNodeFactory::generateConsumerNode(AbstractPhysicalNodePtr source,
                                                            AtomicComputationPtr node) {
-  AbstractTCAPAnalyzerNodePtr analyzerNode;
+  AbstractPhysicalNodePtr analyzerNode;
 
   // do we already have an AbstractPhysicalNode for this node
   if(nodes.find(node->getOutputName()) == nodes.end()) {

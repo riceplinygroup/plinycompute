@@ -34,8 +34,8 @@ pdb::SimplePhysicalJoinNode::SimplePhysicalJoinNode(string jobId,
                                                                                                         std::move(conf)),
                                                                                                         transversed(false) {}
 
-pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
-                                                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
+                                                                      SimplePhysicalNodePtr &prevNode,
                                                                       const StatisticsPtr &stats,
                                                                       int nextStageID) {
 
@@ -47,8 +47,8 @@ pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::Tuple
   exit(1);
 }
 
-pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimpleTCAPAnalyzerNodePtr &prevNode,
+pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                                  SimplePhysicalNodePtr &prevNode,
                                                                                   const StatisticsPtr &stats,
                                                                                   int nextStageID) {
 
@@ -77,7 +77,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pd
   if(!transversed) {
 
     // create a analyzer result
-    TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+    PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
     // get the cost of the source set
     double sourceCost = getCost(tupleStageBuilder->getSourceSetIdentifier(), stats);
@@ -231,7 +231,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pd
     if (joinNode->isPartitioningLHS()) {
 
       // we have only one consumer node so we know what the next node in line is
-      SimpleTCAPAnalyzerNodePtr nextNode = activeConsumers.front();
+      SimplePhysicalNodePtr nextNode = activeConsumers.front();
 
       // fist we need to shuffle our data from the other side and put it in this sink set
       sink = makeObject<SetIdentifier>(jobId, outputName + "_repartitionData");
@@ -272,10 +272,10 @@ pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pd
       probingStageBuilder->setSourceTupleSetName(node->getOutputName());
 
       // I am the previous node
-      SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
+      SimplePhysicalNodePtr newPrevNode = getHandle();
 
       // we then create a pipeline stage to probe the partitioned hash table
-      TCAPAnalyzerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
+      PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
                                                                       newPrevNode,
                                                                       stats,
                                                                       nextStageID);
@@ -298,7 +298,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pd
       tupleStageBuilder->setProbing(true);
 
       // I am the previous node
-      SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
+      SimplePhysicalNodePtr newPrevNode = getHandle();
 
       // go and analyze further
       return activeConsumers.front()->analyze(tupleStageBuilder, newPrevNode, stats, nextStageID);
