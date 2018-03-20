@@ -23,18 +23,18 @@
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
 #include "AggregationJobStage.h"
 #include "TupleSetJobStage.h"
-#include "AbstractTCAPAnalyzerNode.h"
+#include "AbstractPhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerNode;
-typedef std::shared_ptr<SimpleTCAPAnalyzerNode> SimpleTCAPAnalyzerNodePtr;
+class SimplePhysicalNode;
+typedef std::shared_ptr<SimplePhysicalNode> SimpleTCAPAnalyzerNodePtr;
 
-class SimpleTCAPAnalyzerNode : public AbstractTCAPAnalyzerNode {
+class SimplePhysicalNode : public AbstractPhysicalNode {
 
 public:
 
-  SimpleTCAPAnalyzerNode(string jobId,
+  SimplePhysicalNode(string jobId,
                          AtomicComputationPtr node,
                          const Handle<ComputePlan> &computePlan,
                          LogicalPlanPtr logicalPlan,

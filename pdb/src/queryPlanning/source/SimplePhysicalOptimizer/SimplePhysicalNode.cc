@@ -18,22 +18,22 @@
 #include "SetIdentifier.h"
 #include "Statistics.h"
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNode.h"
 
 namespace pdb {
 
-SimpleTCAPAnalyzerNode::SimpleTCAPAnalyzerNode(string jobId,
+SimplePhysicalNode::SimplePhysicalNode(string jobId,
                                                AtomicComputationPtr node,
                                                const Handle<ComputePlan> &computePlan,
                                                LogicalPlanPtr logicalPlan,
-                                               ConfigurationPtr conf) : AbstractTCAPAnalyzerNode(jobId,
+                                               ConfigurationPtr conf) : AbstractPhysicalNode(jobId,
                                                                                                  node,
                                                                                                  computePlan,
                                                                                                  logicalPlan,
                                                                                                  conf),
                                                                                                  handle(nullptr) {}
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(const StatisticsPtr &stats, int nextStageID) {
+TCAPAnalyzerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
 
   // create a job stage builder
   TupleSetJobStageBuilderPtr jobStageBuilder = make_shared<TupleSetJobStageBuilder>();
@@ -58,7 +58,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(const StatisticsPtr &stats
 
   // run the recursive analysis it will essentially grab the first consumer of the source node
   // and analyze it as if the source had just one consumer
-  auto result = SimpleTCAPAnalyzerNode::analyzeSingleConsumer(jobStageBuilder, prevNode, stats, nextStageID);
+  auto result = SimplePhysicalNode::analyzeSingleConsumer(jobStageBuilder, prevNode, stats, nextStageID);
 
   // if we failed we want to avoid processing the same consumer twice therefore we are moving it to the back
   if(!result->success) {
@@ -76,7 +76,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(const StatisticsPtr &stats
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(TupleSetJobStageBuilderPtr &jobStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalNode::analyze(TupleSetJobStageBuilderPtr &jobStageBuilder,
                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
                                                       const StatisticsPtr &stats,
                                                       int nextStageID) {
@@ -94,19 +94,19 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(TupleSetJobStageBuilderPtr
   }
 }
 
-bool SimpleTCAPAnalyzerNode::hasConsumers() {
+bool SimplePhysicalNode::hasConsumers() {
   return !activeConsumers.empty();
 }
 
-void SimpleTCAPAnalyzerNode::addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) {
+void SimplePhysicalNode::addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) {
   // call the consumer
-  AbstractTCAPAnalyzerNode::addConsumer(consumer);
+  AbstractPhysicalNode::addConsumer(consumer);
 
   // add the consumer to the active consumers
-  activeConsumers.push_back(std::dynamic_pointer_cast<SimpleTCAPAnalyzerNode>(consumer));
+  activeConsumers.push_back(std::dynamic_pointer_cast<SimplePhysicalNode>(consumer));
 }
 
-double SimpleTCAPAnalyzerNode::getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) {
+double SimplePhysicalNode::getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) {
 
   // do we have statistics, if not just return 0
   if(stats == nullptr) {
@@ -125,7 +125,7 @@ double SimpleTCAPAnalyzerNode::getCost(Handle<SetIdentifier> source, const Stati
   return double((size_t) cost / 1000000);
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
                                                                     SimpleTCAPAnalyzerNodePtr &prevNode,
                                                                     const StatisticsPtr &stats,
                                                                     int nextStageID) {
@@ -150,7 +150,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobS
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
                                                             SimpleTCAPAnalyzerNodePtr &prevNode,
                                                             const StatisticsPtr &stats,
                                                             int nextStageID) {
@@ -183,7 +183,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeOutput(TupleSetJobStageBuil
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleSetJobStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleSetJobStageBuilder,
                                                                        SimpleTCAPAnalyzerNodePtr &prevNode,
                                                                        const StatisticsPtr &stats,
                                                                        int nextStageID) {
@@ -240,11 +240,11 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeMultipleConsumers(TupleSetJ
   return result;
 }
 
-SimpleTCAPAnalyzerNodePtr SimpleTCAPAnalyzerNode::getHandle() {
+SimpleTCAPAnalyzerNodePtr SimplePhysicalNode::getHandle() {
 
   // if we do not have a handle to this node already
   if(handle == nullptr) {
-    handle = std::shared_ptr<SimpleTCAPAnalyzerNode> (this);
+    handle = std::shared_ptr<SimplePhysicalNode> (this);
   }
 
   // return the handle to this node

@@ -33,7 +33,7 @@
 #include "BroadcastJoinBuildHTJobStage.h"
 #include "HashPartitionedJoinBuildHTJobStage.h"
 #include "SequenceID.h"
-#include "TCAPAnalyzer.h"
+#include "PhysicalOptimizer.h"
 #include "ShuffleInfo.h"
 #include "DistributedStorageManagerClient.h"
 #include <vector>
@@ -360,7 +360,7 @@ protected:
      * More specifically to find the source that is we should start from using heuristics and
      * to generate pipeline stages starting from this source
      */
-    std::shared_ptr<TCAPAnalyzer> tcapAnalyzerPtr;
+    std::shared_ptr<PhysicalOptimizer> tcapAnalyzerPtr;
 
     /**
      * Contains the information about every set on every node,

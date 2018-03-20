@@ -20,21 +20,21 @@
 
 #include <memory>
 #include "AtomicComputation.h"
-#include "AbstractTCAPAnalyzerNode.h"
+#include "AbstractPhysicalNode.h"
 
 namespace pdb {
 
-class AbstractTCAPAnalyzerNodeFactory;
-typedef std::shared_ptr<AbstractTCAPAnalyzerNodeFactory> AbstractTCAPAnalyzerNodeFactoryPtr;
+class AbstractPhysicalNodeFactory;
+typedef std::shared_ptr<AbstractPhysicalNodeFactory> AbstractTCAPAnalyzerNodeFactoryPtr;
 
-class AbstractTCAPAnalyzerNodeFactory {
+class AbstractPhysicalNodeFactory {
 public:
 
   /**
    * This can only be called from the constructor of a class the inherits the AbstractTCAPAnalyzerNodeFactory
    * @param computePlan the compute plan the nodes belong to
    */
-  explicit AbstractTCAPAnalyzerNodeFactory(const Handle<ComputePlan> &computePlan);
+  explicit AbstractPhysicalNodeFactory(const Handle<ComputePlan> &computePlan);
 
   /**
    * Takes in an AtomicComputation and creates a TCAPAnalyzerNode out of it.
@@ -48,22 +48,9 @@ public:
    * @param sources
    * @return
    */
-  std::vector<AbstractTCAPAnalyzerNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources);
+  virtual std::vector<AbstractTCAPAnalyzerNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) = 0;
 
  protected:
-
-  /**
-   * This method generates the node that is consuming this source and adds it to the list of its consumers
-   * @param source - the source AbstractTCAPAnalyzerNode we are coming from
-   * @param node - the AtomicComputation from which we are going to create the consumer node
-   */
-  void generateConsumerNode(AbstractTCAPAnalyzerNodePtr source, AtomicComputationPtr node);
-
-  /**
-   * This map is used to store nodes we created to avoid creating duplicates.
-   * The key is the outputName of the AtomicComputation the value is the created node.
-   */
-  std::map<std::string, AbstractTCAPAnalyzerNodePtr> nodes;
 
   /**
    * The compute plan we are using

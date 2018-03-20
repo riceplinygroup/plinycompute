@@ -15,18 +15,41 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "AbstractTCAPAnalyzerNodeFactory.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalAggregationNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalJoinNode.h"
 
 namespace pdb {
 
-AbstractTCAPAnalyzerNodeFactory::AbstractTCAPAnalyzerNodeFactory(const Handle<ComputePlan> &computePlan) : computePlan(computePlan) {
-  // initialize the values we need
-  this->logicalPlan = this->computePlan->getPlan();
-  this->computePlan->nullifyPlanPointer();
-  this->computationGraph = this->logicalPlan->getComputations();
+SimplePhysicalNodeFactory::SimplePhysicalNodeFactory(const string &jobId,
+                                                             const Handle<ComputePlan> &computePlan,
+                                                             const ConfigurationPtr &conf) : AbstractPhysicalNodeFactory(computePlan),
+                                                                                             jobId(jobId),
+                                                                                             conf(conf) {}
+
+AbstractTCAPAnalyzerNodePtr SimplePhysicalNodeFactory::createAnalyzerNode(AtomicComputationPtr tcapNode) {
+
+  // check the type of the atomic computation
+  switch (tcapNode->getAtomicComputationTypeID()){
+
+    // we are dealing with an aggregate
+    case ApplyAggTypeID: {
+      return (new SimplePhysicalAggregationNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+    }
+
+    // we are dealing with a join
+    case ApplyJoinTypeID: {
+      return (new SimplePhysicalJoinNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+    }
+
+    // we are dealing with node that is not an aggregate or a join (no special treatment needed)
+    default: {
+      return (new SimplePhysicalNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+    }
+  }
 }
 
-std::vector<AbstractTCAPAnalyzerNodePtr> AbstractTCAPAnalyzerNodeFactory::generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) {
+std::vector<AbstractTCAPAnalyzerNodePtr> SimplePhysicalNodeFactory::generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) {
 
   std::vector<AbstractTCAPAnalyzerNodePtr> ret;
 
@@ -52,11 +75,11 @@ std::vector<AbstractTCAPAnalyzerNodePtr> AbstractTCAPAnalyzerNodeFactory::genera
   return ret;
 }
 
-void AbstractTCAPAnalyzerNodeFactory::generateConsumerNode(AbstractTCAPAnalyzerNodePtr source,
+void SimplePhysicalNodeFactory::generateConsumerNode(AbstractTCAPAnalyzerNodePtr source,
                                                            AtomicComputationPtr node) {
   AbstractTCAPAnalyzerNodePtr analyzerNode;
 
-  // do we already have an AbstractTCAPAnalyzerNode for this node
+  // do we already have an AbstractPhysicalNode for this node
   if(nodes.find(node->getOutputName()) == nodes.end()) {
 
     // create the node

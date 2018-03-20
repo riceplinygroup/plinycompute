@@ -19,14 +19,14 @@
 #define PDB_SIMPLETCAPANALYZERJOINNODE_H
 
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerJoinNode : public SimpleTCAPAnalyzerNode {
+class SimplePhysicalJoinNode : public SimplePhysicalNode {
 public:
 
-  SimpleTCAPAnalyzerJoinNode(string jobId,
+  SimplePhysicalJoinNode(string jobId,
                              AtomicComputationPtr node,
                              const Handle<ComputePlan> &computePlan,
                              LogicalPlanPtr logicalPlan,
@@ -87,6 +87,7 @@ private:
    * Name of the hash this join has produced
    */
   string hashSetName;
+
 };
 
 }

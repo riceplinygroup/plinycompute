@@ -17,22 +17,22 @@
  *****************************************************************************/
 #include "JobStageBuilders/AggregationJobStageBuilder.h"
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerAggregationNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalAggregationNode.h"
 
 namespace pdb {
 
-SimpleTCAPAnalyzerAggregationNode::SimpleTCAPAnalyzerAggregationNode(string jobId,
+SimplePhysicalAggregationNode::SimplePhysicalAggregationNode(string jobId,
                                                                      AtomicComputationPtr node,
                                                                      const Handle<ComputePlan> &computePlan,
                                                                      LogicalPlanPtr logicalPlan,
-                                                                     ConfigurationPtr conf) : SimpleTCAPAnalyzerNode(std::move(jobId),
+                                                                     ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
                                                                                                                      std::move(node),
                                                                                                                      computePlan,
                                                                                                                      logicalPlan,
                                                                                                                      std::move(conf)) {}
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
                                                                        SimpleTCAPAnalyzerNodePtr &prevNode,
                                                                        const StatisticsPtr &stats,
                                                                        int nextStageID) {
@@ -110,7 +110,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeOutput(TupleSetJ
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
                                                                                SimpleTCAPAnalyzerNodePtr &prevNode,
                                                                                const StatisticsPtr &stats,
                                                                                int nextStageID) {
@@ -197,7 +197,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeSingleConsumer(T
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+TCAPAnalyzerResultPtr SimplePhysicalAggregationNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
                                                                                   SimpleTCAPAnalyzerNodePtr &prevNode,
                                                                                   const StatisticsPtr &stats,
                                                                                   int nextStageID) {

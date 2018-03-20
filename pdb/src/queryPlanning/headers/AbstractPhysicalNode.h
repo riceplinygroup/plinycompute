@@ -33,10 +33,10 @@
 namespace pdb {
 
 class TCAPAnalyzerResult;
-class AbstractTCAPAnalyzerNode;
+class AbstractPhysicalNode;
 
 typedef std::shared_ptr<TCAPAnalyzerResult> TCAPAnalyzerResultPtr;
-typedef std::shared_ptr<AbstractTCAPAnalyzerNode> AbstractTCAPAnalyzerNodePtr;
+typedef std::shared_ptr<AbstractPhysicalNode> AbstractTCAPAnalyzerNodePtr;
 
 /**
  * This structure is used to give back the result of a TCAPAnalysis.
@@ -71,10 +71,10 @@ struct TCAPAnalyzerResult {
  * All TCAPAnalyzerNodes inherit from this class. Instances of this abstract class are used to analyze the TCAP graph
  * and generate a physical plan out of it.
  */
-class AbstractTCAPAnalyzerNode {
+class AbstractPhysicalNode {
 public:
 
-  AbstractTCAPAnalyzerNode(string &jobId,
+  AbstractPhysicalNode(string &jobId,
                            AtomicComputationPtr &node,
                            const Handle<ComputePlan> &computePlan,
                            LogicalPlanPtr &logicalPlan,

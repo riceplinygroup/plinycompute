@@ -19,15 +19,15 @@
 #define PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
-#include "SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerAggregationNode : public SimpleTCAPAnalyzerNode {
+class SimplePhysicalAggregationNode : public SimplePhysicalNode {
 
 public:
 
-  SimpleTCAPAnalyzerAggregationNode(string jobId,
+  SimplePhysicalAggregationNode(string jobId,
                                     AtomicComputationPtr node,
                                     const Handle<ComputePlan> &computePlan,
                                     LogicalPlanPtr logicalPlan,

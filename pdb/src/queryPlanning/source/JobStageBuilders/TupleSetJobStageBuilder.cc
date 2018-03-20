@@ -181,7 +181,7 @@ Handle<TupleSetJobStage> TupleSetJobStageBuilder::build() {
     jobStage->setInputAggHashOut(true);
   }
 
-  PDB_COUT << "TCAPAnalyzer generates tupleSetJobStage:" << "\n";
+  PDB_COUT << "PhysicalOptimizer generates tupleSetJobStage:" << "\n";
   return jobStage;
 }
 

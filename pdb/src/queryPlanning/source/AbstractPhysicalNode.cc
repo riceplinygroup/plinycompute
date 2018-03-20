@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "AbstractTCAPAnalyzerNode.h"
+#include "AbstractPhysicalNode.h"
 
 #include <utility>
 #include "SelectionComp.h"
@@ -23,7 +23,7 @@
 
 namespace pdb {
 
-AbstractTCAPAnalyzerNode::AbstractTCAPAnalyzerNode(string &jobId,
+AbstractPhysicalNode::AbstractPhysicalNode(string &jobId,
                                                    AtomicComputationPtr &node,
                                                    const Handle<ComputePlan> &computePlan,
                                                    LogicalPlanPtr &logicalPlan,
@@ -44,20 +44,20 @@ AbstractTCAPAnalyzerNode::AbstractTCAPAnalyzerNode(string &jobId,
   }
 }
 
-double AbstractTCAPAnalyzerNode::getCost(const StatisticsPtr &stats) {
+double AbstractPhysicalNode::getCost(const StatisticsPtr &stats) {
   // return the cost of the source set identifier
   return getCost(sourceSetIdentifier, stats);
 }
 
-const Handle<SetIdentifier> &AbstractTCAPAnalyzerNode::getSourceSetIdentifier() const {
+const Handle<SetIdentifier> &AbstractPhysicalNode::getSourceSetIdentifier() const {
   return sourceSetIdentifier;
 }
 
-const AtomicComputationPtr &AbstractTCAPAnalyzerNode::getNode() const {
+const AtomicComputationPtr &AbstractPhysicalNode::getNode() const {
   return node;
 }
 
-Handle<SetIdentifier> AbstractTCAPAnalyzerNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
+Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
 
   switch (computation->getComputationTypeID()) {
     case ScanUserSetTypeID :

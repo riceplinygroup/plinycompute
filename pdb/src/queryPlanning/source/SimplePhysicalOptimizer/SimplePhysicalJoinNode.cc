@@ -19,35 +19,35 @@
 #include "JobStageBuilders/HashPartitionedJoinBuildHTJobStageBuilder.h"
 #include "JobStageBuilders/BroadcastJoinBuildHTJobStageBuilder.h"
 #include "Handle.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerJoinNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalJoinNode.h"
 #include "JoinComp.h"
 
-pdb::SimpleTCAPAnalyzerJoinNode::SimpleTCAPAnalyzerJoinNode(string jobId,
+pdb::SimplePhysicalJoinNode::SimplePhysicalJoinNode(string jobId,
                                                             AtomicComputationPtr node,
                                                             const Handle<ComputePlan> &computePlan,
                                                             LogicalPlanPtr logicalPlan,
-                                                            ConfigurationPtr conf) : SimpleTCAPAnalyzerNode(std::move(jobId),
-                                                                                                            std::move(node),
-                                                                                                            computePlan,
-                                                                                                            logicalPlan,
-                                                                                                            std::move(conf)),
-                                                                                                            transversed(false) {}
+                                                            ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
+                                                                                                        std::move(node),
+                                                                                                        computePlan,
+                                                                                                        logicalPlan,
+                                                                                                        std::move(conf)),
+                                                                                                        transversed(false) {}
 
-pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
-                                                                          SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                          const StatisticsPtr &stats,
-                                                                          int nextStageID) {
+pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
+                                                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+                                                                      const StatisticsPtr &stats,
+                                                                      int nextStageID) {
 
   // grab the computation associated with this node
   Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
-  // TODO exit since this is what has been done in previous TCAPAnalyzer, maybe do something smarter
+  // TODO exit since this is what has been done in previous PhysicalOptimizer, maybe do something smarter
   PDB_COUT << "Sink Computation Type: " << comp->getComputationType() << " are not supported as sink node right now\n";
   exit(1);
 }
 
-pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
+pdb::TCAPAnalyzerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
                                                                                   SimpleTCAPAnalyzerNodePtr &prevNode,
                                                                                   const StatisticsPtr &stats,
                                                                                   int nextStageID) {

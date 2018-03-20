@@ -15,23 +15,23 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "AbstractTCAPAnalyzerNodeFactory.h"
+#include "AbstractPhysicalNodeFactory.h"
 
 #ifndef PDB_SIMPLETCAPANALYZERNODE_H
 #define PDB_SIMPLETCAPANALYZERNODE_H
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerNodeFactory;
-typedef std::shared_ptr<SimpleTCAPAnalyzerNodeFactory> SimpleTCAPAnalyzerNodeFactoryPtr;
+class SimplePhysicalNodeFactory;
+typedef std::shared_ptr<SimplePhysicalNodeFactory> SimpleTCAPAnalyzerNodeFactoryPtr;
 
 /**
  * This class is a factory for the nodes of a SimpleTCAPAnalyzer graph
  */
-class SimpleTCAPAnalyzerNodeFactory : public AbstractTCAPAnalyzerNodeFactory {
+class SimplePhysicalNodeFactory : public AbstractPhysicalNodeFactory {
 public:
 
-  SimpleTCAPAnalyzerNodeFactory(const string &jobId,
+  SimplePhysicalNodeFactory(const string &jobId,
                                 const Handle<ComputePlan> &computePlan,
                                 const ConfigurationPtr &conf);
 
@@ -47,7 +47,29 @@ public:
    */
   AbstractTCAPAnalyzerNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) override;
 
+
 private:
+
+  /**
+   * This method is used to generate a TCAP analyzer graph, it is recursing
+   * @param sources
+   * @return
+   */
+  std::vector<AbstractTCAPAnalyzerNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) override;
+
+  /**
+   * This method generates the node that is consuming this source and adds it to the list of its consumers
+   * @param source - the source AbstractTCAPAnalyzerNode we are coming from
+   * @param node - the AtomicComputation from which we are going to create the consumer node
+   */
+  void generateConsumerNode(AbstractTCAPAnalyzerNodePtr source, AtomicComputationPtr node);
+
+  /**
+   * This map is used to store nodes we created to avoid creating duplicates.
+   * The key is the outputName of the AtomicComputation the value is the created node.
+   */
+  std::map<std::string, AbstractTCAPAnalyzerNodePtr> nodes;
+
 
   /**
    * The id of the job we are trying to generate a physical plan for

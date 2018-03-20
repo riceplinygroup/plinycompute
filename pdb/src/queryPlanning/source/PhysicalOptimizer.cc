@@ -15,45 +15,25 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNodeFactory.h"
-#include "TCAPAnalyzer.h"
+
+#include "SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h"
+#include "PhysicalOptimizer.h"
+
 
 namespace pdb {
 
-TCAPAnalyzer::TCAPAnalyzer(std::string &jobId,
-                                 PDBLoggerPtr logger,
-                                 ConfigurationPtr &conf,
-                                 std::string TCAPString,
-                                 pdb::Handle<pdb::Vector<pdb::Handle<pdb::Computation>>> computations) {
-  try {
-    // parse the plan and initialize the values we need
-    this->computePlan = makeObject<ComputePlan>(String(TCAPString), *computations);
-    this->logicalPlan = this->computePlan->getPlan();
-    this->computationGraph = this->logicalPlan->getComputations();
-    this->sourcesComputations = this->computationGraph.getAllScanSets();
+PhysicalOptimizer::PhysicalOptimizer(std::vector<AbstractTCAPAnalyzerNodePtr> &sources, PDBLoggerPtr &logger) {
 
-    // create the analyzer factory
-    AbstractTCAPAnalyzerNodeFactoryPtr analyzerNodeFactory = make_shared<SimpleTCAPAnalyzerNodeFactory>(jobId,
-                                                                                                        computePlan,
-                                                                                                        conf);
-    // generate the graph
-    auto sources = analyzerNodeFactory->generateAnalyzerGraph(this->sourcesComputations);
+  // this is the logger
+  this->logger = logger;
 
-    // form the map of source nodes
-    for(const auto &i : sources) {
-      sourceNodes[i->getSourceSetIdentifier()->toSourceSetName()] = i;
-    }
-
-  } catch (pdb::NotEnoughSpace &n) {
-    PDB_COUT << "FATAL ERROR in TCAPAnalyzer: Not enough memory to allocate the computePlan object";
-    logger->fatal("FATAL ERROR in TCAPAnalyzer: Not enough memory to allocate the computePlan object");
-    this->computePlan = nullptr;
-    this->logicalPlan = nullptr;
-    this->sourcesComputations.clear();
+  // form the map of source nodes
+  for(const auto &i : sources) {
+    sourceNodes[i->getSourceSetIdentifier()->toSourceSetName()] = i;
   }
 }
 
-bool TCAPAnalyzer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
+bool PhysicalOptimizer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
                                              vector<Handle<SetIdentifier>> &interGlobalSets,
                                              StatisticsPtr &stats,
                                              int &jobStageId) {
@@ -97,11 +77,11 @@ bool TCAPAnalyzer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> &phys
   return result->success;
 }
 
-bool TCAPAnalyzer::hasSources() {
+bool PhysicalOptimizer::hasSources() {
   return !sourceNodes.empty();
 }
 
-bool TCAPAnalyzer::hasConsumers(std::string &name) {
+bool PhysicalOptimizer::hasConsumers(std::string &name) {
 
   // do we even have this node if not return false
   if(sourceNodes.find(name) == sourceNodes.end()){
@@ -111,7 +91,7 @@ bool TCAPAnalyzer::hasConsumers(std::string &name) {
   return sourceNodes[name]->hasConsumers();
 }
 
-AbstractTCAPAnalyzerNodePtr TCAPAnalyzer::getBestNode(StatisticsPtr &ptr) {
+AbstractTCAPAnalyzerNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
 
   // the default is to just use the first node
   AbstractTCAPAnalyzerNodePtr ret = sourceNodes.begin()->second;
