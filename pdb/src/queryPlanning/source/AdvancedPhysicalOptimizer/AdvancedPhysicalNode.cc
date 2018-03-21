@@ -19,7 +19,6 @@
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalNode.h"
 
 AdvancedPhysicalNode::AdvancedPhysicalNode(string &jobId,
-                                           AtomicComputationPtr &node,
                                            const Handle<ComputePlan> &computePlan,
                                            LogicalPlanPtr &logicalPlan,
                                            ConfigurationPtr &conf,
@@ -29,4 +28,16 @@ AdvancedPhysicalNode::AdvancedPhysicalNode(string &jobId,
                                                                   logicalPlan,
                                                                   conf), pipeComputations(pipeComputations) {
 
+}
+PhysicalOptimizerResultPtr AdvancedPhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
+  return nullptr;
+}
+double AdvancedPhysicalNode::getCost(const StatisticsPtr &stats) {
+  return 0;
+}
+bool AdvancedPhysicalNode::hasConsumers() {
+  return false;
+}
+string AdvancedPhysicalNode::getNodeIdentifier() {
+  return nullptr;
 }

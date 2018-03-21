@@ -61,7 +61,7 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    * This method updates all the connections
    * @param node - the node we are updating the connections for
    */
-  void updateConnections(shared_ptr<AdvancedPhysicalShufflePipeNode> &node) const;
+  void updateConnections(const shared_ptr<AdvancedPhysicalNode> node);
 
   /**
    * The id of the job we are trying to generate a physical plan for
@@ -103,6 +103,11 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    * Maps each pipe to the list of atomic computations that consume it
    */
   std::map<std::string, std::vector<std::string>> consumedBy;
+
+  /**
+   * All the source nodes we return them from the @see generateAnalyzerGraph
+   */
+  std::vector<AdvancedPhysicalNodePtr> sources;
 
   void connectThePipes();
 };

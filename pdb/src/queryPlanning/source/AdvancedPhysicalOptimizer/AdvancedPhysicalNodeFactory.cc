@@ -47,7 +47,6 @@ vector<AbstractPhysicalNodePtr> AdvancedPhysicalNodeFactory::generateAnalyzerGra
   // connect the pipes
   connectThePipes();
 
-
   // dummy
   return vector<AbstractPhysicalNodePtr>();
 }
@@ -158,13 +157,13 @@ void AdvancedPhysicalNodeFactory::createAggregationPipe() {
   physicalNodes[node->getNodeIdentifier()] = node;
 }
 
-void AdvancedPhysicalNodeFactory::updateConnections(shared_ptr<AdvancedPhysicalShufflePipeNode> &node) const {
+void AdvancedPhysicalNodeFactory::updateConnections(shared_ptr<AdvancedPhysicalNode> node) {
 
   // all the consumers of these pipes
   std::vector<std::string> consumers;
 
   // go trough each consumer of this node
-  for(const auto &consumer : this->computationGraph.getConsumingAtomicComputations(this->currentPipe.back()->getOutputName())) {
+  for(const auto &consumer : computationGraph.getConsumingAtomicComputations(this->currentPipe.back()->getOutputName())) {
 
     // add them to the consumers
     consumers.push_back(consumer->getOutputName());
@@ -182,7 +181,7 @@ void AdvancedPhysicalNodeFactory::connectThePipes() {
     auto consumingAtomicComputation = consumedBy[node.second->getNodeIdentifier()];
 
     // go through each at
-    for(auto atomicComputation : consumingAtomicComputation) {
+    for(const auto &atomicComputation : consumingAtomicComputation) {
 
       // get the consuming pipeline
       auto consumer = startsWith[atomicComputation];
@@ -191,7 +190,6 @@ void AdvancedPhysicalNodeFactory::connectThePipes() {
       node.second->addConsumer(consumer);
     }
   }
-
 }
 
 }

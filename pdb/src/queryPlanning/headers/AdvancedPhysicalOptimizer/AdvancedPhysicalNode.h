@@ -27,6 +27,12 @@ class AdvancedPhysicalNode : public AbstractPhysicalNode {
    */
   vector<AtomicComputationPtr> pipeComputations;
 
+ public:
+  PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
+  double getCost(const StatisticsPtr &stats) override;
+  bool hasConsumers() override;
+  string getNodeIdentifier() override;
+
 };
 
 }
