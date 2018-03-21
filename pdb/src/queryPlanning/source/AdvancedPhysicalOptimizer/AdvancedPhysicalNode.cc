@@ -22,8 +22,11 @@ AdvancedPhysicalNode::AdvancedPhysicalNode(string &jobId,
                                            AtomicComputationPtr &node,
                                            const Handle<ComputePlan> &computePlan,
                                            LogicalPlanPtr &logicalPlan,
-                                           ConfigurationPtr &conf) : AbstractPhysicalNode(jobId,
-                                                                                          node,
-                                                                                          computePlan,
-                                                                                          logicalPlan,
-                                                                                          conf) {}
+                                           ConfigurationPtr &conf,
+                                           vector<AtomicComputationPtr> &pipeComputations)
+                                           : AbstractPhysicalNode(jobId,
+                                                                  computePlan,
+                                                                  logicalPlan,
+                                                                  conf), pipeComputations(pipeComputations) {
+
+}

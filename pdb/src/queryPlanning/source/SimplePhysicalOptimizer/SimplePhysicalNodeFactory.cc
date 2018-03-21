@@ -75,8 +75,8 @@ std::vector<AbstractPhysicalNodePtr> SimplePhysicalNodeFactory::generateAnalyzer
   return ret;
 }
 
-void SimplePhysicalNodeFactory::generateConsumerNode(AbstractPhysicalNodePtr source,
-                                                           AtomicComputationPtr node) {
+void SimplePhysicalNodeFactory::generateConsumerNode(AbstractPhysicalNodePtr source, AtomicComputationPtr node) {
+
   AbstractPhysicalNodePtr analyzerNode;
 
   // do we already have an AbstractPhysicalNode for this node

@@ -35,10 +35,10 @@ class SimplePhysicalNode : public AbstractPhysicalNode {
 public:
 
   SimplePhysicalNode(string jobId,
-                         AtomicComputationPtr node,
-                         const Handle<ComputePlan> &computePlan,
-                         LogicalPlanPtr logicalPlan,
-                         ConfigurationPtr conf);
+                     AtomicComputationPtr node,
+                     const Handle<ComputePlan> &computePlan,
+                     LogicalPlanPtr logicalPlan,
+                     ConfigurationPtr conf);
 
   /**
    * This method starts the analysis for the simple physical optimizer.

@@ -26,11 +26,7 @@ SimplePhysicalNode::SimplePhysicalNode(string jobId,
                                        AtomicComputationPtr node,
                                        const Handle<ComputePlan> &computePlan,
                                        LogicalPlanPtr logicalPlan,
-                                       ConfigurationPtr conf) : AbstractPhysicalNode(jobId,
-                                                                                     node,
-                                                                                     computePlan,
-                                                                                     logicalPlan,
-                                                                                     conf),
+                                       ConfigurationPtr conf) : AbstractPhysicalNode(jobId, computePlan, logicalPlan, conf),
                                                                                      node(node) {
   // if this node is a scan set we want to create a set identifier for it
   if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {

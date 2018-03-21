@@ -32,8 +32,8 @@ class SimplePhysicalNodeFactory : public AbstractPhysicalNodeFactory {
 public:
 
   SimplePhysicalNodeFactory(const string &jobId,
-                                const Handle<ComputePlan> &computePlan,
-                                const ConfigurationPtr &conf);
+                            const Handle<ComputePlan> &computePlan,
+                            const ConfigurationPtr &conf);
 
   /**
    * Depending on the type of the tcapNode we are dealing with create the appropriate SimplePhysicalNode
@@ -45,7 +45,7 @@ public:
    * @param tcapNode the TCAP node we are analyzing
    * @return the created node
    */
-  AbstractPhysicalNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) override;
+  AbstractPhysicalNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode);
 
 
 private:

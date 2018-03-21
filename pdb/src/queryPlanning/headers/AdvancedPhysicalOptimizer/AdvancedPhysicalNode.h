@@ -8,13 +8,24 @@
 #include "AbstractPhysicalNode.h"
 
 namespace pdb {
+
+class AdvancedPhysicalNode;
+typedef std::shared_ptr<AdvancedPhysicalNode> AdvancedPhysicalNodePtr;
+
 class AdvancedPhysicalNode : public AbstractPhysicalNode {
  public:
   AdvancedPhysicalNode(string &jobId,
-                       AtomicComputationPtr &node,
                        const Handle<ComputePlan> &computePlan,
                        LogicalPlanPtr &logicalPlan,
-                       ConfigurationPtr &conf);
+                       ConfigurationPtr &conf,
+                       vector<AtomicComputationPtr> &pipeComputations);
+
+ protected:
+
+  /**
+   * Contains all the atomic computations that make-up this pipe
+   */
+  vector<AtomicComputationPtr> pipeComputations;
 
 };
 

@@ -76,7 +76,6 @@ class AbstractPhysicalNode {
 public:
 
   AbstractPhysicalNode(string &jobId,
-                       AtomicComputationPtr &node,
                        const Handle<ComputePlan> &computePlan,
                        LogicalPlanPtr &logicalPlan,
                        ConfigurationPtr &conf);

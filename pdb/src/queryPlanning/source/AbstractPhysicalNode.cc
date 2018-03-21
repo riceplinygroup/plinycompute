@@ -23,14 +23,13 @@
 namespace pdb {
 
 AbstractPhysicalNode::AbstractPhysicalNode(string &jobId,
-                                                   AtomicComputationPtr &node,
-                                                   const Handle<ComputePlan> &computePlan,
-                                                   LogicalPlanPtr &logicalPlan,
-                                                   ConfigurationPtr &conf) : jobId(jobId),
-                                                                             computePlan(computePlan),
-                                                                             logicalPlan(logicalPlan),
-                                                                             conf(conf),
-                                                                             handle(nullptr) {}
+                                           const Handle<ComputePlan> &computePlan,
+                                           LogicalPlanPtr &logicalPlan,
+                                           ConfigurationPtr &conf) : jobId(jobId),
+                                                                     computePlan(computePlan),
+                                                                     logicalPlan(logicalPlan),
+                                                                     conf(conf),
+                                                                     handle(nullptr) {}
 
 Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
 
