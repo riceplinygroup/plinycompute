@@ -15,9 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "AbstractPhysicalNode.h"
 
-#include <utility>
+#include "AbstractPhysicalNode.h"
 #include "SelectionComp.h"
 #include "MultiSelectionComp.h"
 
@@ -28,34 +27,9 @@ AbstractPhysicalNode::AbstractPhysicalNode(string &jobId,
                                                    const Handle<ComputePlan> &computePlan,
                                                    LogicalPlanPtr &logicalPlan,
                                                    ConfigurationPtr &conf) : jobId(jobId),
-                                                                             node(node),
                                                                              computePlan(computePlan),
                                                                              logicalPlan(logicalPlan),
-                                                                             conf(conf) {
-
-  // if this node is a scan set we want to create a set identifier for it
-  if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
-
-    // grab the computation
-    Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
-
-    // create a set identifier from it
-    sourceSetIdentifier = getSetIdentifierFromComputation(comp);
-  }
-}
-
-double AbstractPhysicalNode::getCost(const StatisticsPtr &stats) {
-  // return the cost of the source set identifier
-  return getCost(sourceSetIdentifier, stats);
-}
-
-const Handle<SetIdentifier> &AbstractPhysicalNode::getSourceSetIdentifier() const {
-  return sourceSetIdentifier;
-}
-
-const AtomicComputationPtr &AbstractPhysicalNode::getNode() const {
-  return node;
-}
+                                                                             conf(conf) {}
 
 Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
 

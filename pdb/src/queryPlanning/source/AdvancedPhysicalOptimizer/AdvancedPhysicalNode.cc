@@ -16,10 +16,14 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALNODEFACTORY_H
-#define PDB_ADVANCEDPHYSICALNODEFACTORY_H
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalNode.h"
 
-
-
-
-#endif //PDB_ADVANCEDPHYSICALNODEFACTORY_H
+AdvancedPhysicalNode::AdvancedPhysicalNode(string &jobId,
+                                           AtomicComputationPtr &node,
+                                           const Handle<ComputePlan> &computePlan,
+                                           LogicalPlanPtr &logicalPlan,
+                                           ConfigurationPtr &conf) : AbstractPhysicalNode(jobId,
+                                                                                          node,
+                                                                                          computePlan,
+                                                                                          logicalPlan,
+                                                                                          conf) {}

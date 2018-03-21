@@ -29,7 +29,7 @@ PhysicalOptimizer::PhysicalOptimizer(std::vector<AbstractPhysicalNodePtr> &sourc
 
   // form the map of source nodes
   for(const auto &i : sources) {
-    sourceNodes[i->getSourceSetIdentifier()->toSourceSetName()] = i;
+    sourceNodes[i->getNodeIdentifier()] = i;
   }
 }
 
@@ -61,17 +61,17 @@ bool PhysicalOptimizer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> 
 
     // did we create a new source set
     if(result->newSourceComputation != nullptr) {
-      sourceNodes[result->newSourceComputation->getSourceSetIdentifier()->toSourceSetName()] = result->newSourceComputation;
+      sourceNodes[result->newSourceComputation->getNodeIdentifier()] = result->newSourceComputation;
     }
 
     // does this source have any consumers
     if(!source->hasConsumers()) {
-      sourceNodes.erase(source->getSourceSetIdentifier()->toSourceSetName());
+      sourceNodes.erase(source->getNodeIdentifier());
     }
   }
   // if we did not penalize this set
   else {
-    penalizedSets.insert(source->getSourceSetIdentifier()->toSourceSetName());
+    penalizedSets.insert(source->getNodeIdentifier());
   }
 
   return result->success;
@@ -104,7 +104,7 @@ AbstractPhysicalNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
     double sourceCost = it.second->getCost(ptr);
     
     // is this set in the penalized sets, increase the cost by a factor of 1000
-    if(penalizedSets.find(it.second->getSourceSetIdentifier()->toSourceSetName()) != penalizedSets.end()){
+    if(penalizedSets.find(it.second->getNodeIdentifier()) != penalizedSets.end()){
       sourceCost *= SOURCE_PENALIZE_FACTOR;
     }
 

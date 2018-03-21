@@ -75,10 +75,10 @@ class AbstractPhysicalNode {
 public:
 
   AbstractPhysicalNode(string &jobId,
-                           AtomicComputationPtr &node,
-                           const Handle<ComputePlan> &computePlan,
-                           LogicalPlanPtr &logicalPlan,
-                           ConfigurationPtr &conf);
+                       AtomicComputationPtr &node,
+                       const Handle<ComputePlan> &computePlan,
+                       LogicalPlanPtr &logicalPlan,
+                       ConfigurationPtr &conf);
 
   /**
    * Performs the actual analysis of the TCAP and returns a partial physical plan in the case it succeeds
@@ -92,14 +92,7 @@ public:
    * @param stats - the statistics about the sets
    * @return the cost value
    */
-  virtual double getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) = 0;
-
-  /**
-   * Return the cost by calling the @see getCost method with the @see sourceSetIdentifier as a parameter.
-   * @param stats - the statistics about the sets
-   * @return the cost value
-   */
-  virtual double getCost(const StatisticsPtr &stats);
+  virtual double getCost(const StatisticsPtr &stats) = 0;
 
   /**
    * Returns true if this node still has consumers
@@ -108,23 +101,18 @@ public:
   virtual bool hasConsumers() = 0;
 
   /**
-   * Returns the AtomicComputation associated with this AbstractPhysicalNode
-   * @return the node
+   * Returns a string that uniquely identifies this node
+   * @return the string
    */
-  const AtomicComputationPtr &getNode() const;
-
-  /**
-   * This method returns the set identifier of the source if this node is a source, returns null otherwise
-   * @return the set identifier
-   */
-  const Handle<SetIdentifier> &getSourceSetIdentifier() const;
+  virtual std::string getNodeIdentifier() = 0;
 
   /**
    * Removes a consumer of this node
    * @param consumer the consumer we want to remove
    */
-  void removeConsumer(const AbstractPhysicalNodePtr &consumer) {
+  virtual void removeConsumer(const AbstractPhysicalNodePtr &consumer) {
     consumers.remove(consumer);
+    //consumer->producers.remove();
   }
 
   /**
@@ -133,6 +121,7 @@ public:
   */
   virtual void addConsumer(const AbstractPhysicalNodePtr &consumer) {
     consumers.push_back(consumer);
+    //consumer->producers.push_back(this);
   }
 
 protected:
@@ -141,11 +130,6 @@ protected:
    * The jobId for this query (can be any string that is can be a database name)
    */
   std::string jobId;
-
-  /**
-   * The AtomicComputation associated with this node
-   */
-  AtomicComputationPtr node;
 
   /**
    * The ComputePlan generated from input computations and the input TCAP string
@@ -168,14 +152,9 @@ protected:
   std::list<AbstractPhysicalNodePtr> consumers;
 
   /**
-   * A list of producers of this node TODO implement this
+   * A list of producers of this node
    */
   std::list<AbstractPhysicalNodePtr> producers;
-
-  /**
-   * Source set associated with this node.
-   */
-  Handle<SetIdentifier> sourceSetIdentifier;
 
   /**
    * Extracts a set identifier from a computation

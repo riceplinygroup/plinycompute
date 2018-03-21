@@ -58,9 +58,15 @@ public:
    * @return the resulting partial plan if succeeded
    */
   PhysicalOptimizerResultPtr analyze(TupleSetJobStageBuilderPtr &shared_ptr,
-                                SimplePhysicalNodePtr &prevNode,
-                                const StatisticsPtr &stats,
-                                int nextStageID);
+                                     SimplePhysicalNodePtr &prevNode,
+                                     const StatisticsPtr &stats,
+                                     int nextStageID);
+
+  /**
+   * Returns the AtomicComputation associated with this AbstractPhysicalNode
+   * @return the node
+   */
+  const AtomicComputationPtr &getNode() const;
 
   /**
    * Adds a consumer to this node
@@ -76,13 +82,11 @@ public:
   bool hasConsumers() override;
 
   /**
-   * This method calculates the cost of the provided source. The cost is calculated by the formula :
-   * cost = number_of_bytes / 1000000
-   * @param source
-   * @param stats
-   * @return the const
+   * Return the cost by calling the @see getCost method with the @see sourceSetIdentifier as a parameter.
+   * @param stats - the statistics about the sets
+   * @return the cost value
    */
-  double getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) override;
+  double getCost(const StatisticsPtr &stats) override;
 
   /**
    * Returns the shared_pointer to this node
@@ -143,15 +147,49 @@ protected:
                                                          SimplePhysicalNodePtr &prevNode,
                                                          const StatisticsPtr &stats,
                                                          int nextStageID);
+
+  /**
+   * Returns the identifier of this node in this case in the form of <databaseName>:<setName>
+   * @return the identifier
+   */
+  std::string getNodeIdentifier() override;
+
+ protected:
+
+  /**
+   * This method calculates the cost of the provided source. The cost is calculated by the formula :
+   * cost = number_of_bytes / 1000000
+   * @param source
+   * @param stats
+   * @return the const
+   */
+  double getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats);
+
+  /**
+   * This method returns the set identifier of the source if this node is a source, returns null otherwise
+   * @return the set identifier
+   */
+  const Handle<SetIdentifier> &getSourceSetIdentifier() const;
+
   /**
    * A list of consumers of this node
    */
   std::list<SimplePhysicalNodePtr> activeConsumers;
 
   /**
+   * Source set associated with this node.
+   */
+  Handle<SetIdentifier> sourceSetIdentifier;
+
+  /**
    * A shared pointer to an instance of this node
    */
   SimplePhysicalNodePtr handle;
+
+  /**
+   * The AtomicComputation associated with this node
+   */
+  AtomicComputationPtr node;
 
 };
 

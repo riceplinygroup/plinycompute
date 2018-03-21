@@ -23,15 +23,26 @@
 namespace pdb {
 
 SimplePhysicalNode::SimplePhysicalNode(string jobId,
-                                               AtomicComputationPtr node,
-                                               const Handle<ComputePlan> &computePlan,
-                                               LogicalPlanPtr logicalPlan,
-                                               ConfigurationPtr conf) : AbstractPhysicalNode(jobId,
-                                                                                                 node,
-                                                                                                 computePlan,
-                                                                                                 logicalPlan,
-                                                                                                 conf),
-                                                                                                 handle(nullptr) {}
+                                       AtomicComputationPtr node,
+                                       const Handle<ComputePlan> &computePlan,
+                                       LogicalPlanPtr logicalPlan,
+                                       ConfigurationPtr conf) : AbstractPhysicalNode(jobId,
+                                                                                     node,
+                                                                                     computePlan,
+                                                                                     logicalPlan,
+                                                                                     conf),
+                                                                                     node(node),
+                                                                                     handle(nullptr) {
+  // if this node is a scan set we want to create a set identifier for it
+  if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
+
+    // grab the computation
+    Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
+
+    // create a set identifier from it
+    sourceSetIdentifier = getSetIdentifierFromComputation(comp);
+  }
+}
 
 PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
 
@@ -94,6 +105,10 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(TupleSetJobStageBuilderPt
   }
 }
 
+const AtomicComputationPtr &SimplePhysicalNode::getNode() const {
+  return node;
+}
+
 bool SimplePhysicalNode::hasConsumers() {
   return !activeConsumers.empty();
 }
@@ -110,7 +125,6 @@ double SimplePhysicalNode::getCost(Handle<SetIdentifier> source, const Statistic
 
   // do we have statistics, if not just return 0
   if(stats == nullptr) {
-    std::cout << "Ninja" << std::endl;
     return 0;
   }
 
@@ -240,6 +254,20 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSet
   return result;
 }
 
+double SimplePhysicalNode::getCost(const StatisticsPtr &stats) {
+
+    // return the cost of the source set identifier
+    return getCost(sourceSetIdentifier, stats);
+}
+
+string SimplePhysicalNode::getNodeIdentifier() {
+  return getSourceSetIdentifier()->toSourceSetName();
+}
+
+const Handle<SetIdentifier> &SimplePhysicalNode::getSourceSetIdentifier() const {
+  return sourceSetIdentifier;
+}
+
 SimplePhysicalNodePtr SimplePhysicalNode::getHandle() {
 
   // if we do not have a handle to this node already
@@ -250,6 +278,7 @@ SimplePhysicalNodePtr SimplePhysicalNode::getHandle() {
   // return the handle to this node
   return handle;
 }
+
 
 }
 
