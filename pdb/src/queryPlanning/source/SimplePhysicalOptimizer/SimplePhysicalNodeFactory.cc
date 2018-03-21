@@ -34,17 +34,17 @@ AbstractPhysicalNodePtr SimplePhysicalNodeFactory::createAnalyzerNode(AtomicComp
 
     // we are dealing with an aggregate
     case ApplyAggTypeID: {
-      return (new SimplePhysicalAggregationNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+      return (new SimplePhysicalAggregationNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getSimpleNodeHandle();
     }
 
     // we are dealing with a join
     case ApplyJoinTypeID: {
-      return (new SimplePhysicalJoinNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+      return (new SimplePhysicalJoinNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getSimpleNodeHandle();
     }
 
     // we are dealing with node that is not an aggregate or a join (no special treatment needed)
     default: {
-      return (new SimplePhysicalNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+      return (new SimplePhysicalNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getSimpleNodeHandle();
     }
   }
 }

@@ -29,7 +29,8 @@ AbstractPhysicalNode::AbstractPhysicalNode(string &jobId,
                                                    ConfigurationPtr &conf) : jobId(jobId),
                                                                              computePlan(computePlan),
                                                                              logicalPlan(logicalPlan),
-                                                                             conf(conf) {}
+                                                                             conf(conf),
+                                                                             handle(nullptr) {}
 
 Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
 
@@ -77,6 +78,16 @@ Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Hand
       exit(1); // TODO we are killing the server for a bad query might not be smart!
     }
   }
+}
+
+AbstractPhysicalNodePtr AbstractPhysicalNode::getHandle() {
+
+  // if we do not have a handle to this node already
+  if(handle == nullptr) {
+    handle = std::shared_ptr<AbstractPhysicalNode> (this);
+  }
+
+  return handle;
 }
 
 }

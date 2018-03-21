@@ -31,8 +31,7 @@ SimplePhysicalNode::SimplePhysicalNode(string jobId,
                                                                                      computePlan,
                                                                                      logicalPlan,
                                                                                      conf),
-                                                                                     node(node),
-                                                                                     handle(nullptr) {
+                                                                                     node(node) {
   // if this node is a scan set we want to create a set identifier for it
   if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
 
@@ -148,7 +147,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJob
   tupleStageBuilder->addTupleSetToBuildPipeline(node->getOutputName());
 
   // this is a source so there is no last node
-  SimplePhysicalNodePtr newPrevNode = getHandle();
+  SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
   // go to the next node
   PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(tupleStageBuilder,
@@ -246,7 +245,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSet
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
-  result->newSourceComputation = getHandle();
+  result->newSourceComputation = getSimpleNodeHandle();
 
   // the new source is now the sink
   sourceSetIdentifier = sink;
@@ -268,15 +267,9 @@ const Handle<SetIdentifier> &SimplePhysicalNode::getSourceSetIdentifier() const 
   return sourceSetIdentifier;
 }
 
-SimplePhysicalNodePtr SimplePhysicalNode::getHandle() {
-
-  // if we do not have a handle to this node already
-  if(handle == nullptr) {
-    handle = std::shared_ptr<SimplePhysicalNode> (this);
-  }
-
+SimplePhysicalNodePtr SimplePhysicalNode::getSimpleNodeHandle() {
   // return the handle to this node
-  return handle;
+  return std::dynamic_pointer_cast<SimplePhysicalNode>(getHandle());
 }
 
 

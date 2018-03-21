@@ -92,7 +92,7 @@ public:
    * Returns the shared_pointer to this node
    * @return the handle
    */
-  SimplePhysicalNodePtr getHandle();
+  SimplePhysicalNodePtr getSimpleNodeHandle();
 
 protected:
 
@@ -180,11 +180,6 @@ protected:
    * Source set associated with this node.
    */
   Handle<SetIdentifier> sourceSetIdentifier;
-
-  /**
-   * A shared pointer to an instance of this node
-   */
-  SimplePhysicalNodePtr handle;
 
   /**
    * The AtomicComputation associated with this node

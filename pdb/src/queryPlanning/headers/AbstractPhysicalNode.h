@@ -37,6 +37,7 @@ class AbstractPhysicalNode;
 
 typedef std::shared_ptr<PhysicalOptimizerResult> PhysicalOptimizerResultPtr;
 typedef std::shared_ptr<AbstractPhysicalNode> AbstractPhysicalNodePtr;
+typedef std::shared_ptr<AbstractPhysicalNode> AbstractPhysicalNodeWeakPtr;
 
 /**
  * This structure is used to give back the result of a TCAPAnalysis.
@@ -107,12 +108,18 @@ public:
   virtual std::string getNodeIdentifier() = 0;
 
   /**
+   * Returns a shared pointer handle to this node
+   * @return the shared pointer handle
+   */
+  AbstractPhysicalNodePtr getHandle();
+
+  /**
    * Removes a consumer of this node
    * @param consumer the consumer we want to remove
    */
   virtual void removeConsumer(const AbstractPhysicalNodePtr &consumer) {
     consumers.remove(consumer);
-    //consumer->producers.remove();
+    consumer->producers.remove(getHandle());
   }
 
   /**
@@ -121,7 +128,7 @@ public:
   */
   virtual void addConsumer(const AbstractPhysicalNodePtr &consumer) {
     consumers.push_back(consumer);
-    //consumer->producers.push_back(this);
+    consumer->producers.push_back(getHandle());
   }
 
 protected:
@@ -154,7 +161,12 @@ protected:
   /**
    * A list of producers of this node
    */
-  std::list<AbstractPhysicalNodePtr> producers;
+  std::list<AbstractPhysicalNodeWeakPtr> producers;
+
+  /**
+   * A shared pointer to an instance of this node
+   */
+  AbstractPhysicalNodeWeakPtr handle;
 
   /**
    * Extracts a set identifier from a computation

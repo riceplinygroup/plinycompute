@@ -272,7 +272,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       probingStageBuilder->setSourceTupleSetName(node->getOutputName());
 
       // I am the previous node
-      SimplePhysicalNodePtr newPrevNode = getHandle();
+      SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
       // we then create a pipeline stage to probe the partitioned hash table
       PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
@@ -298,7 +298,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       tupleStageBuilder->setProbing(true);
 
       // I am the previous node
-      SimplePhysicalNodePtr newPrevNode = getHandle();
+      SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
       // go and analyze further
       return activeConsumers.front()->analyze(tupleStageBuilder, newPrevNode, stats, nextStageID);

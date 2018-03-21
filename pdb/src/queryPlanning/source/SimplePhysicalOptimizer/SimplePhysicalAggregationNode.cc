@@ -186,7 +186,7 @@ PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets (if the source node is not being used anymore we just remove it)
-  result->newSourceComputation = getHandle();
+  result->newSourceComputation = getSimpleNodeHandle();
 
   // we succeeded
   result->success = true;
@@ -282,7 +282,7 @@ PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeMultipleConsume
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = getHandle();
+  result->newSourceComputation = getSimpleNodeHandle();
 
   // we succeeded
   result->success = true;
