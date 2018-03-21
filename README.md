@@ -12,7 +12,7 @@
 | Bison           | https://www.gnu.org/software/bison/ | bison                   |
 | Flex            | https://github.com/westes/flex      | flex                    |
 
-### Compiling PlinyCompute and build targets:
+### Compiling PlinyCompute and building targets:
 
 1. Clone PlinyCompute from GitHub, issuing the following command:
 ```bash 
@@ -38,6 +38,20 @@ Conversely, to turn debugging messages off, issue the following command:
 ```bash 
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
+
+This table lists the different make targets that can be built along its description:
+
+| Target                  | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| pdb-cluster             | Builds the master server that runs on the master node.           |
+| pdb-server              | Builds the worker server that runs on the worker nodes.          |
+| shared-libraries        | Builds all the shared libraries.                                 |
+| build-ml-tests          | Builds the machine learning executables and their dependencies.  |
+| build-la-tests          | Builds the linear algebra executables and their dependencies.    |
+| build-integration-tests | Builds the integration executables and their dependencies.       |
+| build-tpch-tests        | Builds the tpch executables and their dependencies.              |
+| build-tests             | Builds the unit tests executables and their dependencies.        |
+
 Depending on what target you want to build, issue the following command, replacing <number-of-jobs> with an integer number (this allows to execute multiple recipes in parallel); replace <target> with one target from the table below:
 ```bash 
 $ make -j <number-of-jobs> <target>
@@ -47,14 +61,13 @@ For example, the following command compiles and builds the executable pdb-cluste
 $ make -j 4 pdb-cluster
 ```
 
-This table lists the different make targets that can be built along its description:
+### Compiling, building targets, and running tests:
+
+This table lists the different make targets for running different test suites:
 
 | Target                  | Description                                                        |
 | ----------------------- | ------------------------------------------------------------------ |
-| pdb-cluster             | Builds the master server that runs on the master node.  |
-| pdb-server              | Builds the worker server that runs on the worker nodes. |
-| shared-libraries        | Builds all the shared libraries.                        |
-| unit-tests              | Builds all unit tests and their possible dependencies.  |
+| unit-tests              | Builds all unit tests and their possible dependencies.           |
 | run-integration-tests   | Builds all integration tests and their dependencies, then proceeds on running them one by one.  |
 | run-la-tests   | Builds the **linear algebra** tests and their dependencies, then proceeds on running them one by one.  |
 | run-ml-tests   | Builds the **machine learning**  tests and their dependencies, then proceeds on running them one by one.  |
@@ -64,13 +77,23 @@ This table lists the different make targets that can be built along its descript
 | RunLocal&lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies, then proceeds on running it. For example running **make RunLocalTestAllSelection** will build the TestAllSelection test and run it in the pseudo cluster mode. |
 | &lt;LibraryName&gt;           | This target builds a particular shared library named &lt;LibraryName&gt;. For example running **make SharedEmployee** will build the SharedEmployee library. |
 
-### Building and running Unit Tests
+### Example of building and running Unit Tests
 To run the unit tests, issue the following commands:
 ```bash 
 $ make unit-tests
 $ make test
 ```
-## Run PlinyCompute on a local machine (pseudo cluster mode)
+
+## Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
+To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
+```
+$ $PDB_HOME/scripts/cleanupNode.sh
+```
+
+# Deploying and Launching PlinyCompute
+PlinyCompute can be launched in two modes: 1) pseudo cluster mode or ) distrbiuted mode. Pseudo cluster mode is ideal for testing the functionality of PlinyCompute in a single machine (e.g. a personal computer or a laptop). In distributed mode, PlinyCompute is deployed in a cluster of machines, and is best suited for processing large datasets.
+
+### Running PlinyCompute on a local machine (pseudo cluster mode)
 The following script launches an instance of PlinyCompute:
 ```bash 
 $ $PDB_HOME/startPseudoCluster.py
@@ -86,12 +109,8 @@ bin/pdb-server 1 2048 localhost:8108 localhost:8109
 bin/pdb-server 1 2048 localhost:8108 localhost:8109
 ```
 In the above output, `pdb-cluster` is the master process running on localhost and listening on port 8108. The two `pdb-server` processes correspond to one worker node (each worker node runs a front-end and back-end process), which listen on port 8109 and conected to the master process on port 8108.
-## Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
-To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
-```
-$ $PDB_HOME/scripts/cleanupNode.sh
-```
-## Installing and deploying PlinyCompute on a real cluster
+
+### Installing and deploying PlinyCompute on a real cluster
 Although running PlinyCompute in one machine (e.g. a laptop) is ideal for becoming familiar with the system and testing some of its functionality, PlinyCompute's high-performance properties are best suited for processing large data loads in a real distributed cluster such as Amazon AWS, on-premise, or other cloud provider. To accomplish this, follow these steps:
 
 1. Log into a remote machine that will serve as the **master node** from a cloud provider (e.g. Amazon AWS).
