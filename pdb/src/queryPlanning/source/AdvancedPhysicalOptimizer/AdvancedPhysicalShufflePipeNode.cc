@@ -24,12 +24,14 @@ AdvancedPhysicalShufflePipeNode::AdvancedPhysicalShufflePipeNode(string &jobId,
                                                                  Handle<ComputePlan> &computePlan,
                                                                  LogicalPlanPtr &logicalPlan,
                                                                  ConfigurationPtr &conf,
-                                                                 vector<AtomicComputationPtr> &pipeComputations)
+                                                                 vector<AtomicComputationPtr> &pipeComputations,
+                                                                 size_t id)
                                                                  : AdvancedPhysicalNode(jobId,
                                                                                         computePlan,
                                                                                         logicalPlan,
                                                                                         conf,
-                                                                                        pipeComputations) {
+                                                                                        pipeComputations,
+                                                                                        id) {
 
 }
 

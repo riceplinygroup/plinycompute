@@ -31,7 +31,8 @@ class AdvancedPhysicalStraightPipeNode : public AdvancedPhysicalNode {
                                    Handle<ComputePlan> &computePlan,
                                    LogicalPlanPtr &logicalPlan,
                                    ConfigurationPtr &conf,
-                                   vector<AtomicComputationPtr> &pipeComputations);
+                                   vector<AtomicComputationPtr> &pipeComputations,
+                                   size_t id);
 
 };
 

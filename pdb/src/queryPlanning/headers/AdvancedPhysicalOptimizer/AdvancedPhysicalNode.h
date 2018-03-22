@@ -18,7 +18,29 @@ class AdvancedPhysicalNode : public AbstractPhysicalNode {
                        const Handle<ComputePlan> &computePlan,
                        LogicalPlanPtr &logicalPlan,
                        ConfigurationPtr &conf,
-                       vector<AtomicComputationPtr> &pipeComputations);
+                       vector<AtomicComputationPtr> &pipeComputations,
+                       size_t id);
+
+  PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
+
+  /**
+   *
+   * @param stats
+   * @return
+   */
+  double getCost(const StatisticsPtr &stats) override;
+
+  /**
+   *
+   * @return
+   */
+  bool hasConsumers() override;
+
+  /**
+   * Returns the identifier of this node. In the format of "node_{id}"
+   * @return the identifier
+   */
+  string getNodeIdentifier() override;
 
  protected:
 
@@ -27,12 +49,10 @@ class AdvancedPhysicalNode : public AbstractPhysicalNode {
    */
   vector<AtomicComputationPtr> pipeComputations;
 
- public:
-  PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
-  double getCost(const StatisticsPtr &stats) override;
-  bool hasConsumers() override;
-  string getNodeIdentifier() override;
-
+  /**
+   * The identifier of this node
+   */
+  size_t id;
 };
 
 }

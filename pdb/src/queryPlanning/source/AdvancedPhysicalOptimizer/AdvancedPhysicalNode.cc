@@ -18,26 +18,36 @@
 
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalNode.h"
 
+namespace pdb {
+
 AdvancedPhysicalNode::AdvancedPhysicalNode(string &jobId,
                                            const Handle<ComputePlan> &computePlan,
                                            LogicalPlanPtr &logicalPlan,
                                            ConfigurationPtr &conf,
-                                           vector<AtomicComputationPtr> &pipeComputations)
-                                           : AbstractPhysicalNode(jobId,
-                                                                  computePlan,
-                                                                  logicalPlan,
-                                                                  conf), pipeComputations(pipeComputations) {
+                                           vector<AtomicComputationPtr> &pipeComputations,
+                                           size_t id) : AbstractPhysicalNode(jobId,
+                                                                             computePlan,
+                                                                             logicalPlan,
+                                                                             conf), pipeComputations(pipeComputations) {
 
 }
+
 PhysicalOptimizerResultPtr AdvancedPhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
   return nullptr;
 }
+
 double AdvancedPhysicalNode::getCost(const StatisticsPtr &stats) {
   return 0;
 }
+
 bool AdvancedPhysicalNode::hasConsumers() {
   return false;
 }
+
 string AdvancedPhysicalNode::getNodeIdentifier() {
-  return nullptr;
+  return "node_" + to_string(id);
 }
+
+}
+
+

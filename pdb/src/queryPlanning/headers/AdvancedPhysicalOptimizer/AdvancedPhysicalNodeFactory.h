@@ -34,10 +34,17 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
                               const Handle<ComputePlan> &computePlan,
                               const ConfigurationPtr &conf);
 
-
+  /**
+   *
+   * @param sources
+   * @return
+   */
   vector<AbstractPhysicalNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) override;
 
-
+  /**
+   *
+   * @param curNode
+   */
   void transverseTCAPGraph(const AtomicComputationPtr &curNode);
 
  protected:
@@ -61,7 +68,7 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    * This method updates all the connections
    * @param node - the node we are updating the connections for
    */
-  void updateConnections(const shared_ptr<AdvancedPhysicalNode> node);
+  void updateConnections(shared_ptr<AdvancedPhysicalNode> node);
 
   /**
    * The id of the job we are trying to generate a physical plan for
@@ -109,6 +116,9 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    */
   std::vector<AdvancedPhysicalNodePtr> sources;
 
+  /**
+   * After we create all the pipes we then connect them
+   */
   void connectThePipes();
 };
 

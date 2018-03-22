@@ -121,7 +121,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
 void AdvancedPhysicalNodeFactory::createShufflePipe() {
 
   // create the node
-  auto node = std::make_shared<AdvancedPhysicalShufflePipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe);
+  auto node = std::make_shared<AdvancedPhysicalShufflePipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
 
   // store the name of the atomic computation this pipe starts with so we can later use them to link the pipes
   startsWith[currentPipe.front()->getOutputName()] = node;
@@ -136,7 +136,7 @@ void AdvancedPhysicalNodeFactory::createShufflePipe() {
 void AdvancedPhysicalNodeFactory::createStraightPipe() {
 
   // create the node
-  auto node = std::make_shared<AdvancedPhysicalStraightPipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe);
+  auto node = std::make_shared<AdvancedPhysicalStraightPipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
 
   // update all the node connections
   updateConnections(node);
@@ -148,7 +148,7 @@ void AdvancedPhysicalNodeFactory::createStraightPipe() {
 void AdvancedPhysicalNodeFactory::createAggregationPipe() {
 
   // create the node
-  auto node = std::make_shared<AdvancedPhysicalAggregationPipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe);
+  auto node = std::make_shared<AdvancedPhysicalAggregationPipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
 
   // update all the node connections
   updateConnections(node);

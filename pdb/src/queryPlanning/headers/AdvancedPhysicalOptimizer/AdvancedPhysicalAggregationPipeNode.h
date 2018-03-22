@@ -24,12 +24,15 @@
 namespace pdb {
 
 class AdvancedPhysicalAggregationPipeNode : public AdvancedPhysicalNode {
+
  public:
+
   AdvancedPhysicalAggregationPipeNode(string &jobId,
                                       Handle<ComputePlan> &computePlan,
                                       LogicalPlanPtr &logicalPlan,
                                       ConfigurationPtr &conf,
-                                      vector<AtomicComputationPtr> &pipeComputations);
+                                      vector<AtomicComputationPtr> &pipeComputations,
+                                      size_t id);
 
 };
 
