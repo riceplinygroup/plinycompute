@@ -543,7 +543,7 @@ int main(int argc, char* argv[]) {
     int masterPort = 8108;
 
     // Create connection to PlinyCompute master node
-    pdb::PDBClient pdbClient(masterPort, masterHostname, false, true);
+    pdb::PDBClient pdbClient(masterPort, masterHostname);
 
     string errMsg;
 

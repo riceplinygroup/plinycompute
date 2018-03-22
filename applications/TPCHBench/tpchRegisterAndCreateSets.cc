@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     int masterPort = 8108;
 
     // register the shared employee class
-    PDBClient pdbClient(masterPort, masterHostname, false, true);
+    PDBClient pdbClient(masterPort, masterHostname);
 
     string errMsg;
 

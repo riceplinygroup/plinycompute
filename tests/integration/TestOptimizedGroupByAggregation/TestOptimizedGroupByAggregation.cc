@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     std::cout << "To add up to " << numObjects << " objects" << std::endl;
 
 
-    PDBClient pdbClient(8108, masterIp, false, true);
+    PDBClient pdbClient(8108, masterIp);
 
     string errMsg;
 

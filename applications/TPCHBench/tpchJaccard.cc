@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         myQuery->push_back(next);
     }
 
-    PDBClient pdbClient(8108, masterIp, false, true);
+    PDBClient pdbClient(8108, masterIp);
 
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",

@@ -108,7 +108,7 @@ int main() {
     int masterPort = 8108;
 
     // register the shared employee class
-    PDBClient pdbClient(masterPort, masterHostname, false, true);
+    PDBClient pdbClient(masterPort, masterHostname);
 
     // now, create the sets for storing Customer Data
     pdbClient.createSet<SumResult>(

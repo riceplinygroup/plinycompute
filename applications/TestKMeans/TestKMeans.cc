@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
   std::cout << std::endl;
 
   /* Setup the client */
-  PDBClient pdbClient(8108, masterIp, false, true);
+  PDBClient pdbClient(8108, masterIp);
 
   string errMsg;
 

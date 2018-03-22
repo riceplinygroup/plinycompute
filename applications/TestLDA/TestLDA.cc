@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Set up the client */
-  PDBClient pdbClient(8108, masterIp, false, true);
+  PDBClient pdbClient(8108, masterIp);
 
     /* Load the libraries */
     string errMsg;

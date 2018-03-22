@@ -52,13 +52,10 @@ namespace pdb {
        *            portIn: the port number of the PDB master server
        *         addressIn: the IP address of the PDB master server
        *        myLoggerIn: the logger
-       *         usePangea: true if Pangea is used
-       * useQueryScheduler: true if Query Scheduler is used
        *
        */
 
-      PDBClient(int portIn, std::string addressIn,
-                bool usePangeaIn, bool useQuerySchedulerIn);
+      PDBClient(int portIn, std::string addressIn);
 
       PDBClient();
 
@@ -211,12 +208,6 @@ namespace pdb {
 
       // Port of the PlinyCompute master node
       int port;
-
-      // Is PlinyCompute using Pangea Storage engine
-      bool usePangea;
-
-      // Is PlinyCompute using the QueryScheduler
-      bool useQueryScheduler;
 
       // IP address of the PlinyCompute master node
       std::string address;
