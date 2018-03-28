@@ -237,7 +237,8 @@ Shared libraries can be used for representing data types or user-defined computa
 1) Create a header and source file with the declaration and definition in the `pdb/src/sharedLibraries/header` and `pdb/src/sharedLibraries/source` folders. See the following links for an example of the computation **DoubleVectorAggregation** [DoubleVectorAggregation.h](https://github.com/riceplinygroup/plinycompute/blob/master/pdb/src/sharedLibraries/headers/DoubleVectorAggregation.h) and [DoubleVectorAggregation.cc](https://github.com/riceplinygroup/plinycompute/blob/master/pdb/src/sharedLibraries/source/DoubleVectorAggregation.cc).
 
 Note, it MUST be a pdb :: Object instance, and follow all rules of pdb :: Object (Please search Object Model FAQ in the PDB google group). For example, you must include the ENABLE_DEEP_COPY macro in the public statements. You must include the header file "GetVTable.h", and have the GET_V_TABLE macro in the source file.
-2) Then build the share library by typing `make <FileName>`, where FileName has to be replace with the name of your shared librari, in this example:
+
+2) Then build the share library by typing `make <FileName>`, where FileName has to be replace with the name of your shared library, in this example:
 ```bash  
 $ make DoubleVectorAggregation
 ```
