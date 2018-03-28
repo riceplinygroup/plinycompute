@@ -233,18 +233,13 @@ by default, it is not defined, and it will run in background using nohup, which 
 
 ## Compiling shared libraries
 
-(1) Add your shared library header file and source file like following example:
-https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/headers/AllSelection.h
-https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/source/AllSelection.cc
+Shared libraries can be used for representing data types or user-defined computations. In order to compile and build shared libraries do the following:
+1) Create a header and source file with the declaration and definition in the `pdb/src/sharedLibraries/header` and `pdb/src/sharedLibraries/source` folders. See the following links for an example of the computation **DoubleVectorAggregation** [DoubleVectorAggregation.h](https://github.com/riceplinygroup/plinycompute/blob/master/pdb/src/sharedLibraries/headers/DoubleVectorAggregation.h) and [DoubleVectorAggregation.cc] (https://github.com/riceplinygroup/plinycompute/blob/master/pdb/src/sharedLibraries/source/DoubleVectorAggregation.cc).
 
 Note, it MUST be a pdb :: Object instance, and follow all rules of pdb :: Object (Please search Object Model FAQ in the PDB google group). For example, you must include the ENABLE_DEEP_COPY macro in the public statements. You must include the header file "GetVTable.h", and have the GET_V_TABLE macro in the source file.
+2) Then build the share library by typing `make <FileName>`, where FileName has to be replace with the name of your shared librari, in this example:
+```bash  
+$ make DoubleVectorAggregation
+```
+Once this is complete, a shared library named `libDoubleVectorAggregation.so` will be created in the folder `libraries`.
 
-
-(2) Build your shared library.
-Now you can build it by adding following to SConstruct(https://svn.rice.edu/r/software_0/ObjectQueryModel/SConstruct):
-
-common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
-
-Then add 'libraries/libChrisSelection.so' to "main=common_env.Alias(...)"
-
-In future, shared library should be able to be compiled at client side via a PDB client library.
