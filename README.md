@@ -189,58 +189,39 @@ $ ./scripts/startWorkers.sh conf/private_key.pem 192.168.1.1 4 4096 &
 ```
 Once, the worker nodes are launched, the message `"servers are started!"` will be displayed. At this point there is a running distributed version of PlinyCompute!
 
-## Stop Cluster
-cd $PDB_HOME
-scripts/stopWorkers.sh $pem_file/private_key
-
-
-## Soft Reboot Cluster (restart cluster with all data kept)
-cd $PDB_HOME
-scripts/stopWorkers.sh $pem_file/private_key
-scripts/startMaster.sh $pem_file/private_key
-scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
-
+# Stop Cluster
+To stop a running instance of PlinyCompute, issue the following command:
+```bash  
+$ ./scripts/stopWorkers.sh conf/private_key.pem
+```
 
 ## Upgrade Cluster (for developers and testers upgrade binaries and restart cluster with all data kept)
-cd $PDB_HOME
+```bash
 scripts/stopWorkers.sh $pem_file/private_key
 scripts/upgrade.sh $pem_file/private_key
 scripts/startMaster.sh $pem_file/private_key
 scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
-
+```
 
 ## Cleanup Catalog and Storage data
-You can cleanup all catalog and storage data by running following command in master
+You can cleanup all catalog and storage data by running the following command in the master node:
 
-cd $PDB_HOME
-scripts/cleanup.sh $pem_file
-
+```bash  
+$ ./scripts/cleanup.sh conf/private_key.pem
+```
 
 ## Environment Variables:
+For the scripts to function in distributed mode, the following environment variables have to be set:
 
+(1) **PDB_SSH_OPTS**: by default is set to "-o StrictHostKeyChecking=no"
 
-(1) PDB_SSH_OPTS
+(2) **PDB_SSH_FOREGROUND**: by default is not set, in which case, scripts are launched in the background using nohup on the cluster nodes. If set to "y" or "yes", all output from the worker nodes is displayed on the ssh terminal.
 
-by default, it is defined to be "-o StrictHostKeyChecking=no"
+# Learn more about PlinyCompute
 
-(2) PDB_SSH_FOREGROUND
-
-if you define it to non empty like "y" or "yes", it will run as before and bring all output to your ssh terminal;
-
-by default, it is not defined, and it will run in background using nohup, which means it will not be interrupted by ssh.
-
-
-
-## Compiling shared libraries
-
-Shared libraries can be used for representing data types or user-defined computations. In order to compile and build shared libraries do the following:
-1) Create a header and source file with the declaration and definition in the `pdb/src/sharedLibraries/header` and `pdb/src/sharedLibraries/source` folders. See the following links for an example of the computation **DoubleVectorAggregation** [DoubleVectorAggregation.h](https://github.com/riceplinygroup/plinycompute/blob/master/pdb/src/sharedLibraries/headers/DoubleVectorAggregation.h) and [DoubleVectorAggregation.cc](https://github.com/riceplinygroup/plinycompute/blob/master/pdb/src/sharedLibraries/source/DoubleVectorAggregation.cc).
-
-Note, it MUST be a pdb :: Object instance, and follow all rules of pdb :: Object (Please search Object Model FAQ in the PDB google group). For example, you must include the ENABLE_DEEP_COPY macro in the public statements. You must include the header file "GetVTable.h", and have the GET_V_TABLE macro in the source file.
-
-2) Then build the share library by typing `make <FileName>`, where FileName has to be replace with the name of your shared library, in this example:
-```bash  
-$ make DoubleVectorAggregation
-```
-Once this is complete, a shared library named `libDoubleVectorAggregation.so` will be created in the folder `libraries`.
-
+* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
+* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
+* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
+* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
+* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
+* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
