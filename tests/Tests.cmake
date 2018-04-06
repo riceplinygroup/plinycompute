@@ -3,6 +3,7 @@ enable_testing()
 
 # add the costum target for building tests
 add_custom_target(build-tpch-tests)
+add_custom_target(build-standard-tpch-tests)
 add_custom_target(build-la-tests)
 add_custom_target(build-ml-tests)
 add_custom_target(build-integration-tests)
@@ -12,6 +13,7 @@ add_custom_target(build-tests)
 
 # add all the other build tests targets to him
 add_dependencies(build-tests build-tpch-tests)
+add_dependencies(build-tests build-standard-tpch-tests)
 add_dependencies(build-tests build-la-tests)
 add_dependencies(build-tests build-ml-tests)
 add_dependencies(build-tests build-integration-tests)
