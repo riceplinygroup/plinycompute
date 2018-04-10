@@ -50,11 +50,6 @@ public:
 
 protected:
 
-    /* to check whether a set exists or not */
-    /* @param databaseAndSet: the pair of database name and set name for checking
-     * @param queryClient: the client used to check the existence of a set
-     * @return: true if the database and set exists, else return false */
-    bool checkSet (std::pair<std::string, std::string> databaseAndSet, std::shared_ptr<pdb::QueryClient> queryClient);
 
     /* to create a scanner computation */
     /* @return: the scanner computation reading from the input set

@@ -100,6 +100,20 @@ namespace pdb {
                          const std::string &setName, const std::string &typeName,
                          size_t pageSize = DEFAULT_PAGE_SIZE);
 
+
+
+      /* Partitions data in a created set using a partitioner */
+      /* @param inputSet: identifier to input set             
+         @param outputSet: identifier to output set
+         @param partitioner: partitioner used to partition the input set, and resulting in the output set
+         @return: success or not                            
+      */
+      template <class In, class Out>
+      bool partitionSet(std::pair<std::string, std::string> inputSet, std::pair<std::string, std::string> outputSet, Partitioner<Out, In> partitioner);
+
+
+
+
       /* Flushes data currently in memory into disk. */
       bool flushData();
 
