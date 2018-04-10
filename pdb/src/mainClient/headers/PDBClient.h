@@ -28,7 +28,8 @@
 #include "PDBObject.h"
 #include "PDBVector.h"
 #include "PartitionPolicy.h"
-
+#include "PartitionComp.h"
+#include "Partitioner.h"
 #include "SimpleRequest.h"
 
 /**
@@ -105,11 +106,11 @@ namespace pdb {
       /* Partitions data in a created set using a partitioner */
       /* @param inputSet: identifier to input set             
          @param outputSet: identifier to output set
-         @param partitioner: partitioner used to partition the input set, and resulting in the output set
+         @param PartitionComp: partition comp used to partition the input set, and resulting in the output set
          @return: success or not                            
       */
-      template <class In, class Out>
-      bool partitionSet(std::pair<std::string, std::string> inputSet, std::pair<std::string, std::string> outputSet, Partitioner<Out, In> partitioner);
+      template <class Out, class In>
+      bool partitionSet(std::pair<std::string, std::string> inputSet, std::pair<std::string, std::string> outputSet, Handle<PartitionComp<Out, In>> partitionComp);
 
 
 

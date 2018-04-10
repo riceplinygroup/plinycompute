@@ -113,8 +113,8 @@ namespace pdb {
     template <class Out, class In>
     bool PDBClient::partitionSet(std::pair<std::string, std::string> inputSet, std::pair<std::string, std::string> outputSet, Handle<PartitionComp<Out, In>> partitionComp) {
 
-        std::shared_ptr<Partitioner<Out, In>> myPartitioner = std::make_shared(inputSset, outputSet, partitionComp);
-        return partitionComp->partition(errorMsg, this.queryClient);
+        std::shared_ptr<Partitioner<Out, In>> myPartitioner = std::make_shared(inputSet, outputSet, partitionComp);
+        return partitionComp->partition(errorMsg, this->queryClient);
 
     }
 

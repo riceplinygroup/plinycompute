@@ -220,6 +220,7 @@ public:
   /* Lists the user-defined types registered in the catalog. */
   string listUserDefinedTypes(std::string &errMsg);
 
+
 private:
   /* True if this Catalog Client points to the Master Catalog Server */
   bool pointsToCatalogMaster;

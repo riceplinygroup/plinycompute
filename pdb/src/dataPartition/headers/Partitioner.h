@@ -24,6 +24,8 @@
 #include "ScanUserSet.h"
 #include "WriteUserSet.h"
 #include "QueryClient.h"
+#include <cstring>
+#include <vector>
 
 namespace pdb {
 
@@ -31,6 +33,8 @@ namespace pdb {
 
 template<class OutputClass, class InputClass>
 class Partitioner  {
+
+
 public:
 
     /* constructor
@@ -44,23 +48,9 @@ public:
 
 
     /* to partition the data stored in the inputDatabaseAndSet */
-    /* @param errMsg: error message
-    /* @return: whether this execution succeeds or not */
+    /* @param errMsg: error message 
+     * @return: whether this execution succeeds or not */
     bool partition ( std::string & errMsg, std::shared_ptr<pdb::QueryClient> queryClient);
-
-protected:
-
-
-    /* to create a scanner computation */
-    /* @return: the scanner computation reading from the input set
-     */
-    Handle<ScanUserSet<InputClass>> getScanner ();
-
-
-    /* to create a writer computation */
-    /* @return: the writer computation writing to the output set
-     */
-    Handle<WriteUserSet<OutputClass>> getWriter (); 
 
 
 
@@ -80,5 +70,7 @@ private:
 
 
 }
+
+#include "Partitioner.cc"
 
 #endif

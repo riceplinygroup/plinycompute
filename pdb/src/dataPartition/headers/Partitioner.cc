@@ -17,13 +17,14 @@
  *****************************************************************************/
 
 #ifndef PARTITIONER_CC
-#define PARTiTIONER_CC
+#define PARTITIONER_CC
 
-#include "Partitioner.h"
+
 
 namespace pdb {
 
-Partitioner :: Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet,
+template<class OutputClass, class InputClass>
+Partitioner<OutputClass, InputClass> :: Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet,
                             std::pair<std::string, std::string> outputDatabaseAndSet,
                             Handle<PartitionComp<OutputClass, InputClass>> partitionComp) {
 
@@ -33,8 +34,8 @@ Partitioner :: Partitioner (std::pair<std::string, std::string> inputDatabaseAnd
 
 }
 
-
-bool Partitioner :: partition ( std::string & errMsg, std::shared_ptr<pdb::QueryClient> queryClient) {
+template<class OutputClass, class InputClass>
+bool Partitioner<OutputClass, InputClass> :: partition ( std::string & errMsg, std::shared_ptr<pdb::QueryClient> queryClient) {
 
         /* Step 1. to check whether the input set and output set exists, if not we return false
          * TODO: we do not have such function at master yet
@@ -68,16 +69,16 @@ bool Partitioner :: partition ( std::string & errMsg, std::shared_ptr<pdb::Query
         this->writer->setInput(curPartitionComp);
 
         /* Step 8. to get the tcap string */
-        queryClient.setQueryGraph(this->writer);
+        queryClient->setQueryGraph(this->writer);
         std::vector<Handle<Computation>> computations;
-        std::string tcapString = queryClient.getTCAP(computations);
+        std::string tcapString = queryClient->getTCAP(computations);
 
         /* Step 9. to register the input-output mapping as well as the tcap string with StatsDB */
         /* TODO */
 
 
         /* Step 10. to execute the partition computation */ 
-        return queryClient.executeComputations(errMsg, tcapString, computations);
+        return queryClient->executeComputations(errMsg, tcapString, computations);
       
 }
 
