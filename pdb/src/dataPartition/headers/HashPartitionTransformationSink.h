@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef HASH_PARTITION_SINK_H
-#define HASH_PARTITION_SINK_H
+#ifndef HASH_PARTITION_TRANSFORMATION_SINK_H
+#define HASH_PARTITION_TRANSFORMATION_SINK_H
 
 
 #include "ComputeSink.h"
@@ -30,8 +30,8 @@ namespace pdb {
 
 // runs hashes all of the tuples, and stores all tuples to a container that is partitioned
 // by node partitions.
-template <class KeyType, class ValueType>
-class HashPartitionSink : public ComputeSink {
+template <class ValueType>
+class HashPartitionTransformationSink : public ComputeSink {
 
 
 public:
@@ -42,16 +42,15 @@ public:
      * @param inputSchema: the schema of input tuple set
      * @param attToOperateOn: the column that we want to partition and keep
      */
-    HashPartitionSink(int numPartitions, TupleSpec& inputSchema, TupleSpec& attsToOperateOn) {
+    HashPartitionTransformationSink(int numPartitions, TupleSpec& inputSchema, TupleSpec& attToOperateOn) {
 
         // to setup the output tuple set
         TupleSpec empty;
         TupleSetSetupMachine myMachine(inputSchema, empty);
 
         // this is the input attribute that we will process
-        std::vector<int> matches = myMachine.match(attsToOperateOn);
+        std::vector<int> matches = myMachine.match(attToOperateOn);
         whichAttToHash = matches[0];
-        whichAttToStore = matches[1];
         this->numPartitions = numPartitions;
     }
 
@@ -87,17 +86,14 @@ public:
         size_t hashVal;
 
 
-        // get the key columns
-        std::vector<KeyType>& keyColumn = input->getColumn<KeyType>(whichAttToHash);
-
-        // get the value columns
-        std::vector<ValueType>& valueColumn = input->getColumn<ValueType>(whichAttToStore);
+        // get the input columns
+        std::vector<ValueType>& valueColumn = input->getColumn<ValueType>(whichAttToHash);
 
         // and allocate everyone to a partition
-        size_t length = keyColumn.size();
+        size_t length = valueColumn.size();
         for (size_t i = 0; i < length; i++) {
 
-            hashVal = Hasher<KeyType>::hash(keyColumn[i]);
+            hashVal = Hasher<ValueType>::hash(valueColumn[i]);
 #ifndef NO_MOD_PARTITION
             Vector<ValueType>& myVec = *((*writeMe)[(hashVal) % numPartitions]);
 #else
@@ -114,7 +110,6 @@ public:
                 /* if we got here then we run out of space and we need delete the already-processed
                  *  data, throw an exception so that new space can be allocated by handling the exception,
                  *  and try to process the remaining unprocessed data again */
-                keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
                 valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
                 throw n;
 
@@ -122,15 +117,12 @@ public:
         }
     }
 
-    ~HashPartitionSink() {}
+    ~HashPartitionTransformationSink() {}
 
 
 private:
-    // the attribute to operate on
+    // the attributes to operate on
     int whichAttToHash;
-
-    // the attribute to store
-    int whichAttToStore;
 
     // number of partitions in the cluster
     int numPartitions;

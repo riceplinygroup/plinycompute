@@ -110,11 +110,25 @@ namespace pdb {
       return queryClient->getSetIterator<Type>(databaseName, setName);
     }
 
-    template <class Out, class In>
-    bool PDBClient::partitionSet(std::pair<std::string, std::string> inputSet, std::pair<std::string, std::string> outputSet, Handle<PartitionComp<Out, In>> partitionComp) {
+    template <class KeyClass, class ValueClass>
+    bool PDBClient::partitionSet(std::pair<std::string, std::string> inputSet, 
+                                 std::pair<std::string, std::string> outputSet, 
+                                 Handle<PartitionComp<KeyClass, ValueClass>> partitionComp) {
 
-        std::shared_ptr<Partitioner<Out, In>> myPartitioner = std::make_shared(inputSet, outputSet, partitionComp);
-        return partitionComp->partition(errorMsg, this->queryClient);
+        std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner 
+                          = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet);
+        return partitionComp->partition(errorMsg, this->queryClient, partitionComp);
+
+    }
+
+    template <class KeyClass, class ValueClass>
+    bool PDBClient::partitionAndTransformSet(std::pair<std::string, std::string> inputSet,
+                                 std::pair<std::string, std::string> outputSet,
+                                 Handle<PartitionTransformationComp<KeyClass, ValueClass>> partitionComp) {
+
+        std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner
+                          = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet);
+        return partitionComp->partitionWithTransformation(errorMsg, this->queryClient, partitionComp);
 
     }
 

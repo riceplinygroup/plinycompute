@@ -16,27 +16,57 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PARTITION_COMP
-#define PARTITION_COMP
+#ifndef LINEITEM_PARTITION_COMP_H
+#define LINEITEM_PARTITION_COMP_H
 
-#include "PartitionCompBase.h"
 
-namespace pdb {
+#include "TPCHSchema.h"
+#include "PDBDebug.h"
+#include "PDBString.h"
+#include "Query.h"
+#include "Lambda.h"
+#include "PDBClient.h"
+#include "DataTypes.h"
+#include "InterfaceFunctions.h"
+#include "Handle.h"
+#include "LambdaCreationFunctions.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "Pipeline.h"
+#include "VectorSink.h"
+#include "HashSink.h"
+#include "MapTupleSetIterator.h"
+#include "VectorTupleSetIterator.h"
+#include "ComputePlan.h"
+#include "QueryOutput.h"
+#include "SelectionComp.h"
+#include "JoinComp.h"
+#include "AggregateComp.h"
+#include "PartitionComp.h"
+#include "Avg.h"
+#include "DoubleSumResult.h"
+#include "AvgResult.h"
 
-template<class KeyClass, class ValueClass>
-class PartitionComp : public PartitionCompBase<KeyClass, ValueClass> {
+using namespace pdb;
+
+namespace tpch {
+
+
+class LineItemPartitionComp : public PartitionComp<int, TPCHLineItem> {
+
+
 public:
 
-  /**
-   * the computation returned by this method is called to perfom a transformation on the input
-   * item before it is inserted into the output set to decide which partition the input item should
-   * be stored.
-   * @param checkMe: the input element
-   * @return: the output lambda tree used to apply to the input element
-   */
-  virtual Lambda<KeyClass> getProjection(Handle<ValueClass> checkMe) = 0;
+    ENABLE_DEEP_COPY
 
-};
+    LineItemPartitionComp () {}
+
+    Lambda<int> getProjection(Handle<TPCHLineItem> checkMe) override {
+        return makeLambdaFromMember(checkMe, l_partkey);
+    }
+
+}; 
+
+
 }
 
 #endif

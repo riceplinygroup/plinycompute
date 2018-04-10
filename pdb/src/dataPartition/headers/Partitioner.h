@@ -20,6 +20,7 @@
 #define PARTITIONER_H
 
 #include "PartitionComp.h"
+#include "PartitionTransformationComp.h"
 #include "InterfaceFunctions.h"
 #include "ScanUserSet.h"
 #include "WriteUserSet.h"
@@ -31,7 +32,7 @@ namespace pdb {
 
 /* this class implements a partitioner that partitions data stored in a created set using the specified partition computation */
 
-template<class OutputClass, class InputClass>
+template<class KeyClass, class ValueClass>
 class Partitioner  {
 
 
@@ -40,18 +41,27 @@ public:
     /* constructor
      * @param inputDatabaseAndSet: the input pair of database name and set name, the set is expected to be created and often non-empty before being called by this function;
      * @param outputDatabaseAndSet: the output pair of database name and set name, the set is expected to be created and often empty before being called by this function;
-     * @param partitionComp: the computation for partition input data
      */
     Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet, 
-                 std::pair<std::string, std::string> outputDatabaseAndSet,
-                 Handle<PartitionComp<OutputClass, InputClass>> partitionComp);
+                 std::pair<std::string, std::string> outputDatabaseAndSet);
 
 
     /* to partition the data stored in the inputDatabaseAndSet */
     /* @param errMsg: error message 
+     * @param queryClient: the client used to send partition at the server
      * @return: whether this execution succeeds or not */
-    bool partition ( std::string & errMsg, std::shared_ptr<pdb::QueryClient> queryClient);
+    bool partition ( std::string & errMsg, 
+                     std::shared_ptr<pdb::QueryClient> queryClient,
+                     Handle<PartitionComp<KeyClass, ValueClass>> partitionComp);
 
+
+    /* to extract, partition and store the key in the data stored in the inputDatabaseAndSet*/
+    /* @param errMsg: error message 
+     * @param queryClient: the client used to send partition at the server
+     * @return: whether this execution succeeds or not */
+    bool partitionWithTransformation ( std::string & errMsg, 
+                     std::shared_ptr<pdb::QueryClient> queryClient,
+                     Handle<PartitionTransformationComp<KeyClass, ValueClass>> partitionComp);
 
 
 private:
@@ -62,8 +72,6 @@ private:
     /* the output set identifier */
     std::pair<std::string, std::string> outputDatabaseAndSet;
 
-    /* the partition computation for this partitioner */
-    Handle<PartitionComp<OutputClass, InputClass>> partitionComp = nullptr;
 
 
 };

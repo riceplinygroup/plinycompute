@@ -15,28 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef LINEITEM_PARTITION_TRANSFORMATION_COMP_CC
+#define LINEITEM_PARTITION_TRANSFORMATION_COMP_CC
 
-#ifndef PARTITION_COMP
-#define PARTITION_COMP
+#include "GetVTable.h"
+#include "LineItemPartitionTransformationComp.h"
 
-#include "PartitionCompBase.h"
-
-namespace pdb {
-
-template<class KeyClass, class ValueClass>
-class PartitionComp : public PartitionCompBase<KeyClass, ValueClass> {
-public:
-
-  /**
-   * the computation returned by this method is called to perfom a transformation on the input
-   * item before it is inserted into the output set to decide which partition the input item should
-   * be stored.
-   * @param checkMe: the input element
-   * @return: the output lambda tree used to apply to the input element
-   */
-  virtual Lambda<KeyClass> getProjection(Handle<ValueClass> checkMe) = 0;
-
-};
-}
+GET_V_TABLE(tpch::LineItemPartitionTransformationComp)
 
 #endif

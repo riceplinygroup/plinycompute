@@ -16,15 +16,15 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PARTITION_COMP
-#define PARTITION_COMP
+#ifndef PARTITION_TRANSFORMATION_COMP
+#define PARTITION_TRANSFORMATION_COMP
 
-#include "PartitionCompBase.h"
+#include "PartitionTransformationCompBase.h"
 
 namespace pdb {
 
 template<class KeyClass, class ValueClass>
-class PartitionComp : public PartitionCompBase<KeyClass, ValueClass> {
+class PartitionTransformationComp : public PartitionTransformationCompBase<KeyClass, ValueClass> {
 public:
 
   /**

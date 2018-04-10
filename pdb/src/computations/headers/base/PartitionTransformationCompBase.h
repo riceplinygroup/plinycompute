@@ -16,32 +16,29 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_PARTITIONCOMPBASE_H
-#define PDB_PARTITIONCOMPBASE_H
+#ifndef PARTITION_TRANSFORMATION_COMP_BASE_H
+#define PARTITION_TRANSFORMATION_COMP_BASE_H
 
 #include "Computation.h"
 #include "VectorSink.h"
 #include "ScanUserSet.h"
 #include "TypeName.h"
-#include "HashPartitionSink.h"
+#include "HashPartitionTransformationSink.h"
 
 namespace pdb {
 template<class KeyClass, class ValueClass>
-class PartitionCompBase : public Computation {
+class PartitionTransformationCompBase : public Computation {
 
  public:
 
 
   /**
-   * the lambdas returned by this method is called to perfom a transformation on the input
-   * item before it is inserted into the output set to determine which partition this input item should go
+   * the computation returned by this method is called to perfom a transformation on the input
+   * item before it is inserted into the output set
    * @param checkMe: the input data element
-   * @return: a Lambda in tree form to be called to perform transformation on the input to an output, 
-   * which must have hash function defined.
+   * @return: a Lambda in tree form to be called to perform transformation on the input to an output, which must have hash function defined.
    */
   virtual Lambda<KeyClass> getProjection(Handle<ValueClass> checkMe) = 0;
-
-
 
   /**
    * calls getProjection to extract the lambdas
@@ -173,7 +170,7 @@ class PartitionCompBase : public Computation {
                                                 outputColumnNames,
                                                 addedOutputColumnName,
                                                 myLambdaName,
-                                                false);
+                                                true);
 
     // update the state of the computation
     this->setTraversed(true);
@@ -251,7 +248,7 @@ class PartitionCompBase : public Computation {
                                 ComputePlan &plan) override {
 
     if (this->materializeSelectionOut) {
-      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, consumeMe, projection);
+      return std::make_shared<HashPartitionTransformationSink<KeyClass>>(this->numPartitions, consumeMe, projection);
     }
     return nullptr;
   }
