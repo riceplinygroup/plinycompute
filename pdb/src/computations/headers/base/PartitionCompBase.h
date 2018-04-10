@@ -23,6 +23,7 @@
 #include "VectorSink.h"
 #include "ScanUserSet.h"
 #include "TypeName.h"
+#include "HashPartitionSink.h"
 
 namespace pdb {
 template<class OutputClass, class InputClass>
@@ -236,7 +237,7 @@ class PartitionCompBase : public Computation {
   }
 
   /**
-   * Sink to write selection output
+   * Sink to write partition output
    * @param consumeMe: the tuple set scheme of the compute sink
    * @param projection: the tuple set scheme of the projection
    * @param plan: the computation plan
@@ -247,7 +248,7 @@ class PartitionCompBase : public Computation {
                                 ComputePlan &plan) override {
 
     if (this->materializeSelectionOut) {
-      return std::make_shared<VectorSink<OutputClass>>(consumeMe, projection);
+      return std::make_shared<HashPartitionSink<OutputClass>>(consumeMe, projection);
     }
     return nullptr;
   }
