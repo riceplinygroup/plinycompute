@@ -21,6 +21,9 @@
 
 #include "PartitionComp.h"
 #include "InterfaceFunctions.h"
+#include "ScanUserSet.h"
+#include "WriteUserSet.h"
+#include "QueryClient.h"
 
 namespace pdb {
 
@@ -37,47 +40,44 @@ public:
      */
     Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet, 
                  std::pair<std::string, std::string> outputDatabaseAndSet,
-                 Handle<PartitionComp<OutputClass, InputClass>> partitionComp) {
-
-        this->inputDatabaseAndSet = inputDatabaseAndSet;
-        this->outputDatabaseAndSet = outputDatabaseAndSet;
-        this->partitionComp = deepCopyToCurrentAllocationBlock(partitionComp);
-
-    }
+                 Handle<PartitionComp<OutputClass, InputClass>> partitionComp);
 
 
     /* to partition the data stored in the inputDatabaseAndSet */
     /* @param errMsg: error message
     /* @return: whether this execution succeeds or not */
-    bool partition( std::string & errMsg, std::shared_ptr<pdb::QueryClient> queryClient) {
+    bool partition ( std::string & errMsg, std::shared_ptr<pdb::QueryClient> queryClient);
 
-        /* TODO */
-        /* Step 1. to check whether the input set exists, if not we return false
-        /* Step 2. to check whether the output set exists, if not, we return false
-        /* Step 3. to check whether partitionComp is null, if yes, we return false
-        /* Step 4. to check whether queryClient is null, if yes, we return false
-        /* Step 5. to make allocation block */
-        /* Step 6. to create a scanner computation */
-        /* Step 7. to create a writer computation */
-        /* Step 8. to compose a query graph */
-        /* Step 9. to get TCAP */
-        /* Step 10. to update the input-output mapping with TCAP */
-        /* Step 11. to execute the query graph */
+protected:
 
-        return false;
+    /* to check whether a set exists or not */
+    /* @param databaseAndSet: the pair of database name and set name for checking
+     * @param queryClient: the client used to check the existence of a set
+     * @return: true if the database and set exists, else return false */
+    bool checkSet (std::pair<std::string, std::string> databaseAndSet, std::shared_ptr<pdb::QueryClient> queryClient);
 
-    }
+    /* to create a scanner computation */
+    /* @return: the scanner computation reading from the input set
+     */
+    Handle<ScanUserSet<InputClass>> getScanner ();
+
+
+    /* to create a writer computation */
+    /* @return: the writer computation writing to the output set
+     */
+    Handle<WriteUserSet<OutputClass>> getWriter (); 
+
 
 
 private:
 
-    //the input set identifier
+    /* the input set identifier */
     std::pair<std::string, std::string> inputDatabaseAndSet;
 
-    //the output set identifier
+    /* the output set identifier */
     std::pair<std::string, std::string> outputDatabaseAndSet;
 
-    //the partition computation for this partitioner
+    /* the partition computation for this partitioner */
     Handle<PartitionComp<OutputClass, InputClass>> partitionComp = nullptr;
 
 
