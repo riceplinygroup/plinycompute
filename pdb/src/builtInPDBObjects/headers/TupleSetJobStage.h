@@ -226,6 +226,16 @@ public:
         return this->repartitionJoinOrNot;
     }
 
+    // to set whether to repartition the output into vectors
+    void setRepartitionVector(bool repartitionVectorOrNot) {
+        this->repartitionVectorOrNot = repartitionVectorOrNot;
+    }
+
+    // to return whether this stage requires to repartition output into vectors
+    bool isRepartitionVector() {
+        return this->repartitionVectorOrNot;
+    }
+
 
     // to set whether to combine the repartitioned output
     void setCombining(bool combineOrNot) {
@@ -412,22 +422,22 @@ public:
 
 private:
     // Input set information
-    Handle<SetIdentifier> sourceContext;
+    Handle<SetIdentifier> sourceContext = nullptr;
 
     // Hash set information for probing aggregation set
-    Handle<SetIdentifier> hashContext;
+    Handle<SetIdentifier> hashContext = nullptr;
 
     // Combiner set information
-    Handle<SetIdentifier> combinerContext;
+    Handle<SetIdentifier> combinerContext = nullptr;
 
     // Output set information
-    Handle<SetIdentifier> sinkContext;
+    Handle<SetIdentifier> sinkContext = nullptr;
 
     // Output type name
     String outputTypeName;
 
     // logical plan information
-    Handle<ComputePlan> sharedPlan;
+    Handle<ComputePlan> sharedPlan = nullptr;
 
     // source tuple set
     String sourceTupleSetSpecifier;
@@ -439,28 +449,31 @@ private:
     String targetComputationSpecifier;
 
     // tuple sets to build the pipeline
-    Handle<Vector<String>> buildTheseTupleSets;
+    Handle<Vector<String>> buildTheseTupleSets = nullptr;
 
-    // Does this stage has a PartitionedJoinSink
-    bool repartitionJoinOrNot;
+    // Does this stage has a PartitionedJoinSink that partitions JoinMaps
+    bool repartitionJoinOrNot = false;
+
+    // Does this stage has a HashPartitionSink that partitions Vectors
+    bool repartitionVectorOrNot = false;
 
     // Does this stage require probing a hash table ?
-    bool probeOrNot;
+    bool probeOrNot = false;
 
     // Does this stage require repartitioning output?
-    bool repartitionOrNot;
+    bool repartitionOrNot = false;
 
     // Does this stage require combining repartitioned results?
-    bool combineOrNot;
+    bool combineOrNot = false;
 
     // Does this stage require broadcasting results?
-    bool broadcastOrNot;
+    bool broadcastOrNot = false;
 
     // Does this stage consume aggregation hash output?
-    bool inputAggHashOutOrNot;
+    bool inputAggHashOutOrNot = false;
 
     // Does this stage collect results to one partition?
-    bool collectAsMapOrNot;
+    bool collectAsMapOrNot = false;
 
     // Number of nodes to collect aggregation results
     int numNodesToCollect = 1;
@@ -475,7 +488,7 @@ private:
     int numNodes;
 
     // number of partitions on each node
-    Handle<Vector<Handle<Vector<HashPartitionID>>>> numPartitions;
+    Handle<Vector<Handle<Vector<HashPartitionID>>>> numPartitions = nullptr;
 
     // IP for each node
     Handle<Vector<String>> ipAddresses;

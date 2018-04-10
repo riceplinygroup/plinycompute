@@ -133,6 +133,17 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobS
   // add this node to the pipeline
   tupleStageBuilder->addTupleSetToBuildPipeline(node->getOutputName());
 
+  // grab the computation associated with this node
+  Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
+
+  //to check whether it is a partition computation, if yes, we need setup parameters properly
+  if (curComp->getComputationTypeID() == PartitionCompTypeID) {
+    tupleStageBuilder->setRepartition(true);
+    tupleStageBuilder->setRepartitionVector(true);
+  }
+
+
+
   // this is a source so there is no last node
   SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
 
@@ -168,6 +179,8 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeOutput(TupleSetJobStageBuil
   tupleStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
+
+
 
   // create the job stage
   Handle<TupleSetJobStage> jobStage = tupleStageBuilder->build();

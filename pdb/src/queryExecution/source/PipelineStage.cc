@@ -587,6 +587,8 @@ void PipelineStage::executePipelineWork(int i,
                 }
                 return std::make_pair((char*)myPage + headerSize,
                                       outputSet->getPageSize() - headerSize);
+
+
             } else if ((this->jobStage->isBroadcasting() == true) ||
                        ((this->jobStage->isRepartition() == true) &&
                         (this->jobStage->isCombining() == false) && (join != nullptr))) {
@@ -597,9 +599,11 @@ void PipelineStage::executePipelineWork(int i,
                     std::cout << "Pipeline Error: insufficient memory in heap" << std::endl;
                 }
                 return std::make_pair((char*)myPage + headerSize, conf->getNetBroadcastPageSize());
+
+
             } else {
                 // TODO: move this to Pangea
-                // aggregation case
+                // aggregation and partition cases
                 void* myPage = calloc(conf->getShufflePageSize(), 1);
                 if (myPage == nullptr) {
                     std::cout << "Pipeline Error: insufficient memory in heap" << std::endl;
@@ -740,9 +744,8 @@ void PipelineStage::executePipelineWork(int i,
 
             } else if ((this->jobStage->isRepartition() == true) &&
                        (this->jobStage->isCombining() == false) && (join == nullptr)) {
-                // to handle aggregation without combining
+                // to handle aggregation without combining and partitioning
                 std::cout << "to shuffle data on this page" << std::endl;
-                // to handle an aggregation
                 Record<Vector<Handle<Vector<Handle<Object>>>>>* record =
                     (Record<Vector<Handle<Vector<Handle<Object>>>>>*)page;
                 if (record != nullptr) {
