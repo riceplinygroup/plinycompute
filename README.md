@@ -4,13 +4,13 @@
 
 ### <a name="req"></a>Requirements:
 
-| Name          | Homepage                          | Ubutnu Packages             |
-| ------------- |:---------------------------------:| ---------------------------:|
-| Snappy        | https://github.com/google/snappy  | libsnappy1v5, libsnappy-dev |
-| GSL           | https://www.gnu.org/software/gsl/ | libgsl-dev                  |
-| Boost         | http://www.boost.org/             | libboost-dev, libboost-program-options-dev, libboost-filesystem-dev, libboost-system-dev |
-| Bison           | https://www.gnu.org/software/bison/ | bison                   |
-| Flex            | https://github.com/westes/flex      | flex                    |
+| Name          | Ubutnu Packages             |
+| ------------- | ---------------------------:|
+| [Snappy](https://github.com/google/snappy)        | libsnappy1v5, libsnappy-dev |
+| [GSL ](https://www.gnu.org/software/gsl/)         | libgsl-dev                  |
+| [Boost](http://www.boost.org/)                    | libboost-dev, libboost-program-options-dev, libboost-filesystem-dev, libboost-system-dev |
+| [Bison](https://www.gnu.org/software/bison/)      | bison                   |
+| [Flex](https://github.com/westes/flex)            | flex                    |
 
 ### <a name="compiling"></a>Compiling PlinyCompute and building targets:
 
