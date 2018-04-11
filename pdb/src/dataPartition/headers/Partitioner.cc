@@ -68,11 +68,11 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
           = makeObject<WriteUserSet<ValueClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
 
         /* Step 7. to compose a query graph */
-        this->partitionComp->setInput(scanner);
-        this->writer->setInput(curPartitionComp);
+        partitionComp->setInput(scanner);
+        writer->setInput(curPartitionComp);
 
         /* Step 8. to get the tcap string */
-        queryClient->setQueryGraph(this->writer);
+        queryClient->setQueryGraph(writer);
         std::vector<Handle<Computation>> computations;
         std::string tcapString = queryClient->getTCAP(computations);
 
@@ -95,13 +95,13 @@ bool Partitioner<KeyClass, ValueClass> :: partitionWithTransformation ( std::str
          */
 
         /* Step 2. to check whether partitionComp is null, if yes, we return false */
-        if (this->partitionComp == nullptr) {
+        if (partitionComp == nullptr) {
             errMsg = "Error: null partitionComp";
             return false;
         }
 
         /* Step 3. to check whether queryClient is null, if yes, we return false */
-        if (this->queryClient == nullptr) {
+        if (queryClient == nullptr) {
             errMsg = "Error: null queryClient";
             return false;
         }
@@ -121,11 +121,11 @@ bool Partitioner<KeyClass, ValueClass> :: partitionWithTransformation ( std::str
           = makeObject<WriteUserSet<KeyClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
 
         /* Step 7. to compose a query graph */
-        this->partitionComp->setInput(scanner);
-        this->writer->setInput(curPartitionComp);
+        partitionComp->setInput(scanner);
+        writer->setInput(curPartitionComp);
 
         /* Step 8. to get the tcap string */
-        queryClient->setQueryGraph(this->writer);
+        queryClient->setQueryGraph(writer);
         std::vector<Handle<Computation>> computations;
         std::string tcapString = queryClient->getTCAP(computations);
 

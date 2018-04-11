@@ -117,7 +117,7 @@ namespace pdb {
 
         std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner 
                           = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet);
-        return partitionComp->partition(errorMsg, this->queryClient, partitionComp);
+        return myPartitioner->partition(errorMsg, this->queryClient, partitionComp);
 
     }
 
@@ -128,7 +128,7 @@ namespace pdb {
 
         std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner
                           = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet);
-        return partitionComp->partitionWithTransformation(errorMsg, this->queryClient, partitionComp);
+        return myPartitioner->partitionWithTransformation(errorMsg, this->queryClient, partitionComp);
 
     }
 

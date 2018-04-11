@@ -56,6 +56,8 @@
 #include "ComputePlan.h"
 #include "QueryOutput.h"
 #include "DataTypes.h"
+#include "LineItemPartitionComp.h"
+#include "LineItemPartitionTransformationComp.h"
 
 #include <ctime>
 #include <unistd.h>
@@ -78,57 +80,46 @@ using namespace tpch;
 
 void registerPartitionLibraries (PDBClient & pdbClient) {
 
-    //TODO
+   pdbClient.registerType ("libraries/libLineItemPartitionComp.so");
+   pdbClient.registerType ("libraries/libLineItemPartitionTransformationComp.so");
 
 }
 
 
 void createPartitionSets (PDBClient & pdbClient) {
 
-    pdbClient.removeSet("tpch", "customer_p");
-    std::cout << "to create set for TPCHCustomer" << std::endl;
-    pdbClient.createSet<TPCHCustomer>("tpch", "customer_p", (size_t)64*(size_t)1024*(size_t)1024);
     pdbClient.removeSet("tpch", "lineitem_p");
     std::cout << "to create set for TPCHLineItem" << std::endl;
     pdbClient.createSet<TPCHLineItem>("tpch", "lineitem_p", (size_t)64*(size_t)1024*(size_t)1024);
-    pdbClient.removeSet("tpch", "nation_p");
-    std::cout << "to create set for TPCHNation" << std::endl;
-    pdbClient.createSet<TPCHNation>("tpch", "nation_p", (size_t)64*(size_t)1024*(size_t)1024);
-    pdbClient.removeSet("tpch", "order_p");
-    std::cout << "to create set for TPCHOrder" << std::endl;
-    pdbClient.createSet<TPCHOrder>("tpch", "order_p", (size_t)64*(size_t)1024*(size_t)1024);
-    pdbClient.removeSet("tpch", "part_p");
-    std::cout << "to create set for TPCHPart" << std::endl;
-    pdbClient.createSet<TPCHPart>("tpch", "part_p", (size_t)64*(size_t)1024*(size_t)1024);
-    pdbClient.removeSet("tpch", "partsupp_p");
-    std::cout << "to create set for TPCHTPCHPartSupp" << std::endl;
-    pdbClient.createSet<TPCHTPCHPartSupp>("tpch", "partsupp_p", (size_t)64*(size_t)1024*(size_t)1024);
-    pdbClient.removeSet("tpch", "region_p");
-    std::cout << "to create set for TPCHRegion" << std::endl;
-    pdbClient.createSet<TPCHRegion>("tpch", "region_p", (size_t)64*(size_t)1024*(size_t)1024);
-    pdbClient.removeSet("tpch", "supplier_p");
-    std::cout << "to create set for TPCHSupplier" << std::endl;
-    pdbClient.createSet<TPCHSupplier>("tpch", "supplier_p", (size_t)64*(size_t)1024*(size_t)1024);
 
+    pdbClient.removeSet("tpch", "lineitem_pt");
+    std::cout << "to create set for TPCHLineItem" << std::endl;
+    pdbClient.createSet<TPCHLineItem>("tpch", "lineitem_pt", (size_t)64*(size_t)1024*(size_t)1024);
 }
 
 void removePartitionedSets (PDBClient & pdbClient) {
 
 
-    pdbClient.removeSet("tpch", "customer_p");
     pdbClient.removeSet("tpch", "lineitem_p");
-    pdbClient.removeSet("tpch", "nation_p");
-    pdbClient.removeSet("tpch", "order_p");
-    pdbClient.removeSet("tpch", "part_p");
-    pdbClient.removeSet("tpch", "partsupp_p");
-    pdbClient.removeSet("tpch", "region_p");
-    pdbClient.removeSet("tpch", "supplier_p");
+    pdbClient.removeSet("tpch", "lineitem_pt");
 
 }
 
 void partitionData (PDBClient & pdbClient) {
 
-    //TODO
+    Handle<LineItemPartitionTransformationComp> partitionTransformationComp 
+       = makeObject<LineItemPartitionTransformationComp>();
+    pdbClient.partitionAndTransformSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
+                        std::pair<std::string, std::string>("tpch", "lineitem_p"),
+                        partitionTransformationComp);
+
+    Handle<LineItemPartitionComp> partitionComp
+       = makeObject<LineItemPartitionComp>();
+    pdbClient.partitionSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
+                        std::pair<std::string, std::string>("tpch", "lineitem_pt"),
+                        partitionComp);
+
+    
 
 
 }
