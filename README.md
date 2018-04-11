@@ -1,6 +1,12 @@
-# PlinyCompute: A platform for high-performance distributed tool and library development.
+<p align="center">
+  <img width="344" height="316" src="https://user-images.githubusercontent.com/16105671/36680884-a1f5614e-1adc-11e8-80cd-f84aafbf3422.png">
+</p>
+<hr/>
+
+**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++.
 
 ### <a name="req"></a>Requirements:
+PlinyCompute has been compiled and tested in Ubuntu 16.04.4 LTS and requires the following libraries and packages to be installed.
 
 | Library          | Packages             |
 | ------------- | ---------------------------:|
