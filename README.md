@@ -4,7 +4,7 @@
 
 ### <a name="req"></a>Requirements:
 
-| Name          | Ubutnu Packages             |
+| Library          | Packages             |
 | ------------- | ---------------------------:|
 | [Snappy](https://github.com/google/snappy)        | libsnappy1v5, libsnappy-dev |
 | [GSL ](https://www.gnu.org/software/gsl/)         | libgsl-dev                  |
