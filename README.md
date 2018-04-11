@@ -2,7 +2,7 @@
 
 ## Building PlinyCompute
 
-### Perequisites:
+### <a name="req"></a>Requirements:
 
 | Name          | Homepage                          | Ubutnu Packages             |
 | ------------- |:---------------------------------:| ---------------------------:|
@@ -12,7 +12,7 @@
 | Bison           | https://www.gnu.org/software/bison/ | bison                   |
 | Flex            | https://github.com/westes/flex      | flex                    |
 
-### Compiling PlinyCompute and build targets:
+### <a name="compiling"></a>Compiling PlinyCompute and build targets:
 
 1. Clone PlinyCompute from GitHub, issuing the following command:
 ```bash 
@@ -47,7 +47,7 @@ For example, the following command compiles and builds the executable pdb-cluste
 $ make -j 4 pdb-cluster
 ```
 
-This table lists the different make targets that can be built along its description:
+<a name="targets"></a>This table lists the different make targets that can be built along its description:
 
 | Target                  | Description                                                        |
 | ----------------------- | ------------------------------------------------------------------ |
