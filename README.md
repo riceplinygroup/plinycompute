@@ -1,7 +1,5 @@
 # PlinyCompute: A platform for high-performance distributed tool and library development.
 
-## Building PlinyCompute
-
 ### <a name="req"></a>Requirements:
 
 | Library          | Packages             |
