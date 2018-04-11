@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBClient pdbClient(8108, masterIp, false, true);
+    PDBClient pdbClient(8108, masterIp);
 
     string errMsg;
 

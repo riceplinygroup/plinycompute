@@ -192,6 +192,9 @@ bool DefaultDatabase::initializeFromMetaDBDir(path metaDBDir) {
                     name = dirName.substr(dirName.find('_') + 1, dirName.length() - 1);
                     // parse type id
                     typeId = stoul(dirName.substr(0, dirName.find('_')));
+
+                    // load existing types
+                    this->addTypeByPartitionedFiles(name, typeId, path);
                 }
             }
         } else {

@@ -25,10 +25,8 @@ namespace pdb {
 
     PDBClient::PDBClient() {}
 
-    PDBClient::PDBClient(int portIn, std::string addressIn,
-                         bool usePangaeaIn, bool useQuerySchedulerIn)
-        : port(portIn), address(addressIn),
-          usePangea(usePangaeaIn), useQueryScheduler(useQuerySchedulerIn) {
+    PDBClient::PDBClient(int portIn, std::string addressIn)
+        : port(portIn), address(addressIn) {
 
       logger = make_shared<PDBLogger>("clientLog");
 
@@ -55,7 +53,7 @@ namespace pdb {
               portIn,
               addressIn,
               make_shared<pdb::PDBLogger>("queryClientLog"),
-              useQuerySchedulerIn);
+              true);
     }
 
     PDBClient::~PDBClient() {}

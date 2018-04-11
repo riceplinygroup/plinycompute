@@ -140,7 +140,25 @@ if (typeName != getTypeName <Type> ()) {
             setName);
     }
 
-    // JiaNote: to execute computations
+
+    //to set query graph
+    void setQueryGraph (Handle<Computation> querySink) {
+        this->queryGraph->push_back(querySink);
+    }
+
+
+    
+    //to return TCAP string
+    std::string getTCAP (std::vector<Handle<Computation>> & computations) {
+
+        QueryGraphAnalyzer queryAnalyzer(this->queryGraph);
+        std::string tcapString = queryAnalyzer.parseTCAPString();
+        queryAnalyzer.parseComputations(computations);
+        return tcapString; 
+    }
+
+
+    //to execute computations
     template <class... Types>
     bool executeComputations(std::string& errMsg,
                              Handle<Computation> firstParam,
@@ -153,13 +171,20 @@ if (typeName != getTypeName <Type> ()) {
 
         // this is the request
         const UseTemporaryAllocationBlock myBlock{256 * 1024 * 1024};
-        QueryGraphAnalyzer queryAnalyzer(this->queryGraph);
-        std::string tcapString = queryAnalyzer.parseTCAPString();
         std::vector<Handle<Computation>> computations;
-        queryAnalyzer.parseComputations(computations);
+        std::string tcapString = getTCAP(computations);
+        return executeComputations (errMsg,
+                                    tcapString,
+                                    computations);
+    }
+
+    bool executeComputations(std::string& errMsg, 
+                             std::string tcapString,
+                             std::vector<Handle<Computation>> computations) {
+
         Handle<Vector<Handle<Computation>>> computationsToSend =
             makeObject<Vector<Handle<Computation>>>();
-        for (int i = 0; i < computations.size(); i++) {
+        for (size_t i = 0; i < computations.size(); i++) {
             computationsToSend->push_back(computations[i]);
         }
         Handle<ExecuteComputation> executeComputation = makeObject<ExecuteComputation>(tcapString);
@@ -207,7 +232,6 @@ if (typeName != getTypeName <Type> ()) {
         }
         this->queryGraph = makeObject<Vector<Handle<Computation>>>();
     }
-
 
     void setUseScheduler(bool useScheduler) {
         this->useScheduler = useScheduler;

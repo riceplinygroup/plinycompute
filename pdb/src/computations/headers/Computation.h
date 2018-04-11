@@ -40,6 +40,7 @@ enum ComputationTypeID {
     WriteUserSetTypeID,
     ScanUserSetTypeID,
     SelectionCompTypeID,
+    PartitionCompTypeID,
     AggregateCompTypeID,
     MultiSelectionCompTypeID,
     SetWriterTypeID,

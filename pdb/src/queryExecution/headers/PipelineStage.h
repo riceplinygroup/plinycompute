@@ -58,6 +58,7 @@ typedef std::shared_ptr<PipelineStage> PipelineStagePtr;
 // -- ShuffleSink for aggregation
 // -- BroadcastSink for broadcast join
 // -- HashPartitionSink for hash partitioned join
+// -- HashPartitionVectorSink for partitioning vectors
 // -- UserSetSink for data materialization 
 
 class PipelineStage {
@@ -178,8 +179,10 @@ public:
     // run a pipeline with shuffle buffers
     void runPipelineWithBroadcastSink(HermesExecutionServer* server);
 
-    // run a pipeline with hash partitioning
+    // run a pipeline with hash partitioning for JoinMaps
     void runPipelineWithHashPartitionSink(HermesExecutionServer* server);
+
+
 };
 }
 
