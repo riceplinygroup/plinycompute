@@ -171,14 +171,14 @@ void registerLibraries (PDBClient & pdbClient) {
 
 
 
-    pdbClient.registerType ("libraries/libTpchTPCHCustomer.so");
-    pdbClient.registerType ("libraries/libTpchTPCHLineItem.so");
-    pdbClient.registerType ("libraries/libTpchTPCHNation.so");
-    pdbClient.registerType ("libraries/libTpchTPCHOrder.so");
-    pdbClient.registerType ("libraries/libTpchTPCHPart.so");
-    pdbClient.registerType ("libraries/libTpchTPCHTPCHPartSupp.so");
-    pdbClient.registerType ("libraries/libTpchTPCHRegion.so");
-    pdbClient.registerType ("libraries/libTpchTPCHSupplier.so");
+    pdbClient.registerType ("libraries/libTPCHCustomer.so");
+    pdbClient.registerType ("libraries/libTPCHLineItem.so");
+    pdbClient.registerType ("libraries/libTPCHNation.so");
+    pdbClient.registerType ("libraries/libTPCHOrder.so");
+    pdbClient.registerType ("libraries/libTPCHPart.so");
+    pdbClient.registerType ("libraries/libTPCHPartSupp.so");
+    pdbClient.registerType ("libraries/libTPCHRegion.so");
+    pdbClient.registerType ("libraries/libTPCHSupplier.so");
 
     bool query01 = true;
 
@@ -206,8 +206,8 @@ void registerLibraries (PDBClient & pdbClient) {
         pdbClient.registerType ("libraries/libQ02TPCHPartJoin.so");
         pdbClient.registerType ("libraries/libQ02TPCHPartJoinOutput.so");
         pdbClient.registerType ("libraries/libQ02TPCHPartSelection.so");
-        pdbClient.registerType ("libraries/libQ02TPCHTPCHPartSuppJoin.so");
-        pdbClient.registerType ("libraries/libQ02TPCHTPCHPartSuppJoinOutput.so");
+        pdbClient.registerType ("libraries/libQ02TPCHPartSuppJoin.so");
+        pdbClient.registerType ("libraries/libQ02TPCHPartSuppJoinOutput.so");
         pdbClient.registerType ("libraries/libQ02TPCHRegionSelection.so");
         pdbClient.registerType ("libraries/libQ02TPCHSupplierJoin.so");
         pdbClient.registerType ("libraries/libQ02TPCHSupplierJoinOutput.so");
