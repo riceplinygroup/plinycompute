@@ -1,18 +1,22 @@
-# PlinyCompute: A platform for high-performance distributed tool and library development.
+<p align="center">
+  <img width="344" height="316" src="https://user-images.githubusercontent.com/16105671/36680884-a1f5614e-1adc-11e8-80cd-f84aafbf3422.png">
+</p>
+<hr/>
 
-## Building PlinyCompute
+**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++.
 
 ### <a name="req"></a>Requirements:
+PlinyCompute has been compiled and tested in Ubuntu 16.04.4 LTS and requires the following libraries and packages to be installed.
 
-| Name          | Homepage                          | Ubutnu Packages             |
-| ------------- |:---------------------------------:| ---------------------------:|
-| Snappy        | https://github.com/google/snappy  | libsnappy1v5, libsnappy-dev |
-| GSL           | https://www.gnu.org/software/gsl/ | libgsl-dev                  |
-| Boost         | http://www.boost.org/             | libboost-dev, libboost-program-options-dev, libboost-filesystem-dev, libboost-system-dev |
-| Bison           | https://www.gnu.org/software/bison/ | bison                   |
-| Flex            | https://github.com/westes/flex      | flex                    |
+| Library          | Packages             |
+| ------------- | ---------------------------:|
+| [Snappy](https://github.com/google/snappy)        | libsnappy1v5, libsnappy-dev |
+| [GSL ](https://www.gnu.org/software/gsl/)         | libgsl-dev                  |
+| [Boost](http://www.boost.org/)                    | libboost-dev, libboost-program-options-dev, libboost-filesystem-dev, libboost-system-dev |
+| [Bison](https://www.gnu.org/software/bison/)      | bison                   |
+| [Flex](https://github.com/westes/flex)            | flex                    |
 
-### <a name="compiling"></a>Compiling PlinyCompute and build targets:
+### <a name="compiling"></a>Compiling PlinyCompute and building targets:
 
 1. Clone PlinyCompute from GitHub, issuing the following command:
 ```bash 
@@ -38,6 +42,20 @@ Conversely, to turn debugging messages off, issue the following command:
 ```bash 
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
+
+<a name="targets"></a>This table lists the different make targets that can be built along its description:
+
+| Target                  | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| pdb-cluster             | Builds the master server that runs on the master node.           |
+| pdb-server              | Builds the worker server that runs on the worker nodes.          |
+| shared-libraries        | Builds all the shared libraries.                                 |
+| build-ml-tests          | Builds the machine learning executables and their dependencies.  |
+| build-la-tests          | Builds the linear algebra executables and their dependencies.    |
+| build-integration-tests | Builds the integration executables and their dependencies.       |
+| build-tpch-tests        | Builds the tpch executables and their dependencies.              |
+| build-tests             | Builds the unit tests executables and their dependencies.        |
+
 Depending on what target you want to build, issue the following command, replacing <number-of-jobs> with an integer number (this allows to execute multiple recipes in parallel); replace <target> with one target from the table below:
 ```bash 
 $ make -j <number-of-jobs> <target>
@@ -47,14 +65,13 @@ For example, the following command compiles and builds the executable pdb-cluste
 $ make -j 4 pdb-cluster
 ```
 
-<a name="targets"></a>This table lists the different make targets that can be built along its description:
+### <a name="building"></a>Compiling, building targets, and running tests:
+
+This table lists the different make targets for running different test suites:
 
 | Target                  | Description                                                        |
 | ----------------------- | ------------------------------------------------------------------ |
-| pdb-cluster             | Builds the master server that runs on the master node.  |
-| pdb-server              | Builds the worker server that runs on the worker nodes. |
-| shared-libraries        | Builds all the shared libraries.                        |
-| unit-tests              | Builds all unit tests and their possible dependencies.  |
+| unit-tests              | Builds all unit tests and their possible dependencies.           |
 | run-integration-tests   | Builds all integration tests and their dependencies, then proceeds on running them one by one.  |
 | run-la-tests   | Builds the **linear algebra** tests and their dependencies, then proceeds on running them one by one.  |
 | run-ml-tests   | Builds the **machine learning**  tests and their dependencies, then proceeds on running them one by one.  |
@@ -64,13 +81,23 @@ $ make -j 4 pdb-cluster
 | RunLocal&lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies, then proceeds on running it. For example running **make RunLocalTestAllSelection** will build the TestAllSelection test and run it in the pseudo cluster mode. |
 | &lt;LibraryName&gt;           | This target builds a particular shared library named &lt;LibraryName&gt;. For example running **make SharedEmployee** will build the SharedEmployee library. |
 
-### Building and running Unit Tests
+### <a name="tests"></a>Example of building and running Unit Tests
 To run the unit tests, issue the following commands:
 ```bash 
 $ make unit-tests
 $ make test
 ```
-## Run PlinyCompute on a local machine (pseudo cluster mode)
+
+## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
+To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
+```
+$ $PDB_HOME/scripts/cleanupNode.sh
+```
+
+# Deploying and Launching PlinyCompute
+PlinyCompute can be launched in two modes: 1) pseudo cluster mode or ) distrbiuted mode. Pseudo cluster mode is ideal for testing the functionality of PlinyCompute in a single machine (e.g. a personal computer or a laptop). In distributed mode, PlinyCompute is deployed in a cluster of machines, and is best suited for processing large datasets.
+
+### <a name="pseudo"></a>Running PlinyCompute on a local machine (pseudo cluster mode)
 The following script launches an instance of PlinyCompute:
 ```bash 
 $ $PDB_HOME/startPseudoCluster.py
@@ -86,12 +113,8 @@ bin/pdb-server 1 2048 localhost:8108 localhost:8109
 bin/pdb-server 1 2048 localhost:8108 localhost:8109
 ```
 In the above output, `pdb-cluster` is the master process running on localhost and listening on port 8108. The two `pdb-server` processes correspond to one worker node (each worker node runs a front-end and back-end process), which listen on port 8109 and conected to the master process on port 8108.
-## Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
-To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
-```
-$ $PDB_HOME/scripts/cleanupNode.sh
-```
-## Installing and deploying PlinyCompute on a real cluster
+
+### <a name="cluster"></a>Installing and deploying PlinyCompute on a real cluster
 Although running PlinyCompute in one machine (e.g. a laptop) is ideal for becoming familiar with the system and testing some of its functionality, PlinyCompute's high-performance properties are best suited for processing large data loads in a real distributed cluster such as Amazon AWS, on-premise, or other cloud provider. To accomplish this, follow these steps:
 
 1. Log into a remote machine that will serve as the **master node** from a cloud provider (e.g. Amazon AWS).
@@ -170,62 +193,39 @@ $ ./scripts/startWorkers.sh conf/private_key.pem 192.168.1.1 4 4096 &
 ```
 Once, the worker nodes are launched, the message `"servers are started!"` will be displayed. At this point there is a running distributed version of PlinyCompute!
 
-## Stop Cluster
-cd $PDB_HOME
-scripts/stopWorkers.sh $pem_file/private_key
-
-
-## Soft Reboot Cluster (restart cluster with all data kept)
-cd $PDB_HOME
-scripts/stopWorkers.sh $pem_file/private_key
-scripts/startMaster.sh $pem_file/private_key
-scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
-
+# Stop Cluster
+To stop a running instance of PlinyCompute, issue the following command:
+```bash  
+$ ./scripts/stopWorkers.sh conf/private_key.pem
+```
 
 ## Upgrade Cluster (for developers and testers upgrade binaries and restart cluster with all data kept)
-cd $PDB_HOME
+```bash
 scripts/stopWorkers.sh $pem_file/private_key
 scripts/upgrade.sh $pem_file/private_key
 scripts/startMaster.sh $pem_file/private_key
 scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
-
+```
 
 ## Cleanup Catalog and Storage data
-You can cleanup all catalog and storage data by running following command in master
+You can cleanup all catalog and storage data by running the following command in the master node:
 
-cd $PDB_HOME
-scripts/cleanup.sh $pem_file
-
+```bash  
+$ ./scripts/cleanup.sh conf/private_key.pem
+```
 
 ## Environment Variables:
+For the scripts to function in distributed mode, the following environment variables have to be set:
 
+(1) **PDB_SSH_OPTS**: by default is set to "-o StrictHostKeyChecking=no"
 
-(1) PDB_SSH_OPTS
+(2) **PDB_SSH_FOREGROUND**: by default is not set, in which case, scripts are launched in the background using nohup on the cluster nodes. If set to "y" or "yes", all output from the worker nodes is displayed on the ssh terminal.
 
-by default, it is defined to be "-o StrictHostKeyChecking=no"
+# Learn more about PlinyCompute
 
-(2) PDB_SSH_FOREGROUND
-
-if you define it to non empty like "y" or "yes", it will run as before and bring all output to your ssh terminal;
-
-by default, it is not defined, and it will run in background using nohup, which means it will not be interrupted by ssh.
-
-
-
-## Compiling shared libraries
-
-(1) Add your shared library header file and source file like following example:
-https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/headers/AllSelection.h
-https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/source/AllSelection.cc
-
-Note, it MUST be a pdb :: Object instance, and follow all rules of pdb :: Object (Please search Object Model FAQ in the PDB google group). For example, you must include the ENABLE_DEEP_COPY macro in the public statements. You must include the header file "GetVTable.h", and have the GET_V_TABLE macro in the source file.
-
-
-(2) Build your shared library.
-Now you can build it by adding following to SConstruct(https://svn.rice.edu/r/software_0/ObjectQueryModel/SConstruct):
-
-common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
-
-Then add 'libraries/libChrisSelection.so' to "main=common_env.Alias(...)"
-
-In future, shared library should be able to be compiled at client side via a PDB client library.
+* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
+* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
+* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
+* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
+* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
+* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
