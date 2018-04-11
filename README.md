@@ -2,7 +2,7 @@
 
 ## Building PlinyCompute
 
-### Perequisites:
+### <a name="req"></a>Perequisites:
 
 | Name          | Homepage                          | Ubutnu Packages             |
 | ------------- |:---------------------------------:| ---------------------------:|
@@ -12,7 +12,7 @@
 | Bison           | https://www.gnu.org/software/bison/ | bison                   |
 | Flex            | https://github.com/westes/flex      | flex                    |
 
-### Compiling PlinyCompute and building targets:
+### <a name="compiling"></a>Compiling PlinyCompute and building targets:
 
 1. Clone PlinyCompute from GitHub, issuing the following command:
 ```bash 
@@ -39,7 +39,7 @@ Conversely, to turn debugging messages off, issue the following command:
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
 
-This table lists the different make targets that can be built along its description:
+<a name="targets"></a>This table lists the different make targets that can be built along its description:
 
 | Target                  | Description                                                      |
 | ----------------------- | ---------------------------------------------------------------- |
@@ -61,7 +61,7 @@ For example, the following command compiles and builds the executable pdb-cluste
 $ make -j 4 pdb-cluster
 ```
 
-### Compiling, building targets, and running tests:
+### <a name="building"></a>Compiling, building targets, and running tests:
 
 This table lists the different make targets for running different test suites:
 
@@ -77,14 +77,14 @@ This table lists the different make targets for running different test suites:
 | RunLocal&lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies, then proceeds on running it. For example running **make RunLocalTestAllSelection** will build the TestAllSelection test and run it in the pseudo cluster mode. |
 | &lt;LibraryName&gt;           | This target builds a particular shared library named &lt;LibraryName&gt;. For example running **make SharedEmployee** will build the SharedEmployee library. |
 
-### Example of building and running Unit Tests
+### <a name="tests"></a>Example of building and running Unit Tests
 To run the unit tests, issue the following commands:
 ```bash 
 $ make unit-tests
 $ make test
 ```
 
-## Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
+## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
 To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
 ```
 $ $PDB_HOME/scripts/cleanupNode.sh
@@ -93,7 +93,7 @@ $ $PDB_HOME/scripts/cleanupNode.sh
 # Deploying and Launching PlinyCompute
 PlinyCompute can be launched in two modes: 1) pseudo cluster mode or ) distrbiuted mode. Pseudo cluster mode is ideal for testing the functionality of PlinyCompute in a single machine (e.g. a personal computer or a laptop). In distributed mode, PlinyCompute is deployed in a cluster of machines, and is best suited for processing large datasets.
 
-### Running PlinyCompute on a local machine (pseudo cluster mode)
+### <a name="pseudo"></a>Running PlinyCompute on a local machine (pseudo cluster mode)
 The following script launches an instance of PlinyCompute:
 ```bash 
 $ $PDB_HOME/startPseudoCluster.py
@@ -110,7 +110,7 @@ bin/pdb-server 1 2048 localhost:8108 localhost:8109
 ```
 In the above output, `pdb-cluster` is the master process running on localhost and listening on port 8108. The two `pdb-server` processes correspond to one worker node (each worker node runs a front-end and back-end process), which listen on port 8109 and conected to the master process on port 8108.
 
-### Installing and deploying PlinyCompute on a real cluster
+### <a name="cluster"></a>Installing and deploying PlinyCompute on a real cluster
 Although running PlinyCompute in one machine (e.g. a laptop) is ideal for becoming familiar with the system and testing some of its functionality, PlinyCompute's high-performance properties are best suited for processing large data loads in a real distributed cluster such as Amazon AWS, on-premise, or other cloud provider. To accomplish this, follow these steps:
 
 1. Log into a remote machine that will serve as the **master node** from a cloud provider (e.g. Amazon AWS).
