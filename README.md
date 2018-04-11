@@ -2,7 +2,7 @@
 
 ## Building PlinyCompute
 
-### <a name="req"></a>Perequisites:
+### <a name="req"></a>Requirements:
 
 | Name          | Homepage                          | Ubutnu Packages             |
 | ------------- |:---------------------------------:| ---------------------------:|
