@@ -19,6 +19,7 @@
 
 #include <utility>
 #include "SelectionComp.h"
+#include "PartitionComp.h"
 #include "MultiSelectionComp.h"
 
 namespace pdb {
@@ -76,6 +77,16 @@ Handle<SetIdentifier> AbstractTCAPAnalyzerNode::getSetIdentifierFromComputation(
 
       // create the set identifier from it
       return makeObject<SetIdentifier>(aggregator->getDatabaseName(), aggregator->getSetName());
+    }
+    case PartitionCompTypeID : {
+
+      // this is a PartitionComp cast it
+      Handle<PartitionComp<Object, Object>> partitioner 
+      = unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
+
+      // create the set identifier from it
+      return makeObject<SetIdentifier>(partitioner->getDatabaseName(), partitioner->getSetName());
+
     }
     case SelectionCompTypeID : {
 

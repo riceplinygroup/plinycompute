@@ -47,7 +47,8 @@ enum AtomicComputationTypeID {
   ApplyAggTypeID,
   ScanSetAtomicTypeID,
   WriteSetTypeID,
-  ApplyJoinTypeID
+  ApplyJoinTypeID,
+  ApplyPartitionTypeID
 };
 
 struct AtomicComputation {

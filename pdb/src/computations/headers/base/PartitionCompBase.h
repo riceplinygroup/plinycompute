@@ -137,22 +137,22 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
 
     //set the output tuple set name
     mustache::mustache outputTupleSetNameTemplate{"partitionOutFor{{computationType}}{{computationLabel}}"};
-    std::string outputTupleSetName = outputTupleSetNameTemplate.render(partitionCompTCAP);
+    outputTupleSetName = outputTupleSetNameTemplate.render(partitionCompTCAP);
 
     partitionCompTCAP.set("outputTupleSetName", outputTupleSetName);
 
     // set the added output column
-    std::string addedOutputColumnName = inputColumnsToApply[0];
+    addedOutputColumnName = inputColumnsToApply[0];
 
     partitionCompTCAP.set("addedOutputColumnName", addedOutputColumnName);
 
-    tcapString += "\n/* Apply aggregation */\n";
+    tcapString += "\n/* Apply partition */\n";
 
     mustache::mustache partitionTCAPTemplate{"{{outputTupleSetName}} ({{addedOutputColumnName}})"
                                          "<= Partition ({{tupleSetName}}({{addedOutputColumnName}}, {{addedColumnName}}),"
                                          "'{{computationType}}_{{computationLabel}}')\n"};
 
-    tcapString += partitionTCAPTemplate.render(partitionCompData);
+    tcapString += partitionTCAPTemplate.render(partitionCompTCAP);
 
     // update the state of the computation
     outputColumnNames.clear();

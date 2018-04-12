@@ -17,6 +17,7 @@
  *****************************************************************************/
 #include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNodeFactory.h"
 #include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerAggregationNode.h"
+#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerPartitionNode.h"
 #include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerJoinNode.h"
 #include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
 
@@ -36,6 +37,11 @@ AbstractTCAPAnalyzerNodePtr SimpleTCAPAnalyzerNodeFactory::createAnalyzerNode(At
     // we are dealing with an aggregate
     case ApplyAggTypeID: {
       return (new SimpleTCAPAnalyzerAggregationNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+    }
+
+    // we are dealing with partitioning
+    case ApplyPartitionTypeID: {
+      return (new SimpleTCAPAnalyzerPartitionNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
     }
 
     // we are dealing with a join

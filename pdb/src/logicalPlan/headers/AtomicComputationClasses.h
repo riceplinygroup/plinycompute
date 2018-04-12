@@ -658,4 +658,50 @@ struct ApplyJoin : public AtomicComputation {
   }
 };
 
+
+// this is a computation that partitions a tuple set
+struct ApplyPartition : public AtomicComputation {
+
+ public:
+  ~ApplyPartition() {}
+
+  ApplyPartition(TupleSpec &input, TupleSpec &output, TupleSpec &projection, std::string nodeName)
+      : AtomicComputation(input, output, projection, nodeName) {}
+
+  ApplyPartition(TupleSpec &input, TupleSpec &output, TupleSpec &projection, std::string nodeName, KeyValueList &useMe) :
+      AtomicComputation(input, output, projection, nodeName) {
+
+    // set the key value pairs
+    keyValuePairs = useMe.getKeyValuePairs();
+  }
+
+  std::string getAtomicComputationType() override {
+    return std::string("Partition");
+  }
+
+  AtomicComputationTypeID getAtomicComputationTypeID() override {
+    return ApplyPartitionTypeID;
+  }
+
+  std::pair<std::string, std::string> findSource(std::string attName,
+                                                 AtomicComputationList &allComps) override {
+
+    // The output from the partition should be a single attribute
+    // find where the attribute appears in the outputs
+    int counter = findPosInOutputAtts(attName);
+
+    // if the attribute we are asking for is at the end, it means it's produced by this
+    // aggregate
+    // then we asked for it
+    if (counter == 0) {
+      return std::make_pair(getComputationName(), std::string(""));
+    }
+
+    // if it is not at the end, if makes no sense
+    std::cout << "How did we ever get here trying to find an attribute produced by an agg??\n";
+    exit(1);
+  }
+};
+
+
 #endif

@@ -136,12 +136,6 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobS
   // grab the computation associated with this node
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
-  //to check whether it is a partition computation, if yes, we need setup parameters properly
-  if ((curComp->getComputationTypeID() == PartitionCompTypeID) 
-     || (curComp->getComputationTypeID() == PartitionTransformationCompTypeID)) {
-    tupleStageBuilder->setRepartition(true);
-    tupleStageBuilder->setRepartitionVector(true);
-  }
 
 
 
