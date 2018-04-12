@@ -34,7 +34,7 @@ public:
    * @param checkMe: the input element
    * @return: the output lambda tree used to apply to the input element
    */
-  virtual Lambda<KeyClass> getProjection(Handle<ValueClass> checkMe) = 0;
+  virtual Lambda<KeyClass> getProjection(Handle<ValueClass> checkMe) override;
 
 };
 }

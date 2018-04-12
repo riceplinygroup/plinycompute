@@ -144,6 +144,7 @@ if (typeName != getTypeName <Type> ()) {
     //to set query graph
     void setQueryGraph (Handle<Computation> querySink) {
         this->queryGraph->push_back(querySink);
+        std::cout << "query graph size = " << this->queryGraph->size() << std::endl;
     }
 
 

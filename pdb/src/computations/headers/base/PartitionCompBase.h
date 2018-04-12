@@ -23,11 +23,12 @@
 #include "VectorSink.h"
 #include "ScanUserSet.h"
 #include "TypeName.h"
+#include "AbstractPartitionComp.h"
 #include "HashPartitionSink.h"
 
 namespace pdb {
 template<class KeyClass, class ValueClass>
-class PartitionCompBase : public Computation {
+class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
 
  public:
 
@@ -42,7 +43,6 @@ class PartitionCompBase : public Computation {
   virtual Lambda<KeyClass> getProjection(Handle<ValueClass> checkMe) = 0;
 
 
-
   /**
    * calls getProjection to extract the lambdas
    * @param returnVal: the populated lambda map
@@ -53,6 +53,8 @@ class PartitionCompBase : public Computation {
     Lambda<KeyClass> projectionLambda = getProjection(checkMe);
     projectionLambda.toMap(returnVal, suffix);
   }
+
+
 
   /**
    * @return the type of this computation
@@ -69,62 +71,12 @@ class PartitionCompBase : public Computation {
   }
 
   /**
-   * @param i: the index of the input element that we want to know the type
-   * @return: the name of the i^th input type...
-   */
-  std::string getIthInputType(int i) override {
-    if (i == 0) {
-      return getTypeName<ValueClass>();
-    } else {
-      return "";
-    }
-  }
-
-  /**
-   * @return: the number of inputs to this query type
-   */
-  int getNumInputs() override {
-    return 1;
-  }
-
-  /**
    * @return: the output type of this query as a string
    */
   std::string getOutputType() override {
-    return getTypeName<KeyClass>();
+    return getTypeName<ValueClass>();
   }
 
-  /**
-   * below function implements the interface for parsing computation into a TCAP string
-   * @param inputTupleSets: identifiers to input tuple sets
-   * @param computationLabel: the sequence number of this computation
-   * @param outputTupleSetName: the name of the tuple set that is resulted from this computation
-   * @param outputColumnNames: the column names in the tuple set that is resulted from this computation
-   * @param addedOutputColumnName: the appended column name in the tuple set that is resulted from this computation
-   * @return: the TCAP string represent this computation
-   */
-  std::string toTCAPString(std::vector<InputTupleSetSpecifier> &inputTupleSets,
-                           int computationLabel,
-                           std::string &outputTupleSetName,
-                           std::vector<std::string> &outputColumnNames,
-                           std::string &addedOutputColumnName) override {
-
-    if (inputTupleSets.empty()) {
-      return "";
-    }
-    InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
-    std::vector<std::string> childrenLambdaNames;
-    std::string myLambdaName;
-    return toTCAPString(inputTupleSet.getTupleSetName(),
-                        inputTupleSet.getColumnNamesToKeep(),
-                        inputTupleSet.getColumnNamesToApply(),
-                        childrenLambdaNames,
-                        computationLabel,
-                        outputTupleSetName,
-                        outputColumnNames,
-                        addedOutputColumnName,
-                        myLambdaName);
-  }
 
   /**
    * @param inputTupleSetName: identifiers to input tuple sets
@@ -146,9 +98,9 @@ class PartitionCompBase : public Computation {
                            std::string &outputTupleSetName,
                            std::vector<std::string> &outputColumnNames,
                            std::string &addedOutputColumnName,
-                           std::string &myLambdaName) {
+                           std::string &myLambdaName) override {
 
-    PDB_COUT << "ABOUT TO GET TCAP STRING FOR SELECTION" << std::endl;
+    PDB_COUT << "ABOUT TO GET TCAP STRING FOR PARTITION" << std::endl;
     Handle<ValueClass> checkMe = nullptr;
     std::string tupleSetName;
     std::vector<std::string> columnNames;
@@ -169,11 +121,43 @@ class PartitionCompBase : public Computation {
                                                 lambdaLabel,
                                                 getComputationType(),
                                                 computationLabel,
-                                                outputTupleSetName,
-                                                outputColumnNames,
-                                                addedOutputColumnName,
+                                                tupleSetName,
+                                                columnNames,
+                                                addedColumnName,
                                                 myLambdaName,
                                                 false);
+
+    PDB_COUT << "TO REMOVE THE KEY COLUMN\n";
+
+    mustache::data partitionCompTCAP;
+    partitionCompTCAP.set("computationType", getComputationType());
+    partitionCompTCAP.set("computationLabel", std::to_string(computationLabel));
+    partitionCompTCAP.set("tupleSetName", tupleSetName);
+    partitionCompTCAP.set("addedColumnName", addedColumnName);
+
+    //set the output tuple set name
+    mustache::mustache outputTupleSetNameTemplate{"partitionOutFor{{computationType}}{{computationLabel}}"};
+    std::string outputTupleSetName = outputTupleSetNameTemplate.render(partitionCompTCAP);
+
+    partitionCompTCAP.set("outputTupleSetName", outputTupleSetName);
+
+    // set the added output column
+    std::string addedOutputColumnName = inputColumnsToApply[0];
+
+    partitionCompTCAP.set("addedOutputColumnName", addedOutputColumnName);
+
+    tcapString += "\n/* Apply aggregation */\n";
+
+    mustache::mustache partitionTCAPTemplate{"{{outputTupleSetName}} ({{addedOutputColumnName}})"
+                                         "<= Partition ({{tupleSetName}}({{addedOutputColumnName}}, {{addedColumnName}}),"
+                                         "'{{computationType}}_{{computationLabel}}')\n"};
+
+    tcapString += partitionTCAPTemplate.render(partitionCompData);
+
+    // update the state of the computation
+    outputColumnNames.clear();
+    outputColumnNames.push_back(addedOutputColumnName);
+
 
     // update the state of the computation
     this->setTraversed(true);
@@ -212,14 +196,22 @@ class PartitionCompBase : public Computation {
    * @return: the database name
    */
   std::string getDatabaseName() override {
-    return this->outputSetScanner->getDatabaseName();
+    if (this->outputSetScanner != nullptr) {
+      return this->outputSetScanner->getDatabaseName();
+    } else {
+      return "";
+    }
   }
 
   /**
    * @return: the set name
    */
   std::string getSetName() override {
-    return this->outputSetScanner->getSetName();
+    if (this->outputSetScanner != nullptr) {
+      return this->outputSetScanner->getSetName();
+    } else {
+      return "";
+    }
   }
 
   /**
@@ -239,6 +231,9 @@ class PartitionCompBase : public Computation {
     return nullptr;
   }
 
+
+
+
   /**
    * Sink to write partition output
    * @param consumeMe: the tuple set scheme of the compute sink
@@ -256,12 +251,6 @@ class PartitionCompBase : public Computation {
     return nullptr;
   }
 
-  /**
-   * @return: whether the output of this computation is required to be materialized
-   */
-  bool needsMaterializeOutput() override {
-    return materializeSelectionOut;
-  }
 
   /**
    * @return: a scanner that can be used to read the output of this computation
@@ -270,25 +259,11 @@ class PartitionCompBase : public Computation {
     return outputSetScanner;
   }
 
-  /**
-   * @param numPartitions: to set the number of partitions for this computation
-   */
- void setNumPartitions (int numPartitions) {
-    this->numPartitions = numPartitions;
- }
 
- /**
-  * @return: number of partitions for this partition computation
-  */
- int getNumPartitions () {
-    return this->numPartitions;
- }
+private:
 
-
- private:
-  bool materializeSelectionOut = false;
   Handle<ScanUserSet<ValueClass>> outputSetScanner = nullptr;
-  int numPartitions = 16;
+
 };
 
 }

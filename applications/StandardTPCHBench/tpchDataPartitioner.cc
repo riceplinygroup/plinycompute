@@ -127,41 +127,36 @@ void partitionData (PDBClient & pdbClient) {
 
 int main(int argc, char* argv[]) {
 
-    std::string tpchDirectory = "";
-    if (argc > 1) {
-        tpchDirectory = std::string(argv[1]);
-    }
-
     bool whetherToRegisterLibraries = true;
-    if (argc > 2) {
-        if (strcmp(argv[2], "N") == 0) {
+    if (argc > 1) {
+        if (strcmp(argv[1], "N") == 0) {
             whetherToRegisterLibraries = false;
         }
     }
 
     bool whetherToCreateSets = true;
-    if (argc > 3) {
-        if (strcmp(argv[3], "N") == 0) {
+    if (argc > 2) {
+        if (strcmp(argv[2], "N") == 0) {
            whetherToCreateSets = false;
         }
     }
 
     bool whetherToPartitionData = true;
-    if (argc > 4) {
-        if (strcmp(argv[4], "N") == 0) {
+    if (argc > 3) {
+        if (strcmp(argv[3], "N") == 0) {
            whetherToPartitionData = false;
         }
     }
 
     bool whetherToRemoveData = false;
-    if (argc > 5) {
-        if (strcmp(argv[5], "Y") == 0) {
+    if (argc > 4) {
+        if (strcmp(argv[4], "Y") == 0) {
            whetherToRemoveData = true;
         }
     }
 
     if ((argc > 6) || (argc == 1)) {
-       std::cout << "Usage: #tpchDirectory #whetherToRegisterLibraries (Y/N)" 
+       std::cout << "Usage: #whetherToRegisterLibraries (Y/N)" 
                  << " #whetherToCreateSets (Y/N) #whetherToPartitionData (Y/N)"
                  << " #whetherToRemoveData (Y/N)" << std::endl;
     }
