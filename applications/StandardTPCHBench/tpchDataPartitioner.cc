@@ -107,11 +107,12 @@ void removePartitionedSets (PDBClient & pdbClient) {
 
 void partitionData (PDBClient & pdbClient) {
 
-    Handle<LineItemPartitionTransformationComp> partitionTransformationComp 
+/*    Handle<LineItemPartitionTransformationComp> partitionTransformationComp 
        = makeObject<LineItemPartitionTransformationComp>();
     pdbClient.partitionAndTransformSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
                         std::pair<std::string, std::string>("tpch", "lineitem_p"),
                         partitionTransformationComp);
+*/
 
     Handle<LineItemPartitionComp> partitionComp
        = makeObject<LineItemPartitionComp>();

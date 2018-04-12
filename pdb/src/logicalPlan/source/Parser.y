@@ -54,6 +54,7 @@
 %token JOIN 
 %token OUTPUT 
 %token GETS
+%token PARTITION
 %token HASHLEFT
 %token HASHRIGHT
 %token HASHONE
