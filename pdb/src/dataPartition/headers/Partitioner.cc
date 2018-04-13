@@ -68,7 +68,7 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
           = makeObject<WriteUserSet<ValueClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
 
         /* Step 7. to compose a query graph */
-        partitionComp->setInput(scanner);
+        curPartitionComp->setInput(scanner);
         writer->setInput(curPartitionComp);
 
         /* Step 8. to get the tcap string */
@@ -121,7 +121,7 @@ bool Partitioner<KeyClass, ValueClass> :: partitionWithTransformation ( std::str
           = makeObject<WriteUserSet<KeyClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
 
         /* Step 7. to compose a query graph */
-        partitionComp->setInput(scanner);
+        curPartitionComp->setInput(scanner);
         writer->setInput(curPartitionComp);
 
         /* Step 8. to get the tcap string */

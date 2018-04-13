@@ -149,7 +149,7 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
     tcapString += "\n/* Apply partition */\n";
 
     mustache::mustache partitionTCAPTemplate{"{{outputTupleSetName}} ({{addedOutputColumnName}})"
-                                         "<= Partition ({{tupleSetName}}({{addedOutputColumnName}}, {{addedColumnName}}),"
+                                         " <= PARTITION ({{tupleSetName}}({{addedOutputColumnName}}, {{addedColumnName}}),"
                                          "'{{computationType}}_{{computationLabel}}')\n"};
 
     tcapString += partitionTCAPTemplate.render(partitionCompTCAP);
