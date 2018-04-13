@@ -199,11 +199,25 @@ class AbstractPartitionComp : public Computation {
     return this->numPartitions;
  }
 
+  /**
+   * @param numNodes: to set the number of nodes for this computation
+   */
+ void setNumNodes (int numNodes) {
+    this->numNodes = numNodes;
+ }
+
+ /**
+  * @return: number of nodes for this partition computation
+  */
+ int getNumNodes () {
+    return this->numNodes;
+ }
+
 
  protected:
   bool materializeSelectionOut = false;
   int numPartitions = 16;
-
+  int numNodes = 2;
 
 };
 

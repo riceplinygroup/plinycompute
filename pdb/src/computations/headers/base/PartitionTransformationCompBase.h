@@ -212,7 +212,7 @@ class PartitionTransformationCompBase : public AbstractPartitionComp<KeyClass, V
                                 ComputePlan &plan) override {
 
     if (this->materializeSelectionOut) {
-      return std::make_shared<HashPartitionTransformationSink<KeyClass>>(this->numPartitions, consumeMe, projection);
+      return std::make_shared<HashPartitionTransformationSink<KeyClass>>(this->numPartitions, this->numNodes, consumeMe, projection);
     }
     return nullptr;
   }

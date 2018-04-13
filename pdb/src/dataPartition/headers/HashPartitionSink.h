@@ -42,7 +42,7 @@ public:
      * @param inputSchema: the schema of input tuple set
      * @param attToOperateOn: the column that we want to partition and keep
      */
-    HashPartitionSink(int numPartitions, TupleSpec& inputSchema, TupleSpec& attsToOperateOn) {
+    HashPartitionSink(int numPartitions, int numNodes, TupleSpec& inputSchema, TupleSpec& attsToOperateOn) {
 
         // to setup the output tuple set
         TupleSpec empty;
@@ -55,7 +55,9 @@ public:
         std::cout << "whichAttToStore=" << whichAttToStore << std::endl;
         std::cout << "whichAttToHash=" << whichAttToHash << std::endl;
         this->numPartitions = numPartitions;
+        this->numNodes = numNodes;
         std::cout << "numPartitions=" << numPartitions << std::endl;
+        std::cout << "numNodes=" << numNodes << std::endl;
     }
 
     /**
@@ -65,12 +67,17 @@ public:
     Handle<Object> createNewOutputContainer() override {
 
         // we create a node-partitioned vector to store the output
-        Handle<Vector<Handle<Vector<ValueType>>>> returnVal =
-            makeObject<Vector<Handle<Vector<ValueType>>>>(numPartitions);
-        int i;
-        for (i = 0; i < numPartitions; i++) {
-            Handle<Vector<ValueType>> curVec = makeObject<Vector<ValueType>>();
-            returnVal->push_back(curVec);
+        Handle<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>> returnVal =
+            makeObject<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>>(numNodes);
+        int i, j;
+        for (i = 0; i < numNodes; i++) {
+            Handle<Vector<Handle<Vector<ValueType>>>> curNodeVec 
+                = makeObject<Vector<Handle<Vector<ValueType>>>>(numPartitions/numNodes);
+            for (j = 0; j < numPartitions/numNodes; j++) {
+                Handle<Vector<ValueType>> curVec = makeObject<Vector<ValueType>>();
+                curNodeVec->push_back(curVec);
+            }
+            returnVal->push_back(curNodeVec);
         }
         return returnVal;
     }
@@ -85,8 +92,8 @@ public:
     void writeOut(TupleSetPtr input, Handle<Object>& writeToMe) override {
 
         // get the partitioned vector we are adding to
-        Handle<Vector<Handle<Vector<ValueType>>>> writeMe =
-            unsafeCast<Vector<Handle<Vector<ValueType>>>>(writeToMe);
+        Handle<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>> writeMe =
+            unsafeCast<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>>(writeToMe);
         size_t hashVal;
 
 
@@ -102,12 +109,9 @@ public:
 
             hashVal = Hasher<KeyType>::hash(keyColumn[i]);
             std::cout << "hashVal=" << hashVal << std::endl;
-#ifndef NO_MOD_PARTITION
-            Vector<ValueType>& myVec = *((*writeMe)[(hashVal) % numPartitions]);
-#else
-            Vector<KeyType, ValueType>& myVec =
-                *((*writeMe)[(hashVal / numPartitions) % numPartitions]);
-#endif
+            int nodeId = (hashVal % (numPartitions/numNodes))/(numPartitions/numNodes);
+            int partitionId = (hashVal % (numPartitions/numNodes)) % (numPartitions/numNodes);
+            Vector<ValueType>& myVec = *((*((*writeMe)[nodeId]))[partitionId]);
 
             try {
                 //to add the value to the partition
@@ -138,6 +142,9 @@ private:
 
     // number of partitions in the cluster
     int numPartitions;
+
+    // number of nodes in the cluster
+    int numNodes;
 
 };
 }

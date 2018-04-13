@@ -45,6 +45,7 @@
 #include "SimpleSendObjectRequest.h"
 #include "SimpleSendBytesRequest.h"
 #include "ShuffleSink.h"
+#include "PartitionComp.h"
 #ifdef ENABLE_COMPRESSION
 #include <snappy.h>
 #endif
@@ -543,6 +544,15 @@ void PipelineStage::executePipelineWork(int i,
         join->setNumNodes(this->jobStage->getNumNodes());
         std::cout << "Join set to have " << join->getNumPartitions() << " partitions" << std::endl;
         std::cout << "Join set to have " << join->getNumNodes() << " nodes" << std::endl;
+    } else if (targetSpecifier.find("PartitionComp") != std::string::npos) {
+        Handle<Computation> partitionComputation =
+            newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
+        Handle<PartitionComp<Object, Object>> partitioner =
+            unsafeCast<PartitionComp<Object, Object>, Computation>(partitionComputation);
+        int numPartitionsInCluster = this->jobStage->getNumTotalPartitions();
+        PDB_COUT << "num partitions in the cluster is " << numPartitionsInCluster << std::endl;
+        partitioner->setNumPartitions(numPartitionsInCluster);
+        partitioner->setNumNodes(jobStage->getNumNodes());
     }
 
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
