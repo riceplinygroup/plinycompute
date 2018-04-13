@@ -50,9 +50,12 @@ public:
 
         // this is the input attribute that we will process
         std::vector<int> matches = myMachine.match(attsToOperateOn);
-        whichAttToHash = matches[0];
-        whichAttToStore = matches[1];
+        whichAttToStore = matches[0];
+        whichAttToHash = matches[1];
+        std::cout << "whichAttToStore=" << whichAttToStore << std::endl;
+        std::cout << "whichAttToHash=" << whichAttToHash << std::endl;
         this->numPartitions = numPartitions;
+        std::cout << "numPartitions=" << numPartitions << std::endl;
     }
 
     /**
@@ -98,6 +101,7 @@ public:
         for (size_t i = 0; i < length; i++) {
 
             hashVal = Hasher<KeyType>::hash(keyColumn[i]);
+            std::cout << "hashVal=" << hashVal << std::endl;
 #ifndef NO_MOD_PARTITION
             Vector<ValueType>& myVec = *((*writeMe)[(hashVal) % numPartitions]);
 #else

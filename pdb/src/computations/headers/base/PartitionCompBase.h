@@ -245,10 +245,7 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
                                 TupleSpec &projection,
                                 ComputePlan &plan) override {
 
-    if (this->materializeSelectionOut) {
       return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, consumeMe, projection);
-    }
-    return nullptr;
   }
 
 
