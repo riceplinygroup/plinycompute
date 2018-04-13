@@ -98,7 +98,8 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeSingleConsumer(Tup
     sink = makeObject<SetIdentifier>(curComp->getDatabaseName(), curComp->getSetName());
     sink->setPageSize(conf->getPageSize());
   } else {
-    sink = makeObject<SetIdentifier>(jobId, node->getOutputName() + "_partitionResult", UserSetType, true);
+    sink = makeObject<SetIdentifier>(jobId, node->getOutputName(), UserSetType, true);
+    curComp->setOutput(jobId, node->getOutputName());
     sink->setPageSize(conf->getPageSize());
     result->interGlobalSets.push_back(sink);
   }

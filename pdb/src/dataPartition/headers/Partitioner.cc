@@ -58,21 +58,18 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
         /* Step 4. to deep copy the partition computation */
         Handle<PartitionComp<KeyClass, ValueClass>> curPartitionComp 
           = deepCopyToCurrentAllocationBlock<PartitionComp<KeyClass, ValueClass>>(partitionComp);
-          
+
+        curPartitionComp->setOutput(outputDatabaseAndSet.first, outputDatabaseAndSet.second);
+
         /* Step 5. to create a scanner computation */
         Handle<ScanUserSet<ValueClass>> scanner 
           = makeObject<ScanUserSet<ValueClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
 
-        /* Step 6. to create a writer computation */
-        Handle<WriteUserSet<ValueClass>> writer 
-          = makeObject<WriteUserSet<ValueClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
-
-        /* Step 7. to compose a query graph */
+        /* Step 6. to compose a query graph */
         curPartitionComp->setInput(scanner);
-        writer->setInput(curPartitionComp);
 
         /* Step 8. to get the tcap string */
-        queryClient->setQueryGraph(writer);
+        queryClient->setQueryGraph(curPartitionComp);
         std::vector<Handle<Computation>> computations;
         std::string tcapString = queryClient->getTCAP(computations);
 
@@ -118,7 +115,7 @@ bool Partitioner<KeyClass, ValueClass> :: partitionWithTransformation ( std::str
 
         /* Step 6. to create a writer computation FROM KeyClass */
         Handle<WriteUserSet<KeyClass>> writer 
-          = makeObject<WriteUserSet<KeyClass>> (inputDatabaseAndSet.first, inputDatabaseAndSet.second);
+          = makeObject<WriteUserSet<KeyClass>> (outputDatabaseAndSet.first, outputDatabaseAndSet.second);
 
         /* Step 7. to compose a query graph */
         curPartitionComp->setInput(scanner);

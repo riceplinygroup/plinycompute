@@ -222,10 +222,10 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
    */
   ComputeSourcePtr getComputeSource(TupleSpec &outputScheme, ComputePlan &plan) override {
 
-    if (this->materializeSelectionOut) {
-      if (this->outputSetScanner != nullptr) {
+    if (this->outputSetScanner != nullptr) {
+        std::cout << "database name is " << this->outputSetScanner->getDatabaseName() << std::endl;
+        std::cout << "set name is " << this->outputSetScanner->getSetName() << std::endl;
         return outputSetScanner->getComputeSource(outputScheme, plan);
-      }
     }
     std::cout << "ERROR: get compute source for " << outputScheme << " returns nullptr" << std::endl;
     return nullptr;
