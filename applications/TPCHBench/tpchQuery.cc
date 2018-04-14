@@ -87,9 +87,9 @@
 using namespace std;
 
 // Run a Cluster on Localhost
-// ./bin/pdb-cluster localhost 8108 Y
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8109
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8110
+// ./bin/pdb-manager localhost 8108 Y
+// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8109
+// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8110
 
 // TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
 // Just unzip the file and put the folder in main directory of PDB
@@ -104,11 +104,11 @@ int main() {
     string errMsg;
 
     // Connection info
-    string masterHostname = "localhost";
-    int masterPort = 8108;
+    string managerHostname = "localhost";
+    int managerPort = 8108;
 
     // register the shared employee class
-    PDBClient pdbClient(masterPort, masterHostname);
+    PDBClient pdbClient(managerPort, managerHostname);
 
     // now, create the sets for storing Customer Data
     pdbClient.createSet<SumResult>(

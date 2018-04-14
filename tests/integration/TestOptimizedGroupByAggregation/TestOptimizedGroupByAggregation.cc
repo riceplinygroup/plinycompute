@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     bool printResult = true;
     bool clusterMode = false;
-    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #managerIp #addData[Y/N]"
               << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
@@ -93,11 +93,11 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "To add data up to size: " << numOfMb << "MB" << std::endl;
 
-    std::string masterIp = "localhost";
+    std::string managerIp = "localhost";
     if (argc > 4) {
-        masterIp = argv[4];
+        managerIp = argv[4];
     }
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+    std::cout << "Manager IP Address is " << managerIp << std::endl;
 
     bool whetherToAddData = true;
     if (argc > 5) {
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     std::cout << "To add up to " << numObjects << " objects" << std::endl;
 
 
-    PDBClient pdbClient(8108, masterIp);
+    PDBClient pdbClient(8108, managerIp);
 
     string errMsg;
 

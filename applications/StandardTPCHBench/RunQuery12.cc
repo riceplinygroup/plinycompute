@@ -107,14 +107,14 @@ int main(int argc, char* argv[]) {
 
 
     // Connection info
-    string masterHostname = "localhost";
-    int masterPort = 8108;
+    string managerHostname = "localhost";
+    int managerPort = 8108;
 
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
     PDBClient pdbClient(
-            masterPort, masterHostname);
+            managerPort, managerHostname);
 
 
     if (whetherToRegisterLibraries == true) {

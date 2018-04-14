@@ -49,13 +49,13 @@ int main(int argc, char* argv[]) {
     std::ofstream term("/dev/tty", std::ios_base::out);
 
     if (argc != 4) {
-        std::cout << "Usage: #masterIp #k #queryFile\n";
+        std::cout << "Usage: #managerIp #k #queryFile\n";
         return (-1);
     }
 
-    std::string masterIp;
-    masterIp = argv[1];
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+    std::string managerIp;
+    managerIp = argv[1];
+    std::cout << "Manager IP Address is " << managerIp << std::endl;
 
     int k = std::stoi(argv[2]);
     term << "The number of query results: " << k << std::endl;
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         myQuery->push_back(next);
     }
 
-    PDBClient pdbClient(8108, masterIp);
+    PDBClient pdbClient(8108, managerIp);
 
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",

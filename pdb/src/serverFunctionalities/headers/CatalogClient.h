@@ -53,11 +53,11 @@ public:
    *   for a remote catalog, the address is the IP address of the machine
    *   where the catalog resides.
    *   If this catalog client points to a catalog in a remote machine, the
-   *   pointsToCatalogMasterIn argument must be set to "true"
+   *   pointsToCatalogManagerIn argument must be set to "true"
    *
    */
   CatalogClient(int port, std::string address, PDBLoggerPtr myLogger,
-                bool pointsToCatalogMasterIn);
+                bool pointsToCatalogManagerIn);
 
   /* Registers event handlers associated with this server functionality */
   virtual void registerHandlers(PDBServer &forMe) override;
@@ -194,12 +194,12 @@ public:
                               std::string &errMsg);
 
   /* Returns true if this Catalog Client points to a remote
-   * Master Catalog Server
+   * Manager Catalog Server
    */
-  bool getPointsToMasterCatalog();
+  bool getPointsToManagerCatalog();
 
-  /* Sets to true if this Catalog Client points to the Master Catalog Server */
-  void setPointsToMasterCatalog(bool pointsToMaster);
+  /* Sets to true if this Catalog Client points to the Manager Catalog Server */
+  void setPointsToManagerCatalog(bool pointsToManager);
 
   /* Sends a request to the Catalog Server to close the SQLite DB Handler */
   bool closeCatalogSQLite(std::string &errMsg);
@@ -222,8 +222,8 @@ public:
 
 
 private:
-  /* True if this Catalog Client points to the Master Catalog Server */
-  bool pointsToCatalogMaster;
+  /* True if this Catalog Client points to the Manager Catalog Server */
+  bool pointsToCatalogManager;
 
   /* The IP address where this Catalog Client is connected to */
   std::string address;

@@ -110,7 +110,7 @@ Handle<SetIdentifier> AbstractTCAPAnalyzerNode::getSetIdentifierFromComputation(
       // this is bad, we can not cast this thing...
       PDB_COUT << "Source Computation Type: " << computation->getComputationType()
                << " are not supported as source node right now" << std::endl;
-      PDB_COUT << "Master exit...Please restart cluster\n";
+      PDB_COUT << "Manager exit...Please restart cluster\n";
       exit(1); // TODO we are killing the server for a bad query might not be smart!
     }
   }

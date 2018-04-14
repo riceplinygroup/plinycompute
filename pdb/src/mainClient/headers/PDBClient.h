@@ -50,8 +50,8 @@ namespace pdb {
     public:
       /* Creates PDBClient
        *
-       *            portIn: the port number of the PDB master server
-       *         addressIn: the IP address of the PDB master server
+       *            portIn: the port number of the PDB manager server
+       *         addressIn: the IP address of the PDB manager server
        *        myLoggerIn: the logger
        *
        */
@@ -233,10 +233,10 @@ namespace pdb {
       std::function<bool(Handle<SimpleRequestResult>)>
       generateResponseHandler(std::string description, std::string &errMsg);
 
-      // Port of the PlinyCompute master node
+      // Port of the PlinyCompute manager node
       int port;
 
-      // IP address of the PlinyCompute master node
+      // IP address of the PlinyCompute manager node
       std::string address;
 
       // Error Message (if an error occurred)

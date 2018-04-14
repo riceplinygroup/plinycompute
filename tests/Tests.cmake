@@ -43,8 +43,8 @@ function(add_pdb_integration_test test-name)
     # add the dependency to the test target
     add_dependencies("RunLocal${test-name}" ${test-name})
 
-    # we also need to build the pdb-server and pdb-cluster
-    add_dependencies("RunLocal${test-name}" pdb-server pdb-cluster)
+    # we also need to build the pdb-worker and pdb-manager
+    add_dependencies("RunLocal${test-name}" pdb-worker pdb-manager)
 
 endfunction(add_pdb_integration_test)
 
@@ -80,10 +80,10 @@ add_custom_target(run-docker-integration-tests
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # add the dependency for building tests
-add_dependencies(run-integration-tests build-integration-tests shared-libraries pdb-server pdb-cluster)
-add_dependencies(run-tpch-tests build-tpch-tests shared-libraries pdb-server pdb-cluster)
-add_dependencies(run-la-tests build-la-tests shared-libraries pdb-server pdb-cluster)
-add_dependencies(run-ml-tests build-ml-tests shared-libraries pdb-server pdb-cluster)
+add_dependencies(run-integration-tests build-integration-tests shared-libraries pdb-worker pdb-manager)
+add_dependencies(run-tpch-tests build-tpch-tests shared-libraries pdb-worker pdb-manager)
+add_dependencies(run-la-tests build-la-tests shared-libraries pdb-worker pdb-manager)
+add_dependencies(run-ml-tests build-ml-tests shared-libraries pdb-worker pdb-manager)
 
 # clean integration tests target
 add_custom_target(clean-integration-tests

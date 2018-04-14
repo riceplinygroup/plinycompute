@@ -94,11 +94,11 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
     // Connection info
-    string masterHostname = "localhost";
-    int masterPort = 8108;
+    string managerHostname = "localhost";
+    int managerPort = 8108;
 
     // register the shared employee class
-    PDBClient pdbClient(masterPort, masterHostname);
+    PDBClient pdbClient(managerPort, managerHostname);
 
     string errMsg;
 

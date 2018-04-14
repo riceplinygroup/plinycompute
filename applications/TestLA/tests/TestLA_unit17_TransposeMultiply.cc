@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     bool printResult = true;
     bool clusterMode = false;
     std::cout
-        << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #SubstractData[Y/N]"
+        << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #managerIp #SubstractData[Y/N]"
         << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
@@ -82,11 +82,11 @@ int main(int argc, char* argv[]) {
 
     std::cout << "To Substract data with size: " << blockSize << "MB" << std::endl;
 
-    std::string masterIp = "localhost";
+    std::string managerIp = "localhost";
     if (argc > 4) {
-        masterIp = argv[4];
+        managerIp = argv[4];
     }
-    std::cout << "Master IP Substractress is " << masterIp << std::endl;
+    std::cout << "Manager IP Substractress is " << managerIp << std::endl;
 
     bool whetherToSubstractData = true;
     if (argc > 5) {
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBClient pdbClient(8108, masterIp);
+    PDBClient pdbClient(8108, managerIp);
 
     string errMsg;
 

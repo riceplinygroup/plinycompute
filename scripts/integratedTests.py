@@ -71,7 +71,7 @@ def list_of_tests(test_list_name):
 def start_pseudo_cluster():
     try:
         print(BColor.OK_BLUE + "start a pdbServer as the coordinator" + BColor.END_C)
-        serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
+        serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
         print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
         time.sleep(9)
         num = 0
@@ -81,7 +81,7 @@ def start_pseudo_cluster():
                     num) + "-th worker" + BColor.END_C)
                 num = num + 1
                 serverProcess = subprocess.Popen(
-                    ['bin/pdb-server', thread_num, shared_memory_size, 'localhost:8108', each_line])
+                    ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
                 print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
                 time.sleep(9)
                 each_line = each_line.split(':')

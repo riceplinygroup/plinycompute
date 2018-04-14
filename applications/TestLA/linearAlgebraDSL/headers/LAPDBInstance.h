@@ -45,7 +45,7 @@ private:
     bool printResult;
     bool clusterMode;
     size_t blockSize;
-    std::string masterIP;
+    std::string managerIP;
     int port;
     pdb::PDBLoggerPtr clientLogger;
     pdb::DistributedStorageManagerClient storageClient;
@@ -65,19 +65,19 @@ public:
     LAPDBInstance(bool printResultIn,
                   bool clusterModeIn,
                   size_t blockSizeIn,
-                  std::string masterIPIn,
+                  std::string managerIPIn,
                   int portIn,
                   pdb::PDBLoggerPtr loggerIn)
         : printResult(printResultIn),
           clusterMode(clusterModeIn),
           blockSize(blockSizeIn),
-          masterIP(masterIPIn),
+          managerIP(managerIPIn),
           port(portIn),
           clientLogger(loggerIn),
-          storageClient(port, masterIP, clientLogger),
-          catalogClient(port, masterIP, clientLogger),
-          dispatcherClient(port, masterIP, clientLogger),
-          queryClient(port, masterIP, clientLogger, true) {
+          storageClient(port, managerIP, clientLogger),
+          catalogClient(port, managerIP, clientLogger),
+          dispatcherClient(port, managerIP, clientLogger),
+          queryClient(port, managerIP, clientLogger, true) {
         // Register libraries;
         catalogClient.registerType("libraries/libLADuplicateColMultiSelection.so", errMsg);
         catalogClient.registerType("libraries/libLADuplicateRowMultiSelection.so", errMsg);

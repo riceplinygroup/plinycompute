@@ -224,7 +224,7 @@ add_dependencies(logical-plan object-type-ids)
 add_dependencies(lib-pdb-server object-type-ids)
 add_dependencies(distribution-manager object-type-ids)
 
-# used to build the pdb-cluster and pdb-server
+# used to build the pdb-manager and pdb-worker
 add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:dispatcher>
         $<TARGET_OBJECTS:distribution-manager>
@@ -294,17 +294,17 @@ target_link_libraries(pdb-tests-common PRIVATE ${Boost_LIBRARIES})
 # form the parsers for the logical plan
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})
 
-# set the pdb-cluster build target
-set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/MasterMain.cc)
-add_executable(pdb-cluster ${SOURCE_FILES_PDB_CLUSTER} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-target_link_libraries(pdb-cluster pdb-server-common)
-target_link_libraries(pdb-cluster ${GSL_LIBRARIES})
+# set the pdb-manager build target
+set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/ManagerMain.cc)
+add_executable(pdb-manager ${SOURCE_FILES_PDB_CLUSTER} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
+target_link_libraries(pdb-manager pdb-server-common)
+target_link_libraries(pdb-manager ${GSL_LIBRARIES})
 
-# set the pdb-server build target
+# set the pdb-worker build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/WorkerMain.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-add_executable(pdb-server ${SOURCE_FILES_PDB_CLUSTER})
-target_link_libraries(pdb-server pdb-server-common)
-target_link_libraries(pdb-server ${GSL_LIBRARIES})
+add_executable(pdb-worker ${SOURCE_FILES_PDB_CLUSTER})
+target_link_libraries(pdb-worker pdb-server-common)
+target_link_libraries(pdb-worker ${GSL_LIBRARIES})
 
 # compile all the objects
 file(GLOB files "${PROJECT_SOURCE_DIR}/pdb/src/sharedLibraries/source/*.cc")

@@ -53,8 +53,8 @@ namespace pdb {
 // Constructor
 CatalogClient::CatalogClient(int portIn, std::string addressIn,
                              PDBLoggerPtr myLoggerIn,
-                             bool pointsToCatalogMasterIn) {
-  pointsToCatalogMaster = pointsToCatalogMasterIn;
+                             bool pointsToCatalogManagerIn) {
+  pointsToCatalogManager = pointsToCatalogManagerIn;
   CatalogClient(portIn, addressIn, myLoggerIn);
 }
 
@@ -171,16 +171,16 @@ bool CatalogClient::shutDownServer(std::string &errMsg) {
       });
 }
 
-// returns true if this Catalog Client points to the Master Catalog (false
+// returns true if this Catalog Client points to the Manager Catalog (false
 // otherwise)
-bool CatalogClient::getPointsToMasterCatalog() {
-  return pointsToCatalogMaster;
+bool CatalogClient::getPointsToManagerCatalog() {
+  return pointsToCatalogManager;
 }
 
-// sets if this Catalog Client points to the Master Catalog (true), or not
+// sets if this Catalog Client points to the Manager Catalog (true), or not
 // (false)
-void CatalogClient::setPointsToMasterCatalog(bool pointsToMaster) {
-  pointsToCatalogMaster = pointsToMaster;
+void CatalogClient::setPointsToManagerCatalog(bool pointsToManager) {
+  pointsToCatalogManager = pointsToManager;
 }
 
 // searches for a User-Defined Type give its name and returns it's TypeID
@@ -252,15 +252,15 @@ bool CatalogClient::getSharedLibraryByTypeName(
           exit(-1);
         }
 
-        // gets the typeId returned by the Master Catalog
+        // gets the typeId returned by the Manager Catalog
         int16_t returnedTypeId = std::atoi((result->getObjectID()).c_str());
         PDB_COUT << "Cat Client - Object Id returned " << returnedTypeId
                  << endl;
 
         if (returnedTypeId == -1) {
-          errMsg = "Error getting shared library: type not found in Master "
+          errMsg = "Error getting shared library: type not found in Manager "
                    "Catalog.\n";
-          PDB_COUT << "Error getting shared library: type not found in Master "
+          PDB_COUT << "Error getting shared library: type not found in Manager "
                       "Catalog.\n"
                    << endl;
           return false;

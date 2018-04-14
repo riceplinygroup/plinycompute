@@ -15,7 +15,7 @@
 #  ========================================================================    
 
 pem_file=$1
-masterIp=$2
+managerIp=$2
 numThreads=$3
 sharedMem=$4
 user=ubuntu
@@ -29,14 +29,14 @@ if [ "$PDB_SSH_OPTS" = "" ]; then
 fi
 
 if [ -z ${pem_file} ];
-    then echo "ERROR: please provide at least two parameters: one is your the path to your pem file and the other is the master IP";
-    echo "Usage: scripts/startWorkers.sh #pem_file #masterIp #threadNum #sharedMemSize";
+    then echo "ERROR: please provide at least two parameters: one is your the path to your pem file and the other is the manager IP";
+    echo "Usage: scripts/startWorkers.sh #pem_file #managerIp #threadNum #sharedMemSize";
     exit -1;
 fi
 
-if [ -z ${masterIp} ];
-    then echo "ERROR: please provide at least two parameters: one is the path to your pem file and the other is the master IP";
-    echo "Usage: scripts/startWorkers.sh #pem_file #masterIp #threadNum #sharedMemSize";
+if [ -z ${managerIp} ];
+    then echo "ERROR: please provide at least two parameters: one is the path to your pem file and the other is the manager IP";
+    echo "Usage: scripts/startWorkers.sh #pem_file #managerIp #threadNum #sharedMemSize";
     exit -1;
 fi
     
@@ -60,9 +60,9 @@ do
                 ssh -i $pem_file $user@$ip_addr "sudo apt-get update"
                 ssh -i $pem_file $user@$ip_addr "sudo apt-get install libsnappy1v5 libsnappy-dev libeigen3-dev libgsl-dev libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev"
                 echo -e "\n+++++++++++ start server: $ip_addr"
-                ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $masterIp $ip_addr &" &
+                ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
                 sleep $PDB_SSH_SLEEP
-                ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-server
+                ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
                 
         fi
 done

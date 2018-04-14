@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   //***************************************************************
   //***********************************************************************************
 
-  COUT << "Usage: #printResult[Y/N] #clusterMode[Y/N] blocksSize[MB] #masterIp "
+  COUT << "Usage: #printResult[Y/N] #clusterMode[Y/N] blocksSize[MB] #managerIp "
           "#randomData[Y/N] #addData[Y/N] "
           "#niter, #clusters #nDatapoints #nDimensions "
           "#pathToInputFile(randomData == N)"
@@ -114,11 +114,11 @@ int main(int argc, char *argv[]) {
 
   COUT << "To add data with size: " << blocksize << "MB" << std::endl;
 
-  std::string masterIp = "localhost";
+  std::string managerIp = "localhost";
   if (argc > 4) {
-    masterIp = argv[4];
+    managerIp = argv[4];
   }
-  COUT << "Master IP Address is " << masterIp << std::endl;
+  COUT << "Manager IP Address is " << managerIp << std::endl;
 
   bool randomData = true;
   if (argc > 5) {
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
   //********************************************************************
   //***********************************************************************************
 
-  PDBClient pdbClient(8108, masterIp);
+  PDBClient pdbClient(8108, managerIp);
 
   string errMsg;
 

@@ -47,8 +47,8 @@ $ cmake -DUSE_DEBUG:BOOL=OFF .
 
 | Target                  | Description                                                      |
 | ----------------------- | ---------------------------------------------------------------- |
-| pdb-cluster             | Builds the master server that runs on the master node.           |
-| pdb-server              | Builds the worker server that runs on the worker nodes.          |
+| pdb-manager             | Builds the executable that runs on the manager node.           |
+| pdb-worker              | Builds the executable that runs on the worker nodes.          |
 | shared-libraries        | Builds all the shared libraries.                                 |
 | build-ml-tests          | Builds the machine learning executables and their dependencies.  |
 | build-la-tests          | Builds the linear algebra executables and their dependencies.    |
@@ -60,9 +60,9 @@ Depending on what target you want to build, issue the following command, replaci
 ```bash 
 $ make -j <number-of-jobs> <target>
 ```
-For example, the following command compiles and builds the executable pdb-cluster (by default created in the folder `bin`).
+For example, the following command compiles and builds the executable pdb-manager (by default created in the folder `bin`).
 ```bash 
-$ make -j 4 pdb-cluster
+$ make -j 4 pdb-manager
 ```
 
 ### <a name="building"></a>Compiling, building targets, and running tests:
@@ -108,16 +108,16 @@ $ ps aux | grep pdb
 ```
 The output should show the following processes running (partial output is displayed for clarity purposes):
 ```bash 
-bin/pdb-cluster localhost 8108 Y
-bin/pdb-server 1 2048 localhost:8108 localhost:8109
-bin/pdb-server 1 2048 localhost:8108 localhost:8109
+bin/pdb-manager localhost 8108 Y
+bin/pdb-worker 1 2048 localhost:8108 localhost:8109
+bin/pdb-worker 1 2048 localhost:8108 localhost:8109
 ```
-In the above output, `pdb-cluster` is the master process running on localhost and listening on port 8108. The two `pdb-server` processes correspond to one worker node (each worker node runs a front-end and back-end process), which listen on port 8109 and conected to the master process on port 8108.
+In the above output, `pdb-manager` is the manager process running on localhost and listening on port 8108. The two `pdb-worker` processes correspond to one worker node (each worker node runs a front-end and back-end process), which listen on port 8109 and connected to the manager process on port 8108.
 
 ### <a name="cluster"></a>Installing and deploying PlinyCompute on a real cluster
 Although running PlinyCompute in one machine (e.g. a laptop) is ideal for becoming familiar with the system and testing some of its functionality, PlinyCompute's high-performance properties are best suited for processing large data loads in a real distributed cluster such as Amazon AWS, on-premise, or other cloud provider. To accomplish this, follow these steps:
 
-1. Log into a remote machine that will serve as the **master node** from a cloud provider (e.g. Amazon AWS).
+1. Log into a remote machine that will serve as the **manager node** from a cloud provider (e.g. Amazon AWS).
 
 2. Once logged in, clone PlinyCompute from GitHub, issuing the following command:
 ```bash 
@@ -130,7 +130,7 @@ ubuntu@master:~/plinycompute$
 3. Set the following two environment variables:
 a) `PDB_HOME`, this is the path to the folder where PlinyCompute was cloned, in this example `/home/ubuntu/plinycompute`, and
 b) `PDB_INSTALL`, this is the path to a folder in the worker nodes (remote machines) where PlinyCompute executables will be installed. 
-**Note:** the value of these variables is arbitrary (and they do not have to match), but make sure that you have proper permissions on the remote machines to create folders and write to files. In this example, PlinyCompute is installed on `/home/ubuntu/plinycompute` on the master node, and on `/tmp/pdb_install` in the worker nodes.
+**Note:** the value of these variables is arbitrary (and they do not have to match), but make sure that you have proper permissions on the remote machines to create folders and write to files. In this example, PlinyCompute is installed on `/home/ubuntu/plinycompute` on the manager node, and on `/tmp/pdb_install` in the worker nodes.
 ```bash 
 export PDB_HOME=/home/ubuntu/plinycompute
 export PDB_INSTALL=/tmp/pdb_install
@@ -141,20 +141,20 @@ export PDB_INSTALL=/tmp/pdb_install
 192.168.1.2
 192.168.1.3
 ```
-In the above example, the cluster will include one master node (where PlinyCompute) was clonned, and three worker nodes, whose IP'addresses can be found in the conf/serverlist file.
+In the above example, the cluster will include one manager node (where PlinyCompute) was cloned, and three worker nodes, whose IP'addresses can be found in the conf/serverlist file.
 5. Invoke cmake with the following command:
 ```bash 
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
 6. Build the following executables replacing the value of the -j argument with an integer to execute multiple recipes in parallel:
 ```bash 
-$ make -j 4 pdb-cluster
-$ make -j 4 pdb-server
+$ make -j 4 pdb-manager
+$ make -j 4 pdb-worker
 ```
 This will generate two executables in the folder `$PDB_HOME/bin`:
 ```bash 
-pdb-cluster
-pdb-master
+pdb-manager
+pdb-worker
 ```
 7. Run the following script. This script will connect to each of the worker nodes and install PlinyCompute. 
 ```bash 
@@ -163,31 +163,31 @@ $ $PDB_HOME/scripts/install.sh
 This generates an output similar to this, for all nodes in the cluster (partial display shown here for clarity purposes):
 ```bash 
 +++++++++++ install server: 192.168.1.1
-pdb-server                100%   55MB  55.1MB/s   00:01
+pdb-worker                100%   55MB  55.1MB/s   00:01
 cleanupNode.sh            100% 2072     2.0KB/s   00:00
 startWorker.sh            100% 1247     1.2KB/s   00:00
 stopWorker.sh             100%  766     0.8KB/s   00:00
 checkProcess.sh           100% 1007     1.0KB/s   00:00
 
 +++++++++++ install server: 192.168.1.2
-pdb-server                100%   55MB  27.5MB/s   00:02
+pdb-worker                100%   55MB  27.5MB/s   00:02
 .
 .
 .
 ```
-8. Launch the master node
+8. Launch the manager node
 ```bash  
-$ $PDB_HOME/scripts/startMaster.sh &
+$ $PDB_HOME/scripts/startManager.sh &
 ```
-You will see the message `"master is started!"`.
+You will see the message `"manager is started!"`.
 
-10. Launch the worker nodes, issuing the following script from the master node (you do not have to run it on each worker node):
+10. Launch the worker nodes, issuing the following script from the manager node (you do not have to run it on each worker node):
 ```bash  
-$ ./scripts/startWorkers.sh <PrivateKeyPemFile> <MasterIPAddress> <NumThreads> <SharedMemSize>
+$ ./scripts/startWorkers.sh <PrivateKeyPemFile> <ManagerIPAddress> <NumThreads> <SharedMemSize>
 ```
-Where, `<PrivateKeyPemFile>` is the pem file with the private key to connect to the worker nodes; `<MasterIPAdress>` should have the master node IP address; `<NumThreads>` the number of threads; and `<SharedMemSize>`, the amount of memory in Megabytes.
+Where, `<PrivateKeyPemFile>` is the pem file with the private key to connect to the worker nodes; `<ManagerIPAdress>` should have the manager node IP address; `<NumThreads>` the number of threads; and `<SharedMemSize>`, the amount of memory in Megabytes.
 
-11. For example, the following command launches a cluster using a private key file named `private_key.pem` located in the `conf` folder, whose master IP address is `192.168.1.1`, using `4 cores` and `4Gb` of memory.
+11. For example, the following command launches a cluster using a private key file named `private_key.pem` located in the `conf` folder, whose manager IP address is `192.168.1.1`, using `4 cores` and `4Gb` of memory.
 ```bash  
 $ ./scripts/startWorkers.sh conf/private_key.pem 192.168.1.1 4 4096 &
 ```
@@ -203,12 +203,12 @@ $ ./scripts/stopWorkers.sh conf/private_key.pem
 ```bash
 scripts/stopWorkers.sh $pem_file/private_key
 scripts/upgrade.sh $pem_file/private_key
-scripts/startMaster.sh $pem_file/private_key
-scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
+scripts/startManager.sh $pem_file/private_key
+scripts/startWorkers.sh $pem_file/private_key $ManagerIPAddress $ThreadNum $SharedMemoryPoolSize
 ```
 
 ## Cleanup Catalog and Storage data
-You can cleanup all catalog and storage data by running the following command in the master node:
+You can cleanup all catalog and storage data by running the following command in the manager node:
 
 ```bash  
 $ ./scripts/cleanup.sh conf/private_key.pem

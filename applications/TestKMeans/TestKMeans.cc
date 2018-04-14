@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
                  "parameters."
               << std::endl;
     std::cout
-        << "Usage: #printResult[Y/N] #clusterMode[Y/N] #masterIp #addData[Y/N] "
+        << "Usage: #printResult[Y/N] #clusterMode[Y/N] #managerIp #addData[Y/N] "
            "#numOfIteration #numOfCluster #convergeThreshold #dataFile"
         << std::endl;
   }
@@ -102,9 +102,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  std::string masterIp = "localhost";
+  std::string managerIp = "localhost";
   if (argc > 3) {
-    masterIp = argv[3];
+    managerIp = argv[3];
   }
 
   bool whetherToAddData = true;
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
   std::cout << std::endl;
 
   /* Setup the client */
-  PDBClient pdbClient(8108, masterIp);
+  PDBClient pdbClient(8108, managerIp);
 
   string errMsg;
 
