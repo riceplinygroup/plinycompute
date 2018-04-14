@@ -183,6 +183,7 @@ int main(int argc, char* argv[]) {
 
     if (whetherToPartitionData == true) {
         partitionData(pdbClient);
+        pdbClient.flushData();
     }
 
     if (whetherToRemoveData == true) {

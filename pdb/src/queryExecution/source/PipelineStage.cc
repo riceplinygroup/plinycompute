@@ -432,6 +432,10 @@ void PipelineStage::executePipelineWork(int i,
                 unsafeCast<AggregateComp<Object, Object, Object, Object>, Computation>(
                     computation);
             scanner = aggregator->getOutputSetScanner();
+        } else if (computation->getComputationType() == "PartitionComp") {
+            Handle<PartitionComp<Object, Object>> partitioner =
+                unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
+            scanner = partitioner->getOutputSetScanner();
         } else {
             std::cout << "Error: we can't support source computation type "
                       << computation->getComputationType() << std::endl;
@@ -614,6 +618,8 @@ void PipelineStage::executePipelineWork(int i,
             } else {
                 // TODO: move this to Pangea
                 // aggregation and partition cases
+                std::cout << "to allocate a page for storing partition sink with size=" 
+                          << conf->getShufflePageSize() << std::endl;
                 void* myPage = calloc(conf->getShufflePageSize(), 1);
                 if (myPage == nullptr) {
                     std::cout << "Pipeline Error: insufficient memory in heap" << std::endl;

@@ -67,16 +67,11 @@ public:
     Handle<Object> createNewOutputContainer() override {
 
         // we create a node-partitioned vector to store the output
-        Handle<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>> returnVal =
-            makeObject<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>>(numNodes);
-        int i, j;
-        for (i = 0; i < numNodes; i++) {
-            Handle<Vector<Handle<Vector<ValueType>>>> curNodeVec 
-                = makeObject<Vector<Handle<Vector<ValueType>>>>(numPartitions/numNodes);
-            for (j = 0; j < numPartitions/numNodes; j++) {
-                Handle<Vector<ValueType>> curVec = makeObject<Vector<ValueType>>();
-                curNodeVec->push_back(curVec);
-            }
+        Handle<Vector<Handle<Vector<Handle<ValueType>>>>> returnVal =
+            makeObject<Vector<Handle<Vector<Handle<ValueType>>>>>(numNodes);
+        for (int i = 0; i < numNodes; i++) {
+            Handle<Vector<Handle<ValueType>>> curNodeVec 
+                = makeObject<Vector<Handle<ValueType>>>();
             returnVal->push_back(curNodeVec);
         }
         return returnVal;
@@ -92,8 +87,8 @@ public:
     void writeOut(TupleSetPtr input, Handle<Object>& writeToMe) override {
 
         // get the partitioned vector we are adding to
-        Handle<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>> writeMe =
-            unsafeCast<Vector<Handle<Vector<Handle<Vector<ValueType>>>>>>(writeToMe);
+        Handle<Vector<Handle<Vector<Handle<ValueType>>>>> writeMe =
+            unsafeCast<Vector<Handle<Vector<Handle<ValueType>>>>>(writeToMe);
         size_t hashVal;
 
 
@@ -101,17 +96,15 @@ public:
         std::vector<KeyType>& keyColumn = input->getColumn<KeyType>(whichAttToHash);
 
         // get the value columns
-        std::vector<ValueType>& valueColumn = input->getColumn<ValueType>(whichAttToStore);
+        std::vector<Handle<ValueType>>& valueColumn = input->getColumn<Handle<ValueType>>(whichAttToStore);
 
         // and allocate everyone to a partition
         size_t length = keyColumn.size();
         for (size_t i = 0; i < length; i++) {
 
             hashVal = Hasher<KeyType>::hash(keyColumn[i]);
-            std::cout << "hashVal=" << hashVal << std::endl;
-            int nodeId = (hashVal % (numPartitions/numNodes))/(numPartitions/numNodes);
-            int partitionId = (hashVal % (numPartitions/numNodes)) % (numPartitions/numNodes);
-            Vector<ValueType>& myVec = *((*((*writeMe)[nodeId]))[partitionId]);
+            int nodeId = (hashVal % (numPartitions))/(numPartitions/numNodes);
+            Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
 
             try {
                 //to add the value to the partition
