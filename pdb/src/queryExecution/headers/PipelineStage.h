@@ -111,6 +111,7 @@ public:
                           std::string setName,
                           std::string address,
                           int port,
+                          bool whetherToPersiste,
                           std::string& errMsg);
     bool storeCompressedShuffleData(char* bytes,
                                     size_t numBytes,

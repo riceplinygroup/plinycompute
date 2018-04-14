@@ -58,6 +58,8 @@
 #include "DataTypes.h"
 #include "LineItemPartitionComp.h"
 #include "LineItemPartitionTransformationComp.h"
+#include "TPCHSchema.h"
+#include "Query01.h"
 
 #include <ctime>
 #include <unistd.h>
@@ -81,16 +83,11 @@ using namespace tpch;
 void registerPartitionLibraries (PDBClient & pdbClient) {
 
    pdbClient.registerType ("libraries/libLineItemPartitionComp.so");
-   pdbClient.registerType ("libraries/libLineItemPartitionTransformationComp.so");
 
 }
 
 
 void createPartitionSets (PDBClient & pdbClient) {
-
-    pdbClient.removeSet("tpch", "lineitem_p");
-    std::cout << "to create set for TPCHLineItem" << std::endl;
-    pdbClient.createSet<TPCHLineItem>("tpch", "lineitem_p", (size_t)64*(size_t)1024*(size_t)1024);
 
     pdbClient.removeSet("tpch", "lineitem_pt");
     std::cout << "to create set for TPCHLineItem" << std::endl;
@@ -100,19 +97,12 @@ void createPartitionSets (PDBClient & pdbClient) {
 void removePartitionedSets (PDBClient & pdbClient) {
 
 
-    pdbClient.removeSet("tpch", "lineitem_p");
     pdbClient.removeSet("tpch", "lineitem_pt");
 
 }
 
 void partitionData (PDBClient & pdbClient) {
 
-/*    Handle<LineItemPartitionTransformationComp> partitionTransformationComp 
-       = makeObject<LineItemPartitionTransformationComp>();
-    pdbClient.partitionAndTransformSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
-                        std::pair<std::string, std::string>("tpch", "lineitem_p"),
-                        partitionTransformationComp);
-*/
 
     Handle<LineItemPartitionComp> partitionComp
        = makeObject<LineItemPartitionComp>();
@@ -189,6 +179,153 @@ int main(int argc, char* argv[]) {
     if (whetherToRemoveData == true) {
         removePartitionedSets(pdbClient);
     }    
+
+
+    // now, create the sets for storing query output data
+    pdbClient.removeSet("tpch", "q01_output_set");
+    if (!pdbClient.createSet<Q01AggOut>(
+            "tpch", "q01_output_set")) {
+        cout << "Not able to create set.";
+        exit(-1);
+    } else {
+        cout << "Created set.\n";
+    }
+
+    // for allocations
+    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 256};
+
+
+
+    std::cout << "###########################################" << std::endl;
+    std::cout << "Run Query01 on non-partitioned lineitem set" << std::endl;
+    std::cout << "###########################################" << std::endl;
+
+
+    // make the query graph
+    Handle<Computation> myTPCHLineItemScanner = makeObject<ScanUserSet<TPCHLineItem>>("tpch", "lineitem");
+    Handle<Computation> myQ01Agg = makeObject<Q01Agg>();
+    Handle<Computation> myQ01Writer = makeObject<WriteUserSet<Q01AggOut>> ("tpch", "q01_output_set");
+
+    myQ01Agg->setInput(myTPCHLineItemScanner);
+    myQ01Writer->setInput(myQ01Agg);
+
+
+    // Query Execution and Time Calculation
+
+    auto begin = std::chrono::high_resolution_clock::now();
+
+    if (!pdbClient.executeComputations(myQ01Writer)) {
+        std::cout << "Query failed. " << "\n";
+        return 1;
+    }
+
+    std::cout << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    float timeDifference =
+        (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) /
+        (float)1000000000;
+
+    // Printing results to double check
+    std::cout << "to print result..." << std::endl;
+
+
+    SetIterator<Q01AggOut> result =
+            pdbClient.getSetIterator<Q01AggOut>("tpch", "q01_output_set");
+
+
+
+    std::cout << "################################" << std::endl;
+    std::cout << "Non-partitioned Query results: "  << std::endl;     
+    std::cout << "################################" << std::endl;
+    int count = 0;
+    for (auto a : result) {
+        Q01ValueClass r = a->getValue();
+        std::cout << "count=" << r.count << ", sum_qty=" << r.sum_qty << ", sum_base_price=" << r.sum_base_price << ", sum_disc_price=" << r.sum_disc_price
+            << ", sum_charge=" << r.sum_charge << ", sum_disc=" << r.sum_disc << ", avg_qty=" << r.getAvgQty()
+            << ", avg_price=" << r.getAvgPrice() << ", avg_disc=" << r.getAvgDiscount() << std::endl;
+        count++;
+    }
+    std::cout << "Non-partitioned Query output count:" << count << "\n";
+    std::cout << "#TimeDuration for non-partitioned query execution: " << timeDifference << " Second " << std::endl;
+
+    // Remove the output set
+    if (!pdbClient.removeSet("tpch", "q01_output_set")) {
+        cout << "Not able to remove the set";
+        exit(-1);
+    } else {
+        cout << "Set removed. \n";
+    }
+
+
+
+
+    pdbClient.removeSet("tpch", "q01_output_set_partitioned");
+    if (!pdbClient.createSet<Q01AggOut>(
+            "tpch", "q01_output_set_partitioned")) {
+        cout << "Not able to create set.";
+        exit(-1);
+    } else {
+        cout << "Created set.\n";
+    }
+
+
+    std::cout << "###########################################" << std::endl;
+    std::cout << "Run Query01 on partitioned lineitem set" << std::endl;
+    std::cout << "###########################################" << std::endl;
+
+    Handle<Computation> myTPCHLineItem_ptScanner = makeObject<ScanUserSet<TPCHLineItem>>("tpch", "lineitem_pt");
+    Handle<Computation> myQ01Agg_partitioned = makeObject<Q01Agg>();
+    Handle<Computation> myQ01Writer_partitioned = makeObject<WriteUserSet<Q01AggOut>> ("tpch", "q01_output_set_partitioned");
+
+    myQ01Agg_partitioned->setInput(myTPCHLineItem_ptScanner);
+    myQ01Writer_partitioned->setInput(myQ01Agg_partitioned);
+
+
+    // Query Execution and Time Calculation
+
+    begin = std::chrono::high_resolution_clock::now();
+
+    if (!pdbClient.executeComputations(myQ01Writer_partitioned)) {
+        std::cout << "Query failed. " << "\n";
+        return 1;
+    }
+
+    std::cout << std::endl;
+    end = std::chrono::high_resolution_clock::now();
+
+    timeDifference =
+        (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) /
+        (float)1000000000;
+
+    // Printing results to double check
+    std::cout << "to print result..." << std::endl;
+
+
+    SetIterator<Q01AggOut> result_partitioned = pdbClient.getSetIterator<Q01AggOut>("tpch", "q01_output_set_partitioned");
+
+    std::cout << "###########################" << std::endl;
+    std::cout << "Partitioned Query results: " << std::endl;
+    std::cout << "###########################" << std::endl;
+    count = 0;
+    for (auto a : result_partitioned) {
+        Q01ValueClass r = a->getValue();
+        std::cout << "count=" << r.count << ", sum_qty=" << r.sum_qty << ", sum_base_price=" << r.sum_base_price << ", sum_disc_price=" << r.sum_disc_price
+            << ", sum_charge=" << r.sum_charge << ", sum_disc=" << r.sum_disc << ", avg_qty=" << r.getAvgQty()
+            << ", avg_price=" << r.getAvgPrice() << ", avg_disc=" << r.getAvgDiscount() << std::endl;
+        count++;
+    }
+    std::cout << "Output count:" << count << "\n";
+    std::cout << "#TimeDuration for query execution: " << timeDifference << " Second " << std::endl;
+
+    // Remove the output set
+    if (!pdbClient.removeSet("tpch", "q01_output_set_partitioned")) {
+        cout << "Not able to remove the set";
+        exit(-1);
+    } else {
+        cout << "Set removed. \n";
+    }
+
 
 
     // Clean up the SO files.

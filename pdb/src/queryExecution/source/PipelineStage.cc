@@ -95,6 +95,7 @@ bool PipelineStage::storeShuffleData(Handle<Vector<Handle<Object>>> data,
                                      std::string setName,
                                      std::string address,
                                      int port,
+                                     bool whetherToPersist,
                                      std::string& errMsg) {
     if (port <= 0) {
         port = conf->getPort();
@@ -121,7 +122,7 @@ bool PipelineStage::storeShuffleData(Handle<Vector<Handle<Object>>> data,
         setName,
         "IntermediateData",
         false,
-        false);
+        whetherToPersist);
 }
 
 bool PipelineStage::storeCompressedShuffleData(char* bytes,
@@ -790,16 +791,16 @@ void PipelineStage::executePipelineWork(int i,
                             // to shuffle data
                             // get the i-th address
                             std::string address = this->jobStage->getIPAddress(k);
-                            PDB_COUT << "address = " << address << std::endl;
 
                             // get the i-th port
                             int port = this->jobStage->getPort(k);
-                            PDB_COUT << "port = " << port << std::endl;
+                            bool whetherToPersist = true;
                             this->storeShuffleData(objectToShuffle,
                                                    this->jobStage->getSinkContext()->getDatabase(),
                                                    this->jobStage->getSinkContext()->getSetName(),
                                                    address,
                                                    port,
+                                                   true,
                                                    errMsg);
                         }
 #endif
@@ -1233,6 +1234,7 @@ void PipelineStage::runPipelineWithShuffleSink(HermesExecutionServer* server) {
                                                this->jobStage->getSinkContext()->getSetName(),
                                                address,
                                                port,
+                                               false,
                                                errMsg);
 #else
                         char* compressedBytes =
@@ -1291,6 +1293,7 @@ void PipelineStage::runPipelineWithShuffleSink(HermesExecutionServer* server) {
                                    this->jobStage->getSinkContext()->getSetName(),
                                    address,
                                    port,
+                                   false,
                                    errMsg);
 #else
             char* compressedBytes = new char[snappy::MaxCompressedLength(record->numBytes())];

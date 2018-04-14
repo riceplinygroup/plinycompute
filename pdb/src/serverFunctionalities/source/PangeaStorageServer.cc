@@ -1017,8 +1017,9 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                                  << std::endl;
                     } else {
                         // if we have enough space to fill up a page, do it
-                        PDB_COUT << "Got the data.\n";
-                        PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+                        std::cout << "Got the data.\n";
+                        std::cout << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+                        std::cout << "Page size is " << rawPageSize << std::endl;
                         getFunctionality<PangeaStorageServer>().writeBackRecords(
                             databaseAndSet, request->isFlushing());
                         PDB_COUT << "Done with write back.\n";

@@ -55,6 +55,8 @@
 #include "ComputePlan.h"
 #include "QueryOutput.h"
 #include "DataTypes.h"
+#include "TPCHSchema.h"
+#include "Query01.h"
 
 #include <ctime>
 #include <unistd.h>
