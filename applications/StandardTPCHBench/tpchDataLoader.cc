@@ -71,7 +71,7 @@ using namespace tpch;
 #define MB (1024 * KB)
 #define GB (1024 * MB)
 
-#define BLOCKSIZE (64 * MB)
+#define BLOCKSIZE (256 * MB)
 
 
 // A function to parse a Line
