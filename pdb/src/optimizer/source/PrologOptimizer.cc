@@ -19,11 +19,13 @@
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <sstream>
-#include <mustache.hpp>
+#include <mustache.h>
 #include "PrologGenerator.h"
 #include "PrologOptimizer.h"
 
-std::string PrologOptimizer::optimize(std::string tcapString) {
+namespace pdb {
+
+std::string pdb::PrologOptimizer::optimize(std::string tcapString) {
 
   // create the prolog generator
   pdb::PrologGenerator planGenerator;
@@ -111,3 +113,6 @@ void PrologOptimizer::writePrologRules(std::vector<std::string> &rules) const {
 }
 
 const std::string PrologOptimizer::storageLocation = "/tmp/";
+
+}
+

@@ -53,6 +53,13 @@ class PrologGenerator {
   std::string hashMapToString(std::unordered_map<std::string, std::string> &map);
 
   /**
+   * This method converts a hashmap to a prolog map in string form
+   * @param map the hash map
+   * @return the prolog string ['k1'-'v1', 'k2'-'v2', 'k3'-'v3']
+   */
+  std::string mapToString(std::map<std::string, std::string> &map);
+
+  /**
    * //TODO Sourav describe what it contains
    * @param result
    */

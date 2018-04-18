@@ -77,7 +77,7 @@ void PrologGenerator::parseAtomicComputationList(AtomicComputationList *result) 
     if (findNode == nodeNames.end()) {
       nodeNames.insert(outputName);
 
-      auto info = hashMapToString(scanSet->getKeyValuePairs());
+      auto info = mapToString(*scanSet->getKeyValuePairs());
 
       // Instead of console pass it to a string stream:
       std::stringstream buffer;
@@ -140,7 +140,7 @@ void PrologGenerator::parseAtomicComputation(AtomicComputationList* acl,
   if (findNode == nodeNames.end()) {
     // nodeNames.insert(outputName);
 
-    auto info = hashMapToString(result->getKeyValuePairs());
+    auto info = mapToString(*result->getKeyValuePairs());
 
     // Instead of console pass it to a string stream:
     std::stringstream buffer;
@@ -419,6 +419,26 @@ std::string PrologGenerator::processLambdaName(const std::string &data) {
 }
 
 std::string PrologGenerator::hashMapToString(std::unordered_map<std::string, std::string> &map) {
+
+  // if the map is empty we just return a constant string
+  if(map.empty()){
+    return "[]";
+  }
+
+  // create the string
+  std::string info = "[";
+  for (const auto &i : map) {
+    info += "'" + i.first + "'-'" + i.second + "',";
+  }
+
+  // this will remove the last comma and add a closing square bracket
+  info.pop_back();
+  info.push_back(']');
+
+  return info;
+}
+
+std::string PrologGenerator::mapToString(std::map<std::string, std::string> &map) {
 
   // if the map is empty we just return a constant string
   if(map.empty()){

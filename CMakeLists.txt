@@ -49,7 +49,6 @@ endif (USE_DEBUG)
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/utilities/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/optimizerBenchmark/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/qunit/headers")
@@ -78,6 +77,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers/base")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/optimizer/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
@@ -100,6 +100,7 @@ file(GLOB STORAGE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/storage/source/*.cc")
 file(GLOB DISTRIBUTION_MANAGER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/distributionManager/source/*.cc")
 file(GLOB LAMBDAS_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/lambdas/source/*.cc")
 file(GLOB LOGICAL_PLAN_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/source/*.cc")
+file(GLOB OPTIMIZER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/optimizer/source/*.cc")
 file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/third-party/sqlite/source/sqlite3.c)
 
@@ -213,6 +214,7 @@ add_library(distribution-manager OBJECT ${DISTRIBUTION_MANAGER_SOURCE})
 add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
 add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
+add_library(optimizer OBJECT ${OPTIMIZER_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE})
 
 # add the dependencies to the object type generationg
@@ -240,7 +242,8 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:optimizer>)
 
 # used to link the shared libraries that the shared librarires use
 add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
@@ -258,7 +261,8 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:optimizer>)
 
 # used to link the shared libraries that the test use
 add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
@@ -276,7 +280,8 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:optimizer>)
 
 # link the dependent libraries so that they are made of the public interface
 target_link_libraries(pdb-server-common PRIVATE ${SNAPPY_LIBRARY})

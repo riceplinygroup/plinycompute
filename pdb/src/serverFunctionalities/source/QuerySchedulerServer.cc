@@ -28,6 +28,7 @@
 #include "StorageCollectStats.h"
 #include "StorageCollectStatsResponse.h"
 #include "Profiling.h"
+#include "../../optimizer/headers/PrologOptimizer.h"
 #include <ctime>
 #include <chrono>
 
@@ -612,13 +613,24 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
         this->collectStats();
     }
 
+    std::cout << std::endl << "Before : " << std::endl;
+    std::cout << "\033[1;31m" << request->getTCAPString() << "\033[0m";
+
+    // create the TCAP optimizer
+    TCAPOptimizerPtr optimizer = make_shared<PrologOptimizer>();
+
+    // optimize the TCAP
+    std::string optimizedTCAP = optimizer->optimize(request->getTCAPString());
+
+    std::cout << std::endl << "Before : " << std::endl;
+    std::cout << "\033[1;36m" << optimizedTCAP << "\033[0m";
+
     // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
     this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,
-                                                         this->logger,
-                                                         this->conf,
-                                                         request->getTCAPString(),
-                                                         computations);
-
+                                                      this->logger,
+                                                      this->conf,
+                                                      optimizedTCAP,
+                                                      computations);
     int jobStageId = 0;
     while (this->tcapAnalyzerPtr->hasSources()) {
 

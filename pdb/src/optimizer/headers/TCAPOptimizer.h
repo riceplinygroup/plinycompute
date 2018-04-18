@@ -16,61 +16,31 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_PROLOGOPTIMIZER_H
-#define PDB_PROLOGOPTIMIZER_H
+#ifndef PDB_TCAPOPTIMIZER_H
+#define PDB_TCAPOPTIMIZER_H
 
 #include <string>
-#include <vector>
-#include "TCAPOptimizer.h"
-
+#include <memory>
 
 namespace pdb {
 
-class PrologOptimizer : public TCAPOptimizer {
+class TCAPOptimizer;
+typedef std::shared_ptr<TCAPOptimizer> TCAPOptimizerPtr;
+
+class TCAPOptimizer {
 
  public:
 
   /**
-   * This method is going to do the following stuff :
-   * 1. Generate the prolog rules using the PrologGenerator class
-   * 2. Write these rules out to a file
-   * 3. Write the optimizer to a file
-   * 4. Run the optimizer
-   * 5. Get the optimized file
-   * 6. Remove it
-   * 7. Return the optimized tcap string
-   * @param tcapString the optimized string
+   * This method is called to optimize the provided tcap string
+   * @param tcapString - the tcap string we want to optimize
    */
-  std::string optimize(std::string tcapString) override;
+  virtual std::string optimize(std::string tcapString) = 0;
 
- private:
-
-  /**
-   * This is where we are going to store the prolog files and the optimizer files
-   */
-  const static std::string storageLocation;
-
-  /**
-   * This string contains the whole PrologToTCAP.pl script that is used to convert the prolog to TCAP
-   */
-  const static std::string prologToTCAPScript;
-
-  /**
-   * Writes out the provided prolog rules
-   * @param rules - the rules
-   */
-  void writePrologRules(std::vector<std::string> &rules) const;
-
-  /**
-   * Writes out the prologToTCAPScript
-   */
-  void writePrologToTCAPScript() const;
-
-  std::string getPrologCommand() const;
 };
 
 }
 
 
 
-#endif //PDB_PROLOGOPTIMIZER_H
+#endif //PDB_TCAPOPTIMIZER_H
