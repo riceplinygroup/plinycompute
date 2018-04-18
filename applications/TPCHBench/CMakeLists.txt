@@ -14,45 +14,25 @@ endforeach()
 
 
 ###
-### JaccardMain
+### tpchJaccard
 ###
 
 # create the target
-add_pdb_application(JaccardMain)
+add_pdb_application(tpchJaccard)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests JaccardMain)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchJaccard)
 
 # add build dependencies to shared libraries it uses
-add_dependencies(JaccardMain Customer)
-add_dependencies(JaccardMain LineItem)
-add_dependencies(JaccardMain Order)
-add_dependencies(JaccardMain Part)
-add_dependencies(JaccardMain Supplier)
-add_dependencies(JaccardMain ScanCustomerSet)
-add_dependencies(JaccardMain TopJaccard)
-add_dependencies(JaccardMain AllParts)
-add_dependencies(JaccardMain JaccardResultWriter)
-
-###
-### tpchDataGenerator
-###
-
-# create the target
-#add_pdb_application(tpchDataGenerator)
-
-# add a build dependency to build-tests target
-#add_dependencies(build-tests tpchDataGenerator)
-
-###
-### tpchDataGeneratorAll
-###
-
-# create the target
-#add_pdb_application(tpchDataGeneratorAll)
-
-# add a build dependency to build-tests target
-#add_dependencies(build-tests tpchDataGeneratorAll)
+add_dependencies(tpchJaccard Customer)
+add_dependencies(tpchJaccard LineItem)
+add_dependencies(tpchJaccard Order)
+add_dependencies(tpchJaccard Part)
+add_dependencies(tpchJaccard Supplier)
+add_dependencies(tpchJaccard ScanCustomerSet)
+add_dependencies(tpchJaccard TopJaccard)
+add_dependencies(tpchJaccard AllParts)
+add_dependencies(tpchJaccard JaccardResultWriter)
 
 # add build dependencies to shared libraries it uses
 #add_dependencies(tpchDataGeneratorAll Part)
@@ -75,20 +55,10 @@ add_dependencies(JaccardMain JaccardResultWriter)
 ###
 
 # create the target
-add_pdb_application(tpchDataGeneratorNew)
+add_pdb_application(tpchDataGenerator)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchDataGeneratorNew)
-
-###
-### tcphFlushToDisk
-###
-
-# create the target
-add_pdb_application(tpchFlushToDisk)
-
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchFlushToDisk)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchDataGenerator)
 
 ###
 ### tpchGetCustomerCount
@@ -97,8 +67,8 @@ add_dependencies(build-tests tpchFlushToDisk)
 # create the target
 add_pdb_application(tpchGetCustomerCount)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchGetCustomerCount)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchGetCustomerCount)
 
 ###
 ### tpchQuery
@@ -107,8 +77,8 @@ add_dependencies(build-tests tpchGetCustomerCount)
 # create the target
 add_pdb_application(tpchQuery)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchQuery)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchQuery)
 
 ###
 ### tpchRegisterAndCreateSets
@@ -117,8 +87,8 @@ add_dependencies(build-tests tpchQuery)
 # create the target
 add_pdb_application(tpchRegisterAndCreateSets)
 
-# add a build dependency to build-tests target
-add_dependencies(build-tests tpchRegisterAndCreateSets)
+# add a build dependency to build-tpch-tests target
+add_dependencies(build-tpch-tests tpchRegisterAndCreateSets)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(tpchRegisterAndCreateSets Part)

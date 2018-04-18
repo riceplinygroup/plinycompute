@@ -20,7 +20,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "IntIntVectorPair.h"
 #include "LDADocWordTopicAssignment.h"
 #include "PDBVector.h"
@@ -29,7 +29,7 @@ using namespace pdb;
 
 /* Aggregate for doc assignment */
 class LDADocTopicAggregate
-    : public ClusterAggregateComp<DocAssignment, DocAssignment, unsigned, DocAssignment> {
+    : public AggregateComp<DocAssignment, DocAssignment, unsigned, DocAssignment> {
 
 public:
     ENABLE_DEEP_COPY

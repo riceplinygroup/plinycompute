@@ -33,11 +33,32 @@ struct AtomicComputationList;
 struct LogicalPlan;
 struct AtomicComputationList;
 struct TupleSpec;
+struct KeyValueList;
 
 /***************************************************************************/
 // C FUNCTIONS TO MANIPULATE THE VARIOUS STRUCTURES PRODUCED BY THE PARSER
 /***************************************************************************/
+struct AtomicComputation *makeApplyWithList (struct TupleSpec *output,
+                                             struct TupleSpec *input,
+                                             struct TupleSpec *projection,
+                                             char *nodeName,
+                                             char *opName,
+                                             struct KeyValueList *useMe);
 
+struct KeyValueList *makeKeyValueList (char *keyName, char *valueName);
+struct KeyValueList *pushBackKeyValue (struct KeyValueList *addToMe, char *keyName, char *valueName);
+struct KeyValueList *makeEmptyKeyValueList ();
+struct AtomicComputation *makeAggWithList (struct TupleSpec *output, struct TupleSpec *input, char *nodeName, struct KeyValueList *useMe);
+struct AtomicComputation *makePartitionWithList (struct TupleSpec *output, struct TupleSpec *input, char *nodeName, struct KeyValueList *useMe);
+struct AtomicComputation *makeFilterWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, struct KeyValueList *useMe);
+struct AtomicComputation *makeJoinWithList (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
+                                            struct TupleSpec *rInput, struct TupleSpec *rProjection, char *opName, struct KeyValueList *useMe);
+struct AtomicComputation *makeHashLeftWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName, struct KeyValueList *useMe);
+struct AtomicComputation *makeHashRightWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName, struct KeyValueList *useMe);
+struct AtomicComputation *makeHashOneWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, struct KeyValueList *useMe);
+struct AtomicComputation *makeFlattenWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, struct KeyValueList *useMe);
+struct AtomicComputation *makeScanWithList (struct TupleSpec *output, char *dbName, char *setName, char *nodeName, struct KeyValueList *useMe);
+struct AtomicComputation *makeOutputWithList (struct TupleSpec *output, struct TupleSpec *input, char *dbName, char *setName, char *nodeName, struct KeyValueList *useMe);
 struct AttList* makeAttList(char* fromMe);
 struct TupleSpec* makeEmptyTupleSpec(char* setName);
 struct AttList* pushBackAttribute(struct AttList* addToMe, char* fromMe);
@@ -52,8 +73,10 @@ struct AtomicComputation* makeScan(struct TupleSpec* output,
                                    char* dbName,
                                    char* setName,
                                    char* nodeName);
-// JiaNote: add one more parameter char* nodeName based on Chris' Join code
 struct AtomicComputation* makeAgg(struct TupleSpec* output,
+                                  struct TupleSpec* input,
+                                  char* nodeName);
+struct AtomicComputation* makePartition(struct TupleSpec* output,
                                   struct TupleSpec* input,
                                   char* nodeName);
 struct AtomicComputation* makeApply(struct TupleSpec* output,
@@ -66,7 +89,6 @@ struct AtomicComputation* makeFilter(struct TupleSpec* output,
                                      struct TupleSpec* projection,
                                      char* nodeName);
 
-// JiaNote: remove one parameter char* nodeName based on Chris' Join code
 struct AtomicComputation* makeJoin(struct TupleSpec* output,
                                    struct TupleSpec* lInput,
                                    struct TupleSpec* lProjection,

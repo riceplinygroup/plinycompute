@@ -26,10 +26,8 @@
 #include "PDBVector.h"
 #include "QueryBase.h"
 #include "ResourceInfo.h"
-#include "JobStage.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
-#include "QueryGraphIr.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
@@ -44,7 +42,7 @@
 namespace pdb {
 
 /**
- *  This class is working on Master node to schedule JobStages dynamically from TCAP logical plan
+ *  This class is working on the Manager node to schedule JobStages dynamically from TCAP logical plan
  *  So far following JobStages are supported:
  *
  * -- TupleSetJobStage

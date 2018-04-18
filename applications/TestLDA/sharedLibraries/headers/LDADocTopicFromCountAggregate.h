@@ -22,7 +22,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "IntIntVectorPair.h"
 #include "LDADocWordTopicCount.h"
 #include "PDBVector.h"
@@ -32,7 +32,7 @@ using namespace pdb;
 
 
 class LDADocTopicFromCountAggregate
-    : public ClusterAggregateComp<IntIntVectorPair, LDADocWordTopicCount, int, Vector<int>> {
+    : public AggregateComp<IntIntVectorPair, LDADocWordTopicCount, int, Vector<int>> {
 
 private:
     int numTopic;

@@ -54,6 +54,7 @@
 %token JOIN 
 %token OUTPUT 
 %token GETS
+%token PARTITION
 %token HASHLEFT
 %token HASHRIGHT
 %token HASHONE
@@ -67,6 +68,7 @@
 %type <myTupleSpec> TupleSpec
 %type <myAttList> AttList
 %type <myKeyValueList> ListKeyValuePairs
+%type <myKeyValueList> DictionarySpec
 
 %start LogicalQueryPlan
 
@@ -114,9 +116,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeApplyWithList ($1, $5, $7, $9, $11, $14);
+	$$ = makeApplyWithList ($1, $5, $7, $9, $11, $13);
 }
 
 
@@ -128,11 +130,23 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS AGG '(' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS AGG '(' TupleSpec ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeAggWithList ($1, $5, $7, $10);
+	$$ = makeAggWithList ($1, $5, $7, $9);
 }
 
+
+// Atomic Computation: Partition:
+| TupleSpec GETS PARTITION '(' TupleSpec ',' STRING ')'
+{       
+        $$ = makePartition ($1, $5, $7);
+}
+
+// ss107: Update to older TCAP:
+| TupleSpec GETS PARTITION '(' TupleSpec ',' STRING ',' DictionarySpec ')'
+{       
+        $$ = makePartitionWithList ($1, $5, $7, $9);
+}
 
 
 // Atomic Computation: Scan:
@@ -142,9 +156,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS SCAN '(' STRING ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS SCAN '(' STRING ',' STRING ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeScanWithList ($1, $5, $7, $9, $12);
+	$$ = makeScanWithList ($1, $5, $7, $9, $11);
 }
 
 
@@ -156,9 +170,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS OUTPUT '(' TupleSpec ',' STRING ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS OUTPUT '(' TupleSpec ',' STRING ',' STRING ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeOutputWithList ($1, $5, $7, $9, $11, $14);
+	$$ = makeOutputWithList ($1, $5, $7, $9, $11, $13);
 }
 
 
@@ -170,9 +184,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeJoinWithList ($1, $5, $7, $9, $11, $13, $16);
+	$$ = makeJoinWithList ($1, $5, $7, $9, $11, $13, $15);
 }
 
 
@@ -184,9 +198,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeFilterWithList ($1, $5, $7, $9, $12);
+	$$ = makeFilterWithList ($1, $5, $7, $9, $11);
 }
 
 
@@ -197,9 +211,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS HASHLEFT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS HASHLEFT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeHashLeftWithList ($1, $5, $7, $9, $11, $14);
+	$$ = makeHashLeftWithList ($1, $5, $7, $9, $11, $13);
 }
 
 
@@ -212,9 +226,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS HASHRIGHT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS HASHRIGHT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ',' DictionarySpec ')'
 {
-	$$ = makeHashRightWithList ($1, $5, $7, $9, $11, $14);
+	$$ = makeHashRightWithList ($1, $5, $7, $9, $11, $13);
 }
 
 // Atomic Computation: Hashone:
@@ -224,9 +238,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS HASHONE '(' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS HASHONE '(' TupleSpec ',' TupleSpec ',' STRING ',' DictionarySpec ')'
 {
-        $$ = makeHashOneWithList ($1, $5, $7, $9, $12);
+        $$ = makeHashOneWithList ($1, $5, $7, $9, $11);
 }
 
 
@@ -238,9 +252,9 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 }
 
 // ss107: Update to older TCAP:
-| TupleSpec GETS FLATTEN '(' TupleSpec ',' TupleSpec ',' STRING ',' '[' ListKeyValuePairs ']' ')'
+| TupleSpec GETS FLATTEN '(' TupleSpec ',' TupleSpec ',' STRING ',' DictionarySpec ')'
 {
-        $$ = makeFlattenWithList ($1, $5, $7, $9, $12);
+        $$ = makeFlattenWithList ($1, $5, $7, $9, $11);
 }
 ;
 
@@ -275,19 +289,22 @@ AttList : AttList ',' IDENTIFIER
 /** THIS IS A LIST OF (KEY, VALUE) PAIRS ***/
 /*********************************************/
 
+DictionarySpec : '[' ']'
+{
+  $$ = makeEmptyKeyValueList();
+}
+| '[' ListKeyValuePairs ']'
+{
+	$$ = $2;
+};
+
 ListKeyValuePairs : ListKeyValuePairs ',' '(' STRING ',' STRING ')' 
 {
 	$$ = pushBackKeyValue($1, $4, $6);
 }
-
 | '(' STRING ',' STRING ')'
 {
 	$$ = makeKeyValueList($2, $4);
-}
-
-| 	
-{
-	$$ = makeEmptyKeyValueList();
 }
 ;
 

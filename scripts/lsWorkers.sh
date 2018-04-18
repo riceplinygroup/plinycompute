@@ -27,7 +27,7 @@ do
         host=${arr[i]}
         echo -e "\n+++++++++++ ls: $host"
         sleep 1 
-        ssh -i $pemFile $host 'ps aux | grep pdb-server'
+        ssh -i $pemFile $host 'ps aux | grep pdb-worker'
         sleep 1
         ssh -i $pemFile $host "cat $PDB_INSTALL/log.out"
        

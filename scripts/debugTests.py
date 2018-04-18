@@ -39,19 +39,19 @@ sharedMemorySize = "2560"
 
 def startPseudoCluster():
     try:
-        #run bin/pdb-cluster
+        #run bin/pdb-manager
         print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
-        serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
+        serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
         print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
         time.sleep(9)
 
-        #run bin/pdb-server for worker
+        #run bin/pdb-worker for worker
         num = 0;
         with open('conf/serverlist.test') as f:
             for each_line in f:
                 print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
                 num = num + 1
-                serverProcess = subprocess.Popen(['bin/pdb-server', threadNum, sharedMemorySize, 'localhost:8108', each_line])
+                serverProcess = subprocess.Popen(['bin/pdb-worker', threadNum, sharedMemorySize, 'localhost:8108', each_line])
                 print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
                 time.sleep(9)
                 each_line = each_line.split(':')
@@ -79,7 +79,7 @@ try:
 
     #run test
     print bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC
-    if sys.argv[1] == './bin/testLA21_Instance':
+    if sys.argv[1] == './bin/TestLA_Instance':
         subprocess.check_call([sys.argv[1], 'Y', 'Y', '256', 'localhost', sys.argv[2]])
     else:
         subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost', 'Y'])

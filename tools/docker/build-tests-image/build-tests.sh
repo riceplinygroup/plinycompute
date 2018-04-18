@@ -20,11 +20,11 @@ cmake .
 # build the tests
 make build-tests -j
 
-# build the master
-make pdb-server -j
-
 # build the worker
-make pdb-cluster -j
+make pdb-worker -j
+
+# build the manager
+make pdb-manager -j
 
 # set the permission
 chmod -R 777 .

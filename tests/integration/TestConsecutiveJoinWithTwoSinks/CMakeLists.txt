@@ -2,7 +2,7 @@
 add_pdb_integration_test(TestConsecutiveJoinWithTwoSinks)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestConsecutiveJoinWithTwoSinks)
+add_dependencies(build-integration-tests TestConsecutiveJoinWithTwoSinks)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestConsecutiveJoinWithTwoSinks SimpleJoin)

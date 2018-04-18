@@ -25,7 +25,7 @@
 
 namespace pdb {
 
-// This ServerFunctionality runs on the Master server, and talks with
+// This ServerFunctionality runs on the Manager server, and talks with
 // the PangeaStorageServer deployed on each Worker server to serve
 // storage-related requests. Include following:
 // -- DistributedStorageAddDatabase: to add a database over the cluster

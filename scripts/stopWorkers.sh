@@ -20,7 +20,7 @@ ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 PDB_SSH_SLEEP=30
 
-pkill -9 pdb-cluster
+pkill -9 pdb-manager
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then

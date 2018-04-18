@@ -18,7 +18,7 @@
 #ifndef CustomerSupplierPartGroupBy_H
 #define CustomerSupplierPartGroupBy_H
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -33,7 +33,7 @@ using namespace pdb;
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 class CustomerSupplierPartGroupBy
-    : public ClusterAggregateComp<SupplierInfo, SupplierInfo, String, SupplierInfo> {
+    : public AggregateComp<SupplierInfo, SupplierInfo, String, SupplierInfo> {
 
 public:
     ENABLE_DEEP_COPY

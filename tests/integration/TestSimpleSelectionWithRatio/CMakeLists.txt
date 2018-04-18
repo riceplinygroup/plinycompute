@@ -2,7 +2,7 @@
 add_pdb_integration_test(TestSimpleSelectionWithRatio)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestSimpleSelectionWithRatio)
+add_dependencies(build-integration-tests TestSimpleSelectionWithRatio)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestSimpleSelectionWithRatio SharedEmployee)

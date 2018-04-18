@@ -19,6 +19,7 @@
 #include "Handle.h"
 #include "InterfaceFunctions.h"
 
+
 #ifndef PDBSTRING_H
 #define PDBSTRING_H
 
@@ -66,6 +67,7 @@ public:
     bool operator!=(const String& toMe);
     bool operator!=(const std::string& toMe);
     bool operator!=(const char* toMe);
+    bool endsWith(const std::string& suffix);
 };
 }
 

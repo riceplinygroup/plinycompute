@@ -27,27 +27,28 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <memory>
 
 // this is a list of key value pairs... used to build up schema specifications
 struct KeyValueList {
 
 private:
 
-	std::unordered_map <std :: string, std :: string> keyValuePairs;
+	std::shared_ptr<std::map <std::string, std::string>> keyValuePairs;
 
 public:
 
-    	~KeyValueList () {}
-    	KeyValueList () {}
-
-
-	void appendkeyValuePair (char *keyName, char *valueName) {
-		keyValuePairs[std :: string (keyName)] = std :: string (valueName);
+	KeyValueList () {
+		keyValuePairs = std::make_shared<std::map <std::string, std::string>>();
 	}
 
+	~KeyValueList () = default;
 
+	void appendkeyValuePair (std::string keyName, std::string valueName) {
+		(*keyValuePairs)[keyName] = valueName;
+	}
 
-	std :: unordered_map<std :: string, std :: string> &getKeyValuePairs () {
+	std::shared_ptr<std::map <std::string, std::string>> &getKeyValuePairs () {
 		return keyValuePairs;
 	}
 	

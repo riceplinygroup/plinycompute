@@ -22,8 +22,10 @@
 #include <vector>
 
 #include "Instruction.h"
-#include "ParserTypes.h"
 #include "SafeResult.h"
+#include "AttList.h"
+#include "LogicalPlan.h"
+#include "TupleSpec.h"
 
 using std::shared_ptr;
 using std::string;

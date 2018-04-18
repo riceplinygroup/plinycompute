@@ -27,7 +27,6 @@
 #include "Pipeline.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
-#include "AggregateComp.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
@@ -59,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     bool printResult = true;
     bool clusterMode = false;
-    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #managerIp #addData[Y/N]"
               << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
@@ -97,11 +96,11 @@ int main(int argc, char* argv[]) {
         numOfObjects = atoi(argv[3]);  // this is a Cartesian join and results will be exploaded!
     }
 
-    std::string masterIp = "localhost";
+    std::string managerIp = "localhost";
     if (argc > 4) {
-        masterIp = argv[4];
+        managerIp = argv[4];
     }
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+    std::cout << "Manager IP Address is " << managerIp << std::endl;
 
     bool whetherToAddData = true;
     if (argc > 5) {
@@ -110,19 +109,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
-
-    PDBClient pdbClient(
-            8108,
-            masterIp,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
+    PDBClient pdbClient(8108, managerIp);
 
     string errMsg;
 
@@ -130,30 +117,13 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!pdbClient.createDatabase("test77_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("test77_db");
 
         // now, create the int set in that database
-        if (!pdbClient.createSet<int>("test77_db", "test77_set1", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 1.\n";
-        }
+        pdbClient.createSet<int>("test77_db", "test77_set1");
 
         // now, create the String set in that database
-        if (!pdbClient.createSet<String>("test77_db", "test77_set2", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 2.\n";
-        }
-
-
+        pdbClient.createSet<String>("test77_db", "test77_set2");
 
         // Step 2. Add data to set1
         size_t totalSize = 256 * numOfObjects;
@@ -172,17 +142,13 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "got to " << i << " when producing data for input set 1.\n";
-        if (!pdbClient.sendData<int>(
-                std::pair<std::string, std::string>("test77_set1", "test77_db"), storeMe, errMsg)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-        }
+        pdbClient.sendData<int>(
+                std::pair<std::string, std::string>("test77_set1", "test77_db"), storeMe);
 
         std::cout << "input set 1: total=" << i << std::endl;
 
         // to write back all buffered records
-        pdbClient.flushData(errMsg);
-
+        pdbClient.flushData();
 
         // Step 3. Add data to set2
         totalSize = 512 * numOfObjects;
@@ -203,37 +169,28 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "got to " << i << " when producing data for input set 2.\n";
-        if (!pdbClient.sendData<String>(
+        pdbClient.sendData<String>(
                 std::pair<std::string, std::string>("test77_set2", "test77_db"),
-                storeMeStr,
-                errMsg)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-            return -1;
-        }
+                storeMeStr);
 
         std::cout << "input set 2: total=" << i << std::endl;
 
         // to write back all buffered records
-        pdbClient.flushData(errMsg);
+        pdbClient.flushData();
     }
 
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<StringIntPair>("test77_db", "output_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<StringIntPair>("test77_db", "output_set1");
 
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    pdbClient.registerType("libraries/libCartesianJoin.so", errMsg);
-    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
-    pdbClient.registerType("libraries/libWriteStringIntPairSet.so", errMsg);
+    pdbClient.registerType("libraries/libCartesianJoin.so");
+    pdbClient.registerType("libraries/libScanIntSet.so");
+    pdbClient.registerType("libraries/libScanStringSet.so");
+    pdbClient.registerType("libraries/libWriteStringIntPairSet.so");
     // create all of the computation objects
     Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test77_db", "test77_set1");
     myScanSet1->setBatchSize(100);
@@ -246,10 +203,7 @@ int main(int argc, char* argv[]) {
     myWriter->setInput(myJoin);
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriter)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriter);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -274,12 +228,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("test77_db", "output_set1");
     } else {
-        if (!pdbClient.removeSet("test77_db", "output_set1", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        pdbClient.removeSet("test77_db", "output_set1");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

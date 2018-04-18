@@ -20,13 +20,13 @@
 
 // by Jia, Mar 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "LambdaCreationFunctions.h"
 #include "SumResult.h"
 
 using namespace pdb;
 
-class IntAggregation : public ClusterAggregateComp<SumResult, int, int, int> {
+class IntAggregation : public AggregateComp<SumResult, int, int, int> {
 
 public:
     ENABLE_DEEP_COPY

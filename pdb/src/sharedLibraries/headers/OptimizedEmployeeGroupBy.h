@@ -20,7 +20,7 @@
 
 // by Jia, Mar 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "OptimizedEmployee.h"
 #include "OptimizedSupervisor.h"
 #include "LambdaCreationFunctions.h"
@@ -29,7 +29,7 @@
 using namespace pdb;
 
 class OptimizedEmployeeGroupBy
-    : public ClusterAggregateComp<OptimizedDepartmentEmployees,
+    : public AggregateComp<OptimizedDepartmentEmployees,
                                   OptimizedSupervisor,
                                   String,
                                   Map<String, Vector<OptimizedEmployee>>> {

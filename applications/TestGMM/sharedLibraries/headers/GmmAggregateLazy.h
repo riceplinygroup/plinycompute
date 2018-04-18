@@ -20,7 +20,7 @@
 
 // by Tania, October 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "DoubleVector.h"
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -36,8 +36,7 @@ using namespace pdb;
 // The output is later used to update the weights, means and covars of the new
 // model
 class GmmAggregateLazy
-    : public ClusterAggregateComp<GmmAggregateOutputLazy, DoubleVector, int,
-                                  GmmAggregateOutputLazy> {
+    : public AggregateComp<GmmAggregateOutputLazy, DoubleVector, int, GmmAggregateOutputLazy> {
 
 private:
   Handle<GmmModel> model;

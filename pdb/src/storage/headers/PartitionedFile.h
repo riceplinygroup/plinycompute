@@ -331,7 +331,7 @@ private:
     /**
      * Meta file
      */
-    FILE* metaFile;
+    FILE* metaFile = nullptr;
     // int metaHandle;
 
     /**
@@ -353,12 +353,12 @@ private:
     /**
      * Logger instance
      */
-    pdb::PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger = nullptr;
 
     /**
      * Meta data instance
      */
-    PartitionedFileMetaDataPtr metaData;
+    PartitionedFileMetaDataPtr metaData = nullptr;
 
     /**
      * NodeID of this PartitionedFile instance

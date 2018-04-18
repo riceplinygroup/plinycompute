@@ -20,7 +20,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "KMeansDoubleVector.h"
 #include "limits.h"
 #include "SumResult.h"
@@ -29,7 +29,7 @@
 using namespace pdb;
 
 class KMeansDataCountAggregate
-    : public ClusterAggregateComp<SumResult, KMeansDoubleVector, int, int> {
+    : public AggregateComp<SumResult, KMeansDoubleVector, int, int> {
 
 public:
     ENABLE_DEEP_COPY

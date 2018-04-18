@@ -18,7 +18,7 @@
 #ifndef COUNT_CUSTOMER_AGGERGATION_H
 #define COUNT_CUSTOMER_AGGERGATION_H
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "LambdaCreationFunctions.h"
 
 #include "Customer.h"
@@ -28,7 +28,7 @@ using namespace pdb;
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 
-class CountCustomer : public ClusterAggregateComp<SumResult, Customer, int, int> {
+class CountCustomer : public AggregateComp<SumResult, Customer, int, int> {
 
 public:
     ENABLE_DEEP_COPY

@@ -18,7 +18,7 @@
 #ifndef COUNT_AGGREGATION_H
 #define COUNT_AGGREGATION_H
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "LambdaCreationFunctions.h"
 
 #include "SupplierInfo.h"
@@ -28,7 +28,7 @@ using namespace pdb;
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 
-class CountAggregation : public ClusterAggregateComp<SumResult, SupplierInfo, int, int> {
+class CountAggregation : public AggregateComp<SumResult, SupplierInfo, int, int> {
 
 public:
     ENABLE_DEEP_COPY

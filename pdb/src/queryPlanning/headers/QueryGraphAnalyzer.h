@@ -39,7 +39,7 @@ namespace pdb {
 //                   $LambdaName)            
 
 // Currently supported TCAP operators include:
-// Apply, Aggregate, Join, ScanSet, WriteSet, HashLeft, HashRight
+// Apply, Aggregate, Partition, Join, ScanSet, WriteSet, HashLeft, HashRight
 // HashOne, Flatten, Filter and so on.
 
 // Note that the user query graph should not have loops
