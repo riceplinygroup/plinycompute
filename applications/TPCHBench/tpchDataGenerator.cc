@@ -88,9 +88,9 @@
 using namespace std;
 
 // Run a Cluster on Localhost
-// ./bin/pdb-cluster localhost 8108 Y
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8109
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8110
+// ./bin/pdb-manager localhost 8108 Y
+// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8109
+// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8110
 
 // TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
 // Just unzip the file and put the folder in main directory of PDB
@@ -539,11 +539,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Connection info
-    string masterHostname = "localhost";
-    int masterPort = 8108;
+    string managerHostname = "localhost";
+    int managerPort = 8108;
 
-    // Create connection to PlinyCompute master node
-    pdb::PDBClient pdbClient(masterPort, masterHostname, false, true);
+    // Create connection to PlinyCompute manager node
+    pdb::PDBClient pdbClient(managerPort, managerHostname);
 
     string errMsg;
 

@@ -16,6 +16,11 @@
  *                                                                           *
  *****************************************************************************/
 
+#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNodeFactory.h"
+#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerAggregationNode.h"
+#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerPartitionNode.h"
+#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerJoinNode.h"
+#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAggregationPipeNode.h"
 
 namespace pdb {
@@ -33,7 +38,10 @@ AdvancedPhysicalAggregationPipeNode::AdvancedPhysicalAggregationPipeNode(string 
                                                                                               pipeComputations,
                                                                                               id) {
 
-
+    // we are dealing with a join
+    case ApplyJoinTypeID: {
+        return (new SimpleTCAPAnalyzerJoinNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
+    }
 
 }
 

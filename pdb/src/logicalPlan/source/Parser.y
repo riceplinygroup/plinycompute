@@ -54,6 +54,7 @@
 %token JOIN 
 %token OUTPUT 
 %token GETS
+%token PARTITION
 %token HASHLEFT
 %token HASHRIGHT
 %token HASHONE
@@ -134,6 +135,18 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 	$$ = makeAggWithList ($1, $5, $7, $9);
 }
 
+
+// Atomic Computation: Partition:
+| TupleSpec GETS PARTITION '(' TupleSpec ',' STRING ')'
+{       
+        $$ = makePartition ($1, $5, $7);
+}
+
+// ss107: Update to older TCAP:
+| TupleSpec GETS PARTITION '(' TupleSpec ',' STRING ',' DictionarySpec ')'
+{       
+        $$ = makePartitionWithList ($1, $5, $7, $9);
+}
 
 
 // Atomic Computation: Scan:

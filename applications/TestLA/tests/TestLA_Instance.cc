@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     bool clusterMode = (strcmp(argv[2], "Y") == 0);
     size_t blockSize = atoi(argv[3]);
     int port = 8108;
-    std::string masterIP = argv[4];
+    std::string managerIP = argv[4];
     FILE* targetCode = fopen(argv[5], "r");
 
     if (!targetCode) {
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     }
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("LAclientLog");
-    LAPDBInstance instance(printResult, clusterMode, blockSize, masterIP, port, clientLogger);
+    LAPDBInstance instance(printResult, clusterMode, blockSize, managerIP, port, clientLogger);
 
     LAscan_t myscanner;
     LAlex_init(&myscanner);

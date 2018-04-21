@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     bool printResult = true;
     bool clusterMode = false;
-    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #managerIp #addData[Y/N]"
               << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
@@ -96,11 +96,11 @@ int main(int argc, char* argv[]) {
         numOfObjects = atoi(argv[3]);  // this is a Cartesian join and results will be exploaded!
     }
 
-    std::string masterIp = "localhost";
+    std::string managerIp = "localhost";
     if (argc > 4) {
-        masterIp = argv[4];
+        managerIp = argv[4];
     }
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+    std::cout << "Manager IP Address is " << managerIp << std::endl;
 
     bool whetherToAddData = true;
     if (argc > 5) {
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBClient pdbClient(8108, masterIp, false, true);
+    PDBClient pdbClient(8108, managerIp);
 
     string errMsg;
 

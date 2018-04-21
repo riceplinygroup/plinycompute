@@ -45,22 +45,22 @@ print("RUN A PSEDO CLUSTER")
 print("#################################")
 
 try:
-    #run bin/pdb-cluster
+    #run bin/pdb-manager
     print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
+    serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
     print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(9)
     #strip shared libraries
     print bcolors.OKBLUE + "strip shared libraries" + bcolors.ENDC
     subprocess.call(['bash', 'strip libraries/*.so'])
 
-    #run bin/pdb-server for worker
+    #run bin/pdb-worker for worker
     num = 0;
     with open('conf/serverlist.test') as f:
         for each_line in f:
             print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
             num = num + 1
-            serverProcess = subprocess.Popen(['bin/pdb-server', threadNum, sharedMemorySize, 'localhost:8108', each_line])
+            serverProcess = subprocess.Popen(['bin/pdb-worker', threadNum, sharedMemorySize, 'localhost:8108', each_line])
             print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
             time.sleep(9)
 

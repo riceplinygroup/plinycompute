@@ -80,10 +80,10 @@ def run_test(test_name, test_command):
     time.sleep(5)
 
 
-tests = {"AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE": ['bin/Test74', 'Y', 'Y', '1024', 'master', 'Y'],
-         "JOIN TEST ON G-2 PIPELINE": ['bin/Test79', 'Y', 'Y', '1024', 'master', 'Y'],
-         "SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE": ['bin/Test78', 'Y', 'Y', '1024', 'master', 'Y'],
-         "COMPLEX AGGREGATION TEST ON G-2 PIPELINE": ['bin/Test90', 'Y', 'Y', '1024', 'master', 'Y'],
-         "LDA TEST ON G-2 PIPELINE": ['bin/TestLDA', 'master', '3', '100', '10', 'Y', 'N', '100']}
+tests = {"AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE": ['bin/Test74', 'Y', 'Y', '1024', 'manager', 'Y'],
+         "JOIN TEST ON G-2 PIPELINE": ['bin/Test79', 'Y', 'Y', '1024', 'manager', 'Y'],
+         "SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE": ['bin/Test78', 'Y', 'Y', '1024', 'manager', 'Y'],
+         "COMPLEX AGGREGATION TEST ON G-2 PIPELINE": ['bin/Test90', 'Y', 'Y', '1024', 'manager', 'Y'],
+         "LDA TEST ON G-2 PIPELINE": ['bin/TestLDA', 'manager', '3', '100', '10', 'Y', 'N', '100']}
 
 run_tests(tests)

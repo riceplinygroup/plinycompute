@@ -60,7 +60,7 @@ if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
 fi
 
 # kill all the processes
-pkill -9 pdb-server || true
-pkill -9 pdb-cluster || true
+pkill -9 pdb-worker || true
+pkill -9 pdb-manager || true
 pkill -9 test603 || true
 pkill -9 test404 || true

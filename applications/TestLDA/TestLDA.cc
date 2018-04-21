@@ -78,14 +78,14 @@ int main(int argc, char* argv[]) {
 
     /* Read in the parameters */
     if (argc != 8 && argc != 6) {
-        std::cout << "Usage: #masterIp #iterations #words #topics #addData[Y/N] "
+        std::cout << "Usage: #managerIp #iterations #words #topics #addData[Y/N] "
                      "#addDataFromFile[Y/N] #docs(If addDataFromFile = N)/#inputFile (If "
                      "addDataFromFile = Y) \n";
         return (-1);
     }
 
-    std::string masterIp;
-    masterIp = argv[1];
+    std::string managerIp;
+    managerIp = argv[1];
 
     int iter = std::stoi(argv[2]);
     std::cout << "The number of iterations: " << iter << std::endl;
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Set up the client */
-  PDBClient pdbClient(8108, masterIp, false, true);
+  PDBClient pdbClient(8108, managerIp);
 
     /* Load the libraries */
     string errMsg;

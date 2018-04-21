@@ -34,15 +34,15 @@
 
 int main(int argc, char* argv[]) {
     int port = 8108;
-    std::string masterIp;
+    std::string managerIp;
     std::string pemFile = "conf/pdb.key";
     bool pseudoClusterMode = false;
     double partitionToCoreRatio = 0.75;
     if (argc == 3) {
-        masterIp = argv[1];
+        managerIp = argv[1];
         port = atoi(argv[2]);
     } else if ((argc == 4) || (argc == 5) || (argc == 6)) {
-        masterIp = argv[1];
+        managerIp = argv[1];
         port = atoi(argv[2]);
         std::string isPseudoStr(argv[3]);
         if (isPseudoStr.compare(std::string("Y")) == 0) {
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
         }
 
     } else {
-        std::cout << "[Usage] #masterIp #port #runPseudoClusterOnOneNode (Y for running a "
+        std::cout << "[Usage] #managerIp #port #runPseudoClusterOnOneNode (Y for running a "
                      "pseudo-cluster on one node, N for running a real-cluster distributedly, and "
                      "default is N) #pemFile (by default is conf/pdb.key) #partitionToCoreRatio "
                      "(by default is 0.75)"
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     ConfigurationPtr conf = make_shared<Configuration>();
 
-    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, masterIp, port);
+    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, managerIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
 
     // to register node metadata
@@ -80,8 +80,8 @@ int main(int argc, char* argv[]) {
         pdb::makeObject<pdb::CatalogNodeMetadata>(String("localhost:" + std::to_string(port)),
                                                   String("localhost"),
                                                   port,
-                                                  String("master"),
-                                                  String("master"),
+                                                  String("manager"),
+                                                  String("manager"),
                                                   1);
     if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
         std::cout << "Node metadata was not added because " + errMsg << std::endl;

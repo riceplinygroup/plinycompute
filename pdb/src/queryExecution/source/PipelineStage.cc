@@ -45,6 +45,7 @@
 #include "SimpleSendObjectRequest.h"
 #include "SimpleSendBytesRequest.h"
 #include "ShuffleSink.h"
+#include "PartitionComp.h"
 #ifdef ENABLE_COMPRESSION
 #include <snappy.h>
 #endif
@@ -94,6 +95,7 @@ bool PipelineStage::storeShuffleData(Handle<Vector<Handle<Object>>> data,
                                      std::string setName,
                                      std::string address,
                                      int port,
+                                     bool whetherToPersist,
                                      std::string& errMsg) {
     if (port <= 0) {
         port = conf->getPort();
@@ -120,7 +122,7 @@ bool PipelineStage::storeShuffleData(Handle<Vector<Handle<Object>>> data,
         setName,
         "IntermediateData",
         false,
-        false);
+        whetherToPersist);
 }
 
 bool PipelineStage::storeCompressedShuffleData(char* bytes,
@@ -431,6 +433,10 @@ void PipelineStage::executePipelineWork(int i,
                 unsafeCast<AggregateComp<Object, Object, Object, Object>, Computation>(
                     computation);
             scanner = aggregator->getOutputSetScanner();
+        } else if (computation->getComputationType() == "PartitionComp") {
+            Handle<PartitionComp<Object, Object>> partitioner =
+                unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
+            scanner = partitioner->getOutputSetScanner();
         } else {
             std::cout << "Error: we can't support source computation type "
                       << computation->getComputationType() << std::endl;
@@ -543,6 +549,15 @@ void PipelineStage::executePipelineWork(int i,
         join->setNumNodes(this->jobStage->getNumNodes());
         std::cout << "Join set to have " << join->getNumPartitions() << " partitions" << std::endl;
         std::cout << "Join set to have " << join->getNumNodes() << " nodes" << std::endl;
+    } else if (targetSpecifier.find("PartitionComp") != std::string::npos) {
+        Handle<Computation> partitionComputation =
+            newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
+        Handle<PartitionComp<Object, Object>> partitioner =
+            unsafeCast<PartitionComp<Object, Object>, Computation>(partitionComputation);
+        int numPartitionsInCluster = this->jobStage->getNumTotalPartitions();
+        PDB_COUT << "num partitions in the cluster is " << numPartitionsInCluster << std::endl;
+        partitioner->setNumPartitions(numPartitionsInCluster);
+        partitioner->setNumNodes(jobStage->getNumNodes());
     }
 
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
@@ -587,6 +602,8 @@ void PipelineStage::executePipelineWork(int i,
                 }
                 return std::make_pair((char*)myPage + headerSize,
                                       outputSet->getPageSize() - headerSize);
+
+
             } else if ((this->jobStage->isBroadcasting() == true) ||
                        ((this->jobStage->isRepartition() == true) &&
                         (this->jobStage->isCombining() == false) && (join != nullptr))) {
@@ -597,9 +614,13 @@ void PipelineStage::executePipelineWork(int i,
                     std::cout << "Pipeline Error: insufficient memory in heap" << std::endl;
                 }
                 return std::make_pair((char*)myPage + headerSize, conf->getNetBroadcastPageSize());
+
+
             } else {
                 // TODO: move this to Pangea
-                // aggregation case
+                // aggregation and partition cases
+                std::cout << "to allocate a page for storing partition sink with size=" 
+                          << conf->getShufflePageSize() << std::endl;
                 void* myPage = calloc(conf->getShufflePageSize(), 1);
                 if (myPage == nullptr) {
                     std::cout << "Pipeline Error: insufficient memory in heap" << std::endl;
@@ -740,9 +761,8 @@ void PipelineStage::executePipelineWork(int i,
 
             } else if ((this->jobStage->isRepartition() == true) &&
                        (this->jobStage->isCombining() == false) && (join == nullptr)) {
-                // to handle aggregation without combining
+                // to handle aggregation without combining and partitioning
                 std::cout << "to shuffle data on this page" << std::endl;
-                // to handle an aggregation
                 Record<Vector<Handle<Vector<Handle<Object>>>>>* record =
                     (Record<Vector<Handle<Vector<Handle<Object>>>>>*)page;
                 if (record != nullptr) {
@@ -771,16 +791,16 @@ void PipelineStage::executePipelineWork(int i,
                             // to shuffle data
                             // get the i-th address
                             std::string address = this->jobStage->getIPAddress(k);
-                            PDB_COUT << "address = " << address << std::endl;
 
                             // get the i-th port
                             int port = this->jobStage->getPort(k);
-                            PDB_COUT << "port = " << port << std::endl;
+                            bool whetherToPersist = true;
                             this->storeShuffleData(objectToShuffle,
                                                    this->jobStage->getSinkContext()->getDatabase(),
                                                    this->jobStage->getSinkContext()->getSetName(),
                                                    address,
                                                    port,
+                                                   true,
                                                    errMsg);
                         }
 #endif
@@ -1214,6 +1234,7 @@ void PipelineStage::runPipelineWithShuffleSink(HermesExecutionServer* server) {
                                                this->jobStage->getSinkContext()->getSetName(),
                                                address,
                                                port,
+                                               false,
                                                errMsg);
 #else
                         char* compressedBytes =
@@ -1272,6 +1293,7 @@ void PipelineStage::runPipelineWithShuffleSink(HermesExecutionServer* server) {
                                    this->jobStage->getSinkContext()->getSetName(),
                                    address,
                                    port,
+                                   false,
                                    errMsg);
 #else
             char* compressedBytes = new char[snappy::MaxCompressedLength(record->numBytes())];

@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Starting up a PDB server!!\n";
     std::cout << "[Usage] #numThreads(optional) #sharedMemSize(optional, unit: MB) "
-                 "#masterIp(optional) #localIp(optional)"
+                 "#managerIp(optional) #localIp(optional)"
               << std::endl;
 
     ConfigurationPtr conf = make_shared<Configuration>();
@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
     int numThreads = 1;
     size_t sharedMemSize = (size_t)12 * (size_t)1024 * (size_t)1024 * (size_t)1024;
     bool standalone = true;
-    std::string masterIp;
+    std::string managerIp;
     std::string localIp = conf->getServerAddress();
-    int masterPort = conf->getPort();
+    int managerPort = conf->getPort();
     int localPort = conf->getPort();
     if (argc == 2) {
         numThreads = atoi(argv[1]);
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc == 4) {
-        std::cout << "You must provide both masterIp and localIp" << std::endl;
+        std::cout << "You must provide both managerIp and localIp" << std::endl;
         exit(-1);
     }
 
@@ -61,15 +61,15 @@ int main(int argc, char* argv[]) {
         numThreads = atoi(argv[1]);
         sharedMemSize = (size_t)(atoi(argv[2])) * (size_t)1024 * (size_t)1024;
         standalone = false;
-        string masterAccess(argv[3]);
-        size_t pos = masterAccess.find(":");
+        string managerAccess(argv[3]);
+        size_t pos = managerAccess.find(":");
         if (pos != string::npos) {
-            masterPort = stoi(masterAccess.substr(pos + 1, masterAccess.size()));
+            managerPort = stoi(managerAccess.substr(pos + 1, managerAccess.size()));
 
-            masterIp = masterAccess.substr(0, pos);
+            managerIp = managerAccess.substr(0, pos);
         } else {
-            masterPort = 8108;
-            masterIp = masterAccess;
+            managerPort = 8108;
+            managerIp = managerAccess;
         }
         string workerAccess(argv[4]);
         pos = workerAccess.find(":");
@@ -91,11 +91,11 @@ int main(int argc, char* argv[]) {
         std::cout << "We are now running in standalone mode" << std::endl;
     } else {
         std::cout << "We are now running in distribution mode" << std::endl;
-        std::cout << "Master IP:" << masterIp << std::endl;
-        std::cout << "Master Port:" << masterPort << std::endl;
-        conf->setIsMaster(false);
-        conf->setMasterNodeHostName(masterIp);
-        conf->setMasterNodePort(masterPort);
+        std::cout << "Manager IP:" << managerIp << std::endl;
+        std::cout << "Manager Port:" << managerPort << std::endl;
+        conf->setIsManager(false);
+        conf->setManagerNodeHostName(managerIp);
+        conf->setManagerNodePort(managerPort);
         std::cout << "Local IP:" << localIp << std::endl;
         std::cout << "Local Port:" << localPort << std::endl;
     }
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
             frontEnd.addFunctionality<pdb::FrontendQueryTestServer>(standalone, createSet);
             if (standalone == true) {
                 string nodeName = "standalone";
-                string nodeType = "master";
+                string nodeType = "manager";
 
                 pdb::UseTemporaryAllocationBlock tempBlock{1024 * 1024};
                 pdb::Handle<pdb::CatalogNodeMetadata> nodeData =
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
                 std::string catalogFile = std::string("CatalogDir_") + localIp + std::string("_") +
                     std::to_string(localPort);
                 frontEnd.addFunctionality<pdb::CatalogServer>(
-                    catalogFile, false, masterIp, masterPort);
+                    catalogFile, false, managerIp, managerPort);
                 frontEnd.addFunctionality<pdb::CatalogClient>(localPort, "localhost", logger);
             }
 

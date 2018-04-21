@@ -32,7 +32,7 @@ using namespace pdb;
 int main(int argc, char* argv[]) {
 
     if (argc != 5) {
-        std::cout << "Usage: #dataSizeToAdd[MB] #masterIP #registerSharedLibs[Y/N] ";
+        std::cout << "Usage: #dataSizeToAdd[MB] #managerIP #registerSharedLibs[Y/N] ";
         std::cout << "#createDBAndSet[Y/N]\n";
         return 0;
     }
@@ -41,9 +41,9 @@ int main(int argc, char* argv[]) {
     unsigned numOfMb = atoi(argv[1]);
     std::cout << "Will add " << numOfMb << " MB of data.\n";
 
-    // the IP address of the master
-    std::string masterIP = argv[2];
-    std::cout << "IP address of master node is " << masterIP << "\n";
+    // the IP address of the manager
+    std::string managerIP = argv[2];
+    std::cout << "IP address of manager node is " << managerIP << "\n";
 
     // whether or not to add the shared libraries
     bool registerSharedLibs;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     }
 
 
-    PDBClient pdbClient(8108, masterIP, false, true);
+    PDBClient pdbClient(8108, managerIP);
 
     // if we register the types we are going to use to execute the query
     if (registerSharedLibs) {

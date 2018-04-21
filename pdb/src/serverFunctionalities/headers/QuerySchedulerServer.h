@@ -42,7 +42,7 @@
 namespace pdb {
 
 /**
- *  This class is working on Master node to schedule JobStages dynamically from TCAP logical plan
+ *  This class is working on the Manager node to schedule JobStages dynamically from TCAP logical plan
  *  So far following JobStages are supported:
  *
  * -- TupleSetJobStage

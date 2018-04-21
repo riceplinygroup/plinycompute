@@ -227,6 +227,19 @@ inline bool String::operator!=(const std::string& toMe) {
 inline bool String::operator!=(const char* toMe) {
     return strcmp(c_str(), toMe) != 0;
 }
+
+
+inline bool String::endsWith(const std::string& suffix) {
+    std::string str = c_str();
+    int len1 = str.length();
+    int len2 = suffix.length();
+    if (len1 > len2) {
+         return (str.compare(len1 - len2, len2, suffix) == 0);
+    } else {
+         return false;
+    }
+}
+
 }
 
 #endif

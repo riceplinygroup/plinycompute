@@ -40,9 +40,9 @@ try:
         subprocess.call(['bash', './scripts/cleanupNode.sh'])
         print bcolors.OKBLUE + "waiting for 10 seconds for system to be fully cleared..." + bcolors.ENDC
         time.sleep(10)
-        #run bin/pdb-server
+        #run bin/pdb-worker
         print bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC
-        serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512'])
+        serverProcess = subprocess.Popen(['bin/pdb-worker', '1', '512'])
         print bcolors.OKBLUE + "waiting for 10 seconds for server to be fully started..." + bcolors.ENDC
         time.sleep(10)
         #run bin/test46 1024

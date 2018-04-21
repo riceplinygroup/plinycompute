@@ -12,7 +12,9 @@ CatalogDir*
 pdbRoot_*
 logs/*
 bin/*
+type-id-data
 libraries/*
+tables_scale_0.2
 pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h
 pdb/src/objectModel/headers/BuiltinPDBObjects.cc
 pdb/src/objectModel/headers/BuiltinPDBObjects.h

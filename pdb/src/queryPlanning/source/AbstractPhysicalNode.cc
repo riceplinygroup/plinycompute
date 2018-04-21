@@ -18,6 +18,7 @@
 
 #include "AbstractPhysicalNode.h"
 #include "SelectionComp.h"
+#include "PartitionComp.h"
 #include "MultiSelectionComp.h"
 
 namespace pdb {
@@ -51,6 +52,15 @@ Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Hand
       // create the set identifier from it
       return makeObject<SetIdentifier>(aggregator->getDatabaseName(), aggregator->getSetName());
     }
+    case PartitionCompTypeID : {
+
+      // this is a PartitionComp cast it
+      Handle<PartitionComp<Object, Object>> partitioner = unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
+
+      // create the set identifier from it
+      return makeObject<SetIdentifier>(partitioner->getDatabaseName(), partitioner->getSetName());
+
+    }
     case SelectionCompTypeID : {
 
       // this is a SelectionComp cast it
@@ -73,11 +83,12 @@ Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Hand
       // this is bad, we can not cast this thing...
       PDB_COUT << "Source Computation Type: " << computation->getComputationType()
                << " are not supported as source node right now" << std::endl;
-      PDB_COUT << "Master exit...Please restart cluster\n";
+      PDB_COUT << "Manager exit...Please restart cluster\n";
       exit(1); // TODO we are killing the server for a bad query might not be smart!
     }
   }
 }
+
 
 AbstractPhysicalNodePtr AbstractPhysicalNode::getHandle() {
 

@@ -67,10 +67,10 @@ int16_t CatalogServer::searchForObjectTypeName(std::string objectTypeName) {
     return allTypeNames[objectTypeName];
   }
 
-  // otherwise fetch it from the Master Catalog Server only if this is a Worker
+  // otherwise fetch it from the Manager Catalog Server only if this is a Worker
   // Node catalog
-  if (this->isMasterCatalogServer == false) {
-    return catalogClientConnectionToMasterCatalogServer.searchForObjectTypeName(
+  if (this->isManagerCatalogServer == false) {
+    return catalogClientConnectionToManagerCatalogServer.searchForObjectTypeName(
         objectTypeName);
   }
   // otherwise returns -1
@@ -311,9 +311,9 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                  << typeName << std::string(" and typeId=")
                  << std::to_string(typeId) << endl;
 
-        // if this is the Master catalog retrieves .so bytes from local catalog
+        // if this is the Manager catalog retrieves .so bytes from local catalog
         // copy
-        if (this->isMasterCatalogServer == true) {
+        if (this->isManagerCatalogServer == true) {
           // Allocates 150Mb for sending .so libraries
           const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
@@ -322,10 +322,10 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
           PDB_COUT << "    Invoking getSharedLibrary(typeName) from "
                       "CatalogServer Handler "
-                      "b/c this is Master Catalog "
+                      "b/c this is Manager Catalog "
                    << endl;
 
-          // if the type is not registered in the Master Catalog just return
+          // if the type is not registered in the Manager Catalog just return
           // with a typeID = -1
           if (allTypeCodes.count(typeId) == 0) {
 
@@ -351,7 +351,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                 typeName, response, returnedBytes, errMsg);
 
-            PDB_COUT << "    Bytes returned YES isMaster: " +
+            PDB_COUT << "    Bytes returned YES isManager: " +
                             std::to_string(returnedBytes.size())
                      << endl;
             PDB_COUT << "typeId=" + string(response->getObjectID()) << endl;
@@ -362,7 +362,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // back to the caller
             response->setLibraryBytes(returnedBytes);
 
-            PDB_COUT << "Object Id isMaster: " + string(response->getObjectID())
+            PDB_COUT << "Object Id isManager: " + string(response->getObjectID())
                      << " | " << string(response->getItemKey())
                      << " | " + string(response->getItemName()) << endl;
 
@@ -375,8 +375,8 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             }
           }
         } else {
-          // if this is not the Master catalog, retrieves .so bytes from the
-          // remote master catalog
+          // if this is not the Manager catalog, retrieves .so bytes from the
+          // remote manager catalog
           if (allTypeCodes.count(typeId) == 0) {
             // process the case where the type is not registered in this local
             // catalog, allocates 150Mb for sending .so libraries
@@ -394,22 +394,22 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
                      << endl;
 
             // uses a dummyObjectFile since this is just making a remote call to
-            // the Catalog Master Server and what matters is the returned bytes.
+            // the Catalog Manager Server and what matters is the returned bytes.
             string dummyObjectFile = string("temp.so");
 
             // retrieves from remote catalog the Shared Library bytes in
             // "returnedBytes" and metadata in the "response" object
-            res = catalogClientConnectionToMasterCatalogServer
+            res = catalogClientConnectionToManagerCatalogServer
                       .getSharedLibraryByTypeName(typeId, typeName,
                                                   dummyObjectFile, response,
                                                   returnedBytes, errMsg);
 
-            PDB_COUT << "     Bytes returned NOT isMaster: "
+            PDB_COUT << "     Bytes returned NOT isManager: "
                      << std::to_string(returnedBytes.size()) << endl;
 
             // if the library was successfully retrieved, go ahead and resolve
             // vtable fixing in the local catalog, given the library and
-            // metadata retrieved from the remote Master Catalog
+            // metadata retrieved from the remote Manager Catalog
             if (res == true) {
               res = getFunctionality<CatalogServer>().addObjectType(
                   typeId, returnedBytes, errMsg);
@@ -471,7 +471,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                 typeName, response, returnedBytes, errMsg);
 
-            PDB_COUT << "    Bytes returned No isMaster: "
+            PDB_COUT << "    Bytes returned No isManager: "
                      << std::to_string(returnedBytes.size()) << endl;
 
             response->setLibraryBytes(returnedBytes);
@@ -491,7 +491,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             }
 
           } // end "if" type was found in local catalog or not
-        }   // end "if" is Master or Local catalog case
+        }   // end "if" is Manager or Local catalog case
 
         return make_pair(res, errMsg);
       }));
@@ -903,7 +903,7 @@ int16_t CatalogServer::getObjectType(std::string databaseName,
 
 // Adds metadata and bytes of a Shared Library in the catalog and returns its
 // typeId
-int16_t CatalogServer::addObjectType(int16_t typeIDFromMasterCatalog,
+int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
                                      string &soFile, string &errMsg) {
 
   // read the bytes from the temporary extracted file and copy to output
@@ -970,11 +970,11 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromMasterCatalog,
 
     // if the type received is -1 this is a type not registered and we set the
     // new typeID increasing by 1, otherwise we use the typeID received from
-    // the Master Catalog
-    if (typeIDFromMasterCatalog == -1)
+    // the Manager Catalog
+    if (typeIDFromManagerCatalog == -1)
       typeCode = 8192 + allTypeNames.size();
     else
-      typeCode = typeIDFromMasterCatalog;
+      typeCode = typeIDFromManagerCatalog;
 
     PDB_COUT << "Id Assigned to type " << typeName << " was "
              << std::to_string(typeCode) << endl;
@@ -1077,9 +1077,9 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
   }
 
   // after it updated the database metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // update to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // map to capture the results of broadcasting the Set deletion
     map<string, pair<bool, string>> updateResults;
 
@@ -1114,7 +1114,7 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
     }
     PDB_COUT << "******************* deleteSet step completed!!!!!!!" << endl;
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1245,9 +1245,9 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
   }
 
   // after it updated the database metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // update to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // map to capture the results of broadcasting the Set insertion
     map<string, pair<bool, string>> updateResults;
 
@@ -1279,7 +1279,7 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
     }
     PDB_COUT << "******************* addSet step completed!!!!!!!" << endl;
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1315,9 +1315,9 @@ bool CatalogServer::addDatabase(std::string databaseName, std::string &errMsg) {
   }
 
   // after it registered the database metadata in the local catalog, if this is
-  // the master catalog iterate over all nodes in the cluster and broadcast the
+  // the manager catalog iterate over all nodes in the cluster and broadcast the
   // update to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
 
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
@@ -1333,7 +1333,7 @@ bool CatalogServer::addDatabase(std::string databaseName, std::string &errMsg) {
     }
     PDB_COUT << "******************* addDatabase step completed!!!!!!!" << endl;
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1380,9 +1380,9 @@ bool CatalogServer::deleteDatabase(std::string databaseName,
   }
 
   // after it deleted the database metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // update to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
     errMsg = "";
@@ -1400,7 +1400,7 @@ bool CatalogServer::deleteDatabase(std::string databaseName,
                << item.second.second << endl;
     }
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1415,16 +1415,16 @@ CatalogServer::~CatalogServer() { pthread_mutex_destroy(&workingMutex); }
 
 // constructor
 CatalogServer::CatalogServer(std::string catalogDirectoryIn,
-                             bool isMasterCatalogServer, string masterIPValue,
-                             int masterPortValue) {
+                             bool isManagerCatalogServer, string managerIPValue,
+                             int managerPortValue) {
   PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
   catServerLogger = make_shared<pdb::PDBLogger>("catalogServer.log");
 
-  masterIP = masterIPValue;
-  masterPort = masterPortValue;
+  managerIP = managerIPValue;
+  managerPort = managerPortValue;
 
-  catalogClientConnectionToMasterCatalogServer =
-      CatalogClient(masterPort, masterIP,
+  catalogClientConnectionToManagerCatalogServer =
+      CatalogClient(managerPort, managerIP,
                     make_shared<pdb::PDBLogger>("clientCatalogToServerLog"));
 
   const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
@@ -1433,11 +1433,11 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
   _allDatabases = makeObject<Vector<CatalogDatabaseMetadata>>();
   _udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
 
-  this->isMasterCatalogServer = isMasterCatalogServer;
+  this->isManagerCatalogServer = isManagerCatalogServer;
 
   catalogDirectory = catalogDirectoryIn;
-  PDB_COUT << "Catalog Server ctor is Master Catalog= "
-           << std::to_string(this->isMasterCatalogServer) << endl;
+  PDB_COUT << "Catalog Server ctor is Manager Catalog= "
+           << std::to_string(this->isManagerCatalogServer) << endl;
 
   // creates instance of catalog
   pdbCatalog = make_shared<PDBCatalog>(catalogLogger, catalogDirectory);
@@ -1613,9 +1613,9 @@ bool CatalogServer::addDatabaseMetadata(
                                    metadataCategory, errMsg);
 
   // after it registered the Database metadata in the local catalog, if this is
-  // the master catalog iterate over all nodes in the cluster and broadcast the
+  // the manager catalog iterate over all nodes in the cluster and broadcast the
   // insert to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
     errMsg = "";
@@ -1629,7 +1629,7 @@ bool CatalogServer::addDatabaseMetadata(
                << item.second.second << endl;
     }
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1651,9 +1651,9 @@ bool CatalogServer::updateDatabaseMetadata(
   pdbCatalog->updateMetadataInCatalog(metadataObject, metadataCategory, errMsg);
 
   // after it updates the Database metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // insert to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
     errMsg = "";
@@ -1667,7 +1667,7 @@ bool CatalogServer::updateDatabaseMetadata(
                << item.second.second << endl;
     }
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1707,9 +1707,9 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
                                    metadataCategory, errMsg);
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // insert to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // get the results of each broadcast
     map<string, pair<bool, string>> updateResults;
 
@@ -1723,7 +1723,7 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
                << item.second.second << endl;
     }
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1789,9 +1789,9 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
   }
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // insert to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     PDB_COUT << "About to broadcast addition of node to set in the cluster: "
              << endl;
 
@@ -1811,7 +1811,7 @@ bool CatalogServer::addNodeToSet(std::string nodeIP, std::string databaseName,
                << item.second.second << endl;
     }
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1872,9 +1872,9 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
   }
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // mastervcatalog iterate over all nodes in the cluster and broadcast the
+  // managervcatalog iterate over all nodes in the cluster and broadcast the
   // insert to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     PDB_COUT << "About to broadcast addition of node to set in the cluster: "
              << endl;
 
@@ -1897,7 +1897,7 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
     }
 
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -1959,9 +1959,9 @@ bool CatalogServer::removeNodeFromSet(std::string nodeIP,
   }
 
   // after it registered the Set metadata in the local catalog, if this is the
-  // master catalog iterate over all nodes in the cluster and broadcast the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
   // insert to the distributed copies of the catalog
-  if (isMasterCatalogServer) {
+  if (isManagerCatalogServer) {
     // map to capture the results of broadcasting the Set insertion
     map<string, pair<bool, string>> updateResults;
 
@@ -1992,7 +1992,7 @@ bool CatalogServer::removeNodeFromSet(std::string nodeIP,
                << item.second.second << endl;
     }
   } else {
-    PDB_COUT << "This is not Master Catalog Node, thus metadata was only "
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
              << endl;
   }
@@ -2025,7 +2025,7 @@ bool CatalogServer::broadcastCatalogUpdate(
     CatalogClient clusterCatalogClient =
         CatalogClient(nodePort, nodeIP, catalogLogger);
 
-    if (string(item.second.getNodeType().c_str()).compare("master") != 0) {
+    if (string(item.second.getNodeType().c_str()).compare("manager") != 0) {
 
       // sends the request to a node in the cluster
       res =
@@ -2060,7 +2060,7 @@ bool CatalogServer::broadcastCatalogDelete(
     CatalogClient clusterCatalogClient =
         CatalogClient(nodePort, nodeIP, catalogLogger);
 
-    if (string(item.second.getNodeType().c_str()).compare("master") != 0) {
+    if (string(item.second.getNodeType().c_str()).compare("manager") != 0) {
 
       // sends the request to a node in the cluster
       res = clusterCatalogClient.deleteGenericMetadata(metadataToSend, errMsg);
@@ -2070,7 +2070,7 @@ bool CatalogServer::broadcastCatalogDelete(
 
     } else {
       PDB_COUT << "Don't broadcast to " + nodeAddress +
-                      " because it has the master catalog."
+                      " because it has the manager catalog."
                << endl;
     }
   }
@@ -2103,14 +2103,14 @@ bool CatalogServer::isNodeRegistered(string nodeIP) {
   return pdbCatalog->keyIsFound(catalogType, nodeIP, result);
 }
 
-// checks if this is the Master Catalog
-bool CatalogServer::getIsMasterCatalogServer() {
-  return isMasterCatalogServer;
+// checks if this is the Manager Catalog
+bool CatalogServer::getIsManagerCatalogServer() {
+  return isManagerCatalogServer;
 }
 
-// sets this as a Master (true) or Worker (false) Catalog
-void CatalogServer::setIsMasterCatalogServer(bool isMasterCatalogServerIn) {
-  isMasterCatalogServer = isMasterCatalogServerIn;
+// sets this as a Manager (true) or Worker (false) Catalog
+void CatalogServer::setIsManagerCatalogServer(bool isManagerCatalogServerIn) {
+  isManagerCatalogServer = isManagerCatalogServerIn;
 }
 
 /* Explicit instantiation to broadcast Catalog Updates for a Node */

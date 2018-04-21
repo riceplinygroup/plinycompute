@@ -28,6 +28,7 @@ TupleSetJobStageBuilder::TupleSetJobStageBuilder() {
   // the default for all types of sinks is false
   isProbing = false;
   isRepartitionJoin = false;
+  isRepartitionVector = false;
   isRepartitioning = false;
   isBroadcasting = false;
   isCollectAsMap = false;
@@ -100,6 +101,10 @@ void TupleSetJobStageBuilder::setRepartitionJoin(bool repartitionJoinOrNot) {
   this->isRepartitionJoin = repartitionJoinOrNot;
 }
 
+void TupleSetJobStageBuilder::setRepartitionVector(bool repartitionVectorOrNot) {
+  this->isRepartitionVector = repartitionVectorOrNot;
+}
+
 void TupleSetJobStageBuilder::setBroadcasting(bool broadcastOrNot) {
   this->isBroadcasting = broadcastOrNot;
 }
@@ -149,6 +154,7 @@ Handle<TupleSetJobStage> TupleSetJobStageBuilder::build() {
   jobStage->setOutputTypeName(outputTypeName);
   jobStage->setAllocatorPolicy(policy);
   jobStage->setRepartitionJoin(isRepartitionJoin);
+  jobStage->setRepartitionVector(isRepartitionVector);
   jobStage->setBroadcasting(isBroadcasting);
   jobStage->setRepartition(isRepartitioning);
   jobStage->setJobId(this->jobId);

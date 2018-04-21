@@ -94,6 +94,17 @@ struct AtomicComputation *makeAggWithList (struct TupleSpec *output, struct Tupl
 	return returnVal.get ();
 }
 
+struct AtomicComputation *makePartitionWithList (struct TupleSpec *output, struct TupleSpec *input, char *nodeName, struct KeyValueList *useMe) {
+        AtomicComputationPtr returnVal = std :: make_shared <ApplyPartition> (*input, *output, *input, std :: string (nodeName), *useMe);
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+  delete useMe;
+        free (nodeName);
+        return returnVal.get ();
+}
+
+
 struct AtomicComputation *makeJoinWithList (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
 		struct TupleSpec *rInput, struct TupleSpec *rProjection, char *opName, struct KeyValueList *useMe) {
 	AtomicComputationPtr returnVal = std :: make_shared <ApplyJoin> (*output, *lInput, *rInput, *lProjection,
@@ -264,6 +275,20 @@ struct AtomicComputation* makeAgg(struct TupleSpec* output,
     free(nodeName);
     return returnVal.get();
 }
+
+struct AtomicComputation* makePartition(struct TupleSpec* output,
+                                  struct TupleSpec* input,
+                                  char* nodeName) {
+    AtomicComputationPtr returnVal =
+        std::make_shared<ApplyPartition>(*input, *output, *input, std::string(nodeName));
+    returnVal->setShared(returnVal);
+    delete output;
+    delete input;
+    free(nodeName);
+    return returnVal.get();
+}
+
+
 
 struct AtomicComputation* makeJoin(struct TupleSpec* output,
                                    struct TupleSpec* lInput,

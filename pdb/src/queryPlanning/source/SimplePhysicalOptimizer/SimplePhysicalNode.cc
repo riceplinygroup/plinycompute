@@ -142,6 +142,12 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJob
   // add this node to the pipeline
   tupleStageBuilder->addTupleSetToBuildPipeline(node->getOutputName());
 
+  // grab the computation associated with this node
+  Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
+
+
+
+
   // this is a source so there is no last node
   SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
@@ -177,6 +183,8 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
   tupleStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
+
+
 
   // create the job stage
   Handle<TupleSetJobStage> jobStage = tupleStageBuilder->build();

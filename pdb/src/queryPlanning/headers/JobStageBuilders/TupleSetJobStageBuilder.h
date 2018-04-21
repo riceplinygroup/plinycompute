@@ -119,9 +119,19 @@ public:
 
   /**
    * This is true if we are running a pipeline with a hash partition sink
+   * for JoinMaps
    * @param repartitionJoinOrNot
    */
   void setRepartitionJoin(bool repartitionJoinOrNot);
+
+
+  /**
+   * This is true if we are running a pipeline with a hash partition sink
+   * for Vectors
+   * @param repartitionVectorOrNot
+   */
+  void setRepartitionVector(bool repartitionVectorOrNot);
+
 
   /**
    * True if we are running a pipeline with a broadcast sink, false otherwise
@@ -273,8 +283,16 @@ private:
 
   /**
    * This is true if we are running a pipeline with a hash partition sink
+   * for JoinMaps
    */
   bool isRepartitionJoin;
+  
+  /**
+   * This is true if we are running a pipeline with a hash partition sink
+   * for Vectors
+   */
+  bool isRepartitionVector;
+
 
   /**
    * True if this pipeline is probing a hash set
