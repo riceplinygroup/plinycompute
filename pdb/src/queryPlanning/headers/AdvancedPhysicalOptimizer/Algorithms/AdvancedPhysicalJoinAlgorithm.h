@@ -16,23 +16,34 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalShufflePipeNode.h"
+#ifndef PDB_ADVANCEDPHYSICALJOINALGORITHM_H
+#define PDB_ADVANCEDPHYSICALJOINALGORITHM_H
+
+#include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-AdvancedPhysicalShufflePipeNode::AdvancedPhysicalShufflePipeNode(string &jobId,
-                                                                 Handle<ComputePlan> &computePlan,
-                                                                 LogicalPlanPtr &logicalPlan,
-                                                                 ConfigurationPtr &conf,
-                                                                 vector<AtomicComputationPtr> &pipeComputations,
-                                                                 size_t id)
-                                                                 : AdvancedPhysicalNode(jobId,
-                                                                                        computePlan,
-                                                                                        logicalPlan,
-                                                                                        conf,
-                                                                                        pipeComputations,
-                                                                                        id) {
+class AdvancedPhysicalJoinAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+
+public:
+
+  AdvancedPhysicalJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                const std::string &jobID,
+                                const Handle<SetIdentifier> &source,
+                                const vector<AtomicComputationPtr> &pipeComputations,
+                                const Handle<ComputePlan> &computePlan,
+                                const LogicalPlanPtr &logicalPlan,
+                                const ConfigurationPtr &conf);
+
+  /**
+   * Generates the stages for this algorithm
+   * @return
+   */
+  PhysicalOptimizerResultPtr generate(int nextStageID) override;
+};
 
 }
 
-}
+
+
+#endif //PDB_ADVANCEDPHYSICALJOINALGORITHM_H

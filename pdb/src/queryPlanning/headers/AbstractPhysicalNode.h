@@ -125,7 +125,7 @@ public:
   * Adds a consumer to the node
   * @param consumer the consumer
   */
-  virtual void addConsumer(const AbstractPhysicalNodePtr &consumer) {
+  virtual void addConsumer(const pdb::AbstractPhysicalNodePtr &consumer) {
     consumers.push_back(consumer);
     consumer->producers.push_back(getHandle());
   }

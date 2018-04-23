@@ -16,23 +16,37 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalStraightPipeNode.h"
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalSelectionAlgorithm.h>
+#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalStraightPipeline.h"
 
 namespace pdb {
 
-AdvancedPhysicalStraightPipeNode::AdvancedPhysicalStraightPipeNode(string &jobId,
+AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId,
                                                                    Handle<ComputePlan> &computePlan,
                                                                    LogicalPlanPtr &logicalPlan,
                                                                    ConfigurationPtr &conf,
                                                                    vector<AtomicComputationPtr> &pipeComputations,
-                                                                   size_t id)
-                                                                   : AdvancedPhysicalNode(jobId,
-                                                                                          computePlan,
-                                                                                          logicalPlan,
-                                                                                          conf,
-                                                                                          pipeComputations,
-                                                                                          id) {
+                                                                   size_t id) :
+                                                                   AdvancedPhysicalAbstractPipeline(jobId,
+                                                                                                    computePlan,
+                                                                                                    logicalPlan,
+                                                                                                    conf,
+                                                                                                    pipeComputations,
+                                                                                                    id) {}
 
+bool AdvancedPhysicalStraightPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
+  return false;
+}
+
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOutputAlgorithm() {
+
+  return std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                              jobId,
+                                                              sourceSetIdentifier,
+                                                              pipeComputations,
+                                                              computePlan,
+                                                              logicalPlan,
+                                                              conf);
 }
 
 }

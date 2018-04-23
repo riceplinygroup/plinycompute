@@ -16,28 +16,28 @@
  *                                                                           *
  *****************************************************************************/
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerPartitionNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalPartitionNode.h"
 
 namespace pdb {
 
-SimpleTCAPAnalyzerPartitionNode::SimpleTCAPAnalyzerPartitionNode(string jobId,
-                                                                     AtomicComputationPtr node,
-                                                                     const Handle<ComputePlan> &computePlan,
-                                                                     LogicalPlanPtr logicalPlan,
-                                                                     ConfigurationPtr conf) : SimpleTCAPAnalyzerNode(std::move(jobId),
-                                                                                                                     std::move(node),
-                                                                                                                     computePlan,
-                                                                                                                     logicalPlan,
-                                                                                                                     std::move(conf)) {}
+SimplePhysicalPartitionNode::SimplePhysicalPartitionNode(string jobId,
+                                                         AtomicComputationPtr node,
+                                                         const Handle<ComputePlan> &computePlan,
+                                                         LogicalPlanPtr logicalPlan,
+                                                         ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
+                                                                                                     std::move(node),
+                                                                                                     computePlan,
+                                                                                                     logicalPlan,
+                                                                                                     std::move(conf)) {}
 
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                       const StatisticsPtr &stats,
-                                                                       int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                      SimplePhysicalNodePtr &prevNode,
+                                                                      const StatisticsPtr &stats,
+                                                                      int nextStageID) {
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this partition
   std::string computationSpecifier = node->getComputationName();
@@ -77,12 +77,12 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeOutput(TupleSetJob
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                               SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                               const StatisticsPtr &stats,
-                                                                               int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                              SimplePhysicalNodePtr &prevNode,
+                                                                              const StatisticsPtr &stats,
+                                                                              int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this partition
   std::string computationSpecifier = node->getComputationName();
@@ -130,12 +130,12 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeSingleConsumer(Tup
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                                  const StatisticsPtr &stats,
-                                                                                  int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                                 SimplePhysicalNodePtr &prevNode,
+                                                                                 const StatisticsPtr &stats,
+                                                                                 int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this partition
   std::string computationSpecifier = node->getComputationName();

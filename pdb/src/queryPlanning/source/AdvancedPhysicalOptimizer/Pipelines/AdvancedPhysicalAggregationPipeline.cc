@@ -16,34 +16,33 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNodeFactory.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerAggregationNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerPartitionNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerJoinNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAggregationPipeNode.h"
+
+#include "SimplePhysicalOptimizer/SimplePhysicalPartitionNode.h"
+#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalAggregationPipeline.h"
 
 namespace pdb {
 
-AdvancedPhysicalAggregationPipeNode::AdvancedPhysicalAggregationPipeNode(string &jobId,
+AdvancedPhysicalAggregationPipeline::AdvancedPhysicalAggregationPipeline(string &jobId,
                                                                          Handle<ComputePlan> &computePlan,
                                                                          LogicalPlanPtr &logicalPlan,
                                                                          ConfigurationPtr &conf,
                                                                          vector<AtomicComputationPtr> &pipeComputations,
                                                                          size_t id) :
-                                                                         AdvancedPhysicalNode(jobId,
+                                                                         AdvancedPhysicalAbstractPipeline(jobId,
                                                                                               computePlan,
                                                                                               logicalPlan,
                                                                                               conf,
                                                                                               pipeComputations,
-                                                                                              id) {
+                                                                                              id) {}
 
-    // we are dealing with a join
-    case ApplyJoinTypeID: {
-        return (new SimpleTCAPAnalyzerJoinNode(jobId, tcapNode, computePlan, logicalPlan, conf))->getHandle();
-    }
-
+bool AdvancedPhysicalAggregationPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
+  return false;
 }
+
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::selectOutputAlgorithm() {
+  return pdb::AdvancedPhysicalAbstractAlgorithmPtr();
+}
+
 
 }
 

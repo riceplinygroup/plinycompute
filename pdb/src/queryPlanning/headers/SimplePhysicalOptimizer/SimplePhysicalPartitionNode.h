@@ -19,19 +19,19 @@
 #define SIMPLE_TCAP_ANALYZER_PARTITION_NODE_H
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
-#include "SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerPartitionNode : public SimpleTCAPAnalyzerNode {
+class SimplePhysicalPartitionNode : public SimplePhysicalNode {
 
 public:
 
-  SimpleTCAPAnalyzerPartitionNode(string jobId,
-                                    AtomicComputationPtr node,
-                                    const Handle<ComputePlan> &computePlan,
-                                    LogicalPlanPtr logicalPlan,
-                                    ConfigurationPtr conf);
+  SimplePhysicalPartitionNode(string jobId,
+                              AtomicComputationPtr node,
+                              const Handle<ComputePlan> &computePlan,
+                              LogicalPlanPtr logicalPlan,
+                              ConfigurationPtr conf);
 
 
 protected:
@@ -47,10 +47,10 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
-                                              const StatisticsPtr &stats,
-                                              int nextStageID) override;
+  PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                   SimplePhysicalNodePtr &prevNode,
+                                                   const StatisticsPtr &stats,
+                                                   int nextStageID) override;
 
   /**
    * In the case that this partition is the output.
@@ -64,10 +64,10 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                      SimpleTCAPAnalyzerNodePtr &prevNode,
-                                      const StatisticsPtr &stats,
-                                      int nextStageID) override;
+  PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                           SimplePhysicalNodePtr &prevNode,
+                                           const StatisticsPtr &stats,
+                                           int nextStageID) override;
 
   /**
    * In the case that this partition has only one consumer.
@@ -81,10 +81,10 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                 SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                 const StatisticsPtr &stats,
-                                                 int nextStageID) override;
+  PhysicalOptimizerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
+                                                      SimplePhysicalNodePtr &prevNode,
+                                                      const StatisticsPtr &stats,
+                                                      int nextStageID) override;
 
 };
 }

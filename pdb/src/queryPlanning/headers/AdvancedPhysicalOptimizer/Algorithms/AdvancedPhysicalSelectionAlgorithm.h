@@ -16,38 +16,33 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalNode.h"
+#ifndef PDB_ADVANCEDPHYSICALSELECTIONALGORITHM_H
+#define PDB_ADVANCEDPHYSICALSELECTIONALGORITHM_H
+
+#include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-AdvancedPhysicalNode::AdvancedPhysicalNode(string &jobId,
-                                           const Handle<ComputePlan> &computePlan,
-                                           LogicalPlanPtr &logicalPlan,
-                                           ConfigurationPtr &conf,
-                                           vector<AtomicComputationPtr> &pipeComputations,
-                                           size_t id) : AbstractPhysicalNode(jobId,
-                                                                             computePlan,
-                                                                             logicalPlan,
-                                                                             conf), pipeComputations(pipeComputations) {
+class AdvancedPhysicalSelectionAlgorithm : public AdvancedPhysicalAbstractAlgorithm  {
+
+public:
+
+  AdvancedPhysicalSelectionAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                     const std::string &jobID,
+                                     const Handle<SetIdentifier> &source,
+                                     const vector<AtomicComputationPtr> &pipeComputations,
+                                     const Handle<ComputePlan> &computePlan,
+                                     const LogicalPlanPtr &logicalPlan,
+                                     const ConfigurationPtr &conf);
+
+  /**
+   * Generates the stages for this algorithm
+   * @return
+   */
+  PhysicalOptimizerResultPtr generate(int nextStageID) override;
+
+};
 
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
-  return nullptr;
-}
-
-double AdvancedPhysicalNode::getCost(const StatisticsPtr &stats) {
-  return 0;
-}
-
-bool AdvancedPhysicalNode::hasConsumers() {
-  return false;
-}
-
-string AdvancedPhysicalNode::getNodeIdentifier() {
-  return "node_" + to_string(id);
-}
-
-}
-
-
+#endif //PDB_ADVANCEDPHYSICALSELECTIONALGORITHM_H

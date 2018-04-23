@@ -21,8 +21,7 @@
 
 #include <set>
 #include "AbstractPhysicalNodeFactory.h"
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalNode.h"
-#include "AdvancedPhysicalShufflePipeNode.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
 
 namespace pdb {
 
@@ -41,34 +40,53 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    */
   vector<AbstractPhysicalNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) override;
 
+ protected:
+
   /**
    *
    * @param curNode
    */
   void transverseTCAPGraph(const AtomicComputationPtr &curNode);
 
- protected:
+  /**
+   * This method updates the @see consumedBy for the node we provide.
+   * This method assumes that the last AtomicComputation belonging to this node is stored at @see currentPipe
+   * @param node - the node we are updating the consumedBy for
+   */
+  void setConsumers(shared_ptr<AdvancedPhysicalAbstractPipeline> node);
 
   /**
-   * This method creates a shuffle pipe and adds it to the physicalNodes
+   * After we create all the pipes we we need to connect them to create a graph consisting of pipes
    */
-  void createShufflePipe();
+  void connectThePipes();
 
   /**
    * This method creates a straight pipe and adds it to the physicalNodes
    */
-  void createStraightPipe();
+  template <class T>
+  void createPhysicalPipeline() {
 
-  /**
-   * This method creates a aggregation pipe and adds it to the physicalNodes
-   */
-  void createAggregationPipe();
+    // create the node
+    auto node = std::make_shared<T>(jobId,
+                                    computePlan,
+                                    logicalPlan,
+                                    conf,
+                                    currentPipe,
+                                    currentNodeIndex++);
 
-  /**
-   * This method updates all the connections
-   * @param node - the node we are updating the connections for
-   */
-  void updateConnections(shared_ptr<AdvancedPhysicalNode> node);
+    // update all the node connections
+    setConsumers(node);
+
+    // is this a source node
+    if(node->isSource()) {
+
+      // add the source node
+      physicalSourceNodes.push_back(node);
+    }
+
+    // add the pipe to the physical nodes
+    physicalNodes[node->getNodeIdentifier()] = node;
+  }
 
   /**
    * The id of the job we are trying to generate a physical plan for
@@ -98,13 +116,18 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
   /**
    * The physical nodes we created
    */
-  std::map<std::string, AdvancedPhysicalNodePtr> physicalNodes;
+  std::map<std::string, AdvancedPhysicalPipelineNodePtr> physicalNodes;
+
+  /**
+   * Source physical nodes we created
+   */
+  std::vector<AbstractPhysicalNodePtr> physicalSourceNodes;
 
   /**
    * Maps each pipe to the atomic computation it starts with.
    * The key is the name of the atomic computation the value is the pipe
    */
-  std::map<std::string, AdvancedPhysicalNodePtr> startsWith;
+  std::map<std::string, AdvancedPhysicalPipelineNodePtr> startsWith;
 
   /**
    * Maps each pipe to the list of atomic computations that consume it
@@ -114,12 +137,7 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
   /**
    * All the source nodes we return them from the @see generateAnalyzerGraph
    */
-  std::vector<AdvancedPhysicalNodePtr> sources;
-
-  /**
-   * After we create all the pipes we then connect them
-   */
-  void connectThePipes();
+  std::vector<AdvancedPhysicalPipelineNodePtr> sources;
 };
 
 }

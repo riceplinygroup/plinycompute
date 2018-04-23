@@ -16,26 +16,41 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_STRAIGHTPIPENODE_H
-#define PDB_STRAIGHTPIPENODE_H
+#ifndef PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
+#define PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
 
-#include "AdvancedPhysicalNode.h"
+#include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-class AdvancedPhysicalStraightPipeNode : public AdvancedPhysicalNode {
+class AdvancedPhysicalShuffleJoinAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
 
- public:
+public:
 
-  AdvancedPhysicalStraightPipeNode(string &jobId,
-                                   Handle<ComputePlan> &computePlan,
-                                   LogicalPlanPtr &logicalPlan,
-                                   ConfigurationPtr &conf,
-                                   vector<AtomicComputationPtr> &pipeComputations,
-                                   size_t id);
+  /**
+   *
+   * @param handle
+   * @param nextStageID
+   * @param pipeComputations
+   * @param logicalPlan
+   * @param conf
+   */
+  AdvancedPhysicalShuffleJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                       const std::string &jobID,
+                                       const Handle<SetIdentifier> &source,
+                                       const vector<AtomicComputationPtr> &pipeComputations,
+                                       const Handle<ComputePlan> &computePlan,
+                                       const LogicalPlanPtr &logicalPlan,
+                                       const ConfigurationPtr &conf);
+
+  /**
+   * Generates the stages for this algorithm
+   * @return
+   */
+  PhysicalOptimizerResultPtr generate(int nextStageID) override;
 
 };
 
 }
 
-#endif //PDB_STRAIGHTPIPENODE_H
+#endif //PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H

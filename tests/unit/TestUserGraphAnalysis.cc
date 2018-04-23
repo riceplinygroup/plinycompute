@@ -39,27 +39,23 @@
 #include <IntSimpleJoin.h>
 #include <StringSelectionOfStringIntPair.h>
 #include <SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h>
+#include <ScanBuiltinEmployeeSet.h>
+#include <AllSelectionWithCreation.h>
+#include <WriteBuiltinEmployeeSet.h>
 
 using namespace pdb;
 int main(int argc, char *argv[]) {
   const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
   // create all of the computation objects
-  Handle<Computation> myScanSet1 = makeObject<ScanUserSet<int>>("test78_db", "test78_set1");
-  Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test78_db", "test78_set2");
-  Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
-  mySelection->setInput(myScanSet2);
-  Handle<Computation> myJoin = makeObject<IntSimpleJoin>();
-  myJoin->setInput(0, myScanSet1);
-  myJoin->setInput(1, myScanSet2);
-  myJoin->setInput(2, mySelection);
-  Handle<Computation> myAggregation = makeObject<IntAggregation>();
-  myAggregation->setInput(myJoin);
-  Handle<Computation> myWriter = makeObject<WriteUserSet<SumResult>>("test78_db", "output_set1");
-  myWriter->setInput(myAggregation);
+  Handle<Computation> myScanSet = makeObject<ScanBuiltinEmployeeSet>("chris_db", "chris_set");
+  Handle<Computation> myQuery = makeObject<AllSelectionWithCreation>();
+  myQuery->setInput(myScanSet);
+  Handle<Computation> myWriteSet = makeObject<WriteBuiltinEmployeeSet>("chris_db", "output_set1");
+  myWriteSet->setInput(myQuery);
 
   std::vector<Handle<Computation>> queryGraph;
-  queryGraph.push_back(myWriter);
+  queryGraph.push_back(myWriteSet);
   QueryGraphAnalyzer queryAnalyzer(queryGraph);
   std::string tcapString = queryAnalyzer.parseTCAPString();
   std::cout << "TCAP OUTPUT:" << std::endl;

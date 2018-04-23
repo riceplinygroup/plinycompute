@@ -16,24 +16,37 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_SHUFFLEPIPENODE_H
-#define PDB_SHUFFLEPIPENODE_H
+#ifndef PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
+#define PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
 
-#include "AdvancedPhysicalNode.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
 
 namespace pdb {
 
-class AdvancedPhysicalShufflePipeNode : public AdvancedPhysicalNode {
- public:
-  AdvancedPhysicalShufflePipeNode(string &jobId,
-                                  Handle<ComputePlan> &computePlan,
-                                  LogicalPlanPtr &logicalPlan,
-                                  ConfigurationPtr &conf,
-                                  vector<AtomicComputationPtr> &pipeComputations,
-                                  size_t id);
+class AdvancedPhysicalStraightPipeline : public AdvancedPhysicalAbstractPipeline {
+public:
+
+  AdvancedPhysicalStraightPipeline(string &jobId,
+                                   Handle<ComputePlan> &computePlan,
+                                   LogicalPlanPtr &logicalPlan,
+                                   ConfigurationPtr &conf,
+                                   vector<AtomicComputationPtr> &pipeComputations,
+                                   size_t id);
+  /**
+   * Returns true if this is pipelinable
+   * @param node
+   * @return true if node can be pipelined to this pipeline
+   */
+  bool isPipelinable(AdvancedPhysicalPipelineNodePtr node) override;
+
+  /**
+   * Selects the output algorithm for this pipeline
+   * @return selects the output algorithm for this pipeline
+   */
+  AdvancedPhysicalAbstractAlgorithmPtr selectOutputAlgorithm() override;
 
 };
 
 }
 
-#endif //PDB_SHUFFLEPIPENODE_H
+#endif //PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H

@@ -39,10 +39,10 @@ SimplePhysicalNode::SimplePhysicalNode(string jobId,
   }
 }
 
-PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(const StatisticsPtr &stats, int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(const pdb::StatisticsPtr &stats, int nextStageID) {
 
   // create a job stage builder
-  TupleSetJobStageBuilderPtr jobStageBuilder = make_shared<TupleSetJobStageBuilder>();
+  pdb::TupleSetJobStageBuilderPtr jobStageBuilder = make_shared<TupleSetJobStageBuilder>();
 
   // the input to the pipeline is the output set of the source node
   jobStageBuilder->setSourceTupleSetName(node->getOutputName());
@@ -108,7 +108,7 @@ bool SimplePhysicalNode::hasConsumers() {
   return !activeConsumers.empty();
 }
 
-void SimplePhysicalNode::addConsumer(const AbstractPhysicalNodePtr &consumer) {
+void SimplePhysicalNode::addConsumer(const pdb::AbstractPhysicalNodePtr &consumer) {
   // call the consumer
   AbstractPhysicalNode::addConsumer(consumer);
 
@@ -183,8 +183,6 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
   tupleStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
-
-
 
   // create the job stage
   Handle<TupleSetJobStage> jobStage = tupleStageBuilder->build();

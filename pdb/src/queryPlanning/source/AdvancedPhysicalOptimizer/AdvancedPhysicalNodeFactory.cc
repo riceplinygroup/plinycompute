@@ -17,9 +17,9 @@
  *****************************************************************************/
 
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalNodeFactory.h"
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalShufflePipeNode.h"
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalStraightPipeNode.h"
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAggregationPipeNode.h"
+#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalAggregationPipeline.h"
+#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h"
+#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalStraightPipeline.h"
 
 namespace pdb {
 
@@ -47,8 +47,8 @@ vector<AbstractPhysicalNodePtr> AdvancedPhysicalNodeFactory::generateAnalyzerGra
   // connect the pipes
   connectThePipes();
 
-  // dummy
-  return vector<AbstractPhysicalNodePtr>();
+  // return the generated source nodes
+  return this->physicalSourceNodes;
 }
 
 void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr &curNode) {
@@ -70,8 +70,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
     case HashRightTypeID: {
 
       // we got a hash operation, create a shuffle pipe
-      currentPipe.push_back(curNode);
-      createShufflePipe();
+      createPhysicalPipeline<AdvancedPhysicalJoinSidePipeline>();
       currentPipe.clear();
 
       break;
@@ -79,8 +78,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
     case ApplyAggTypeID: {
 
       // we got a aggregation so we need to create an aggregation shuffle pipe
-      currentPipe.push_back(curNode);
-      createAggregationPipe();
+      createPhysicalPipeline<AdvancedPhysicalAggregationPipeline>();
       currentPipe.clear();
 
       break;
@@ -88,8 +86,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
     case WriteSetTypeID: {
 
       // write set also breaks the pipe because this is where the pipe ends
-      currentPipe.push_back(curNode);
-      createStraightPipe();
+      createPhysicalPipeline<AdvancedPhysicalStraightPipeline>();
       currentPipe.clear();
     }
     default: {
@@ -107,7 +104,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
 
     // this is a pipeline breaker create a pipe
     currentPipe.push_back(curNode);
-    createStraightPipe();
+    createPhysicalPipeline<AdvancedPhysicalStraightPipeline>();
     currentPipe.clear();
   }
 
@@ -118,46 +115,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
   }
 }
 
-void AdvancedPhysicalNodeFactory::createShufflePipe() {
-
-  // create the node
-  auto node = std::make_shared<AdvancedPhysicalShufflePipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
-
-  // store the name of the atomic computation this pipe starts with so we can later use them to link the pipes
-  startsWith[currentPipe.front()->getOutputName()] = node;
-
-  // update all the node connections
-  updateConnections(node);
-
-  // add the pipe to the physical nodes
-  physicalNodes[node->getNodeIdentifier()] = node;
-}
-
-void AdvancedPhysicalNodeFactory::createStraightPipe() {
-
-  // create the node
-  auto node = std::make_shared<AdvancedPhysicalStraightPipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
-
-  // update all the node connections
-  updateConnections(node);
-
-  // add the pipe to the physical nodes
-  physicalNodes[node->getNodeIdentifier()] = node;
-}
-
-void AdvancedPhysicalNodeFactory::createAggregationPipe() {
-
-  // create the node
-  auto node = std::make_shared<AdvancedPhysicalAggregationPipeNode>(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
-
-  // update all the node connections
-  updateConnections(node);
-
-  // add the pipe to the physical nodes
-  physicalNodes[node->getNodeIdentifier()] = node;
-}
-
-void AdvancedPhysicalNodeFactory::updateConnections(shared_ptr<AdvancedPhysicalNode> node) {
+void AdvancedPhysicalNodeFactory::setConsumers(shared_ptr<AdvancedPhysicalAbstractPipeline> node) {
 
   // all the consumers of these pipes
   std::vector<std::string> consumers;

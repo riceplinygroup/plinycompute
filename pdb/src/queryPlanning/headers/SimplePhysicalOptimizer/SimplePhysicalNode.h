@@ -109,9 +109,9 @@ protected:
    * @return the result will contain a partial physical plan
    */
   virtual PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                      SimplePhysicalNodePtr &prevNode,
-                                                      const StatisticsPtr &stats,
-                                                      int nextStageID);
+                                                           SimplePhysicalNodePtr &prevNode,
+                                                           const StatisticsPtr &stats,
+                                                           int nextStageID);
 
   /**
    * This method is called if we do not have any consumers thus this is an output node
@@ -126,9 +126,9 @@ protected:
    * @return the result will contain a partial physical plan
    */
   virtual PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimplePhysicalNodePtr &prevNode,
-                                              const StatisticsPtr &stats,
-                                              int nextStageID);
+                                                   SimplePhysicalNodePtr &prevNode,
+                                                   const StatisticsPtr &stats,
+                                                   int nextStageID);
 
   /**
    * This method is called if we have multiple consumers thus this node needs to materialized
@@ -144,9 +144,9 @@ protected:
    * @return the result will contain a partial physical plan
    */
   virtual PhysicalOptimizerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
-                                                         SimplePhysicalNodePtr &prevNode,
-                                                         const StatisticsPtr &stats,
-                                                         int nextStageID);
+                                                              SimplePhysicalNodePtr &prevNode,
+                                                              const StatisticsPtr &stats,
+                                                              int nextStageID);
 
   /**
    * Returns the identifier of this node in this case in the form of <databaseName>:<setName>
