@@ -94,6 +94,13 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
 
   // copy the computation names
   for(const auto &it : this->pipeComputations) {
+
+    // we don't need the output set name... (that is jsut the way the pipeline building works)
+    if(it->getAtomicComputationTypeID() == WriteSetTypeID) {
+      continue;
+    }
+
+    // add the set name of the atomic computation to the pipeline
     tupleStageBuilder->addTupleSetToBuildPipeline(it->getOutputName());
   }
 

@@ -67,25 +67,23 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
   void createPhysicalPipeline() {
 
     // create the node
-    auto node = std::make_shared<T>(jobId,
-                                    computePlan,
-                                    logicalPlan,
-                                    conf,
-                                    currentPipe,
-                                    currentNodeIndex++);
+    auto node = new T(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
+
+    // create the node handle
+    auto nodeHandle = node->getAdvancedPhysicalNodeHandle();
 
     // update all the node connections
-    setConsumers(node);
+    setConsumers(nodeHandle);
 
     // is this a source node
-    if(node->isSource()) {
+    if(nodeHandle->isSource()) {
 
       // add the source node
-      physicalSourceNodes.push_back(node);
+      physicalSourceNodes.push_back(nodeHandle);
     }
 
     // add the pipe to the physical nodes
-    physicalNodes[node->getNodeIdentifier()] = node;
+    physicalNodes[nodeHandle->getNodeIdentifier()] = nodeHandle;
   }
 
   /**

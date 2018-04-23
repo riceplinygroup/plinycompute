@@ -31,6 +31,7 @@
 #include <ctime>
 #include <chrono>
 #include <SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h>
+#include <AdvancedPhysicalOptimizer/AdvancedPhysicalNodeFactory.h>
 
 namespace pdb {
 
@@ -620,7 +621,7 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
       auto sourcesComputations = computationGraph.getAllScanSets();
 
       // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
-      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
+      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<AdvancedPhysicalNodeFactory>(jobId,
                                                                                                           computePlan,
                                                                                                           conf);
 

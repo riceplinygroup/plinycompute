@@ -25,9 +25,9 @@ function(add_pdb_application test-name)
 
     # create the target
     add_executable(${test-name} "${test-path}/${test-name}.cc"
-            $<TARGET_OBJECTS:logical-plan-parser>
-            $<TARGET_OBJECTS:linear-algebra-parser>
-            $<TARGET_OBJECTS:pdb-client>)
+                                 $<TARGET_OBJECTS:logical-plan-parser>
+                                 $<TARGET_OBJECTS:linear-algebra-parser>
+                                 $<TARGET_OBJECTS:pdb-client>)
 
     # link it to the required libraries
     target_link_libraries(${test-name} pdb-tests-common)
