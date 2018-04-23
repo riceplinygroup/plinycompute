@@ -42,20 +42,22 @@
 #include <ScanBuiltinEmployeeSet.h>
 #include <AllSelectionWithCreation.h>
 #include <WriteBuiltinEmployeeSet.h>
+#include <ScanSupervisorSet.h>
+#include <SimpleGroupBy.h>
 
 using namespace pdb;
 int main(int argc, char *argv[]) {
   const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
   // create all of the computation objects
-  Handle<Computation> myScanSet = makeObject<ScanBuiltinEmployeeSet>("chris_db", "chris_set");
-  Handle<Computation> myQuery = makeObject<AllSelectionWithCreation>();
-  myQuery->setInput(myScanSet);
-  Handle<Computation> myWriteSet = makeObject<WriteBuiltinEmployeeSet>("chris_db", "output_set1");
-  myWriteSet->setInput(myQuery);
+  // create all of the computation objects
+  Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test87_db", "test87_set");
+  Handle<Computation> myAgg = makeObject<SimpleGroupBy>("test87_db", "output_set");
+  myAgg->setAllocatorPolicy(noReuseAllocator);
+  myAgg->setInput(myScanSet);
 
   std::vector<Handle<Computation>> queryGraph;
-  queryGraph.push_back(myWriteSet);
+  queryGraph.push_back(myAgg);
   QueryGraphAnalyzer queryAnalyzer(queryGraph);
   std::string tcapString = queryAnalyzer.parseTCAPString();
   std::cout << "TCAP OUTPUT:" << std::endl;

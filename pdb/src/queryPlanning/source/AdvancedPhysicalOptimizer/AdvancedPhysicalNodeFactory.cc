@@ -36,6 +36,7 @@ vector<AbstractPhysicalNodePtr> AdvancedPhysicalNodeFactory::generateAnalyzerGra
 
     // go trough each consumer of this node
     for(const auto &consumer : computationGraph.getConsumingAtomicComputations(source->getOutputName())) {
+
       // we start with a source so we push that back
       currentPipe.push_back(source);
 
@@ -113,7 +114,6 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
 
   // go through each consumer and transverse to get the next pipe
   for(auto &consumer : consumers) {
-    std::cout << consumers.front()->getOutput() << std::endl;
     currentPipe.push_back(consumers.front());
     transverseTCAPGraph(consumers.front());
   }

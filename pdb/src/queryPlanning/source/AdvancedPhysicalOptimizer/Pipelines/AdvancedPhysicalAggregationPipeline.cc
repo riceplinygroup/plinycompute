@@ -17,6 +17,7 @@
  *****************************************************************************/
 
 
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalAggregationAlgorithm.h>
 #include "SimplePhysicalOptimizer/SimplePhysicalPartitionNode.h"
 #include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalAggregationPipeline.h"
 
@@ -40,7 +41,13 @@ bool AdvancedPhysicalAggregationPipeline::isPipelinable(AdvancedPhysicalPipeline
 }
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::selectOutputAlgorithm() {
-  return pdb::AdvancedPhysicalAbstractAlgorithmPtr();
+  return std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                jobId,
+                                                                sourceSetIdentifier,
+                                                                pipeComputations,
+                                                                computePlan,
+                                                                logicalPlan,
+                                                                conf);
 }
 
 
