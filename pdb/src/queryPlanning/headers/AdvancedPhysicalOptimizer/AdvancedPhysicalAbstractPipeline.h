@@ -66,6 +66,14 @@ public:
    */
   PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
 
+
+  /**
+   * Pipelines the provided pipeline to this pipeline
+   * @param pipeline - the pipeline we are providing
+   * @return the result of the pipelining
+   */
+  virtual PhysicalOptimizerResultPtr pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) = 0;
+
   /**
    * Returns true if this is pipelinable
    * @param node
@@ -86,7 +94,7 @@ public:
   virtual AdvancedPhysicalPipelineTypeID getType() = 0;
 
   /**
-   * Selects the output algorithm for this pipeline
+   * Selects the output algorithm for the output of this pipeline
    * @return selects the output algorithm for this pipeline
    */
   virtual AdvancedPhysicalAbstractAlgorithmPtr selectOutputAlgorithm() = 0;
@@ -96,6 +104,13 @@ public:
    * @return a vector of possible algorithms
    */
   virtual std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) = 0;
+
+  /**
+   * Out of all algorithms given to him this node picks one a proposes it
+   * @param algorithms - the algorithms that are available
+   * @return the picked algorithm
+   */
+  virtual AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) = 0;
 
   /**
    * Returns the the algorithm the we executed. If we did not executed any algorithm we return a null_ptr

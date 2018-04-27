@@ -130,7 +130,19 @@ public:
     consumer->producers.push_back(getHandle());
   }
 
-protected:
+  /**
+   * This method is used to cast the handle to cast the abstract node to different kinds of node based on the
+   * template parameter T
+   * @tparam T - the tipe we want to cast the handle into
+   * @return a shared pointer handle of the provided type
+   */
+  template<typename T>
+  std::shared_ptr<T> to() {
+    return std::dynamic_pointer_cast<T>(getHandle());
+  }
+
+
+ protected:
 
   /**
    * The jobId for this query (can be any string that is can be a database name)

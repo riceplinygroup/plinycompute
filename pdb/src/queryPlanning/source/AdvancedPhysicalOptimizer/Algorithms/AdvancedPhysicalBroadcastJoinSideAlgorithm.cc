@@ -18,7 +18,7 @@
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <JobStageBuilders/BroadcastJoinBuildHTJobStageBuilder.h>
-#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastJoinSideAlgorithm.h"
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastJoinSideAlgorithm.h>
 
 AdvancedPhysicalBroadcastJoinSideAlgorithm::AdvancedPhysicalBroadcastJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                        const std::string &jobID,

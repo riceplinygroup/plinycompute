@@ -100,12 +100,51 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::g
   return algorithms;
 }
 
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+
+  //TODO this is just some placeholder logic to select the broadcast join if we can
+  AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
+
+  // go through each algorithm
+  for(const auto &algorithm : algorithms) {
+
+    // we prefer the broadcast algorithm, but if we have none we are fine
+    if(algorithm->getType() == JOIN_BROADCAST_ALGORITHM || best == nullptr) {
+
+      // select the best algorithm
+      best = algorithm;
+    }
+  }
+
+  // if this is false there is something seriously wrong with our system
+  assert(best != nullptr);
+
+  // return the chosen algorithm
+  return best;
+}
+
 bool AdvancedPhysicalJoinSidePipeline::isExecuted() {
   return false;
 }
 
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipeline::getType() {
   return JOIN_SIDE;
+}
+
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinSidePipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
+
+  // can I pipeline more if so do it
+  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
+
+    // add me to the pipeline
+    pipeline.push_back(getAdvancedPhysicalNodeHandle());
+
+    // pipeline this node to the consumer
+    consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipeline);
+  }
+
+  // ok we ca not pipeline lets select the output algorithm and run this thing
+  return selectOutputAlgorithm()->generate(nextStageID);
 }
 
 }

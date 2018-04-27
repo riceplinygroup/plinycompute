@@ -23,11 +23,11 @@
 
 namespace pdb {
 
-class AdvancedPhysicalJoinAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+class AdvancedPhysicalBroadcastJoinAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
 
 public:
 
-  AdvancedPhysicalJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+  AdvancedPhysicalBroadcastJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                 const std::string &jobID,
                                 const Handle<SetIdentifier> &source,
                                 const vector<AtomicComputationPtr> &pipeComputations,

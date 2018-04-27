@@ -36,6 +36,10 @@ AdvancedPhysicalAggregationPipeline::AdvancedPhysicalAggregationPipeline(string 
                                                                                               pipeComputations,
                                                                                               id) {}
 
+PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
+  return nullptr;
+}
+
 bool AdvancedPhysicalAggregationPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
   return false;
 }
@@ -64,6 +68,9 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline
   return ret;
 }
 
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+  return nullptr;
+}
 
 bool AdvancedPhysicalAggregationPipeline::isExecuted() {
   return false;

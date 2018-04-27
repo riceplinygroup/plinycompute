@@ -34,6 +34,10 @@ AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId
                                                                                                     pipeComputations,
                                                                                                     id) {}
 
+PhysicalOptimizerResultPtr AdvancedPhysicalStraightPipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
+  return nullptr;
+}
+
 bool AdvancedPhysicalStraightPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
 
   // if this is a straight pipeline and it has only one producer (check number of producer is not needed)
@@ -63,6 +67,10 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeli
                                                                                                                  conf) };
 
   return ret;
+}
+
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+  return nullptr;
 }
 
 bool AdvancedPhysicalStraightPipeline::isExecuted() {

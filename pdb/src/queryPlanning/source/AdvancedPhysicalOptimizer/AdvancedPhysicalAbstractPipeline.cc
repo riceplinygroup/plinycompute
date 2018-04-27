@@ -52,10 +52,13 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
 
 
   /// 1. check if this this thing is pipelinable to the consumer
-  if(consumers.size() == 1 && std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(consumers.front())->isPipelinable(getAdvancedPhysicalNodeHandle())) {
+  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
+
+    // we start with pipelining this pipeline maybe we will pipeline more
+    std::vector<AdvancedPhysicalPipelineNodePtr> pipelines = { getAdvancedPhysicalNodeHandle() };
 
     // do the logic for the pipelining
-
+    return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipelines);
   }
 
   /// 2. is this a final operator
@@ -64,14 +67,12 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
   }
 
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
-
   // TODO for now I assume I have only one consumer
-  consumers.front()->propose(getPossibleAlgorithms(stats));
-
-  return pdb::PhysicalOptimizerResultPtr();
+  return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats))->generate(nextStageID);
 }
 
 double AdvancedPhysicalAbstractPipeline::getCost(const StatisticsPtr &stats) {
+
   // do we have statistics, if not just return 0
   if(stats == nullptr) {
     return 0;

@@ -16,9 +16,9 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinAlgorithm.h"
+#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastJoinAlgorithm.h"
 
-AdvancedPhysicalJoinAlgorithm::AdvancedPhysicalJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalBroadcastJoinAlgorithm::AdvancedPhysicalBroadcastJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                              const std::string &jobID,
                                                              const Handle<SetIdentifier> &source,
                                                              const vector<AtomicComputationPtr> &pipeComputations,
@@ -33,11 +33,11 @@ AdvancedPhysicalJoinAlgorithm::AdvancedPhysicalJoinAlgorithm(const AdvancedPhysi
                                                                                                  logicalPlan,
                                                                                                  conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinAlgorithm::generate(int nextStageID) {
   return pdb::PhysicalOptimizerResultPtr();
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinAlgorithm::getType() {
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalBroadcastJoinAlgorithm::getType() {
   return JOIN_ALGORITHM;
 }
 
