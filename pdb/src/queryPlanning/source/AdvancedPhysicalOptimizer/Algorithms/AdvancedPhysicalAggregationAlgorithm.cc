@@ -169,5 +169,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationAlgorithm::generate(int ne
   return result;
 }
 
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalAggregationAlgorithm::getType() {
+  return AGGREGATION_ALGORITHM;
+}
+
 }
 

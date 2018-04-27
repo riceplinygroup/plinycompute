@@ -41,6 +41,13 @@ class AdvancedPhysicalAggregationAlgorithm : public AdvancedPhysicalAbstractAlgo
    */
   PhysicalOptimizerResultPtr generate(int nextStageID) override;
 
+
+  /**
+   * Returns the type of the algorithm
+   * @return the type id
+   */
+  AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
+
 };
 
 }

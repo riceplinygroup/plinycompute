@@ -35,7 +35,9 @@ AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId
                                                                                                     id) {}
 
 bool AdvancedPhysicalStraightPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
-  return false;
+
+  // if this is a straight pipeline and it has only one producer (check number of producer is not needed)
+  return producers.size() == 1 && node->getType() == STRAIGHT;
 }
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOutputAlgorithm() {
@@ -47,6 +49,14 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOut
                                                               computePlan,
                                                               logicalPlan,
                                                               conf);
+}
+
+bool AdvancedPhysicalStraightPipeline::isExecuted() {
+  return false;
+}
+
+AdvancedPhysicalPipelineTypeID AdvancedPhysicalStraightPipeline::getType() {
+  return STRAIGHT;
 }
 
 }

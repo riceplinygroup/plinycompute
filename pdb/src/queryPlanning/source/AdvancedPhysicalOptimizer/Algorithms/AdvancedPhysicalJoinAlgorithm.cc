@@ -37,3 +37,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinAlgorithm::generate(int nextStage
   return pdb::PhysicalOptimizerResultPtr();
 }
 
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinAlgorithm::getType() {
+  return JOIN_ALGORITHM;
+}
+

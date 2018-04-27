@@ -23,6 +23,15 @@
 
 namespace pdb {
 
+
+enum AdvancedPhysicalAbstractAlgorithmTypeID {
+  SELECTION_ALGORITHM,
+  AGGREGATION_ALGORITHM,
+  JOIN_ALGORITHM,
+  JOIN_BROADCAST_ALGORITHM,
+  JOIN_HASH_ALGORITHM
+};
+
 class AdvancedPhysicalAbstractAlgorithm;
 typedef std::shared_ptr<AdvancedPhysicalAbstractAlgorithm> AdvancedPhysicalAbstractAlgorithmPtr;
 
@@ -43,6 +52,12 @@ class AdvancedPhysicalAbstractAlgorithm {
    * @return
    */
   virtual PhysicalOptimizerResultPtr generate(int nextStageID) = 0;
+
+  /**
+   * Returns the type of the algorithm
+   * @return the type id
+   */
+  virtual AdvancedPhysicalAbstractAlgorithmTypeID getType() = 0;
 
  protected:
 

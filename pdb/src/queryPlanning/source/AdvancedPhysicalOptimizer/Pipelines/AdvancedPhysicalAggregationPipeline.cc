@@ -50,6 +50,13 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::select
                                                                 conf);
 }
 
+bool AdvancedPhysicalAggregationPipeline::isExecuted() {
+  return false;
+}
+
+AdvancedPhysicalPipelineTypeID AdvancedPhysicalAggregationPipeline::getType() {
+  return AGGREGATION;
+}
 
 }
 

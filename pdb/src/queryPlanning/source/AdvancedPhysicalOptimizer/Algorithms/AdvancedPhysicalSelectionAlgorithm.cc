@@ -127,4 +127,8 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
   return result;
 }
 
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalSelectionAlgorithm::getType() {
+  return SELECTION_ALGORITHM;
+}
+
 }

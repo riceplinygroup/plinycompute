@@ -41,6 +41,18 @@ public:
   bool isPipelinable(AdvancedPhysicalPipelineNodePtr node) override;
 
   /**
+   * If this operator is executed returns true false otherwise.
+   * @return  true if it is false otherwise
+   */
+  bool isExecuted() override;
+
+  /**
+   * Returns the type of this pipeline
+   * @return the type
+   */
+  AdvancedPhysicalPipelineTypeID getType() override;
+
+  /**
    * Selects the output algorithm for this pipeline
    * @return selects the output algorithm for this pipeline
    */

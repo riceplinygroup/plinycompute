@@ -30,7 +30,9 @@ AdvancedPhysicalAbstractPipeline::AdvancedPhysicalAbstractPipeline(string &jobId
                                                                              computePlan,
                                                                              logicalPlan,
                                                                              conf),
-                                                        pipeComputations(pipeComputations), id(id) {
+                                                        pipeComputations(pipeComputations),
+                                                        selectedAlgorithm(nullptr),
+                                                        id(id) {
 
   // if this node is a scan set we want to create a set identifier for it
   if(isSource()) {
@@ -48,10 +50,12 @@ AdvancedPhysicalAbstractPipeline::AdvancedPhysicalAbstractPipeline(string &jobId
 
 PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const StatisticsPtr &stats, int nextStageID) {
 
+
   /// 1. check if this this thing is pipelinable to the consumer
   if(consumers.size() == 1 && std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(consumers.front())->isPipelinable(getAdvancedPhysicalNodeHandle())) {
 
     // do the logic for the pipelining
+
   }
 
   /// 2. is this a final operator
@@ -82,8 +86,11 @@ double AdvancedPhysicalAbstractPipeline::getCost(const StatisticsPtr &stats) {
   return double((size_t) cost / 1000000);
 }
 
-AdvancedPhysicalPipelineNodePtr AdvancedPhysicalAbstractPipeline::getAdvancedPhysicalNodeHandle() {
+const AdvancedPhysicalAbstractAlgorithmPtr &AdvancedPhysicalAbstractPipeline::getSelectedAlgorithm() const {
+  return selectedAlgorithm;
+}
 
+AdvancedPhysicalPipelineNodePtr AdvancedPhysicalAbstractPipeline::getAdvancedPhysicalNodeHandle() {
   // return the handle to this node
   return std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(getHandle());
 }
@@ -100,6 +107,10 @@ bool AdvancedPhysicalAbstractPipeline::isSource() {
 
   // check whether the first node is a scan set
   return !pipeComputations.empty() && pipeComputations.front()->getAtomicComputationTypeID() == ScanSetAtomicTypeID;
+}
+
+AtomicComputationPtr AdvancedPhysicalAbstractPipeline::getPipelineComputationAt(size_t idx) {
+  return this->pipeComputations[idx];
 }
 
 }

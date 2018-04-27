@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastAlgorithm.h"
+#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastAlgorithm.h"
 
 AdvancedPhysicalBroadcastAlgorithm::AdvancedPhysicalBroadcastAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                        const std::string &jobID,
@@ -35,6 +35,10 @@ AdvancedPhysicalBroadcastAlgorithm::AdvancedPhysicalBroadcastAlgorithm(const Adv
 
 PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastAlgorithm::generate(int nextStageID) {
   return pdb::PhysicalOptimizerResultPtr();
+}
+
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalBroadcastAlgorithm::getType() {
+  return JOIN_BROADCAST_ALGORITHM;
 }
 
 
