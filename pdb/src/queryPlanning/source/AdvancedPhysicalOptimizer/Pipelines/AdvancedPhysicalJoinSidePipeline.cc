@@ -17,6 +17,7 @@
  *****************************************************************************/
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastJoinSideAlgorithm.h>
 #include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h"
 
 namespace pdb {
@@ -62,7 +63,41 @@ bool AdvancedPhysicalJoinSidePipeline::isPipelinable(AdvancedPhysicalPipelineNod
 }
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::selectOutputAlgorithm() {
+
+  // this should never happen
+  static_assert("A join side can never be an output. Something bad happened", "");
+
+  // return a dummy
   return pdb::AdvancedPhysicalAbstractAlgorithmPtr();
+}
+
+vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
+
+  // all the algorithms that we can use
+  vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms;
+
+  // check if we can use a broadcast algorithm
+  if(getCost(stats) < BROADCAST_JOIN_COST_THRESHOLD) {
+    algorithms.push_back(std::make_shared<AdvancedPhysicalBroadcastJoinSideAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                              jobId,
+                                                                              sourceSetIdentifier,
+                                                                              pipeComputations,
+                                                                              computePlan,
+                                                                              logicalPlan,
+                                                                              conf));
+  }
+
+  // we can always do a shuffle algorithm
+  algorithms.push_back(std::make_shared<AdvancedPhysicalBroadcastJoinSideAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                            jobId,
+                                                                            sourceSetIdentifier,
+                                                                            pipeComputations,
+                                                                            computePlan,
+                                                                            logicalPlan,
+                                                                            conf));
+  // we can also do a straight pipe
+
+  return algorithms;
 }
 
 bool AdvancedPhysicalJoinSidePipeline::isExecuted() {

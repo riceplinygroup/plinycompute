@@ -16,24 +16,32 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALBROADCASTALGORITHM_H
-#define PDB_ADVANCEDPHYSICALBROADCASTALGORITHM_H
+#ifndef PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
+#define PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-class AdvancedPhysicalBroadcastAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+class AdvancedPhysicalShuffleJoinSideAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
 
 public:
 
-  AdvancedPhysicalBroadcastAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                     const std::string &jobID,
-                                     const Handle<SetIdentifier> &source,
-                                     const vector<AtomicComputationPtr> &pipeComputations,
-                                     const Handle<ComputePlan> &computePlan,
-                                     const LogicalPlanPtr &logicalPlan,
-                                     const ConfigurationPtr &conf);
+  /**
+   *
+   * @param handle
+   * @param nextStageID
+   * @param pipeComputations
+   * @param logicalPlan
+   * @param conf
+   */
+  AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                       const std::string &jobID,
+                                       const Handle<SetIdentifier> &source,
+                                       const vector<AtomicComputationPtr> &pipeComputations,
+                                       const Handle<ComputePlan> &computePlan,
+                                       const LogicalPlanPtr &logicalPlan,
+                                       const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
@@ -50,6 +58,4 @@ public:
 
 }
 
-
-
-#endif //PDB_ADVANCEDPHYSICALBROADCASTALGORITHM_H
+#endif //PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H

@@ -89,7 +89,13 @@ public:
    * Selects the output algorithm for this pipeline
    * @return selects the output algorithm for this pipeline
    */
-  virtual shared_ptr<AdvancedPhysicalAbstractAlgorithm> selectOutputAlgorithm() = 0;
+  virtual AdvancedPhysicalAbstractAlgorithmPtr selectOutputAlgorithm() = 0;
+
+  /**
+   * Returns all the possible algorithms that can be used to execute the pipeline
+   * @return a vector of possible algorithms
+   */
+  virtual std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) = 0;
 
   /**
    * Returns the the algorithm the we executed. If we did not executed any algorithm we return a null_ptr

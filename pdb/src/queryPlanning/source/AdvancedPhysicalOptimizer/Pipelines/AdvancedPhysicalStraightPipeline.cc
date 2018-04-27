@@ -51,6 +51,20 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOut
                                                               conf);
 }
 
+std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
+
+  // currently every straight pipeline is realized as a selection
+  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                                                                 jobId,
+                                                                                                                 sourceSetIdentifier,
+                                                                                                                 pipeComputations,
+                                                                                                                 computePlan,
+                                                                                                                 logicalPlan,
+                                                                                                                 conf) };
+
+  return ret;
+}
+
 bool AdvancedPhysicalStraightPipeline::isExecuted() {
   return false;
 }

@@ -50,6 +50,21 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::select
                                                                 conf);
 }
 
+vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
+
+  // currently every straight pipeline is realized as a selection
+  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                                                                   jobId,
+                                                                                                                   sourceSetIdentifier,
+                                                                                                                   pipeComputations,
+                                                                                                                   computePlan,
+                                                                                                                   logicalPlan,
+                                                                                                                   conf) };
+
+  return ret;
+}
+
+
 bool AdvancedPhysicalAggregationPipeline::isExecuted() {
   return false;
 }

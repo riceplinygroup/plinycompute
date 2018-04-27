@@ -63,8 +63,10 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
     return selectOutputAlgorithm()->generate(nextStageID);
   }
 
-  /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operator
+  /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
 
+  // TODO for now I assume I have only one consumer
+  consumers.front()->propose(getPossibleAlgorithms(stats));
 
   return pdb::PhysicalOptimizerResultPtr();
 }

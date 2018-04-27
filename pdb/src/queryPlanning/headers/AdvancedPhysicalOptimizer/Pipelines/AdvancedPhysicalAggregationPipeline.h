@@ -57,6 +57,12 @@ public:
    * @return selects the output algorithm for this pipeline
    */
   AdvancedPhysicalAbstractAlgorithmPtr selectOutputAlgorithm() override;
+
+  /**
+   * Returns all the possible algorithms that can be used to execute the pipeline
+   * @return a vector of possible algorithms
+   */
+  vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
 };
 
 }

@@ -19,24 +19,24 @@
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <JobStageBuilders/HashPartitionedJoinBuildHTJobStageBuilder.h>
 #include <JoinComp.h>
-#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinHashAlgorithm.h"
+#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalShuffleJoinSideAlgorithm.h"
 
-AdvancedPhysicalShuffleJoinAlgorithm::AdvancedPhysicalShuffleJoinAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                                                           const std::string &jobID,
-                                                                           const Handle<SetIdentifier> &source,
-                                                                           const vector<AtomicComputationPtr> &pipeComputations,
-                                                                           const Handle<ComputePlan> &computePlan,
-                                                                           const LogicalPlanPtr &logicalPlan,
-                                                                           const ConfigurationPtr &conf)
-                                                                           : AdvancedPhysicalAbstractAlgorithm(handle,
-                                                                                                               jobID,
-                                                                                                               source,
-                                                                                                               pipeComputations,
-                                                                                                               computePlan,
-                                                                                                               logicalPlan,
-                                                                                                               conf) {}
+AdvancedPhysicalShuffleJoinSideAlgorithm::AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                                                                   const std::string &jobID,
+                                                                                   const Handle<SetIdentifier> &source,
+                                                                                   const vector<AtomicComputationPtr> &pipeComputations,
+                                                                                   const Handle<ComputePlan> &computePlan,
+                                                                                   const LogicalPlanPtr &logicalPlan,
+                                                                                   const ConfigurationPtr &conf)
+                                                                                   : AdvancedPhysicalAbstractAlgorithm(handle,
+                                                                                                                       jobID,
+                                                                                                                       source,
+                                                                                                                       pipeComputations,
+                                                                                                                       computePlan,
+                                                                                                                       logicalPlan,
+                                                                                                                       conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generate(int nextStageID) {
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -75,21 +75,6 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinAlgorithm::generate(int ne
   // create a tuple set job stage builder
   TupleSetJobStageBuilderPtr tupleStageBuilder = make_shared<TupleSetJobStageBuilder>();
 
-  // the input to the pipeline is the output set of the source node
-  tupleStageBuilder->setSourceTupleSetName(sourceAtomicComputation->getOutputName());
-
-  // set the source set identifier
-  tupleStageBuilder->setSourceContext(source);
-
-  // is this source a result of an aggregation
-  tupleStageBuilder->setInputAggHashOut(source->isAggregationResult());
-
-  // set the job id
-  tupleStageBuilder->setJobId(jobID);
-
-  // set the compute plan
-  tupleStageBuilder->setComputePlan(computePlan);
-
   // copy the computation names
   for(const auto &it : this->pipeComputations) {
 
@@ -103,6 +88,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinAlgorithm::generate(int ne
   }
 
   // set the parameters
+  tupleStageBuilder->setSourceTupleSetName(sourceAtomicComputation->getOutputName());
+  tupleStageBuilder->setSourceContext(source);
+  tupleStageBuilder->setInputAggHashOut(source->isAggregationResult());
+  tupleStageBuilder->setJobId(jobID);
+  tupleStageBuilder->setComputePlan(computePlan);
   tupleStageBuilder->setJobStageId(nextStageID++);
   tupleStageBuilder->setTargetTupleSetName(finalAtomicComputationName);
   tupleStageBuilder->setTargetComputationName(computationSpecifier);
@@ -129,7 +119,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinAlgorithm::generate(int ne
 
   // set the parameters
   hashBuilder->setJobId(jobID);
-  hashBuilder->setJobStageId(nextStageID++);
+  hashBuilder->setJobStageId(nextStageID);
   hashBuilder->setSourceTupleSetName(joinPrepStage->getSourceTupleSetSpecifier());
   hashBuilder->setTargetTupleSetName(finalAtomicComputationName);
   hashBuilder->setTargetComputationName(computationSpecifier);
@@ -143,9 +133,13 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinAlgorithm::generate(int ne
   // add the stage to the list of stages to be executed
   result->physicalPlanToOutput.emplace_back(joinPartitionStage);
 
+  // set the remaining parameters of the result
+  result->success = true;
+  result->newSourceComputation = nullptr;
+
   return result;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffleJoinAlgorithm::getType() {
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffleJoinSideAlgorithm::getType() {
   return JOIN_HASH_ALGORITHM;
 }
