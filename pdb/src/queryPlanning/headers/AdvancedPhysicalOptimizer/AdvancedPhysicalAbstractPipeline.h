@@ -72,7 +72,9 @@ public:
    * @param pipeline - the pipeline we are providing
    * @return the result of the pipelining
    */
-  virtual PhysicalOptimizerResultPtr pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline);
+  virtual PhysicalOptimizerResultPtr pipelineMe(int nextStageID,
+                                                std::vector<AdvancedPhysicalPipelineNodePtr> pipeline,
+                                                const StatisticsPtr &stats);
 
   /**
    * Returns true if this is pipelinable

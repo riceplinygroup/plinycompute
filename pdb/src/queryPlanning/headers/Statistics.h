@@ -63,6 +63,11 @@ public:
     }
   }
 
+  void addSet(std::string databaseName, std::string setName, DataStatistics &stats) {
+    std::string key = databaseName + ":" + setName;
+    dataStatistics[key] = stats;
+  }
+
   // to return number of pages of a set
   int getNumPages(std::string databaseName, std::string setName) {
     std::string key = databaseName + ":" + setName;

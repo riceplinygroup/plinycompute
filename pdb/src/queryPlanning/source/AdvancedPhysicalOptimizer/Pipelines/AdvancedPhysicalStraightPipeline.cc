@@ -36,14 +36,16 @@ AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOutputAlgorithm() {
 
-  return std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
-                                                              jobId,
-                                                              isJoining(),
-                                                              sourceSetIdentifier,
-                                                              pipeComputations,
-                                                              computePlan,
-                                                              logicalPlan,
-                                                              conf);
+  selectedAlgorithm = std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                           jobId,
+                                                                           isJoining(),
+                                                                           sourceSetIdentifier,
+                                                                           pipeComputations,
+                                                                           computePlan,
+                                                                           logicalPlan,
+                                                                           conf);
+
+  return selectedAlgorithm;
 }
 
 std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
@@ -62,7 +64,26 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeli
 }
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
-  return nullptr;
+
+  //TODO this is just some placeholder logic to select the broadcast join if we can
+  AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
+
+  // go through each algorithm
+  for (const auto &algorithm : algorithms) {
+
+    // we prefer the broadcast algorithm, but if we have none we are fine
+    if (algorithm->getType() == JOIN_BROADCAST_ALGORITHM || best == nullptr) {
+
+      // select the best algorithm
+      best = algorithm;
+    }
+  }
+
+  // if this is false there is something seriously wrong with our system
+  assert(best != nullptr);
+
+  // return the chosen algorithm
+  return best;
 }
 
 bool AdvancedPhysicalStraightPipeline::isExecuted() {

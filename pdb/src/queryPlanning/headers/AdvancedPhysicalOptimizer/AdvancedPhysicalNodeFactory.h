@@ -66,6 +66,9 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
   template <class T>
   void createPhysicalPipeline() {
 
+    // this must never be empty
+    assert(!currentPipe.empty());
+
     // create the node
     auto node = new T(jobId, computePlan, logicalPlan, conf, currentPipe, currentNodeIndex++);
 
@@ -81,6 +84,9 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
       // add the source node
       physicalSourceNodes.push_back(nodeHandle);
     }
+
+    // add the starts with
+    startsWith[currentPipe.front()->getOutputName()] = nodeHandle;
 
     // add the pipe to the physical nodes
     physicalNodes[nodeHandle->getNodeIdentifier()] = nodeHandle;

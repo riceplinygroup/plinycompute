@@ -44,8 +44,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(
   // get the source atomic computation
   auto sourceAtomicComputation = this->pipeComputations.front();
 
-  // we get the first atomic computation of the join pipeline this should be the apply join computation
-  auto joinAtomicComputation = handle->getAdvancedPhysicalNodeHandle()->getPipelineComputationAt(0);
+  // we get the first atomic computation of the join pipeline that comes after this one.
+  // This computation should be the apply join computation
+  auto joinAtomicComputation = handle->getConsumer(0)->to<AdvancedPhysicalAbstractPipeline>()->getPipelineComputationAt(0);
 
   // get the final atomic computation
   string finalAtomicComputationName = this->pipeComputations.back()->getOutputName();

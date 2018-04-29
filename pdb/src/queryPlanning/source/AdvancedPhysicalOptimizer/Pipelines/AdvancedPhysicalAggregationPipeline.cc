@@ -37,14 +37,15 @@ AdvancedPhysicalAggregationPipeline::AdvancedPhysicalAggregationPipeline(string 
                                                                                               id) {}
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::selectOutputAlgorithm() {
-  return std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
-                                                                jobId,
-                                                                isJoining(),
-                                                                sourceSetIdentifier,
-                                                                pipeComputations,
-                                                                computePlan,
-                                                                logicalPlan,
-                                                                conf);
+  selectedAlgorithm = std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                             jobId,
+                                                                             isJoining(),
+                                                                             sourceSetIdentifier,
+                                                                             pipeComputations,
+                                                                             computePlan,
+                                                                             logicalPlan,
+                                                                             conf);
+  return selectedAlgorithm;
 }
 
 vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
@@ -63,8 +64,28 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline
 }
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
-  return nullptr;
+
+  //TODO this is just some placeholder logic to select the broadcast join if we can
+  AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
+
+  // go through each algorithm
+  for (const auto &algorithm : algorithms) {
+
+    // we prefer the broadcast algorithm, but if we have none we are fine
+    if (algorithm->getType() == JOIN_BROADCAST_ALGORITHM || best == nullptr) {
+
+      // select the best algorithm
+      best = algorithm;
+    }
+  }
+
+  // if this is false there is something seriously wrong with our system
+  assert(best != nullptr);
+
+  // return the chosen algorithm
+  return best;
 }
+
 
 bool AdvancedPhysicalAggregationPipeline::isExecuted() {
   return false;

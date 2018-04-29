@@ -100,4 +100,14 @@ AbstractPhysicalNodePtr AbstractPhysicalNode::getHandle() {
   return handle;
 }
 
+pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getConsumer(int idx) {
+
+  // set the iterator to the idx-th element
+  auto it = consumers.begin();
+  std::advance(it, idx);
+
+  // return the consumer
+  return *it;
+}
+
 }

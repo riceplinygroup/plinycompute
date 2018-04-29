@@ -46,25 +46,25 @@
 #include <SimpleGroupBy.h>
 #include <OptimizedMethodJoin.h>
 #include <ScanStringIntPairSet.h>
+#include <ScanIntSet.h>
+#include <ScanStringSet.h>
+#include <CartesianJoin.h>
+#include <WriteStringIntPairSet.h>
 
 using namespace pdb;
 int main(int argc, char *argv[]) {
   const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
-  // setup a simple selection
-  Handle<Computation> myScanSet1 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set1");
-  Handle<Computation> myScanSet2 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set2");
-  Handle<Computation> myScanSet3 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set3");
-  Handle<Computation> myJoin = makeObject<OptimizedMethodJoin>();
+  // create all of the computation objects
+  Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test77_db", "test77_set1");
+  myScanSet1->setBatchSize(100);
+  Handle<Computation> myScanSet2 = makeObject<ScanStringSet>("test77_db", "test77_set2");
+  myScanSet2->setBatchSize(16);
+  Handle<Computation> myJoin = makeObject<CartesianJoin>();
   myJoin->setInput(0, myScanSet1);
   myJoin->setInput(1, myScanSet2);
-  Handle<Computation> myOtherJoin = makeObject<OptimizedMethodJoin>();
-  myOtherJoin->setInput(0, myJoin);
-  myOtherJoin->setInput(1, myScanSet3);
-  Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
-  mySelection->setInput(myOtherJoin);
-  Handle<Computation> myWriter = makeObject<WriteStringSet>("test93_db", "output_set1");
-  myWriter->setInput(mySelection);
+  Handle<Computation> myWriter = makeObject<WriteStringIntPairSet>("test77_db", "output_set1");
+  myWriter->setInput(myJoin);
 
   std::vector<Handle<Computation>> queryGraph;
   queryGraph.push_back(myWriter);
@@ -115,13 +115,21 @@ int main(int argc, char *argv[]) {
   std::cout << "PARSE TCAP STRING..." << std::endl;
 
   int jobStageId = 0;
-  StatisticsPtr statsForOptimization = nullptr;
+
+  // temp variables
+  DataStatistics ds;
+  ds.numBytes = 100000000;
+
+  // create the data statistics
+  StatisticsPtr stats = make_shared<Statistics>();
+  stats->addSet("test77_db", "test77_set1", ds);
+
   while (physicalOptimizer.hasSources()) {
 
     // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
     bool success = physicalOptimizer.getNextStagesOptimized(queryPlan,
                                                             interGlobalSets,
-                                                            statsForOptimization,
+                                                            stats,
                                                             jobStageId);
 
     if (success) {
@@ -130,6 +138,9 @@ int main(int argc, char *argv[]) {
         std::cout << "to print the " << i << "-th plan" << std::endl;
         queryPlan[i]->print();
       }
+
+      // remove them all
+      queryPlan.clear();
     }
   }
 

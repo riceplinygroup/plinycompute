@@ -40,6 +40,10 @@
 #include <ScanSupervisorSet.h>
 #include <SimpleGroupBy.h>
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalNodeFactory.h>
+#include <ScanIntSet.h>
+#include <ScanStringSet.h>
+#include <CartesianJoin.h>
+#include <WriteStringIntPairSet.h>
 
 class Tests {
 
@@ -153,6 +157,9 @@ class Tests {
 
   }
 
+  /**
+   * This tests a simple selection
+   */
   void test2() {
 
     const pdb::UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
@@ -249,19 +256,26 @@ class Tests {
   }
 
 
+  /**
+   * This tests a simple join
+   */
   void test3() {
 
     const pdb::UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
-    // setup a simple selection
-    Handle<Computation> myScanSet = makeObject<ScanBuiltinEmployeeSet>("chris_db", "chris_set");
-    Handle<Computation> myQuery = makeObject<AllSelectionWithCreation>();
-    myQuery->setInput(myScanSet);
-    Handle<Computation> myWriteSet = makeObject<WriteBuiltinEmployeeSet>("chris_db", "output_set1");
-    myWriteSet->setInput(myQuery);
+    // create all of the computation objects
+    Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test77_db", "test77_set1");
+    myScanSet1->setBatchSize(100);
+    Handle<Computation> myScanSet2 = makeObject<ScanStringSet>("test77_db", "test77_set2");
+    myScanSet2->setBatchSize(16);
+    Handle<Computation> myJoin = makeObject<CartesianJoin>();
+    myJoin->setInput(0, myScanSet1);
+    myJoin->setInput(1, myScanSet2);
+    Handle<Computation> myWriter = makeObject<WriteStringIntPairSet>("test77_db", "output_set1");
+    myWriter->setInput(myJoin);
 
     // the query graph has only the aggregation
-    std::vector<Handle<Computation>> queryGraph = { myWriteSet };
+    std::vector<Handle<Computation>> queryGraph = { myWriter };
 
     // create the graph analyzer
     QueryGraphAnalyzer queryAnalyzer(queryGraph);
@@ -305,41 +319,107 @@ class Tests {
 
     // output variables
     int jobStageId = 0;
-    StatisticsPtr statsForOptimization = nullptr;
     std::vector<Handle<AbstractJobStage>> queryPlan;
     std::vector<Handle<SetIdentifier>> interGlobalSets;
+
+    // temp variables
+    DataStatistics ds;
+    ds.numBytes = 100000000;
+
+    // create the data statistics
+    StatisticsPtr stats = make_shared<Statistics>();
+    stats->addSet("test77_db", "test77_set1", ds);
+
+    int step = 0;
 
     while (physicalOptimizer.hasSources()) {
 
       // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
       bool success = physicalOptimizer.getNextStagesOptimized(queryPlan,
                                                               interGlobalSets,
-                                                              statsForOptimization,
+                                                              stats,
                                                               jobStageId);
+      // go to the next step
+      step += success;
 
-      if (success) {
+      switch(step) {
 
-        // get the tuple set job stage
-        Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+        // do not do anything
+        case 0 : break;
 
-        // get the pipline computations
-        std::vector<std::string> buildMe;
-        tupleStage->getTupleSetsToBuildPipeline(buildMe);
+        case 1 : {
 
-        QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
-        QUNIT_IS_EQUAL(tupleStage->getStageId(), 0);
-        QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "chris_db");
-        QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "chris_set");
-        QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "chris_db");
-        QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "output_set1");
-        QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "pdb::Employee");
-        QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
-        QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "WriteUserSet_2");
-        QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
-        QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_0");
-        QUNIT_IS_EQUAL(buildMe[1], "nativ_0OutForSelectionComp1");
-        QUNIT_IS_EQUAL(buildMe[2], "filteredInputForSelectionComp1");
-        QUNIT_IS_EQUAL(buildMe[3], "nativ_1OutForSelectionComp1");
+          // get the tuple set job stage
+          Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+
+          // get the pipline computations
+          std::vector<std::string> buildMe;
+          tupleStage->getTupleSetsToBuildPipeline(buildMe);
+
+          QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getStageId(), 0);
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "test77_db");
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test77_set2");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "CartesianJoined__in0___in1__broadcastData");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
+          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_1");
+          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "hashOneFor_2_0_in1");
+          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_2");
+          QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
+
+          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_1");
+          QUNIT_IS_EQUAL(buildMe[1], "hashOneFor_2_0_in1");
+
+          // get the build hash table
+          Handle<BroadcastJoinBuildHTJobStage> buildHashTable = unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage>(queryPlan[1]);
+
+          QUNIT_IS_EQUAL(buildHashTable->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(buildHashTable->getStageId(), 0);
+          QUNIT_IS_EQUAL(buildHashTable->getHashSetName(), "TestSelectionJob:CartesianJoined__in0___in1__broadcastData");
+
+          break;
+        }
+
+        // second set of operators
+        case 2 : {
+
+          // get the tuple set job stage
+          Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+
+          // get the pipline computations
+          std::vector<std::string> buildMe;
+          tupleStage->getTupleSetsToBuildPipeline(buildMe);
+
+          QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getStageId(), 2);
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "test77_db");
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test77_set1");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "test77_db");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "output_set1");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "pdb::StringIntPair");
+          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "nativ_1OutForJoinComp2");
+          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "WriteUserSet_3");
+          QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
+          QUNIT_IS_EQUAL(tupleStage->isProbing(), true);
+
+
+          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(buildMe[1], "hashOneFor_2_0_in0");
+          QUNIT_IS_EQUAL(buildMe[2], "CartesianJoined__in0___in1_");
+          QUNIT_IS_EQUAL(buildMe[3], "nativOutFor_native_lambda_0_JoinComp_2");
+          QUNIT_IS_EQUAL(buildMe[4], "filtedOutFor_native_lambda_0_JoinComp_2");
+          QUNIT_IS_EQUAL(buildMe[4], "nativ_1OutForJoinComp2");
+
+          break;
+        }
+
+        default: {
+
+          // this situation should never happen
+          QUNIT_IS_TRUE(false);
+        }
       }
     }
   }
@@ -355,8 +435,9 @@ public:
   int run() {
 
     // run tests
-    test1();
-    test2();
+    //test1();
+    //test2();
+    test3();
 
     // return the errors
     return qunit.errors();

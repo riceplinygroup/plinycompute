@@ -58,7 +58,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
     std::vector<AdvancedPhysicalPipelineNodePtr> pipelines = { getAdvancedPhysicalNodeHandle() };
 
     // delegate the logic for the pipelining to the next node
-    return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipelines);
+    return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipelines, stats);
   }
 
   /// 2. is this a final operator
@@ -68,7 +68,8 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
 
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
-  return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats))->generate(nextStageID);
+  selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats));
+  return selectedAlgorithm->generate(nextStageID);
 }
 
 bool AdvancedPhysicalAbstractPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
@@ -109,7 +110,9 @@ bool AdvancedPhysicalAbstractPipeline::isPipelinable(AdvancedPhysicalPipelineNod
 }
 
 
-PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
+PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int nextStageID,
+                                                                        std::vector<AdvancedPhysicalPipelineNodePtr> pipeline,
+                                                                        const StatisticsPtr &stats) {
 
   // can I pipeline more if so do it
   if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
@@ -118,11 +121,18 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int next
     pipeline.push_back(getAdvancedPhysicalNodeHandle());
 
     // pipeline this node to the consumer
-    consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipeline);
+    consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipeline, stats);
   }
 
   // ok we can not pipeline lets select the output algorithm and run this thing
-  return selectOutputAlgorithm()->generatePipelined(nextStageID, pipeline);
+  if(consumers.empty()) {
+    return selectOutputAlgorithm()->generatePipelined(nextStageID, pipeline);
+  }
+
+  /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
+  // TODO for now I assume I have only one consumer
+  selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats));
+  return selectedAlgorithm->generate(nextStageID);
 }
 
 const bool AdvancedPhysicalAbstractPipeline::isJoining() {

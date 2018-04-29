@@ -70,6 +70,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
   // check the type of this node might be a pipeline breaker
   switch (curNode->getAtomicComputationTypeID()) {
 
+    case HashOneTypeID:
     case HashLeftTypeID:
     case HashRightTypeID: {
 
@@ -132,7 +133,9 @@ void AdvancedPhysicalNodeFactory::setConsumers(shared_ptr<AdvancedPhysicalAbstra
   }
 
   // set the consumers
-  this->consumedBy[node->getNodeIdentifier()] = consumers;
+  if(!consumers.empty()) {
+    this->consumedBy[node->getNodeIdentifier()] = consumers;
+  }
 }
 
 void AdvancedPhysicalNodeFactory::connectThePipes() {

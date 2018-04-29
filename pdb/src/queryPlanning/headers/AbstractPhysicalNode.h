@@ -131,6 +131,13 @@ public:
   }
 
   /**
+   * Returns the idx-th consumer of this node
+   * @param idx - the index
+   * @return returns the consumer
+   */
+  virtual pdb::AbstractPhysicalNodePtr getConsumer(int idx);
+
+  /**
    * This method is used to cast the handle to cast the abstract node to different kinds of node based on the
    * template parameter T
    * @tparam T - the tipe we want to cast the handle into

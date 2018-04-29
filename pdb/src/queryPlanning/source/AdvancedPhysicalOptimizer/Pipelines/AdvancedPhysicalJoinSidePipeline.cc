@@ -36,6 +36,9 @@ AdvancedPhysicalJoinSidePipeline::AdvancedPhysicalJoinSidePipeline(string &jobId
 
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::selectOutputAlgorithm() {
 
+  // a join side is never an output
+  static_assert("this is not supposed to happen");
+
   // return a dummy
   return pdb::AdvancedPhysicalAbstractAlgorithmPtr();
 }
