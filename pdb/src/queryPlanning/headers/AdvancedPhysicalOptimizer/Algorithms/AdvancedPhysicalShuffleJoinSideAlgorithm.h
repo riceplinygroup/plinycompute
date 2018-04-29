@@ -36,18 +36,27 @@ public:
    * @param conf
    */
   AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                       const std::string &jobID,
-                                       const Handle<SetIdentifier> &source,
-                                       const vector<AtomicComputationPtr> &pipeComputations,
-                                       const Handle<ComputePlan> &computePlan,
-                                       const LogicalPlanPtr &logicalPlan,
-                                       const ConfigurationPtr &conf);
+                                           const std::string &jobID,
+                                           bool isProbing,
+                                           const Handle<SetIdentifier> &source,
+                                           const vector<AtomicComputationPtr> &pipeComputations,
+                                           const Handle<ComputePlan> &computePlan,
+                                           const LogicalPlanPtr &logicalPlan,
+                                           const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
    * @return
    */
   PhysicalOptimizerResultPtr generate(int nextStageID) override;
+
+  /**
+   * Generates tha stages for the pipelined version of this algorithm
+   * @param nextStageID
+   * @param pipeline
+   * @return
+   */
+  PhysicalOptimizerResultPtr generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) override;
 
   /**
    * Returns the type of the algorithm

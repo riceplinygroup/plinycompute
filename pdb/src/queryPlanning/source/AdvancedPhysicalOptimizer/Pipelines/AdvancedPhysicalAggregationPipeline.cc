@@ -36,17 +36,10 @@ AdvancedPhysicalAggregationPipeline::AdvancedPhysicalAggregationPipeline(string 
                                                                                               pipeComputations,
                                                                                               id) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
-  return nullptr;
-}
-
-bool AdvancedPhysicalAggregationPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
-  return false;
-}
-
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::selectOutputAlgorithm() {
   return std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                 jobId,
+                                                                isJoining(),
                                                                 sourceSetIdentifier,
                                                                 pipeComputations,
                                                                 computePlan,
@@ -59,6 +52,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline
   // currently every straight pipeline is realized as a selection
   std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                                                    jobId,
+                                                                                                                   isJoining(),
                                                                                                                    sourceSetIdentifier,
                                                                                                                    pipeComputations,
                                                                                                                    computePlan,

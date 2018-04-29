@@ -34,20 +34,11 @@ AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId
                                                                                                     pipeComputations,
                                                                                                     id) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalStraightPipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
-  return nullptr;
-}
-
-bool AdvancedPhysicalStraightPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
-
-  // if this is a straight pipeline and it has only one producer (check number of producer is not needed)
-  return producers.size() == 1 && node->getType() == STRAIGHT;
-}
-
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOutputAlgorithm() {
 
   return std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                               jobId,
+                                                              isJoining(),
                                                               sourceSetIdentifier,
                                                               pipeComputations,
                                                               computePlan,
@@ -60,6 +51,7 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeli
   // currently every straight pipeline is realized as a selection
   std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                                                  jobId,
+                                                                                                                 isJoining(),
                                                                                                                  sourceSetIdentifier,
                                                                                                                  pipeComputations,
                                                                                                                  computePlan,

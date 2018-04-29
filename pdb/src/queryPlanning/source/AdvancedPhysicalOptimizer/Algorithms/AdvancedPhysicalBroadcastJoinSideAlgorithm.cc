@@ -22,18 +22,19 @@
 
 AdvancedPhysicalBroadcastJoinSideAlgorithm::AdvancedPhysicalBroadcastJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                        const std::string &jobID,
+                                                                                       bool isProbing,
                                                                                        const Handle<SetIdentifier> &source,
                                                                                        const vector<AtomicComputationPtr> &pipeComputations,
                                                                                        const Handle<ComputePlan> &computePlan,
                                                                                        const LogicalPlanPtr &logicalPlan,
-                                                                                       const ConfigurationPtr &conf)
-                                                                                       : AdvancedPhysicalAbstractAlgorithm(handle,
-                                                                                                                           jobID,
-                                                                                                                           source,
-                                                                                                                           pipeComputations,
-                                                                                                                           computePlan,
-                                                                                                                           logicalPlan,
-                                                                                                                           conf) {}
+                                                                                       const ConfigurationPtr &conf) : AdvancedPhysicalAbstractAlgorithm(handle,
+                                                                                                                                                         jobID,
+                                                                                                                                                         isProbing,
+                                                                                                                                                         source,
+                                                                                                                                                         pipeComputations,
+                                                                                                                                                         computePlan,
+                                                                                                                                                         logicalPlan,
+                                                                                                                                                         conf) {}
 
 PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(int nextStageID) {
 
@@ -66,10 +67,10 @@ PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(
   TupleSetJobStageBuilderPtr tupleStageBuilder = make_shared<TupleSetJobStageBuilder>();
 
   // copy the computation names
-  for(const auto &it : this->pipeComputations) {
+  for (const auto &it : this->pipeComputations) {
 
     // we don't need the output set name... (that is jsut the way the pipeline building works)
-    if(it->getAtomicComputationTypeID() == WriteSetTypeID) {
+    if (it->getAtomicComputationTypeID() == WriteSetTypeID) {
       continue;
     }
 
@@ -131,6 +132,10 @@ PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(
 
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalBroadcastJoinSideAlgorithm::getType() {
   return JOIN_BROADCAST_ALGORITHM;
+}
+
+PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+  return nullptr;
 }
 
 

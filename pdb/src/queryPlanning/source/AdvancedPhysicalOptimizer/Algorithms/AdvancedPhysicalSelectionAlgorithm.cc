@@ -23,6 +23,7 @@ namespace pdb {
 
 AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                        const std::string &jobID,
+                                                                       bool isProbing,
                                                                        const Handle<SetIdentifier> &source,
                                                                        const vector<AtomicComputationPtr> &pipeComputations,
                                                                        const Handle<ComputePlan> &computePlan,
@@ -30,6 +31,7 @@ AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const Adv
                                                                        const ConfigurationPtr &conf)
                                                                        : AdvancedPhysicalAbstractAlgorithm(handle,
                                                                                                            jobID,
+                                                                                                           isProbing,
                                                                                                            source,
                                                                                                            pipeComputations,
                                                                                                            computePlan,
@@ -129,6 +131,10 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
 
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalSelectionAlgorithm::getType() {
   return SELECTION_ALGORITHM;
+}
+
+PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+  return nullptr;
 }
 
 }

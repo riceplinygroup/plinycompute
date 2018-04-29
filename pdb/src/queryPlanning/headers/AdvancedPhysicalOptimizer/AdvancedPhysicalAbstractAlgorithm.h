@@ -37,15 +37,16 @@ typedef std::shared_ptr<AdvancedPhysicalAbstractAlgorithm> AdvancedPhysicalAbstr
 
 class AdvancedPhysicalAbstractAlgorithm {
 
- public:
+public:
 
   AdvancedPhysicalAbstractAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                      const std::string &jobID,
-                                      Handle<SetIdentifier> source,
-                                      const vector<AtomicComputationPtr> &pipeComputations,
-                                      Handle<ComputePlan> computePlan,
-                                      const LogicalPlanPtr &logicalPlan,
-                                      const ConfigurationPtr &conf);
+                                    const std::string &jobID,
+                                    bool isProbing,
+                                    Handle<SetIdentifier> source,
+                                    const vector<AtomicComputationPtr> &pipeComputations,
+                                    Handle<ComputePlan> computePlan,
+                                    const LogicalPlanPtr &logicalPlan,
+                                    const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
@@ -54,12 +55,20 @@ class AdvancedPhysicalAbstractAlgorithm {
   virtual PhysicalOptimizerResultPtr generate(int nextStageID) = 0;
 
   /**
+   * Generates the stages for pipelined oprators
+   * @param nextStageID
+   * @param pipeline
+   * @return
+   */
+  virtual PhysicalOptimizerResultPtr generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) = 0;
+
+  /**
    * Returns the type of the algorithm
    * @return the type id
    */
   virtual AdvancedPhysicalAbstractAlgorithmTypeID getType() = 0;
 
- protected:
+protected:
 
   /**
    * The handle to the node this algorithm is associated with

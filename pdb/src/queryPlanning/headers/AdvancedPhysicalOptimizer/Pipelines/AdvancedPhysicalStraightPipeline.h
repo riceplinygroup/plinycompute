@@ -32,19 +32,7 @@ public:
                                    ConfigurationPtr &conf,
                                    vector<AtomicComputationPtr> &pipeComputations,
                                    size_t id);
-  /**
-   * Pipelines the provided pipeline to this pipeline
-   * @param pipeline - the pipeline we are providing
-   * @return the result of the pipelining
-   */
-  PhysicalOptimizerResultPtr pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) override;
 
-  /**
-   * Returns true if this is pipelinable
-   * @param node
-   * @return true if node can be pipelined to this pipeline
-   */
-  bool isPipelinable(AdvancedPhysicalPipelineNodePtr node) override;
 
   /**
    * If this operator is executed returns true false otherwise.
@@ -71,6 +59,11 @@ public:
   std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
 
 
+  /**
+   *
+   * @param algorithms
+   * @return
+   */
   AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) override;
 
 };

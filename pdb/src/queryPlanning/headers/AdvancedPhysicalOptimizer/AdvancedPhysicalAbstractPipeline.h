@@ -72,14 +72,14 @@ public:
    * @param pipeline - the pipeline we are providing
    * @return the result of the pipelining
    */
-  virtual PhysicalOptimizerResultPtr pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) = 0;
+  virtual PhysicalOptimizerResultPtr pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline);
 
   /**
    * Returns true if this is pipelinable
    * @param node
    * @return
    */
-  virtual bool isPipelinable(AdvancedPhysicalPipelineNodePtr node) = 0;
+  virtual bool isPipelinable(AdvancedPhysicalPipelineNodePtr node);
 
   /**
    * If this operator is executed returns true false otherwise.
@@ -111,6 +111,13 @@ public:
    * @return the picked algorithm
    */
   virtual AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) = 0;
+
+
+  /**
+   * Returns true if this pipeline is joining two sets
+   * @return true if it does false otherwise
+   */
+  const bool isJoining();
 
   /**
    * Returns the the algorithm the we executed. If we did not executed any algorithm we return a null_ptr

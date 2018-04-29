@@ -57,7 +57,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
     // we start with pipelining this pipeline maybe we will pipeline more
     std::vector<AdvancedPhysicalPipelineNodePtr> pipelines = { getAdvancedPhysicalNodeHandle() };
 
-    // do the logic for the pipelining
+    // delegate the logic for the pipelining to the next node
     return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipelines);
   }
 
@@ -69,6 +69,64 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
   return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats))->generate(nextStageID);
+}
+
+bool AdvancedPhysicalAbstractPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
+
+  // check whether we are joining
+  if(this->isJoining()) {
+
+    // if by any case the child of a join is not a join side pipeline assert
+    assert(node->getType() == JOIN_SIDE);
+
+    // for each side of the join that is not the one we are coming from we check if it is processed
+    for(auto &producer : producers) {
+
+      // if on of the producers is not a join side fail
+      assert(std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(producer)->getType() == JOIN_SIDE);
+
+      // cast the consumer to the join
+      auto casted_producer = std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(producer);
+
+      // if the consumer is not processed this operator is not pipelinable if
+      // A) this operator is not executed or B) We shuffled the other side so now we have to shuffle this side
+      if(node != producer && (!casted_producer->isExecuted() || casted_producer->getSelectedAlgorithm()->getType() == JOIN_HASH_ALGORITHM)) {
+
+        // ok we can not pipeline this
+        return false;
+      }
+    }
+
+    // we are fine to pipeline this join
+    return true;
+  }
+
+  // if the join side is the producer of a pipeline that is not joining something is seriously wrong
+  assert(node->getType() != JOIN_SIDE);
+
+  // only a straight pipeline can be pipelined
+  return node->getType() == STRAIGHT;
+}
+
+
+PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> pipeline) {
+
+  // can I pipeline more if so do it
+  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
+
+    // add me to the pipeline
+    pipeline.push_back(getAdvancedPhysicalNodeHandle());
+
+    // pipeline this node to the consumer
+    consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipeline);
+  }
+
+  // ok we can not pipeline lets select the output algorithm and run this thing
+  return selectOutputAlgorithm()->generatePipelined(nextStageID, pipeline);
+}
+
+const bool AdvancedPhysicalAbstractPipeline::isJoining() {
+  return producers.size() >= 2;
 }
 
 double AdvancedPhysicalAbstractPipeline::getCost(const StatisticsPtr &stats) {
@@ -115,6 +173,7 @@ bool AdvancedPhysicalAbstractPipeline::isSource() {
 AtomicComputationPtr AdvancedPhysicalAbstractPipeline::getPipelineComputationAt(size_t idx) {
   return this->pipeComputations[idx];
 }
+
 
 }
 

@@ -23,6 +23,7 @@
 
 AdvancedPhysicalShuffleJoinSideAlgorithm::AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                    const std::string &jobID,
+                                                                                   bool isProbing,
                                                                                    const Handle<SetIdentifier> &source,
                                                                                    const vector<AtomicComputationPtr> &pipeComputations,
                                                                                    const Handle<ComputePlan> &computePlan,
@@ -30,6 +31,7 @@ AdvancedPhysicalShuffleJoinSideAlgorithm::AdvancedPhysicalShuffleJoinSideAlgorit
                                                                                    const ConfigurationPtr &conf)
                                                                                    : AdvancedPhysicalAbstractAlgorithm(handle,
                                                                                                                        jobID,
+                                                                                                                       isProbing,
                                                                                                                        source,
                                                                                                                        pipeComputations,
                                                                                                                        computePlan,
@@ -140,6 +142,12 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generate(in
   return result;
 }
 
+PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+  return nullptr;
+}
+
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffleJoinSideAlgorithm::getType() {
   return JOIN_HASH_ALGORITHM;
 }
+
+

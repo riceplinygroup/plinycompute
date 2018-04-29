@@ -81,6 +81,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
+include_directories("${PROJECT_SOURCE_DIR}/third-party/qunit/headers")
 include_directories("${PROJECT_SOURCE_DIR}/third-party/sqlite/headers")
 
 

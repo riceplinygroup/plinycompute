@@ -23,7 +23,8 @@
 namespace pdb {
 
 AdvancedPhysicalAggregationAlgorithm::AdvancedPhysicalAggregationAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                                                           const string &jobID,
+                                                                           const std::string &jobID,
+                                                                           bool isProbing,
                                                                            const Handle<SetIdentifier> &source,
                                                                            const vector<AtomicComputationPtr> &pipeComputations,
                                                                            const Handle<ComputePlan> &computePlan,
@@ -31,6 +32,7 @@ AdvancedPhysicalAggregationAlgorithm::AdvancedPhysicalAggregationAlgorithm(const
                                                                            const ConfigurationPtr &conf)
                                                                            : AdvancedPhysicalAbstractAlgorithm(handle,
                                                                                                                jobID,
+                                                                                                               isProbing,
                                                                                                                source,
                                                                                                                pipeComputations,
                                                                                                                computePlan,
@@ -167,6 +169,10 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationAlgorithm::generate(int ne
   source = sink;
 
   return result;
+}
+
+PhysicalOptimizerResultPtr AdvancedPhysicalAggregationAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+  return nullptr;
 }
 
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalAggregationAlgorithm::getType() {
