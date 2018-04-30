@@ -21,6 +21,7 @@
 AdvancedPhysicalAbstractAlgorithm::AdvancedPhysicalAbstractAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                      const std::string &jobID,
                                                                      bool isProbing,
+                                                                     bool isOutput,
                                                                      Handle<SetIdentifier> source,
                                                                      const vector<AtomicComputationPtr> &pipeComputations,
                                                                      Handle<ComputePlan> computePlan,
@@ -32,4 +33,6 @@ AdvancedPhysicalAbstractAlgorithm::AdvancedPhysicalAbstractAlgorithm(const Advan
                                                                        computePlan(computePlan),
                                                                        logicalPlan(logicalPlan),
                                                                        conf(conf),
-                                                                       source(source) {}
+                                                                       source(source),
+                                                                       isProbing(isProbing),
+                                                                       isOutput(isOutput) {}

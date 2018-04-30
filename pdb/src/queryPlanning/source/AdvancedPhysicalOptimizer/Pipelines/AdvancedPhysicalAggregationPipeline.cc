@@ -40,6 +40,7 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::select
   selectedAlgorithm = std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                              jobId,
                                                                              isJoining(),
+                                                                             consumers.empty(),
                                                                              sourceSetIdentifier,
                                                                              pipeComputations,
                                                                              computePlan,
@@ -54,6 +55,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline
   std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                                                    jobId,
                                                                                                                    isJoining(),
+                                                                                                                   consumers.empty(),
                                                                                                                    sourceSetIdentifier,
                                                                                                                    pipeComputations,
                                                                                                                    computePlan,
@@ -84,11 +86,6 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::propos
 
   // return the chosen algorithm
   return best;
-}
-
-
-bool AdvancedPhysicalAggregationPipeline::isExecuted() {
-  return false;
 }
 
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalAggregationPipeline::getType() {

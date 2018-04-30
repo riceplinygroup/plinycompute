@@ -38,6 +38,7 @@ public:
   AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                            const std::string &jobID,
                                            bool isProbing,
+                                           bool isOutput,
                                            const Handle<SetIdentifier> &source,
                                            const vector<AtomicComputationPtr> &pipeComputations,
                                            const Handle<ComputePlan> &computePlan,

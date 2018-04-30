@@ -40,13 +40,14 @@ class AdvancedPhysicalAbstractAlgorithm {
 public:
 
   AdvancedPhysicalAbstractAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                    const std::string &jobID,
-                                    bool isProbing,
-                                    Handle<SetIdentifier> source,
-                                    const vector<AtomicComputationPtr> &pipeComputations,
-                                    Handle<ComputePlan> computePlan,
-                                    const LogicalPlanPtr &logicalPlan,
-                                    const ConfigurationPtr &conf);
+                                      const std::string &jobID,
+                                      bool isProbing,
+                                      bool isOutput,
+                                      Handle<SetIdentifier> source,
+                                      const vector<AtomicComputationPtr> &pipeComputations,
+                                      Handle<ComputePlan> computePlan,
+                                      const LogicalPlanPtr &logicalPlan,
+                                      const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
@@ -110,6 +111,15 @@ protected:
    */
   Handle<SetIdentifier> source;
 
+  /**
+   * If pipeline is probing a hash set this is true
+   */
+  bool isProbing;
+
+  /**
+   * Is this an output pipeline
+   */
+  bool isOutput;
 };
 
 }

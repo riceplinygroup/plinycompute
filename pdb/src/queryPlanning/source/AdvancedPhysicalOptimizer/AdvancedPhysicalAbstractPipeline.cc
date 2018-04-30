@@ -132,7 +132,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int next
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
   selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats));
-  return selectedAlgorithm->generate(nextStageID);
+  return selectedAlgorithm->generatePipelined(nextStageID, pipeline);
+}
+
+bool AdvancedPhysicalAbstractPipeline::isExecuted() {
+  return selectedAlgorithm != nullptr;
 }
 
 const bool AdvancedPhysicalAbstractPipeline::isJoining() {
@@ -183,8 +187,17 @@ bool AdvancedPhysicalAbstractPipeline::isSource() {
 AtomicComputationPtr AdvancedPhysicalAbstractPipeline::getPipelineComputationAt(size_t idx) {
   return this->pipeComputations[idx];
 }
+const vector<AtomicComputationPtr> &AdvancedPhysicalAbstractPipeline::getPipeComputations() const {
+  return pipeComputations;
+}
 
+const Handle<SetIdentifier> &AdvancedPhysicalAbstractPipeline::getSourceSetIdentifier() const {
+  return sourceSetIdentifier;
+}
 
+void AdvancedPhysicalAbstractPipeline::setSourceSetIdentifier(const Handle<SetIdentifier> &sourceSetIdentifier) {
+  AdvancedPhysicalAbstractPipeline::sourceSetIdentifier = sourceSetIdentifier;
+}
 }
 
 

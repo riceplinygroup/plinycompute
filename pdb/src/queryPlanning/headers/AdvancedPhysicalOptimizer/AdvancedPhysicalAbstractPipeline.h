@@ -87,7 +87,7 @@ public:
    * If this operator is executed returns true false otherwise.
    * @return  true if it is false otherwise
    */
-  virtual bool isExecuted() = 0;
+  virtual bool isExecuted();
 
   /**
    * Returns the type of this pipeline
@@ -113,7 +113,6 @@ public:
    * @return the picked algorithm
    */
   virtual AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) = 0;
-
 
   /**
    * Returns true if this pipeline is joining two sets
@@ -159,13 +158,30 @@ public:
    */
   AdvancedPhysicalPipelineNodePtr getAdvancedPhysicalNodeHandle();
 
-
   /**
    * Get i-th atomic computation in this pipeline
    * @param index
    * return the requested atomic computation
    */
   AtomicComputationPtr getPipelineComputationAt(size_t idx);
+
+  /**
+   * Returns the atomic computations in this pipeline
+   * @return the list of atomic computations that make up this pipeline
+   */
+  const vector<AtomicComputationPtr> &getPipeComputations() const;
+
+  /**
+   *
+   * @return
+   */
+  const Handle<SetIdentifier> &getSourceSetIdentifier() const;
+
+  /**
+   *
+   * @param sourceSetIdentifier
+   */
+  void setSourceSetIdentifier(const Handle<SetIdentifier> &sourceSetIdentifier);
 
  protected:
 

@@ -24,6 +24,7 @@ namespace pdb {
 AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                        const std::string &jobID,
                                                                        bool isProbing,
+                                                                       bool isOutput,
                                                                        const Handle<SetIdentifier> &source,
                                                                        const vector<AtomicComputationPtr> &pipeComputations,
                                                                        const Handle<ComputePlan> &computePlan,
@@ -32,6 +33,7 @@ AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const Adv
                                                                        : AdvancedPhysicalAbstractAlgorithm(handle,
                                                                                                            jobID,
                                                                                                            isProbing,
+                                                                                                           isOutput,
                                                                                                            source,
                                                                                                            pipeComputations,
                                                                                                            computePlan,
@@ -91,6 +93,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
   // set the job id
   tupleStageBuilder->setJobId(jobID);
 
+  // are we probing a hash set in this pipeline
+  tupleStageBuilder->setProbing(isProbing);
+
   // set the compute plan
   tupleStageBuilder->setComputePlan(computePlan);
 
@@ -120,10 +125,14 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
-  result->newSourceComputation = handle;
+
+  // if this is the output we just created new source
+  if(!isOutput) {
+    result->newSourceComputation = handle;
+  }
 
   // the new source is now the sink
-  this->sink = sink;
+  this->source = sink;
 
   // return the result
   return result;
@@ -133,8 +142,26 @@ AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalSelectionAlgorithm::getT
   return SELECTION_ALGORITHM;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
-  return nullptr;
+PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipelines) {
+
+  // get the source set identifier of the first node in the pipeline
+  source = pipelines.front()->getSourceSetIdentifier();
+
+  // go through each stage check if we a probing and copy the atomic computations
+  for(auto &p : pipelines) {
+
+    // set the is probing flag
+    this->isProbing = this->isProbing || p->isJoining();
+
+    // get the atomic computations of the pipeline
+    auto computations = p->getPipeComputations();
+
+    // append the pipelined operators
+    pipeComputations.insert(pipeComputations.begin(), computations.begin(), computations.end());
+  }
+
+  // generate the stage
+  return generate(nextStageID);
 }
 
 }

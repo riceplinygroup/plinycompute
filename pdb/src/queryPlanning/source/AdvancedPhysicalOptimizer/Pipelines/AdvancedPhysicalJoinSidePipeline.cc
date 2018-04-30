@@ -53,6 +53,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::g
     algorithms.push_back(std::make_shared<AdvancedPhysicalBroadcastJoinSideAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                       jobId,
                                                                                       isJoining(),
+                                                                                      consumers.empty(),
                                                                                       sourceSetIdentifier,
                                                                                       pipeComputations,
                                                                                       computePlan,
@@ -64,6 +65,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::g
   algorithms.push_back(std::make_shared<AdvancedPhysicalBroadcastJoinSideAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                     jobId,
                                                                                     isJoining(),
+                                                                                    consumers.empty(),
                                                                                     sourceSetIdentifier,
                                                                                     pipeComputations,
                                                                                     computePlan,
@@ -95,10 +97,6 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::propose(s
 
   // return the chosen algorithm
   return best;
-}
-
-bool AdvancedPhysicalJoinSidePipeline::isExecuted() {
-  return false;
 }
 
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipeline::getType() {

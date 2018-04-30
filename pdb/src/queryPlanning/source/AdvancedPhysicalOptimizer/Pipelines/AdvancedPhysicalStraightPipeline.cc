@@ -39,6 +39,7 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOut
   selectedAlgorithm = std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                            jobId,
                                                                            isJoining(),
+                                                                           consumers.empty(),
                                                                            sourceSetIdentifier,
                                                                            pipeComputations,
                                                                            computePlan,
@@ -54,6 +55,7 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeli
   std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                                                  jobId,
                                                                                                                  isJoining(),
+                                                                                                                 consumers.empty(),
                                                                                                                  sourceSetIdentifier,
                                                                                                                  pipeComputations,
                                                                                                                  computePlan,
@@ -84,10 +86,6 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::propose(s
 
   // return the chosen algorithm
   return best;
-}
-
-bool AdvancedPhysicalStraightPipeline::isExecuted() {
-  return false;
 }
 
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalStraightPipeline::getType() {

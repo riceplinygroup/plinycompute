@@ -23,18 +23,21 @@
 AdvancedPhysicalBroadcastJoinSideAlgorithm::AdvancedPhysicalBroadcastJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                        const std::string &jobID,
                                                                                        bool isProbing,
+                                                                                       bool isOutput,
                                                                                        const Handle<SetIdentifier> &source,
                                                                                        const vector<AtomicComputationPtr> &pipeComputations,
                                                                                        const Handle<ComputePlan> &computePlan,
                                                                                        const LogicalPlanPtr &logicalPlan,
-                                                                                       const ConfigurationPtr &conf) : AdvancedPhysicalAbstractAlgorithm(handle,
-                                                                                                                                                         jobID,
-                                                                                                                                                         isProbing,
-                                                                                                                                                         source,
-                                                                                                                                                         pipeComputations,
-                                                                                                                                                         computePlan,
-                                                                                                                                                         logicalPlan,
-                                                                                                                                                         conf) {}
+                                                                                       const ConfigurationPtr &conf) :
+                                                                                       AdvancedPhysicalAbstractAlgorithm(handle,
+                                                                                                                         jobID,
+                                                                                                                         isProbing,
+                                                                                                                         isOutput,
+                                                                                                                         source,
+                                                                                                                         pipeComputations,
+                                                                                                                         computePlan,
+                                                                                                                         logicalPlan,
+                                                                                                                         conf) {}
 
 PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(int nextStageID) {
 

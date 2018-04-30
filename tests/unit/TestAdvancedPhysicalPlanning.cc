@@ -378,6 +378,9 @@ class Tests {
           QUNIT_IS_EQUAL(buildHashTable->getStageId(), 0);
           QUNIT_IS_EQUAL(buildHashTable->getHashSetName(), "TestSelectionJob:CartesianJoined__in0___in1__broadcastData");
 
+          // remove the stages we don't need them anymore
+          queryPlan.clear();
+
           break;
         }
 
@@ -410,7 +413,7 @@ class Tests {
           QUNIT_IS_EQUAL(buildMe[2], "CartesianJoined__in0___in1_");
           QUNIT_IS_EQUAL(buildMe[3], "nativOutFor_native_lambda_0_JoinComp_2");
           QUNIT_IS_EQUAL(buildMe[4], "filtedOutFor_native_lambda_0_JoinComp_2");
-          QUNIT_IS_EQUAL(buildMe[4], "nativ_1OutForJoinComp2");
+          QUNIT_IS_EQUAL(buildMe[5], "nativ_1OutForJoinComp2");
 
           break;
         }

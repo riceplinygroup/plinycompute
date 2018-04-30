@@ -32,13 +32,6 @@ public:
                                       ConfigurationPtr &conf,
                                       vector<AtomicComputationPtr> &pipeComputations,
                                       size_t id);
-
-  /**
-   * If this operator is executed returns true false otherwise.
-   * @return  true if it is false otherwise
-   */
-  bool isExecuted() override;
-
   /**
    * Returns the type of this pipeline
    * @return the type

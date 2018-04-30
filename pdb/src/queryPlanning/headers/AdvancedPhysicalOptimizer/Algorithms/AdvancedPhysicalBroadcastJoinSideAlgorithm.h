@@ -28,13 +28,15 @@ class AdvancedPhysicalBroadcastJoinSideAlgorithm : public AdvancedPhysicalAbstra
 public:
 
   AdvancedPhysicalBroadcastJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                             const std::string &jobID,
-                                             bool isProbing,
-                                             const Handle<SetIdentifier> &source,
-                                             const vector<AtomicComputationPtr> &pipeComputations,
-                                             const Handle<ComputePlan> &computePlan,
-                                             const LogicalPlanPtr &logicalPlan,
-                                             const ConfigurationPtr &conf);
+                                               const std::string &jobID,
+                                               bool isProbing,
+                                               bool isOutput,
+                                               const Handle<SetIdentifier> &source,
+                                               const vector<
+                                                                                               AtomicComputationPtr> &pipeComputations,
+                                               const Handle<ComputePlan> &computePlan,
+                                               const LogicalPlanPtr &logicalPlan,
+                                               const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
