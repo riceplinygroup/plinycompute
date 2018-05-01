@@ -37,7 +37,7 @@ AdvancedPhysicalJoinSidePipeline::AdvancedPhysicalJoinSidePipeline(string &jobId
 AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::selectOutputAlgorithm() {
 
   // a join side is never an output
-  static_assert("this is not supposed to happen");
+  static_assert(true, "this is not supposed to happen");
 
   // return a dummy
   return pdb::AdvancedPhysicalAbstractAlgorithmPtr();
@@ -71,7 +71,6 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::g
                                                                                     computePlan,
                                                                                     logicalPlan,
                                                                                     conf));
-  // we can also do a straight pipe
 
   return algorithms;
 }
@@ -101,6 +100,14 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::propose(s
 
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipeline::getType() {
   return JOIN_SIDE;
+}
+
+std::string AdvancedPhysicalJoinSidePipeline::getGeneratedHashSet() {
+  return hashSet;
+}
+
+void AdvancedPhysicalJoinSidePipeline::setHashSet(const string &hashSet) {
+  this->hashSet = hashSet;
 }
 
 }

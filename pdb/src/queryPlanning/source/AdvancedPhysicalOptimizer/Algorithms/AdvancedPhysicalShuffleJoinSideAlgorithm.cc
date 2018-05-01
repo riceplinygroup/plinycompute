@@ -19,6 +19,7 @@
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <JobStageBuilders/HashPartitionedJoinBuildHTJobStageBuilder.h>
 #include <JoinComp.h>
+#include <AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h>
 #include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalShuffleJoinSideAlgorithm.h"
 
 AdvancedPhysicalShuffleJoinSideAlgorithm::AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
@@ -131,6 +132,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generate(in
   hashBuilder->setHashSetName(hashSetName);
   hashBuilder->setComputePlan(computePlan);
 
+  // we set the name of the hash we just generated
+  handle->to<AdvancedPhysicalJoinSidePipeline>()->setHashSet(hashSetName);
+
   // create the build hash partitioned join hash table job stage to partition and shuffle the source set
   Handle<HashPartitionedJoinBuildHTJobStage> joinPartitionStage = hashBuilder->build();
 
@@ -151,5 +155,4 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generatePip
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffleJoinSideAlgorithm::getType() {
   return JOIN_HASH_ALGORITHM;
 }
-
 

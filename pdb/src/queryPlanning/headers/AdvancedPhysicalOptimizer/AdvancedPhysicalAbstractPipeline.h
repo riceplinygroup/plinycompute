@@ -97,7 +97,7 @@ public:
 
   /**
    * Selects the output algorithm for the output of this pipeline
-   * @return selects the output algorithm for this pipeline
+   * @return the output algorithm for this pipeline
    */
   virtual AdvancedPhysicalAbstractAlgorithmPtr selectOutputAlgorithm() = 0;
 
@@ -106,6 +106,7 @@ public:
    * @return a vector of possible algorithms
    */
   virtual std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) = 0;
+
 
   /**
    * Out of all algorithms given to him this node picks one a proposes it
@@ -119,6 +120,13 @@ public:
    * @return true if it does false otherwise
    */
   const bool isJoining();
+
+  /**
+   * Returns a list of all the hash sets this pipe will probe (in the current implementation only one)
+   * This method assumes that all the children of this pipeline are JoinSidePipelines
+   * @return the list of all the hash sets
+   */
+  std::unordered_map<std::string, std::string> getProbingHashSets();
 
   /**
    * Returns the the algorithm the we executed. If we did not executed any algorithm we return a null_ptr

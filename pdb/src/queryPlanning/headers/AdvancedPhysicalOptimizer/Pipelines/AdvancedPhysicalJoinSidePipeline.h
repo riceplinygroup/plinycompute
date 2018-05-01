@@ -58,12 +58,29 @@ public:
    */
   AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) override;
 
+  /**
+   * Returns the generated hash set if executed, otherwise it returns an empty string
+   * @return - the hash set we generated
+   */
+  std::string getGeneratedHashSet();
+
+  /**
+   * Sets the hash set of the join side pipeline
+   * @param hashSet - the hash set
+   */
+  void setHashSet(const string &hashSet);
+
  protected:
 
   /**
    * This is the largest cost that can we can broadcast
    */
   const double BROADCAST_JOIN_COST_THRESHOLD = 15000;
+
+  /**
+   * When executed this will contain the name of the hash set this join side generated
+   */
+  std::string hashSet;
 
 };
 

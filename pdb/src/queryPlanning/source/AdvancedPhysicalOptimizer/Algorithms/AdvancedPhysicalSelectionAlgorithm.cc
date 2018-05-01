@@ -18,6 +18,7 @@
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalSelectionAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h>
 
 namespace pdb {
 
@@ -38,7 +39,16 @@ AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const Adv
                                                                                                            pipeComputations,
                                                                                                            computePlan,
                                                                                                            logicalPlan,
-                                                                                                           conf) {}
+                                                                                                           conf) {
+
+  // check if this
+  if(handle->isJoining()) {
+
+    // add the hash set
+    probingHashSets[handle->getPipelineComputationAt(0)->getOutputName()] = (handle->to<AdvancedPhysicalJoinSidePipeline>()->getGeneratedHashSet());
+  }
+
+}
 
 PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int nextStageID) {
 
@@ -119,6 +129,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
 
+  // add all the probing hash sets
+  for(auto it : probingHashSets) {
+    tupleStageBuilder->addHashSetToProbe(it.first, it.second);
+  }
+
   // create the job stage
   Handle<TupleSetJobStage> jobStage = tupleStageBuilder->build();
 
@@ -150,8 +165,20 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generatePipelined
   // go through each stage check if we a probing and copy the atomic computations
   for(auto &p : pipelines) {
 
-    // set the is probing flag
-    this->isProbing = this->isProbing || p->isJoining();
+    if(p->isJoining()) {
+
+      // set the is probing flag
+      this->isProbing = p->isJoining();
+
+      // get the probing hash sets
+      auto sets = p->getProbingHashSets();
+
+      // there should always be one hash set we are probing for a join
+      assert(!sets.empty());
+
+      // add the tuple sets we are probing to the list
+      probingHashSets.insert(sets.begin(), sets.end());
+    }
 
     // get the atomic computations of the pipeline
     auto computations = p->getPipeComputations();

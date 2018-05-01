@@ -16,6 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h>
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h"
 
@@ -198,6 +199,28 @@ const Handle<SetIdentifier> &AdvancedPhysicalAbstractPipeline::getSourceSetIdent
 void AdvancedPhysicalAbstractPipeline::setSourceSetIdentifier(const Handle<SetIdentifier> &sourceSetIdentifier) {
   AdvancedPhysicalAbstractPipeline::sourceSetIdentifier = sourceSetIdentifier;
 }
+
+std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipeline::getProbingHashSets() {
+
+  // the return value
+  std::unordered_map<std::string, std::string> ret;
+
+  for(const auto &p : producers) {
+
+    // grab the join side
+    auto joinSide = p->to<AdvancedPhysicalJoinSidePipeline>();
+
+    // if this is executed
+    if(joinSide->isExecuted()) {
+
+      // add the hash set
+      ret[this->getPipelineComputationAt(0)->getOutputName()] = (p->to<AdvancedPhysicalJoinSidePipeline>()->getGeneratedHashSet());
+    }
+  }
+
+  return ret;
+}
+
 }
 
 

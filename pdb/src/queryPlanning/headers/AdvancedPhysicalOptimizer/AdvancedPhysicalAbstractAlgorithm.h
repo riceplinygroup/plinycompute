@@ -87,6 +87,11 @@ protected:
   vector<AtomicComputationPtr> pipeComputations;
 
   /**
+   * All the hash sets we are probing in this algorithm
+   */
+  unordered_map<std::string, std::string> probingHashSets;
+
+  /**
    * Logical plan generated from the compute plan
    */
   LogicalPlanPtr logicalPlan;
