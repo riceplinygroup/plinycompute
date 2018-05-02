@@ -32,8 +32,8 @@ typedef std::shared_ptr<AdvancedPhysicalAbstractAlgorithm> AdvancedPhysicalAbstr
 /**
  * We define AdvancedPhysicalAbstractPipelinePtr so we don not have to write the whole thing
  */
-class AdvancedPhysicalAbstractPipeline;
-typedef std::shared_ptr<AdvancedPhysicalAbstractPipeline> AdvancedPhysicalPipelineNodePtr;
+class AdvancedPhysicalAbstractPipe;
+typedef std::shared_ptr<AdvancedPhysicalAbstractPipe> AdvancedPhysicalPipelineNodePtr;
 
 /**
  * The possible types of the pipelines in this algorithms
@@ -48,15 +48,15 @@ enum AdvancedPhysicalPipelineTypeID {
  * The base node of the advanced physical planning algorithm
  * The whole planning starts with the analyze method @see analyze
  */
-class AdvancedPhysicalAbstractPipeline : public AbstractPhysicalNode {
-public:
+class AdvancedPhysicalAbstractPipe : public AbstractPhysicalNode {
+ public:
 
-  AdvancedPhysicalAbstractPipeline(string &jobId,
-                                   const Handle<ComputePlan> &computePlan,
-                                   LogicalPlanPtr &logicalPlan,
-                                   ConfigurationPtr &conf,
-                                   vector<AtomicComputationPtr> &pipeComputations,
-                                   size_t id);
+  AdvancedPhysicalAbstractPipe(string &jobId,
+                               const Handle<ComputePlan> &computePlan,
+                               LogicalPlanPtr &logicalPlan,
+                               ConfigurationPtr &conf,
+                               vector<AtomicComputationPtr> &pipeComputations,
+                               size_t id);
 
   /**
    *
@@ -65,7 +65,6 @@ public:
    * @return
    */
   PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
-
 
   /**
    * Pipelines the provided pipeline to this pipeline
@@ -106,7 +105,6 @@ public:
    * @return a vector of possible algorithms
    */
   virtual std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) = 0;
-
 
   /**
    * Out of all algorithms given to him this node picks one a proposes it
@@ -213,9 +211,9 @@ public:
    * Source set associated with this node.
    */
   Handle<SetIdentifier> sourceSetIdentifier;
+
 };
 
 }
-
 
 #endif //PDB_ADVANCEDPHYSICALNODE_H

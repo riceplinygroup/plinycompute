@@ -196,4 +196,8 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generatePipelined(
   return generate(nextStageID);
 }
 
+void AdvancedPhysicalPipelineAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
+
+}
+
 }

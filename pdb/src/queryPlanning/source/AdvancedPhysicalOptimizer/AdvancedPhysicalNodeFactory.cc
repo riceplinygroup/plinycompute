@@ -120,7 +120,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
   }
 }
 
-void AdvancedPhysicalNodeFactory::setConsumers(shared_ptr<AdvancedPhysicalAbstractPipeline> node) {
+void AdvancedPhysicalNodeFactory::setConsumers(shared_ptr<AdvancedPhysicalAbstractPipe> node) {
 
   // all the consumers of these pipes
   std::vector<std::string> consumers;

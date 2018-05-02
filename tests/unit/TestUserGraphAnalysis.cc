@@ -56,15 +56,19 @@ int main(int argc, char *argv[]) {
   const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
   // create all of the computation objects
-  Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test77_db", "test77_set1");
-  myScanSet1->setBatchSize(100);
-  Handle<Computation> myScanSet2 = makeObject<ScanStringSet>("test77_db", "test77_set2");
-  myScanSet2->setBatchSize(16);
-  Handle<Computation> myJoin = makeObject<CartesianJoin>();
+  Handle<Computation> myScanSet1 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set1");
+  Handle<Computation> myScanSet2 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set2");
+  Handle<Computation> myScanSet3 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set3");
+  Handle<Computation> myJoin = makeObject<OptimizedMethodJoin>();
   myJoin->setInput(0, myScanSet1);
   myJoin->setInput(1, myScanSet2);
-  Handle<Computation> myWriter = makeObject<WriteStringIntPairSet>("test77_db", "output_set1");
-  myWriter->setInput(myJoin);
+  Handle<Computation> myOtherJoin = makeObject<OptimizedMethodJoin>();
+  myOtherJoin->setInput(0, myJoin);
+  myOtherJoin->setInput(1, myScanSet3);
+  Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
+  mySelection->setInput(myOtherJoin);
+  Handle<Computation> myWriter = makeObject<WriteStringSet>("test93_db", "output_set1");
+  myWriter->setInput(mySelection);
 
   std::vector<Handle<Computation>> queryGraph;
   queryGraph.push_back(myWriter);
@@ -122,7 +126,7 @@ int main(int argc, char *argv[]) {
 
   // create the data statistics
   StatisticsPtr stats = make_shared<Statistics>();
-  stats->addSet("test77_db", "test77_set1", ds);
+  stats->addSet("test93_db", "test93_set1", ds);
 
   while (physicalOptimizer.hasSources()) {
 

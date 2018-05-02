@@ -56,6 +56,12 @@ public:
    * @return the type id
    */
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
+
+  /**
+   * Marks the provided node as executed by this algorithm
+   * @param handle the node
+   */
+  void markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) override;
 };
 
 }

@@ -57,6 +57,11 @@ class AdvancedPhysicalAggregationPipelineAlgorithm : public AdvancedPhysicalAbst
    */
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
 
+  /**
+   * Marks the provided node as executed by this algorithm
+   * @param handle the node
+   */
+  void markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) override;
 };
 
 }

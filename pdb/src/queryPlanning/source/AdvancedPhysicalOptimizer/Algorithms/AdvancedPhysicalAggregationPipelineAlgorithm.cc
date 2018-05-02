@@ -181,5 +181,9 @@ AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalAggregationPipelineAlgor
   return AGGREGATION_ALGORITHM;
 }
 
+void AdvancedPhysicalAggregationPipelineAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
+
+}
+
 }
 

@@ -29,7 +29,7 @@ AdvancedPhysicalAggregationPipe::AdvancedPhysicalAggregationPipe(string &jobId,
                                                                          ConfigurationPtr &conf,
                                                                          vector<AtomicComputationPtr> &pipeComputations,
                                                                          size_t id) :
-                                                                         AdvancedPhysicalAbstractPipeline(jobId,
+                                                                         AdvancedPhysicalAbstractPipe(jobId,
                                                                                               computePlan,
                                                                                               logicalPlan,
                                                                                               conf,
@@ -74,7 +74,7 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipe::propose(st
   for (const auto &algorithm : algorithms) {
 
     // we prefer the broadcast algorithm, but if we have none we are fine
-    if (algorithm->getType() == JOIN_BROADCAST_ALGORITHM || best == nullptr) {
+    if (algorithm->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM || best == nullptr) {
 
       // select the best algorithm
       best = algorithm;

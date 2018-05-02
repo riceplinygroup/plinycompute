@@ -187,14 +187,14 @@ tests = {
     #"TestMultiSelection": ("MULTI SELECTION TEST G-2 PIPELINE", ['bin/TestMultiSelection', 'Y', 'Y', '1024', 'localhost', 'Y']),
     # "TestMultiSelectionWithJoin": ("MULTI SELECTION WITH JOIN TEST G-2 PIPELINE", ['bin/TestMultiSelectionWithJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
     #"TestOptimizedGroupByAggregation": ("OPTIMIZED GROUP BY AGGREGATION TEST G-2 PIPELINE", ['bin/TestOptimizedGroupByAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
-    # "TestOptimizedMethodJoin": ("OPTIMIZED METHOD JOIN TEST G-2 PIPELINE", ['bin/TestOptimizedMethodJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
+    "TestOptimizedMethodJoin": ("OPTIMIZED METHOD JOIN TEST G-2 PIPELINE", ['bin/TestOptimizedMethodJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
     # "SelfJoin": ("SELF JOIN TEST G-2 PIPELINE", ['bin/SelfJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
     #"TestSimpleAggregation": ("SIMPLE AGGREGATION TEST G-2 PIPELINE", ['bin/TestSimpleAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
     #"TestSimpleSelection": ("SIMPLE SELECTION TEST G-2 PIPELINE", ['bin/TestSimpleSelection', 'Y', 'Y', '1024', 'localhost', 'Y']),
     #"TestSimpleSelectionWithRatio": ("SIMPLE SELECTION WITH RATIO TEST G-2 PIPELINE", ['bin/TestSimpleSelectionWithRatio', 'Y', 'Y', '1024', 'localhost', 'Y', '0.01']),
     # "TestTwoSelectionOneAggregation": ("AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE", ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
     # "TestTopK": ("TOP K TEST ON G-2 PIPELINE", ['bin/TestTopK', '1024', 'localhost', 'Y', 'Y']),
-    "TestTwoWayJoin": ("TWO WAY JOIN", ['bin/TestTwoWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y'])
+    #"TestTwoWayJoin": ("TWO WAY JOIN", ['bin/TestTwoWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y'])
 }
 
 # Linear algebra tests

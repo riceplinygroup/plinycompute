@@ -20,9 +20,9 @@
 #include <JobStageBuilders/HashPartitionedJoinBuildHTJobStageBuilder.h>
 #include <JoinComp.h>
 #include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
-#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinShufflePipelineAlgorithm.h"
+#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalShuffledHashsetPipelineAlgorithm.h"
 
-AdvancedPhysicalJoinShufflePipelineAlgorithm::AdvancedPhysicalJoinShufflePipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalShuffledHashsetPipelineAlgorithm::AdvancedPhysicalShuffledHashsetPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                    const std::string &jobID,
                                                                                    bool isProbing,
                                                                                    bool isOutput,
@@ -41,7 +41,7 @@ AdvancedPhysicalJoinShufflePipelineAlgorithm::AdvancedPhysicalJoinShufflePipelin
                                                                                                                        logicalPlan,
                                                                                                                        conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinShufflePipelineAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::generate(int nextStageID) {
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -148,11 +148,15 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinShufflePipelineAlgorithm::generat
   return result;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinShufflePipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
   return nullptr;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinShufflePipelineAlgorithm::getType() {
-  return JOIN_HASH_ALGORITHM;
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffledHashsetPipelineAlgorithm::getType() {
+  return JOIN_SHUFFLED_HASHSET_ALGORITHM;
+}
+
+void AdvancedPhysicalShuffledHashsetPipelineAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
+
 }
 

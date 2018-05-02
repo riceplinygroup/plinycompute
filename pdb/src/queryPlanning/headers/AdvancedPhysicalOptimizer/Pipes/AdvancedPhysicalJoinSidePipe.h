@@ -19,11 +19,11 @@
 #ifndef PDB_ADVANCEDPHYSICALJOINPIPELINE_H
 #define PDB_ADVANCEDPHYSICALJOINPIPELINE_H
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipe.h"
 
 namespace pdb {
 
-class AdvancedPhysicalJoinSidePipe : public AdvancedPhysicalAbstractPipeline {
+class AdvancedPhysicalJoinSidePipe : public AdvancedPhysicalAbstractPipe {
 public:
 
   AdvancedPhysicalJoinSidePipe(string &jobId,

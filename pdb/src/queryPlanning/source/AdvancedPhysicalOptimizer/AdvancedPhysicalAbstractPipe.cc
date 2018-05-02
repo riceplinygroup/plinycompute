@@ -17,12 +17,12 @@
  *****************************************************************************/
 
 #include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipe.h"
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h"
 
 namespace pdb {
 
-AdvancedPhysicalAbstractPipeline::AdvancedPhysicalAbstractPipeline(string &jobId,
+AdvancedPhysicalAbstractPipe::AdvancedPhysicalAbstractPipe(string &jobId,
                                            const Handle<ComputePlan> &computePlan,
                                            LogicalPlanPtr &logicalPlan,
                                            ConfigurationPtr &conf,
@@ -49,17 +49,17 @@ AdvancedPhysicalAbstractPipeline::AdvancedPhysicalAbstractPipeline(string &jobId
   }
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const StatisticsPtr &stats, int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::analyze(const StatisticsPtr &stats, int nextStageID) {
 
 
   /// 1. check if this this thing is pipelinable to the consumer
-  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
+  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipe>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
 
     // we start with pipelining this pipeline maybe we will pipeline more
     std::vector<AdvancedPhysicalPipelineNodePtr> pipelines = { getAdvancedPhysicalNodeHandle() };
 
     // delegate the logic for the pipelining to the next node
-    return consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipelines, stats);
+    return consumers.front()->to<AdvancedPhysicalAbstractPipe>()->pipelineMe(nextStageID, pipelines, stats);
   }
 
   /// 2. is this a final operator
@@ -69,11 +69,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::analyze(const Stati
 
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
-  selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats));
+  selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipe>()->propose(getPossibleAlgorithms(stats));
   return selectedAlgorithm->generate(nextStageID);
 }
 
-bool AdvancedPhysicalAbstractPipeline::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
+bool AdvancedPhysicalAbstractPipe::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
 
   // check whether we are joining
   if(this->isJoining()) {
@@ -85,14 +85,14 @@ bool AdvancedPhysicalAbstractPipeline::isPipelinable(AdvancedPhysicalPipelineNod
     for(auto &producer : producers) {
 
       // if on of the producers is not a join side fail
-      assert(std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(producer)->getType() == JOIN_SIDE);
+      assert(std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipe>(producer)->getType() == JOIN_SIDE);
 
       // cast the consumer to the join
-      auto casted_producer = std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(producer);
+      auto casted_producer = std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipe>(producer);
 
       // if the consumer is not processed this operator is not pipelinable if
       // A) this operator is not executed or B) We shuffled the other side so now we have to shuffle this side
-      if(node != producer && (!casted_producer->isExecuted() || casted_producer->getSelectedAlgorithm()->getType() == JOIN_HASH_ALGORITHM)) {
+      if(node != producer && (!casted_producer->isExecuted() || casted_producer->getSelectedAlgorithm()->getType() == JOIN_SHUFFLED_HASHSET_ALGORITHM)) {
 
         // ok we can not pipeline this
         return false;
@@ -111,18 +111,18 @@ bool AdvancedPhysicalAbstractPipeline::isPipelinable(AdvancedPhysicalPipelineNod
 }
 
 
-PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int nextStageID,
+PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::pipelineMe(int nextStageID,
                                                                         std::vector<AdvancedPhysicalPipelineNodePtr> pipeline,
                                                                         const StatisticsPtr &stats) {
 
   // can I pipeline more if so do it
-  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
+  if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipe>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
 
     // add me to the pipeline
     pipeline.push_back(getAdvancedPhysicalNodeHandle());
 
     // pipeline this node to the consumer
-    consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->pipelineMe(nextStageID, pipeline, stats);
+    consumers.front()->to<AdvancedPhysicalAbstractPipe>()->pipelineMe(nextStageID, pipeline, stats);
   }
 
   // ok we can not pipeline lets select the output algorithm and run this thing
@@ -132,28 +132,30 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipeline::pipelineMe(int next
 
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
-  selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipeline>()->propose(getPossibleAlgorithms(stats));
+  selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipe>()->propose(getPossibleAlgorithms(stats));
   return selectedAlgorithm->generatePipelined(nextStageID, pipeline);
 }
 
-bool AdvancedPhysicalAbstractPipeline::isExecuted() {
+bool AdvancedPhysicalAbstractPipe::isExecuted() {
   return selectedAlgorithm != nullptr;
 }
 
-const bool AdvancedPhysicalAbstractPipeline::isJoining() {
+const bool AdvancedPhysicalAbstractPipe::isJoining() {
   return producers.size() >= 2;
 }
 
-double AdvancedPhysicalAbstractPipeline::getCost(const StatisticsPtr &stats) {
+double AdvancedPhysicalAbstractPipe::getCost(const StatisticsPtr &stats) {
 
   // do we have statistics, if not just return 0
   if(stats == nullptr) {
     return 0;
   }
 
-  // if the set identifier does not exist log that
+  // check if the source set identifier exists if it does not maybe this pipeline is a join therefore we need to
+  // get the source set from one if it's children
   if (sourceSetIdentifier == nullptr) {
-    PDB_COUT << "WARNING: there is no source set for key=" << sourceSetIdentifier->toSourceSetName() << "\n";
+    // this might be a problem
+    PDB_COUT << "WARNING: there is no source set for the node " << getNodeIdentifier() << "\n";
     return 0;
   }
 
@@ -162,45 +164,45 @@ double AdvancedPhysicalAbstractPipeline::getCost(const StatisticsPtr &stats) {
   return double((size_t) cost / 1000000);
 }
 
-const AdvancedPhysicalAbstractAlgorithmPtr &AdvancedPhysicalAbstractPipeline::getSelectedAlgorithm() const {
+const AdvancedPhysicalAbstractAlgorithmPtr &AdvancedPhysicalAbstractPipe::getSelectedAlgorithm() const {
   return selectedAlgorithm;
 }
 
-AdvancedPhysicalPipelineNodePtr AdvancedPhysicalAbstractPipeline::getAdvancedPhysicalNodeHandle() {
+AdvancedPhysicalPipelineNodePtr AdvancedPhysicalAbstractPipe::getAdvancedPhysicalNodeHandle() {
   // return the handle to this node
-  return std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipeline>(getHandle());
+  return std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipe>(getHandle());
 }
 
-bool AdvancedPhysicalAbstractPipeline::hasConsumers() {
+bool AdvancedPhysicalAbstractPipe::hasConsumers() {
   return false;
 }
 
-string AdvancedPhysicalAbstractPipeline::getNodeIdentifier() {
+string AdvancedPhysicalAbstractPipe::getNodeIdentifier() {
   return "node_" + to_string(id);
 }
 
-bool AdvancedPhysicalAbstractPipeline::isSource() {
+bool AdvancedPhysicalAbstractPipe::isSource() {
 
   // check whether the first node is a scan set
   return !pipeComputations.empty() && pipeComputations.front()->getAtomicComputationTypeID() == ScanSetAtomicTypeID;
 }
 
-AtomicComputationPtr AdvancedPhysicalAbstractPipeline::getPipelineComputationAt(size_t idx) {
+AtomicComputationPtr AdvancedPhysicalAbstractPipe::getPipelineComputationAt(size_t idx) {
   return this->pipeComputations[idx];
 }
-const vector<AtomicComputationPtr> &AdvancedPhysicalAbstractPipeline::getPipeComputations() const {
+const vector<AtomicComputationPtr> &AdvancedPhysicalAbstractPipe::getPipeComputations() const {
   return pipeComputations;
 }
 
-const Handle<SetIdentifier> &AdvancedPhysicalAbstractPipeline::getSourceSetIdentifier() const {
+const Handle<SetIdentifier> &AdvancedPhysicalAbstractPipe::getSourceSetIdentifier() const {
   return sourceSetIdentifier;
 }
 
-void AdvancedPhysicalAbstractPipeline::setSourceSetIdentifier(const Handle<SetIdentifier> &sourceSetIdentifier) {
-  AdvancedPhysicalAbstractPipeline::sourceSetIdentifier = sourceSetIdentifier;
+void AdvancedPhysicalAbstractPipe::setSourceSetIdentifier(const Handle<SetIdentifier> &sourceSetIdentifier) {
+  AdvancedPhysicalAbstractPipe::sourceSetIdentifier = sourceSetIdentifier;
 }
 
-std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipeline::getProbingHashSets() {
+std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipe::getProbingHashSets() {
 
   // the return value
   std::unordered_map<std::string, std::string> ret;

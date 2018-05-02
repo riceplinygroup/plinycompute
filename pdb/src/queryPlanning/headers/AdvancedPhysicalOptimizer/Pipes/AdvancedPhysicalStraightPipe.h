@@ -19,11 +19,11 @@
 #ifndef PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
 #define PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipe.h"
 
 namespace pdb {
 
-class AdvancedPhysicalStraightPipe : public AdvancedPhysicalAbstractPipeline {
+class AdvancedPhysicalStraightPipe : public AdvancedPhysicalAbstractPipe {
 public:
 
   AdvancedPhysicalStraightPipe(string &jobId,

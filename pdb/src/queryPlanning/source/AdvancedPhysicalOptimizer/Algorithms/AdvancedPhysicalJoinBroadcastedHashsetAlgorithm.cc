@@ -18,10 +18,10 @@
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <JobStageBuilders/BroadcastJoinBuildHTJobStageBuilder.h>
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastPipelineAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastedHashsetAlgorithm.h>
 #include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
 
-AdvancedPhysicalJoinBroadcastPipelineAlgorithm::AdvancedPhysicalJoinBroadcastPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::AdvancedPhysicalJoinBroadcastedHashsetAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                        const std::string &jobID,
                                                                                        bool isProbing,
                                                                                        bool isOutput,
@@ -40,7 +40,7 @@ AdvancedPhysicalJoinBroadcastPipelineAlgorithm::AdvancedPhysicalJoinBroadcastPip
                                                                                                                          logicalPlan,
                                                                                                                          conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastPipelineAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::generate(int nextStageID) {
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -50,7 +50,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastPipelineAlgorithm::gener
 
   // we get the first atomic computation of the join pipeline that comes after this one.
   // This computation should be the apply join computation
-  auto joinAtomicComputation = handle->getConsumer(0)->to<AdvancedPhysicalAbstractPipeline>()->getPipelineComputationAt(0);
+  auto joinAtomicComputation = handle->getConsumer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipelineComputationAt(0);
 
   // get the final atomic computation
   string finalAtomicComputationName = this->pipeComputations.back()->getOutputName();
@@ -138,12 +138,16 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastPipelineAlgorithm::gener
   return result;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinBroadcastPipelineAlgorithm::getType() {
-  return JOIN_BROADCAST_ALGORITHM;
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::getType() {
+  return JOIN_BROADCASTED_HASHSET_ALGORITHM;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
   return nullptr;
+}
+
+void AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
+
 }
 
 

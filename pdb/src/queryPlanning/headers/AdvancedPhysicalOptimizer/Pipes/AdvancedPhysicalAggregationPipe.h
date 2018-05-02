@@ -19,11 +19,11 @@
 #ifndef PDB_AGGREGATIONPIPENODE_H
 #define PDB_AGGREGATIONPIPENODE_H
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipe.h"
 
 namespace pdb {
 
-class AdvancedPhysicalAggregationPipe : public AdvancedPhysicalAbstractPipeline {
+class AdvancedPhysicalAggregationPipe : public AdvancedPhysicalAbstractPipe {
 public:
 
   AdvancedPhysicalAggregationPipe(string &jobId,

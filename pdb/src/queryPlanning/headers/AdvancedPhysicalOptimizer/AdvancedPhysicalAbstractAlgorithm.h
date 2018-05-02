@@ -19,7 +19,7 @@
 #ifndef PDB_ADVANCEDPHYSICALALGORITHM_H
 #define PDB_ADVANCEDPHYSICALALGORITHM_H
 
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipe.h"
 
 namespace pdb {
 
@@ -28,8 +28,8 @@ enum AdvancedPhysicalAbstractAlgorithmTypeID {
   SELECTION_ALGORITHM,
   AGGREGATION_ALGORITHM,
   JOIN_ALGORITHM,
-  JOIN_BROADCAST_ALGORITHM,
-  JOIN_HASH_ALGORITHM
+  JOIN_BROADCASTED_HASHSET_ALGORITHM,
+  JOIN_SHUFFLED_HASHSET_ALGORITHM
 };
 
 class AdvancedPhysicalAbstractAlgorithm;
@@ -68,6 +68,12 @@ public:
    * @return the type id
    */
   virtual AdvancedPhysicalAbstractAlgorithmTypeID getType() = 0;
+
+  /**
+   * Marks the provided node as executed by this algorithm
+   * @param handle the node
+   */
+  virtual void markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) = 0;
 
 protected:
 

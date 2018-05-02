@@ -17,7 +17,7 @@
  *****************************************************************************/
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastPipelineAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastedHashsetAlgorithm.h>
 #include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h"
 
 namespace pdb {
@@ -27,7 +27,7 @@ AdvancedPhysicalJoinSidePipe::AdvancedPhysicalJoinSidePipe(string &jobId,
                                                                    LogicalPlanPtr &logicalPlan,
                                                                    ConfigurationPtr &conf,
                                                                    vector<AtomicComputationPtr> &pipeComputations,
-                                                                   size_t id) : AdvancedPhysicalAbstractPipeline(jobId,
+                                                                   size_t id) : AdvancedPhysicalAbstractPipe(jobId,
                                                                                                                  computePlan,
                                                                                                                  logicalPlan,
                                                                                                                  conf,
@@ -50,7 +50,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
 
   // check if we can use a broadcast algorithm
   if (getCost(stats) < BROADCAST_JOIN_COST_THRESHOLD) {
-    algorithms.push_back(std::make_shared<AdvancedPhysicalJoinBroadcastPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
+    algorithms.push_back(std::make_shared<AdvancedPhysicalJoinBroadcastedHashsetAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                       jobId,
                                                                                       isJoining(),
                                                                                       consumers.empty(),
@@ -62,7 +62,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
   }
 
   // we can always do a shuffle algorithm
-  algorithms.push_back(std::make_shared<AdvancedPhysicalJoinBroadcastPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
+  algorithms.push_back(std::make_shared<AdvancedPhysicalJoinBroadcastedHashsetAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                     jobId,
                                                                                     isJoining(),
                                                                                     consumers.empty(),
@@ -84,7 +84,7 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipe::propose(std::
   for (const auto &algorithm : algorithms) {
 
     // we prefer the broadcast algorithm, but if we have none we are fine
-    if (algorithm->getType() == JOIN_BROADCAST_ALGORITHM || best == nullptr) {
+    if (algorithm->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM || best == nullptr) {
 
       // select the best algorithm
       best = algorithm;

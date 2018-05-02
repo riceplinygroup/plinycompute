@@ -21,7 +21,7 @@
 
 #include <set>
 #include "AbstractPhysicalNodeFactory.h"
-#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
+#include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipe.h"
 
 namespace pdb {
 
@@ -53,7 +53,7 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    * This method assumes that the last AtomicComputation belonging to this node is stored at @see currentPipe
    * @param node - the node we are updating the consumedBy for
    */
-  void setConsumers(shared_ptr<AdvancedPhysicalAbstractPipeline> node);
+  void setConsumers(shared_ptr<AdvancedPhysicalAbstractPipe> node);
 
   /**
    * After we create all the pipes we we need to connect them to create a graph consisting of pipes
