@@ -16,26 +16,27 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALAGGREGATIONALGORITHM_H
-#define PDB_ADVANCEDPHYSICALAGGREGATIONALGORITHM_H
+#ifndef PDB_ADVANCEDPHYSICALBROADCASTALGORITHM_H
+#define PDB_ADVANCEDPHYSICALBROADCASTALGORITHM_H
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-class AdvancedPhysicalAggregationAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+class AdvancedPhysicalJoinBroadcastPipelineAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
 
- public:
+public:
 
-  AdvancedPhysicalAggregationAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                       const std::string &jobID,
-                                       bool isProbing,
-                                       bool isOutput,
-                                       const Handle<SetIdentifier> &source,
-                                       const vector<AtomicComputationPtr> &pipeComputations,
-                                       const Handle<ComputePlan> &computePlan,
-                                       const LogicalPlanPtr &logicalPlan,
-                                       const ConfigurationPtr &conf);
+  AdvancedPhysicalJoinBroadcastPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                               const std::string &jobID,
+                                               bool isProbing,
+                                               bool isOutput,
+                                               const Handle<SetIdentifier> &source,
+                                               const vector<
+                                                                                               AtomicComputationPtr> &pipeComputations,
+                                               const Handle<ComputePlan> &computePlan,
+                                               const LogicalPlanPtr &logicalPlan,
+                                               const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
@@ -56,9 +57,10 @@ class AdvancedPhysicalAggregationAlgorithm : public AdvancedPhysicalAbstractAlgo
    * @return the type id
    */
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
-
 };
 
 }
 
-#endif //PDB_ADVANCEDPHYSICALAGGREGATIONALGORITHM_H
+
+
+#endif //PDB_ADVANCEDPHYSICALBROADCASTALGORITHM_H

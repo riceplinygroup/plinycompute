@@ -17,9 +17,9 @@
  *****************************************************************************/
 
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalNodeFactory.h"
-#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalAggregationPipeline.h"
-#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h"
-#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalStraightPipeline.h"
+#include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalAggregationPipe.h"
+#include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h"
+#include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalStraightPipe.h"
 
 namespace pdb {
 
@@ -75,7 +75,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
     case HashRightTypeID: {
 
       // we got a hash operation, create a shuffle pipe
-      createPhysicalPipeline<AdvancedPhysicalJoinSidePipeline>();
+      createPhysicalPipeline<AdvancedPhysicalJoinSidePipe>();
       currentPipe.clear();
 
       break;
@@ -83,7 +83,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
     case ApplyAggTypeID: {
 
       // we got a aggregation so we need to create an aggregation shuffle pipe
-      createPhysicalPipeline<AdvancedPhysicalAggregationPipeline>();
+      createPhysicalPipeline<AdvancedPhysicalAggregationPipe>();
       currentPipe.clear();
 
       break;
@@ -91,7 +91,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
     case WriteSetTypeID: {
 
       // write set also breaks the pipe because this is where the pipe ends
-      createPhysicalPipeline<AdvancedPhysicalStraightPipeline>();
+      createPhysicalPipeline<AdvancedPhysicalStraightPipe>();
       currentPipe.clear();
     }
     default: {
@@ -109,7 +109,7 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
 
     // this is a pipeline breaker create a pipe
     currentPipe.push_back(curNode);
-    createPhysicalPipeline<AdvancedPhysicalStraightPipeline>();
+    createPhysicalPipeline<AdvancedPhysicalStraightPipe>();
     currentPipe.clear();
   }
 

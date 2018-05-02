@@ -18,9 +18,10 @@
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <JobStageBuilders/BroadcastJoinBuildHTJobStageBuilder.h>
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastJoinSideAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastPipelineAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
 
-AdvancedPhysicalBroadcastJoinSideAlgorithm::AdvancedPhysicalBroadcastJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalJoinBroadcastPipelineAlgorithm::AdvancedPhysicalJoinBroadcastPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                        const std::string &jobID,
                                                                                        bool isProbing,
                                                                                        bool isOutput,
@@ -39,7 +40,7 @@ AdvancedPhysicalBroadcastJoinSideAlgorithm::AdvancedPhysicalBroadcastJoinSideAlg
                                                                                                                          logicalPlan,
                                                                                                                          conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastPipelineAlgorithm::generate(int nextStageID) {
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -124,6 +125,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(
   // We then create a BroadcastJoinBuildHTStage
   Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = broadcastBuilder->build();
 
+  // we set the name of the hash we just generated
+  handle->to<AdvancedPhysicalJoinSidePipe>()->setHashSet(hashSetName);
+
   // add the stage to the list of stages to be executed
   result->physicalPlanToOutput.emplace_back(joinBroadcastStage);
 
@@ -134,11 +138,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generate(
   return result;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalBroadcastJoinSideAlgorithm::getType() {
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinBroadcastPipelineAlgorithm::getType() {
   return JOIN_BROADCAST_ALGORITHM;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalBroadcastJoinSideAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
   return nullptr;
 }
 

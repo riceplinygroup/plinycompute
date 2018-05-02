@@ -23,11 +23,11 @@
 
 namespace pdb {
 
-class AdvancedPhysicalSelectionAlgorithm : public AdvancedPhysicalAbstractAlgorithm  {
+class AdvancedPhysicalPipelineAlgorithm : public AdvancedPhysicalAbstractAlgorithm  {
 
 public:
 
-  AdvancedPhysicalSelectionAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+  AdvancedPhysicalPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                        const std::string &jobID,
                                        bool isProbing,
                                        bool isOutput,

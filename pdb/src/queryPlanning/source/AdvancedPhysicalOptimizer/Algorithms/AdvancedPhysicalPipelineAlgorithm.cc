@@ -17,12 +17,12 @@
  *****************************************************************************/
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalSelectionAlgorithm.h>
-#include <AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalPipelineAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
 
 namespace pdb {
 
-AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalPipelineAlgorithm::AdvancedPhysicalPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                        const std::string &jobID,
                                                                        bool isProbing,
                                                                        bool isOutput,
@@ -41,16 +41,21 @@ AdvancedPhysicalSelectionAlgorithm::AdvancedPhysicalSelectionAlgorithm(const Adv
                                                                                                            logicalPlan,
                                                                                                            conf) {
 
-  // check if this
+  // check if this pipeline is joining. If so grab all the hash sets
   if(handle->isJoining()) {
 
-    // add the hash set
-    probingHashSets[handle->getPipelineComputationAt(0)->getOutputName()] = (handle->to<AdvancedPhysicalJoinSidePipeline>()->getGeneratedHashSet());
-  }
+    // get the probing hash sets
+    auto sets = handle->getProbingHashSets();
 
+    // there should always be one hash set we are probing for a join
+    assert(!sets.empty());
+
+    // add the tuple sets we are probing to the list
+    probingHashSets.insert(sets.begin(), sets.end());
+  }
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextStageID) {
 
   // get the final atomic computation
   auto finalAtomicComputation = this->pipeComputations.back();
@@ -153,11 +158,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generate(int next
   return result;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalSelectionAlgorithm::getType() {
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalPipelineAlgorithm::getType() {
   return SELECTION_ALGORITHM;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalSelectionAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipelines) {
+PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipelines) {
 
   // get the source set identifier of the first node in the pipeline
   source = pipelines.front()->getSourceSetIdentifier();

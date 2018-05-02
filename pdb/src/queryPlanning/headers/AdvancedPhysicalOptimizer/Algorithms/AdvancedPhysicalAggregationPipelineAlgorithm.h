@@ -16,34 +16,26 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
-#define PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
+#ifndef PDB_ADVANCEDPHYSICALAGGREGATIONALGORITHM_H
+#define PDB_ADVANCEDPHYSICALAGGREGATIONALGORITHM_H
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-class AdvancedPhysicalShuffleJoinSideAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+class AdvancedPhysicalAggregationPipelineAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
 
-public:
+ public:
 
-  /**
-   *
-   * @param handle
-   * @param nextStageID
-   * @param pipeComputations
-   * @param logicalPlan
-   * @param conf
-   */
-  AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                           const std::string &jobID,
-                                           bool isProbing,
-                                           bool isOutput,
-                                           const Handle<SetIdentifier> &source,
-                                           const vector<AtomicComputationPtr> &pipeComputations,
-                                           const Handle<ComputePlan> &computePlan,
-                                           const LogicalPlanPtr &logicalPlan,
-                                           const ConfigurationPtr &conf);
+  AdvancedPhysicalAggregationPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                               const std::string &jobID,
+                                               bool isProbing,
+                                               bool isOutput,
+                                               const Handle<SetIdentifier> &source,
+                                               const vector<AtomicComputationPtr> &pipeComputations,
+                                               const Handle<ComputePlan> &computePlan,
+                                               const LogicalPlanPtr &logicalPlan,
+                                               const ConfigurationPtr &conf);
 
   /**
    * Generates the stages for this algorithm
@@ -64,8 +56,9 @@ public:
    * @return the type id
    */
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
+
 };
 
 }
 
-#endif //PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
+#endif //PDB_ADVANCEDPHYSICALAGGREGATIONALGORITHM_H

@@ -415,6 +415,12 @@ class Tests {
           QUNIT_IS_EQUAL(buildMe[4], "filtedOutFor_native_lambda_0_JoinComp_2");
           QUNIT_IS_EQUAL(buildMe[5], "nativ_1OutForJoinComp2");
 
+          auto hashSetsToProbe = tupleStage->getHashSets();
+
+          // there should be only one hash set we need to probe
+          QUNIT_IS_EQUAL("CartesianJoined__in0___in1_", (*hashSetsToProbe->begin()).key);
+          QUNIT_IS_EQUAL("TestSelectionJob:CartesianJoined__in0___in1__broadcastData", (*hashSetsToProbe->begin()).value);
+
           break;
         }
 

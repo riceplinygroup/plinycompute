@@ -17,13 +17,13 @@
  *****************************************************************************/
 
 
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalAggregationAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalAggregationPipelineAlgorithm.h>
 #include "SimplePhysicalOptimizer/SimplePhysicalPartitionNode.h"
-#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalAggregationPipeline.h"
+#include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalAggregationPipe.h"
 
 namespace pdb {
 
-AdvancedPhysicalAggregationPipeline::AdvancedPhysicalAggregationPipeline(string &jobId,
+AdvancedPhysicalAggregationPipe::AdvancedPhysicalAggregationPipe(string &jobId,
                                                                          Handle<ComputePlan> &computePlan,
                                                                          LogicalPlanPtr &logicalPlan,
                                                                          ConfigurationPtr &conf,
@@ -36,8 +36,8 @@ AdvancedPhysicalAggregationPipeline::AdvancedPhysicalAggregationPipeline(string 
                                                                                               pipeComputations,
                                                                                               id) {}
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::selectOutputAlgorithm() {
-  selectedAlgorithm = std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipe::selectOutputAlgorithm() {
+  selectedAlgorithm = std::make_shared<AdvancedPhysicalAggregationPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                              jobId,
                                                                              isJoining(),
                                                                              consumers.empty(),
@@ -49,10 +49,10 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::select
   return selectedAlgorithm;
 }
 
-vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
+vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipe::getPossibleAlgorithms(const StatisticsPtr &stats) {
 
   // currently every straight pipeline is realized as a selection
-  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalAggregationAlgorithm>(getAdvancedPhysicalNodeHandle(),
+  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalAggregationPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                                                    jobId,
                                                                                                                    isJoining(),
                                                                                                                    consumers.empty(),
@@ -65,7 +65,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipeline
   return ret;
 }
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipe::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
 
   //TODO this is just some placeholder logic to select the broadcast join if we can
   AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
@@ -88,7 +88,7 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipeline::propos
   return best;
 }
 
-AdvancedPhysicalPipelineTypeID AdvancedPhysicalAggregationPipeline::getType() {
+AdvancedPhysicalPipelineTypeID AdvancedPhysicalAggregationPipe::getType() {
   return AGGREGATION;
 }
 

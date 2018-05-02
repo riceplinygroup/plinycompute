@@ -16,12 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalSelectionAlgorithm.h>
-#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalStraightPipeline.h"
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalPipelineAlgorithm.h>
+#include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalStraightPipe.h"
 
 namespace pdb {
 
-AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId,
+AdvancedPhysicalStraightPipe::AdvancedPhysicalStraightPipe(string &jobId,
                                                                    Handle<ComputePlan> &computePlan,
                                                                    LogicalPlanPtr &logicalPlan,
                                                                    ConfigurationPtr &conf,
@@ -34,9 +34,9 @@ AdvancedPhysicalStraightPipeline::AdvancedPhysicalStraightPipeline(string &jobId
                                                                                                     pipeComputations,
                                                                                                     id) {}
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOutputAlgorithm() {
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipe::selectOutputAlgorithm() {
 
-  selectedAlgorithm = std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
+  selectedAlgorithm = std::make_shared<AdvancedPhysicalPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                            jobId,
                                                                            isJoining(),
                                                                            consumers.empty(),
@@ -49,10 +49,10 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::selectOut
   return selectedAlgorithm;
 }
 
-std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
+std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipe::getPossibleAlgorithms(const StatisticsPtr &stats) {
 
   // currently every straight pipeline is realized as a selection
-  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalSelectionAlgorithm>(getAdvancedPhysicalNodeHandle(),
+  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> ret = { std::make_shared<AdvancedPhysicalPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                                                  jobId,
                                                                                                                  isJoining(),
                                                                                                                  consumers.empty(),
@@ -65,7 +65,7 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipeli
   return ret;
 }
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipe::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
 
   //TODO this is just some placeholder logic to select the broadcast join if we can
   AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
@@ -88,7 +88,7 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipeline::propose(s
   return best;
 }
 
-AdvancedPhysicalPipelineTypeID AdvancedPhysicalStraightPipeline::getType() {
+AdvancedPhysicalPipelineTypeID AdvancedPhysicalStraightPipe::getType() {
   return STRAIGHT;
 }
 

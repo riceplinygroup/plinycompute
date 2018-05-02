@@ -17,12 +17,12 @@
  *****************************************************************************/
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalBroadcastJoinSideAlgorithm.h>
-#include "AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h"
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastPipelineAlgorithm.h>
+#include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h"
 
 namespace pdb {
 
-AdvancedPhysicalJoinSidePipeline::AdvancedPhysicalJoinSidePipeline(string &jobId,
+AdvancedPhysicalJoinSidePipe::AdvancedPhysicalJoinSidePipe(string &jobId,
                                                                    Handle<ComputePlan> &computePlan,
                                                                    LogicalPlanPtr &logicalPlan,
                                                                    ConfigurationPtr &conf,
@@ -34,7 +34,7 @@ AdvancedPhysicalJoinSidePipeline::AdvancedPhysicalJoinSidePipeline(string &jobId
                                                                                                                  pipeComputations,
                                                                                                                  id) {}
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::selectOutputAlgorithm() {
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipe::selectOutputAlgorithm() {
 
   // a join side is never an output
   static_assert(true, "this is not supposed to happen");
@@ -43,14 +43,14 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::selectOut
   return pdb::AdvancedPhysicalAbstractAlgorithmPtr();
 }
 
-vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::getPossibleAlgorithms(const StatisticsPtr &stats) {
+vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPossibleAlgorithms(const StatisticsPtr &stats) {
 
   // all the algorithms that we can use
   vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms;
 
   // check if we can use a broadcast algorithm
   if (getCost(stats) < BROADCAST_JOIN_COST_THRESHOLD) {
-    algorithms.push_back(std::make_shared<AdvancedPhysicalBroadcastJoinSideAlgorithm>(getAdvancedPhysicalNodeHandle(),
+    algorithms.push_back(std::make_shared<AdvancedPhysicalJoinBroadcastPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                       jobId,
                                                                                       isJoining(),
                                                                                       consumers.empty(),
@@ -62,7 +62,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::g
   }
 
   // we can always do a shuffle algorithm
-  algorithms.push_back(std::make_shared<AdvancedPhysicalBroadcastJoinSideAlgorithm>(getAdvancedPhysicalNodeHandle(),
+  algorithms.push_back(std::make_shared<AdvancedPhysicalJoinBroadcastPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                     jobId,
                                                                                     isJoining(),
                                                                                     consumers.empty(),
@@ -75,7 +75,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipeline::g
   return algorithms;
 }
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipe::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
 
   //TODO this is just some placeholder logic to select the broadcast join if we can
   AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
@@ -98,15 +98,15 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipeline::propose(s
   return best;
 }
 
-AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipeline::getType() {
+AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipe::getType() {
   return JOIN_SIDE;
 }
 
-std::string AdvancedPhysicalJoinSidePipeline::getGeneratedHashSet() {
+std::string AdvancedPhysicalJoinSidePipe::getGeneratedHashSet() {
   return hashSet;
 }
 
-void AdvancedPhysicalJoinSidePipeline::setHashSet(const string &hashSet) {
+void AdvancedPhysicalJoinSidePipe::setHashSet(const string &hashSet) {
   this->hashSet = hashSet;
 }
 

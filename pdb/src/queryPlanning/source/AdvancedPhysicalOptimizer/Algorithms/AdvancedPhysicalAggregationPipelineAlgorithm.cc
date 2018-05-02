@@ -17,12 +17,12 @@
  *****************************************************************************/
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
-#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalAggregationAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalAggregationPipelineAlgorithm.h>
 #include <JobStageBuilders/AggregationJobStageBuilder.h>
 
 namespace pdb {
 
-AdvancedPhysicalAggregationAlgorithm::AdvancedPhysicalAggregationAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalAggregationPipelineAlgorithm::AdvancedPhysicalAggregationPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                            const std::string &jobID,
                                                                            bool isProbing,
                                                                            bool isOutput,
@@ -40,7 +40,7 @@ AdvancedPhysicalAggregationAlgorithm::AdvancedPhysicalAggregationAlgorithm(const
                                                                                                                computePlan,
                                                                                                                logicalPlan,
                                                                                                                conf) {}
-PhysicalOptimizerResultPtr AdvancedPhysicalAggregationAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generate(int nextStageID) {
   // get the final atomic computation
   auto finalAtomicComputation = this->pipeComputations.back();
 
@@ -173,11 +173,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationAlgorithm::generate(int ne
   return result;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalAggregationAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
   return nullptr;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalAggregationAlgorithm::getType() {
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalAggregationPipelineAlgorithm::getType() {
   return AGGREGATION_ALGORITHM;
 }
 

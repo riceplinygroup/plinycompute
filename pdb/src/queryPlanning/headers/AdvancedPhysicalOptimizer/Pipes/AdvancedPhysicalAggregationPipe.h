@@ -16,23 +16,22 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
-#define PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
+#ifndef PDB_AGGREGATIONPIPENODE_H
+#define PDB_AGGREGATIONPIPENODE_H
 
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
 
 namespace pdb {
 
-class AdvancedPhysicalStraightPipeline : public AdvancedPhysicalAbstractPipeline {
+class AdvancedPhysicalAggregationPipe : public AdvancedPhysicalAbstractPipeline {
 public:
 
-  AdvancedPhysicalStraightPipeline(string &jobId,
-                                   Handle<ComputePlan> &computePlan,
-                                   LogicalPlanPtr &logicalPlan,
-                                   ConfigurationPtr &conf,
-                                   vector<AtomicComputationPtr> &pipeComputations,
-                                   size_t id);
-
+  AdvancedPhysicalAggregationPipe(string &jobId,
+                                      Handle<ComputePlan> &computePlan,
+                                      LogicalPlanPtr &logicalPlan,
+                                      ConfigurationPtr &conf,
+                                      vector<AtomicComputationPtr> &pipeComputations,
+                                      size_t id);
   /**
    * Returns the type of this pipeline
    * @return the type
@@ -49,8 +48,7 @@ public:
    * Returns all the possible algorithms that can be used to execute the pipeline
    * @return a vector of possible algorithms
    */
-  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
-
+  vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
 
   /**
    *
@@ -58,9 +56,10 @@ public:
    * @return
    */
   AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) override;
-
 };
 
 }
 
-#endif //PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
+
+
+#endif //PDB_AGGREGATIONPIPENODE_H

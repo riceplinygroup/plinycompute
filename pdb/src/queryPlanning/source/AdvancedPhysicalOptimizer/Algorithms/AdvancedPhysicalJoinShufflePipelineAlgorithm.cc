@@ -19,10 +19,10 @@
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
 #include <JobStageBuilders/HashPartitionedJoinBuildHTJobStageBuilder.h>
 #include <JoinComp.h>
-#include <AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h>
-#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalShuffleJoinSideAlgorithm.h"
+#include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
+#include "AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinShufflePipelineAlgorithm.h"
 
-AdvancedPhysicalShuffleJoinSideAlgorithm::AdvancedPhysicalShuffleJoinSideAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+AdvancedPhysicalJoinShufflePipelineAlgorithm::AdvancedPhysicalJoinShufflePipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                                                                    const std::string &jobID,
                                                                                    bool isProbing,
                                                                                    bool isOutput,
@@ -41,7 +41,7 @@ AdvancedPhysicalShuffleJoinSideAlgorithm::AdvancedPhysicalShuffleJoinSideAlgorit
                                                                                                                        logicalPlan,
                                                                                                                        conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinShufflePipelineAlgorithm::generate(int nextStageID) {
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -133,7 +133,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generate(in
   hashBuilder->setComputePlan(computePlan);
 
   // we set the name of the hash we just generated
-  handle->to<AdvancedPhysicalJoinSidePipeline>()->setHashSet(hashSetName);
+  handle->to<AdvancedPhysicalJoinSidePipe>()->setHashSet(hashSetName);
 
   // create the build hash partitioned join hash table job stage to partition and shuffle the source set
   Handle<HashPartitionedJoinBuildHTJobStage> joinPartitionStage = hashBuilder->build();
@@ -148,11 +148,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generate(in
   return result;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffleJoinSideAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinShufflePipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
   return nullptr;
 }
 
-AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffleJoinSideAlgorithm::getType() {
+AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinShufflePipelineAlgorithm::getType() {
   return JOIN_HASH_ALGORITHM;
 }
 

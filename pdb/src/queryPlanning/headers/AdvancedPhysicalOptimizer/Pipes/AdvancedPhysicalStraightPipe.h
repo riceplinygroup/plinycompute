@@ -16,22 +16,22 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALJOINPIPELINE_H
-#define PDB_ADVANCEDPHYSICALJOINPIPELINE_H
+#ifndef PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
+#define PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H
 
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
 
 namespace pdb {
 
-class AdvancedPhysicalJoinSidePipeline : public AdvancedPhysicalAbstractPipeline {
+class AdvancedPhysicalStraightPipe : public AdvancedPhysicalAbstractPipeline {
 public:
 
-  AdvancedPhysicalJoinSidePipeline(string &jobId,
-                               Handle<ComputePlan> &computePlan,
-                               LogicalPlanPtr &logicalPlan,
-                               ConfigurationPtr &conf,
-                               vector<AtomicComputationPtr> &pipeComputations,
-                               size_t id);
+  AdvancedPhysicalStraightPipe(string &jobId,
+                                   Handle<ComputePlan> &computePlan,
+                                   LogicalPlanPtr &logicalPlan,
+                                   ConfigurationPtr &conf,
+                                   vector<AtomicComputationPtr> &pipeComputations,
+                                   size_t id);
 
   /**
    * Returns the type of this pipeline
@@ -49,41 +49,18 @@ public:
    * Returns all the possible algorithms that can be used to execute the pipeline
    * @return a vector of possible algorithms
    */
-  vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
+  std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
+
 
   /**
-   * Picks one of the algorithms provided as the proposed (the best algorithm)
-   * @param algorithms - the lise of algorithms
-   * @return the algorithm we like
+   *
+   * @param algorithms
+   * @return
    */
   AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) override;
-
-  /**
-   * Returns the generated hash set if executed, otherwise it returns an empty string
-   * @return - the hash set we generated
-   */
-  std::string getGeneratedHashSet();
-
-  /**
-   * Sets the hash set of the join side pipeline
-   * @param hashSet - the hash set
-   */
-  void setHashSet(const string &hashSet);
-
- protected:
-
-  /**
-   * This is the largest cost that can we can broadcast
-   */
-  const double BROADCAST_JOIN_COST_THRESHOLD = 15000;
-
-  /**
-   * When executed this will contain the name of the hash set this join side generated
-   */
-  std::string hashSet;
 
 };
 
 }
 
-#endif //PDB_ADVANCEDPHYSICALJOINPIPELINE_H
+#endif //PDB_ADVANCEDPHYSICALSTRAIGHTPIPELINE_H

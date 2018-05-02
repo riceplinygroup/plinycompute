@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
-#include <AdvancedPhysicalOptimizer/Pipelines/AdvancedPhysicalJoinSidePipeline.h>
+#include <AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h>
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractPipeline.h"
 #include "AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h"
 
@@ -208,13 +208,13 @@ std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipeline::g
   for(const auto &p : producers) {
 
     // grab the join side
-    auto joinSide = p->to<AdvancedPhysicalJoinSidePipeline>();
+    auto joinSide = p->to<AdvancedPhysicalJoinSidePipe>();
 
     // if this is executed
     if(joinSide->isExecuted()) {
 
       // add the hash set
-      ret[this->getPipelineComputationAt(0)->getOutputName()] = (p->to<AdvancedPhysicalJoinSidePipeline>()->getGeneratedHashSet());
+      ret[this->getPipelineComputationAt(0)->getOutputName()] = (p->to<AdvancedPhysicalJoinSidePipe>()->getGeneratedHashSet());
     }
   }
 
