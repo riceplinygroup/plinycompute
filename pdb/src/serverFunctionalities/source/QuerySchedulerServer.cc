@@ -613,8 +613,8 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
         this->collectStats();
     }
 
-    std::cout << std::endl << "Before : " << std::endl;
-    std::cout << "\033[1;31m" << request->getTCAPString() << "\033[0m";
+    PDB_COUT << "TCAP before optimization: \n";
+    PDB_COUT << "\033[1;31m" << request->getTCAPString() << "\033[0m";
 
     // create the TCAP optimizer
     TCAPOptimizerPtr optimizer = make_shared<PrologOptimizer>();
@@ -622,8 +622,8 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
     // optimize the TCAP
     std::string optimizedTCAP = optimizer->optimize(request->getTCAPString());
 
-    std::cout << std::endl << "Before : " << std::endl;
-    std::cout << "\033[1;36m" << optimizedTCAP << "\033[0m";
+    PDB_COUT << std::endl << "TCAP after optimization: \n" << std::endl;
+    PDB_COUT << "\033[1;36m" << optimizedTCAP << "\033[0m";
 
     // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
     this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,

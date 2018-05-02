@@ -196,7 +196,7 @@ void PrologGenerator::parseAtomicComputation(AtomicComputationList* acl,
       std::string sourceComputationType = oldResult->getAtomicComputationType();
       sourceComputationType = toLowerCase(sourceComputationType);
 
-      if (result->getAtomicComputationTypeID() == HashRightTypeID) {
+      if (oldResult->getAtomicComputationTypeID() == HashRightTypeID) {
         std::shared_ptr<ApplyJoin> newResult = std::dynamic_pointer_cast<ApplyJoin>(result);
         inputAtts = newResult->getRightInput().getAtts();
         projectionAtts = newResult->getRightProjection().getAtts();
@@ -418,26 +418,6 @@ std::string PrologGenerator::processLambdaName(const std::string &data) {
   return makePrologString(data);
 }
 
-std::string PrologGenerator::hashMapToString(std::unordered_map<std::string, std::string> &map) {
-
-  // if the map is empty we just return a constant string
-  if(map.empty()){
-    return "[]";
-  }
-
-  // create the string
-  std::string info = "[";
-  for (const auto &i : map) {
-    info += "'" + i.first + "'-'" + i.second + "',";
-  }
-
-  // this will remove the last comma and add a closing square bracket
-  info.pop_back();
-  info.push_back(']');
-
-  return info;
-}
-
 std::string PrologGenerator::mapToString(std::map<std::string, std::string> &map) {
 
   // if the map is empty we just return a constant string
@@ -448,7 +428,7 @@ std::string PrologGenerator::mapToString(std::map<std::string, std::string> &map
   // create the string
   std::string info = "[";
   for (const auto &i : map) {
-    info += "'" + i.first + "'-'" + i.second + "',";
+    info += "('" + i.first + "','" + i.second + "'),";
   }
 
   // this will remove the last comma and add a closing square bracket
