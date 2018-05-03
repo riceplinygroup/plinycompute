@@ -271,3 +271,6 @@ else:
     run_tests(tests_ml)
     run_tests(test_tpch_main)
     run_tests(tests_tpch)
+
+#remove downloaded files
+os.system('rm -rf tables_scale_0.2*')

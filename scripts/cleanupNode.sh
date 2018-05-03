@@ -59,6 +59,7 @@ if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
     rm -rf logs/*
 fi
 
+
 # kill all the processes
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
