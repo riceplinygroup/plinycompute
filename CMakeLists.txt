@@ -188,12 +188,34 @@ add_custom_command (
 )
 
 # create a target to run the command and make every other target depend on it so it gets to run first
-add_custom_target(object-type-ids ALL
-        DEPENDS object-type-ids-command
-)
+add_custom_target(object-type-ids ALL DEPENDS object-type-ids-command)
 
 # include the directory we just created in the clean target
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/type-id-data)
+
+# the files generated from the optimizer
+set(OPTIMIZER_FILES ${CMAKE_SOURCE_DIR}/pdb/src/optimizer/source/PrologToTCAP.cc)
+
+# mark the files as generated
+set_source_files_properties(${OPTIMIZER_FILES} PROPERTIES GENERATED TRUE)
+
+# add the command to generate the optimizer stuff
+add_custom_command (
+        OUTPUT  optimizer-command
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/optimizer-data
+        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateOptimizer.py"
+                "${CMAKE_SOURCE_DIR}/pdb/src/optimizer/source/PrologToTCAP.pl"
+                "${OPTIMIZER_FILES}"
+                "${CMAKE_CURRENT_BINARY_DIR}/optimizer-data"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/pdb"
+        COMMENT "Optimizer Code!"
+)
+
+# create a target to run the command and make every other target depend on it so it gets to run first
+add_custom_target(optimizer-command-all ALL DEPENDS optimizer-command)
+
+# include the directory we just created in the clean target
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/optimizer-data)
 
 # find the threads library
 find_package(Threads)
@@ -225,6 +247,7 @@ add_dependencies(pdb-client object-type-ids)
 add_dependencies(logical-plan object-type-ids)
 add_dependencies(lib-pdb-server object-type-ids)
 add_dependencies(distribution-manager object-type-ids)
+add_dependencies(optimizer optimizer-command-all)
 
 # used to build the pdb-manager and pdb-worker
 add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
