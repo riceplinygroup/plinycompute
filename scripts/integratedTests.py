@@ -16,7 +16,7 @@
 import subprocess
 import time
 import sys
-
+import os
 
 class BColor:
     HEADER = '\033[95m'
@@ -41,8 +41,9 @@ print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up.
 time.sleep(5)
 
 #download data
-subprocess.check_call('wget', 'https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
-
+os.system('rm -rf tables_scale_0.2*')
+os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
+os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
 # by default it runs the ml test if no
 # test suite is specified
 what_tests = "tests-ml"
@@ -167,7 +168,7 @@ def run_test(id, test_name, test_command):
         print(BColor.OK_BLUE + "[PASSED] %s" % test_name + BColor.END_C)
         num_passed = num_passed + 1
 
-    if id != "tpchRegisterAndCreateSets" and what_tests != "tpch":
+    if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and what_tests != "tpch":
         # do the cleanup except when running tpchRegisterAndCreateSets
         subprocess.call(['bash', './scripts/cleanupNode.sh'])
         print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
@@ -177,6 +178,8 @@ def run_test(id, test_name, test_command):
 
 # Integration tests
 tests = {
+    "Pre-partitionLoadData": ("Pre-Partition LoadData", ['bin/tpchDataLoader', 'tables_scale_0.2']),
+    "Pre-partitionPartitionData": ("Pre-Partition PartitionData", ['bin/tpchDataPartitioner']),
     "TestCatalog": ("CATALOG FUNCTIONS TEST", ['bin/TestCatalog', 'localhost', '8108']),
     "TestAggregationAfterThreeWayJoin": ("SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE", ['bin/TestAggregationAfterThreeWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y']),
     "TestAggregationOnDoubleVector": ("AGGREGATION ON A DOUBLE VECTOR TEST G-2 PIPELINE", ['bin/TestAggregationOnDoubleVector', 'Y', 'Y', '1024', 'localhost', 'Y']),
@@ -199,8 +202,6 @@ tests = {
     "TestTwoSelectionOneAggregation": ("AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE", ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
     "TestTopK": ("TOP K TEST ON G-2 PIPELINE", ['bin/TestTopK', '1024', 'localhost', 'Y', 'Y']),
     "TestTwoWayJoin": ("TWO WAY JOIN", ['bin/TestTwoWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y'])
-    "Pre-partition LoadData": ("Pre-Partition LoadData", ['bin/tpchDataLoader', 'tables-scale-0.2'])
-    "Pre-partition PartitionData": ("Pre-Partition PartitionData", ['bin/tpchDataPartitioner'])
 }
 
 # Linear algebra tests

@@ -19,6 +19,8 @@ add_dependencies(build-tests build-ml-tests)
 add_dependencies(build-tests build-integration-tests)
 
 
+add_dependencies(build-integration-tests build-standard-tpch-tests)
+
 # adds one pdb integration test to CMAKE
 function(add_pdb_integration_test test-name)
     # get the directory
