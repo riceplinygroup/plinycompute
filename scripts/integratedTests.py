@@ -40,6 +40,9 @@ subprocess.call(['bash', './scripts/cleanupNode.sh'])
 print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
 time.sleep(5)
 
+#download data
+subprocess.check_call('wget', 'https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
+
 # by default it runs the ml test if no
 # test suite is specified
 what_tests = "tests-ml"
@@ -196,6 +199,8 @@ tests = {
     "TestTwoSelectionOneAggregation": ("AGGREGATION AND SELECTION MIXED TEST ON G-2 PIPELINE", ['bin/TestTwoSelectionOneAggregation', 'Y', 'Y', '1024', 'localhost', 'Y']),
     "TestTopK": ("TOP K TEST ON G-2 PIPELINE", ['bin/TestTopK', '1024', 'localhost', 'Y', 'Y']),
     "TestTwoWayJoin": ("TWO WAY JOIN", ['bin/TestTwoWayJoin', 'Y', 'Y', '1024', 'localhost', 'Y'])
+    "Pre-partition LoadData": ("Pre-Partition LoadData", ['bin/tpchDataLoader', 'tables-scale-0.2'])
+    "Pre-partition PartitionData": ("Pre-Partition PartitionData", ['bin/tpchDataPartitioner'])
 }
 
 # Linear algebra tests

@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-# by Jia
 
 
 PEM_FILE=$1
@@ -47,6 +46,11 @@ if [ ! -f "$PDB_HOME/conf/serverlist" ]
    then cp serverlist $PDB_HOME/conf/serverlist
 fi
 
-$PDB_HOME/scripts/proc/1_set_path.sh $PEM_FILE $USERNAME
-$PDB_HOME/scripts/proc/2_collect_all_proc.sh $PEM_FILE $USERNAME
-$PDB_HOME/scripts/proc/3_clear_temp_path.sh $PEM_FILE $USERNAME
+#distribute the collection scripts
+$PDB_HOME/scripts/proc/distribute.sh $PEM_FILE $USERNAME
+
+#collect the information of the distributed cluster
+$PDB_HOME/scripts/proc/collect.sh $PEM_FILE $USERNAME
+
+#cleanup the collection scripts
+$PDB_HOME/scripts/proc/cleanupLocal.sh $PEM_FILE $USERNAME
