@@ -85,6 +85,13 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
       physicalSourceNodes.push_back(nodeHandle);
     }
 
+    for(auto &c : currentPipe) {
+      std::cout << c->getOutputName() << std::endl;
+    }
+
+    std::cout << "-----------------------------------------" << std::endl;
+
+
     // add the starts with
     startsWith[currentPipe.front()->getOutputName()] = nodeHandle;
 

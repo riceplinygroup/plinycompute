@@ -76,6 +76,22 @@ class AdvancedPhysicalAbstractPipe : public AbstractPhysicalNode {
                                                 const StatisticsPtr &stats);
 
   /**
+   * Chain the previous pipe to this operator
+   * @param previous - the result of the previous pipe
+   * @return the result of the chaining
+   */
+  virtual PhysicalOptimizerResultPtr chainMe(int nextStageID,
+                                             const StatisticsPtr &stats,
+                                             PhysicalOptimizerResultPtr previous);
+
+  /**
+   * Is this algorithm able to chain to another algorithm.
+   * Chaining two algorithms means that we are executing their stages one after another
+   * @return returns true if it can
+   */
+  virtual bool isChainable();
+
+  /**
    * Returns true if this is pipelinable
    * @param node
    * @return

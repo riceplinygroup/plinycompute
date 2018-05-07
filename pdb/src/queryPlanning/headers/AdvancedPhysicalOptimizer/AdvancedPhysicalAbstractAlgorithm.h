@@ -29,7 +29,8 @@ enum AdvancedPhysicalAbstractAlgorithmTypeID {
   AGGREGATION_ALGORITHM,
   JOIN_ALGORITHM,
   JOIN_BROADCASTED_HASHSET_ALGORITHM,
-  JOIN_SHUFFLED_HASHSET_ALGORITHM
+  JOIN_SHUFFLED_HASHSET_ALGORITHM,
+  JOIN_SUFFLE_SET_ALGORITHM
 };
 
 class AdvancedPhysicalAbstractAlgorithm;
@@ -56,7 +57,7 @@ public:
   virtual PhysicalOptimizerResultPtr generate(int nextStageID) = 0;
 
   /**
-   * Generates the stages for pipelined oprators
+   * Generates the stages for pipelined operators
    * @param nextStageID
    * @param pipeline
    * @return

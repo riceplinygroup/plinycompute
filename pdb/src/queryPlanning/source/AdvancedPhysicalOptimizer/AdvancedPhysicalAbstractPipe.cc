@@ -70,6 +70,17 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::analyze(const Statistic
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
   selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipe>()->propose(getPossibleAlgorithms(stats));
+
+  /// 4. should we chain
+  if(consumers.size() == 1 && isChainable()) {
+
+    // chain this thing to the next pipe
+    return consumers.front()->to<AdvancedPhysicalAbstractPipe>()->chainMe(nextStageID,
+                                                                          stats,
+                                                                          selectedAlgorithm->generate(nextStageID));
+  }
+
+  /// 5. ok no chaining we simply generate the stages from the algorithm
   return selectedAlgorithm->generate(nextStageID);
 }
 
@@ -112,20 +123,20 @@ bool AdvancedPhysicalAbstractPipe::isPipelinable(AdvancedPhysicalPipelineNodePtr
 
 
 PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::pipelineMe(int nextStageID,
-                                                                        std::vector<AdvancedPhysicalPipelineNodePtr> pipeline,
-                                                                        const StatisticsPtr &stats) {
+                                                                    std::vector<AdvancedPhysicalPipelineNodePtr> pipeline,
+                                                                    const StatisticsPtr &stats) {
 
-  // can I pipeline more if so do it
+  /// 1. can I pipeline more if so do it
   if(consumers.size() == 1 && consumers.front()->to<AdvancedPhysicalAbstractPipe>()->isPipelinable(getAdvancedPhysicalNodeHandle())) {
 
     // add me to the pipeline
     pipeline.push_back(getAdvancedPhysicalNodeHandle());
 
     // pipeline this node to the consumer
-    consumers.front()->to<AdvancedPhysicalAbstractPipe>()->pipelineMe(nextStageID, pipeline, stats);
+    return consumers.front()->to<AdvancedPhysicalAbstractPipe>()->pipelineMe(nextStageID, pipeline, stats);
   }
 
-  // ok we can not pipeline lets select the output algorithm and run this thing
+  /// 2. is this a final operator we can not pipeline lets select the output algorithm and run this thing
   if(consumers.empty()) {
     return selectOutputAlgorithm()->generatePipelined(nextStageID, pipeline);
   }
@@ -133,7 +144,48 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::pipelineMe(int nextStag
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
   // TODO for now I assume I have only one consumer
   selectedAlgorithm = consumers.front()->to<AdvancedPhysicalAbstractPipe>()->propose(getPossibleAlgorithms(stats));
+
+  /// 4. should we chain
+  if(consumers.size() == 1 && isChainable()) {
+
+    // chain this thing to the next pipe
+    return consumers.front()->to<AdvancedPhysicalAbstractPipe>()->chainMe(nextStageID,
+                                                                          stats,
+                                                                          selectedAlgorithm->generate(nextStageID));
+  }
+
+  /// 5. ok no chaining we simply generate the stages from the algorithm
   return selectedAlgorithm->generatePipelined(nextStageID, pipeline);
+}
+
+PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::chainMe(int nextStageID,
+                                                                 const StatisticsPtr &stats,
+                                                                 PhysicalOptimizerResultPtr previous) {
+
+  // analyze me and get my result the stage ID is not the old one plus the number of previously created stage IDs
+  auto current = analyze(stats, nextStageID + (int) previous->physicalPlanToOutput.size());
+
+  // append the
+  current->physicalPlanToOutput.insert(current->physicalPlanToOutput.begin(),
+                                       previous->physicalPlanToOutput.begin(),
+                                       previous->physicalPlanToOutput.end());
+
+  // a source should always exist
+  assert(sourceSetIdentifier != nullptr);
+
+  // if the if we created a new source se
+  current->interGlobalSets.emplace_front(sourceSetIdentifier);
+
+  // both have to be successful
+  current->success = current->success && previous->success;
+
+  return current;
+}
+
+bool AdvancedPhysicalAbstractPipe::isChainable() {
+
+  // currently we only chain the shuffle set algorithm to the join algorithm
+  return selectedAlgorithm->getType() == JOIN_SUFFLE_SET_ALGORITHM;
 }
 
 bool AdvancedPhysicalAbstractPipe::isExecuted() {
@@ -174,6 +226,7 @@ AdvancedPhysicalPipelineNodePtr AdvancedPhysicalAbstractPipe::getAdvancedPhysica
 }
 
 bool AdvancedPhysicalAbstractPipe::hasConsumers() {
+  // TODO this needs to be implemeted properly
   return false;
 }
 
@@ -222,6 +275,7 @@ std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipe::getPr
 
   return ret;
 }
+
 
 }
 

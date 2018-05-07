@@ -16,64 +16,34 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
-#define PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
+#ifndef PDB_ADVANCEDPHYSICALSHUFFLESETALGORITHM_H
+#define PDB_ADVANCEDPHYSICALSHUFFLESETALGORITHM_H
 
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 
 namespace pdb {
 
-class AdvancedPhysicalShuffledHashsetPipelineAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+class AdvancedPhysicalShuffleSetAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
+
+  AdvancedPhysicalShuffleSetAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
+                                      const std::string &jobID,
+                                      bool isProbing,
+                                      bool isOutput,
+                                      const Handle<SetIdentifier> &source,
+                                      const vector<AtomicComputationPtr> &pipeComputations,
+                                      const Handle<ComputePlan> &computePlan,
+                                      const LogicalPlanPtr &logicalPlan,
+                                      const ConfigurationPtr &conf);
 
  public:
 
-  /**
-   *
-   * @param handle
-   * @param nextStageID
-   * @param pipeComputations
-   * @param logicalPlan
-   * @param conf
-   */
-  AdvancedPhysicalShuffledHashsetPipelineAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
-                                                   const std::string &jobID,
-                                                   bool isProbing,
-                                                   bool isOutput,
-                                                   const Handle<SetIdentifier> &source,
-                                                   const vector<AtomicComputationPtr> &pipeComputations,
-                                                   const Handle<ComputePlan> &computePlan,
-                                                   const LogicalPlanPtr &logicalPlan,
-                                                   const ConfigurationPtr &conf);
-
-  /**
-   * Generates the stages for this algorithm
-   * @return
-   */
   PhysicalOptimizerResultPtr generate(int nextStageID) override;
 
-  /**
-   * Generates tha stages for the pipelined version of this algorithm
-   * @param nextStageID
-   * @param pipeline
-   * @return
-   */
   PhysicalOptimizerResultPtr generatePipelined(int nextStageID,
                                                std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) override;
 
-  /**
-   * Returns the type of the algorithm
-   * @return the type id
-   */
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
-
-  /**
-   * Marks the provided node as executed by this algorithm
-   * @param handle the node
-   */
-  void markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) override;
-
 };
 
 }
-
-#endif //PDB_ADVANCEDPHYSICALSHUFFLEJOINALGORITHM_H
+#endif //PDB_ADVANCEDPHYSICALSHUFFLESETALGORITHM_H

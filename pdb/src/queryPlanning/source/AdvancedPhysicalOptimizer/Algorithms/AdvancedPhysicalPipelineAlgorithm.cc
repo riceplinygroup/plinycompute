@@ -167,6 +167,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generatePipelined(
   // get the source set identifier of the first node in the pipeline
   source = pipelines.front()->getSourceSetIdentifier();
 
+  // all the computations that are in the pipeline (we need to build this)
+  vector<AtomicComputationPtr> pipelineComputations;
+
   // go through each stage check if we a probing and copy the atomic computations
   for(auto &p : pipelines) {
 
@@ -189,8 +192,20 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generatePipelined(
     auto computations = p->getPipeComputations();
 
     // append the pipelined operators
-    pipeComputations.insert(pipeComputations.begin(), computations.begin(), computations.end());
+    pipelineComputations.insert(pipelineComputations.end(), computations.begin(), computations.end());
   }
+
+  // insert the pipeline computations at the end
+  pipelineComputations.insert(pipelineComputations.end(), pipeComputations.begin(), pipeComputations.end());
+
+  // these are the new computations now
+  pipeComputations = pipelineComputations;
+
+  for(auto &c : pipeComputations) {
+    std::cout << c->getOutputName() << std::endl;
+  }
+
+  std::cout << "-----------------------------------------" << std::endl;
 
   // generate the stage
   return generate(nextStageID);

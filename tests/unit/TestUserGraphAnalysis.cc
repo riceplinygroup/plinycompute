@@ -122,11 +122,13 @@ int main(int argc, char *argv[]) {
 
   // temp variables
   DataStatistics ds;
-  ds.numBytes = 100000000;
+  ds.numBytes = 100000000000;
 
   // create the data statistics
   StatisticsPtr stats = make_shared<Statistics>();
   stats->addSet("test93_db", "test93_set1", ds);
+  stats->addSet("test93_db", "test93_set2", ds);
+  stats->addSet("test93_db", "test93_set3", ds);
 
   while (physicalOptimizer.hasSources()) {
 
