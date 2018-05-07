@@ -24,20 +24,20 @@
 #include "JoinComp.h"
 
 pdb::SimplePhysicalJoinNode::SimplePhysicalJoinNode(string jobId,
-                                                            AtomicComputationPtr node,
-                                                            const Handle<ComputePlan> &computePlan,
-                                                            LogicalPlanPtr logicalPlan,
-                                                            ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
-                                                                                                        std::move(node),
-                                                                                                        computePlan,
-                                                                                                        logicalPlan,
-                                                                                                        std::move(conf)),
-                                                                                                        transversed(false) {}
+                                                    AtomicComputationPtr node,
+                                                    const Handle<ComputePlan> &computePlan,
+                                                    LogicalPlanPtr logicalPlan,
+                                                    ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
+                                                                                                std::move(node),
+                                                                                                computePlan,
+                                                                                                logicalPlan,
+                                                                                                std::move(conf)),
+                                                                             transversed(false) {}
 
 pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
-                                                                      SimplePhysicalNodePtr &prevNode,
-                                                                      const StatisticsPtr &stats,
-                                                                      int nextStageID) {
+                                                                           SimplePhysicalNodePtr &prevNode,
+                                                                           const StatisticsPtr &stats,
+                                                                           int nextStageID) {
 
   // grab the computation associated with this node
   Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
@@ -48,9 +48,9 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::
 }
 
 pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimplePhysicalNodePtr &prevNode,
-                                                                                  const StatisticsPtr &stats,
-                                                                                  int nextStageID) {
+                                                                                   SimplePhysicalNodePtr &prevNode,
+                                                                                   const StatisticsPtr &stats,
+                                                                                   int nextStageID) {
 
   // TODO Jia : have no clue why this exists? why use the input name of the current node
   string targetTupleSetName = prevNode == nullptr ? node->getInputName() : prevNode->getNode()->getOutputName();
@@ -74,7 +74,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
   // and then broadcasted or partitioned, therefore we can not probe it
   // 2. This is the second time we are processing this join therefore the one side of the join is hashed and then
   // broadcasted or partitioned, we can therefore probe it!
-  if(!transversed) {
+  if (!transversed) {
 
     // create a analyzer result
     PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -106,7 +106,8 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       joinNode->setPartitioningLHS(true);
 
       // cast the computation to a JoinComp
-      Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation>(curComp);
+      Handle<JoinComp<Object, Object, Object>>
+          join = unsafeCast<JoinComp<Object, Object, Object>, Computation>(curComp);
 
       // mark it as a hash partition join
       join->setJoinType(HashPartitionedJoin);
@@ -120,7 +121,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       tupleStageBuilder->setJobStageId(nextStageID++);
       tupleStageBuilder->setTargetTupleSetName(targetTupleSetName);
       tupleStageBuilder->setTargetComputationName(computationSpecifier);
-      tupleStageBuilder->setOutputTypeName(node->getOutputName());
+      tupleStageBuilder->setOutputTypeName("IntermediateData");
       tupleStageBuilder->setSinkContext(sink);
       tupleStageBuilder->setRepartition(true);
       tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
@@ -139,7 +140,8 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       hashSetName = sink->toSourceSetName();
 
       // initialize the build hash partition set builder stage
-      HashPartitionedJoinBuildHTJobStageBuilderPtr hashBuilder = make_shared<HashPartitionedJoinBuildHTJobStageBuilder>();
+      HashPartitionedJoinBuildHTJobStageBuilderPtr
+          hashBuilder = make_shared<HashPartitionedJoinBuildHTJobStageBuilder>();
 
       // set the parameters
       hashBuilder->setJobId(jobId);
@@ -219,8 +221,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
 
     // return to indicate the we succeeded
     return result;
-  }
-  else {
+  } else {
 
     // at this point we know that the other side of the join has been processed now we need to figure out how?
     // There are two options :
@@ -241,7 +242,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       tupleStageBuilder->setJobStageId(nextStageID++);
       tupleStageBuilder->setTargetTupleSetName(targetTupleSetName);
       tupleStageBuilder->setTargetComputationName(computationSpecifier);
-      tupleStageBuilder->setOutputTypeName(node->getOutputName());
+      tupleStageBuilder->setOutputTypeName("IntermediateData");
       tupleStageBuilder->setSinkContext(sink);
       tupleStageBuilder->setRepartition(true);
       tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
@@ -254,6 +255,9 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       // ok we have added a tuple stage to shuffle the data now we need one to probe the hash set
       // therefore we create a job stage builder
       TupleSetJobStageBuilderPtr probingStageBuilder = make_shared<TupleSetJobStageBuilder>();
+
+      // set the job id
+      probingStageBuilder->setJobId(joinPrepStage->getJobId());
 
       // the join source becomes the original source
       probingStageBuilder->setSourceTupleSetName(tupleStageBuilder->getSourceTupleSetName());
@@ -269,16 +273,16 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       probingStageBuilder->addHashSetToProbe(outputName, hashSetName);
       probingStageBuilder->setProbing(true);
       probingStageBuilder->setSourceContext(sink);
-      probingStageBuilder->setSourceTupleSetName(node->getOutputName());
+      probingStageBuilder->setSourceTupleSetName(tupleStageBuilder->getSourceTupleSetName());
 
       // I am the previous node
       SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
       // we then create a pipeline stage to probe the partitioned hash table
       PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
-                                                                      newPrevNode,
-                                                                      stats,
-                                                                      nextStageID);
+                                                                           newPrevNode,
+                                                                           stats,
+                                                                           nextStageID);
 
       // add the stage to the list of stages to be executed
       result->physicalPlanToOutput.emplace_front(joinPrepStage);
