@@ -790,7 +790,7 @@ class Tests {
           QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test93_set1");
           QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
           QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp2_repartitionData");
-          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "JoinedFor_equals2JoinComp2");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
           QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
           QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "methodCall_0ExtractedFor_JoinComp2_hashed");
           QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_2");
@@ -830,7 +830,7 @@ class Tests {
           QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test93_set2");
           QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
           QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp2_repartitionData");
-          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "JoinedFor_equals2JoinComp2");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
           QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_1");
           QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "methodCall_1ExtractedFor_JoinComp2_hashed");
           QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_2");
@@ -842,22 +842,38 @@ class Tests {
 
           // get the build hash table
           Handle<TupleSetJobStage> probeStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[1]);
+          probeStage->getTupleSetsToBuildPipeline(buildMe);
 
           QUNIT_IS_EQUAL(probeStage->getJobId(), "TestSelectionJob");
           QUNIT_IS_EQUAL(probeStage->getStageId(), 4);
-          QUNIT_IS_EQUAL(probeStage->getSourceContext()->getDatabase(), "test93_db");
-          QUNIT_IS_EQUAL(probeStage->getSourceContext()->getSetName(), "test93_set3");
+          QUNIT_IS_EQUAL(probeStage->getSourceContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(probeStage->getSourceContext()->getSetName(), "JoinedFor_equals2JoinComp2_repartitionData");
           QUNIT_IS_EQUAL(probeStage->getSinkContext()->getDatabase(), "TestSelectionJob");
           QUNIT_IS_EQUAL(probeStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp4_repartitionData");
-          QUNIT_IS_EQUAL(probeStage->getOutputTypeName(), "JoinedFor_equals2JoinComp4");
-          QUNIT_IS_EQUAL(probeStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_3");
-          QUNIT_IS_EQUAL(probeStage->getTargetTupleSetSpecifier(), "methodCall_1ExtractedFor_JoinComp4_hashed");
+          QUNIT_IS_EQUAL(probeStage->getOutputTypeName(), "IntermediateData");
+          QUNIT_IS_EQUAL(probeStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_1");
+          QUNIT_IS_EQUAL(probeStage->getTargetTupleSetSpecifier(), "methodCall_0ExtractedFor_JoinComp4_hashed");
           QUNIT_IS_EQUAL(probeStage->getTargetComputationSpecifier(), "JoinComp_4");
           QUNIT_IS_EQUAL(probeStage->getAllocatorPolicy(), defaultAllocator);
 
-          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_3");
-          QUNIT_IS_EQUAL(buildMe[1], "methodCall_1ExtractedFor_JoinComp4");
-          QUNIT_IS_EQUAL(buildMe[2], "methodCall_1ExtractedFor_JoinComp4_hashed");
+          QUNIT_IS_EQUAL(buildMe[0], "methodCall_1ExtractedFor_JoinComp2_hashed");
+          QUNIT_IS_EQUAL(buildMe[1], "JoinedFor_equals2JoinComp2");
+          QUNIT_IS_EQUAL(buildMe[2], "JoinedFor_equals2JoinComp2_WithLHSExtracted");
+          QUNIT_IS_EQUAL(buildMe[3], "JoinedFor_equals2JoinComp2_WithBOTHExtracted");
+          QUNIT_IS_EQUAL(buildMe[4], "JoinedFor_equals2JoinComp2_BOOL");
+          QUNIT_IS_EQUAL(buildMe[5], "JoinedFor_equals2JoinComp2_FILTERED");
+          QUNIT_IS_EQUAL(buildMe[6], "nativ_3OutForJoinComp2");
+          QUNIT_IS_EQUAL(buildMe[7], "methodCall_0ExtractedFor_JoinComp4");
+          QUNIT_IS_EQUAL(buildMe[8], "methodCall_0ExtractedFor_JoinComp4_hashed");
+
+          // grab the hash sets to probe
+          auto hashSetsToProbe = probeStage->getHashSets();
+
+          // there should be two hash sets we need to probe
+          auto it = hashSetsToProbe->begin();
+
+          QUNIT_IS_EQUAL("JoinedFor_equals2JoinComp2", (*it).key);
+          QUNIT_IS_EQUAL("TestSelectionJob:JoinedFor_equals2JoinComp2_repartitionData", (*it).value);
 
           // get the build hash table
           Handle<HashPartitionedJoinBuildHTJobStage> buildHashTable = unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage>(queryPlan[2]);
@@ -885,82 +901,62 @@ class Tests {
           tupleStage->getTupleSetsToBuildPipeline(buildMe);
 
           QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
-          QUNIT_IS_EQUAL(tupleStage->getStageId(), 4);
+          QUNIT_IS_EQUAL(tupleStage->getStageId(), 6);
           QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "test93_db");
-          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test93_set2");
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test93_set3");
           QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
-          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp2_repartitionData");
-          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "JoinedFor_equals2JoinComp2");
-          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_1");
-          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "methodCall_1ExtractedFor_JoinComp2_hashed");
-          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_2");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp4_repartitionData");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
+          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_3");
+          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "methodCall_1ExtractedFor_JoinComp4_hashed");
+          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_4");
           QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
 
-          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_1");
-          QUNIT_IS_EQUAL(buildMe[1], "methodCall_1ExtractedFor_JoinComp2");
-          QUNIT_IS_EQUAL(buildMe[2], "methodCall_1ExtractedFor_JoinComp2_hashed");
+          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_3");
+          QUNIT_IS_EQUAL(buildMe[1], "methodCall_1ExtractedFor_JoinComp4");
+          QUNIT_IS_EQUAL(buildMe[2], "methodCall_1ExtractedFor_JoinComp4_hashed");
 
+          // get the build hash table
+          Handle<TupleSetJobStage> probeStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[1]);
+          probeStage->getTupleSetsToBuildPipeline(buildMe);
 
-/*          // get the tuple set job stage
-          Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+          QUNIT_IS_EQUAL(probeStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(probeStage->getStageId(), 7);
+          QUNIT_IS_EQUAL(probeStage->getSourceContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(probeStage->getSourceContext()->getSetName(), "JoinedFor_equals2JoinComp4_repartitionData");
+          QUNIT_IS_EQUAL(probeStage->getSinkContext()->getDatabase(), "test93_db");
+          QUNIT_IS_EQUAL(probeStage->getSinkContext()->getSetName(), "output_set1");
+          QUNIT_IS_EQUAL(probeStage->getOutputTypeName(), "pdb::String");
+          QUNIT_IS_EQUAL(probeStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_3");
+          QUNIT_IS_EQUAL(probeStage->getTargetTupleSetSpecifier(), "deref_2OutForSelectionComp5");
+          QUNIT_IS_EQUAL(probeStage->getTargetComputationSpecifier(), "WriteUserSet_6");
+          QUNIT_IS_EQUAL(probeStage->getAllocatorPolicy(), defaultAllocator);
 
-          // get the pipline computations
-          std::vector<std::string> buildMe;
-          tupleStage->getTupleSetsToBuildPipeline(buildMe);
-
-          QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
-          QUNIT_IS_EQUAL(tupleStage->getStageId(), 4);
-          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "test93_db");
-          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "test93_set1");
-          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "test93_db");
-          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "output_set1");
-          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "pdb::String");
-          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
-          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "deref_2OutForSelectionComp5");
-          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "WriteUserSet_6");
-          QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
-          QUNIT_IS_EQUAL(tupleStage->isProbing(), true);
-
-          // check the atomic computations in the pipeline
-          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_0");
-          QUNIT_IS_EQUAL(buildMe[1], "methodCall_0ExtractedFor_JoinComp2");
-          QUNIT_IS_EQUAL(buildMe[2], "methodCall_0ExtractedFor_JoinComp2_hashed");
-          QUNIT_IS_EQUAL(buildMe[3], "JoinedFor_equals2JoinComp2");
-          QUNIT_IS_EQUAL(buildMe[4], "JoinedFor_equals2JoinComp2_WithLHSExtracted");
-          QUNIT_IS_EQUAL(buildMe[5], "JoinedFor_equals2JoinComp2_WithBOTHExtracted");
-          QUNIT_IS_EQUAL(buildMe[6], "JoinedFor_equals2JoinComp2_BOOL");
-          QUNIT_IS_EQUAL(buildMe[7], "JoinedFor_equals2JoinComp2_FILTERED");
-          QUNIT_IS_EQUAL(buildMe[8], "nativ_3OutForJoinComp2");
-          QUNIT_IS_EQUAL(buildMe[9], "methodCall_0ExtractedFor_JoinComp4");
-          QUNIT_IS_EQUAL(buildMe[10], "methodCall_0ExtractedFor_JoinComp4_hashed");
-          QUNIT_IS_EQUAL(buildMe[11], "JoinedFor_equals2JoinComp4");
-          QUNIT_IS_EQUAL(buildMe[12], "JoinedFor_equals2JoinComp4_WithLHSExtracted");
-          QUNIT_IS_EQUAL(buildMe[13], "JoinedFor_equals2JoinComp4_WithBOTHExtracted");
-          QUNIT_IS_EQUAL(buildMe[14], "JoinedFor_equals2JoinComp4_BOOL");
-          QUNIT_IS_EQUAL(buildMe[15], "JoinedFor_equals2JoinComp4_FILTERED");
-          QUNIT_IS_EQUAL(buildMe[16], "nativ_3OutForJoinComp4");
-          QUNIT_IS_EQUAL(buildMe[17], "nativ_0OutForSelectionComp5");
-          QUNIT_IS_EQUAL(buildMe[18], "filteredInputForSelectionComp5");
-          QUNIT_IS_EQUAL(buildMe[19], "attAccess_1OutForSelectionComp5");
-          QUNIT_IS_EQUAL(buildMe[20], "deref_2OutForSelectionComp5");
+          QUNIT_IS_EQUAL(buildMe[0], "methodCall_1ExtractedFor_JoinComp4_hashed");
+          QUNIT_IS_EQUAL(buildMe[1], "JoinedFor_equals2JoinComp4");
+          QUNIT_IS_EQUAL(buildMe[2], "JoinedFor_equals2JoinComp4_WithLHSExtracted");
+          QUNIT_IS_EQUAL(buildMe[3], "JoinedFor_equals2JoinComp4_WithBOTHExtracted");
+          QUNIT_IS_EQUAL(buildMe[4], "JoinedFor_equals2JoinComp4_BOOL");
+          QUNIT_IS_EQUAL(buildMe[5], "JoinedFor_equals2JoinComp4_FILTERED");
+          QUNIT_IS_EQUAL(buildMe[6], "nativ_3OutForJoinComp4");
+          QUNIT_IS_EQUAL(buildMe[7], "nativ_0OutForSelectionComp5");
+          QUNIT_IS_EQUAL(buildMe[8], "filteredInputForSelectionComp5");
+          QUNIT_IS_EQUAL(buildMe[8], "attAccess_1OutForSelectionComp5");
+          QUNIT_IS_EQUAL(buildMe[8], "deref_2OutForSelectionComp5");
 
           auto hashSetsToProbe = tupleStage->getHashSets();
 
           // there should be two hash sets we need to probe
           auto it = hashSetsToProbe->begin();
 
-          QUNIT_IS_EQUAL("JoinedFor_equals2JoinComp2", (*it).key);
-          QUNIT_IS_EQUAL("TestSelectionJob:JoinedFor_equals2JoinComp2_broadcastData", (*it).value);
-
-          // go to the next one
-          it.operator++();
-
           QUNIT_IS_EQUAL("JoinedFor_equals2JoinComp4", (*it).key);
-          QUNIT_IS_EQUAL("TestSelectionJob:JoinedFor_equals2JoinComp4_broadcastData", (*it).value);*/
+          QUNIT_IS_EQUAL("TestSelectionJob:JoinedFor_equals2JoinComp4_repartitionData", (*it).value);
+
+          // remove the stages we don't need them anymore
+          queryPlan.clear();
 
           break;
         }
-
         default: {
 
           // this situation should never happen
@@ -985,6 +981,7 @@ public:
     test2();
     test3();
     test4();
+    test5();
 
     // return the errors
     return qunit.errors();
