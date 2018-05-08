@@ -100,7 +100,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
 
     // does the cost of the current source exceed the join threshold, if so we need to do a hash partition join
     // therefore we definitely need to hash the current table this is definitely a pipeline breaker
-    if (sourceCost > BROADCAST_JOIN_COST_THRESHOLD) {
+    else if (sourceCost > BROADCAST_JOIN_COST_THRESHOLD) {
 
       // set the partitioning flag so we can know that when probing
       joinNode->setPartitioningLHS(true);
@@ -278,11 +278,20 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       // I am the previous node
       SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
+      // temporary alias the source set with the sink set because the are essentially the same and we need the stats
+      stats->addSetAlias(tupleStageBuilder->getSourceSetIdentifier()->getDatabase(),
+                         tupleStageBuilder->getSourceSetIdentifier()->getSetName(),
+                         sink->getDatabase(),
+                         sink->getSetName());
+
       // we then create a pipeline stage to probe the partitioned hash table
       PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
                                                                            newPrevNode,
                                                                            stats,
                                                                            nextStageID);
+
+      // remove the temporary alias
+      stats->removeSet(sink->getDatabase(), sink->getSetName());
 
       // add the stage to the list of stages to be executed
       result->physicalPlanToOutput.emplace_front(joinPrepStage);
