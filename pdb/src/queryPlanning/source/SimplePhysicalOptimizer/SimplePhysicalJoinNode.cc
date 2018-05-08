@@ -274,6 +274,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       probingStageBuilder->setProbing(true);
       probingStageBuilder->setSourceContext(sink);
       probingStageBuilder->setSourceTupleSetName(tupleStageBuilder->getSourceTupleSetName());
+      probingStageBuilder->setComputePlan(computePlan);
 
       // I am the previous node
       SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();

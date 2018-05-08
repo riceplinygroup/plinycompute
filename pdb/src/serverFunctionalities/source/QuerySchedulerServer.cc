@@ -621,9 +621,9 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
       auto sourcesComputations = computationGraph.getAllScanSets();
 
       // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
-      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<AdvancedPhysicalNodeFactory>(jobId,
-                                                                                                          computePlan,
-                                                                                                          conf);
+      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
+                                                                                                    computePlan,
+                                                                                                    conf);
 
       // generate the analysis graph (it is a list of source nodes for that graph)
       auto graph = analyzerNodeFactory->generateAnalyzerGraph(sourcesComputations);
