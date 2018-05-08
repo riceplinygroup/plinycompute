@@ -126,13 +126,13 @@ int main(int argc, char *argv[]) {
 
   // create the data statistics
   StatisticsPtr stats = make_shared<Statistics>();
-  ds.numBytes = 128 * 1024 * 1024;
+  ds.numBytes = 100000000000;
   stats->addSet("test93_db", "test93_set1", ds);
 
-  ds.numBytes = 138 * 1024 * 1024;
+  ds.numBytes = 100000000000;
   stats->addSet("test93_db", "test93_set2", ds);
 
-  ds.numBytes = 148 * 1024 * 1024;
+  ds.numBytes = 100000000000;
   stats->addSet("test93_db", "test93_set3", ds);
 
   while (physicalOptimizer.hasSources()) {
