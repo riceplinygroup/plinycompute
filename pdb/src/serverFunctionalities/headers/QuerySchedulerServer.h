@@ -36,6 +36,8 @@
 #include "TCAPAnalyzer.h"
 #include "ShuffleInfo.h"
 #include "DistributedStorageManagerClient.h"
+#include "StatisticsDB.h"
+#include "RegisterReplica.h"
 #include <vector>
 #include <ExecuteComputation.h>
 
@@ -70,6 +72,7 @@ public:
      */
     QuerySchedulerServer(PDBLoggerPtr logger,
                          ConfigurationPtr conf,
+                         std::shared_ptr<StatisticsDB> statisticsDB,
                          bool pseudoClusterMode = false,
                          double partitionToCoreRatio = 0.75);
 
@@ -84,6 +87,7 @@ public:
     QuerySchedulerServer(int port,
                          PDBLoggerPtr logger,
                          ConfigurationPtr conf,
+                         std::shared_ptr<StatisticsDB> statisticsDB,
                          bool pseudoClusterMode = false,
                          double partitionToCoreRatio = 0.75);
 
@@ -253,6 +257,14 @@ protected:
     pair<bool, basic_string<char>> executeComputation(Handle<ExecuteComputation> &request,
                                                       PDBCommunicatorPtr &sendUsingMe);
 
+    /**
+     * This method registers a replica with statisticsDB per client request
+     * @param request the object that describes the computation
+     * @param sendUsingMe an instance of the PDBCommunicator that points to the client
+     */
+    pair<bool, basic_string<char>> registerReplica(Handle<RegisterReplica> &request,
+                                                                     PDBCommunicatorPtr &sendUsingMe);
+
 
     /**
      * This method finds the best source operator using a heuristic, then uses this operator to extract a sequence of
@@ -325,6 +337,11 @@ protected:
      * The configuration of the node provided by the constructor
      */
     ConfigurationPtr conf;
+
+    /**
+     * A pointer to StatisticsDB that manages various statistics
+     */
+    std::shared_ptr<StatisticsDB> statisticsDB;
 
     /**
      * True if we are running PDB in pseudo cluster mode false otherwise

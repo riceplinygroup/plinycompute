@@ -39,6 +39,7 @@ if [[ -e /tmp/CatalogDir ]]; then
     rm -rf /tmp/CatalogDir
 fi
 
+
 # remove the content from CatalogDir only if they exist
 if [[ -n $(find ./CatalogDir -name "*" 2>/dev/null) ]]; then
     rm -rf CatalogDir/*
@@ -57,6 +58,11 @@ fi
 # remove anything from logs only if they exist
 if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
     rm -rf logs/*
+fi
+
+# remove anything from statisticsDB only if they exist
+if [[ -n $(find ./statisticsDB -name "*" 2>/dev/null) ]]; then
+    rm -rf statisticsDB*
 fi
 
 

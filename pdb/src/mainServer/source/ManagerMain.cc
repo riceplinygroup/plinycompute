@@ -139,16 +139,23 @@ int main(int argc, char* argv[]) {
     }
     infile.close();
     infile.clear();
- 
+
+
+    //initialize StatisticsDB
+    std::shared_ptr<StatisticsDB> statisticsDB = std::make_shared<StatisticsDB>(conf);
+    if (statisticsDB == nullptr) {
+        std::cout << "fatal error in initializing statisticsDB" << std::endl;
+        exit(1);
+    } 
     frontEnd.addFunctionality<pdb::ResourceManagerServer>(
         "conf/serverlist", port, pseudoClusterMode, pemFile);
-    frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
+    frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
-    frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);
+    frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger, statisticsDB);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
 
     frontEnd.addFunctionality<pdb::QuerySchedulerServer>(
-        port, myLogger, conf, pseudoClusterMode, partitionToCoreRatio);
+        port, myLogger, conf, statisticsDB, pseudoClusterMode, partitionToCoreRatio);
     frontEnd.startServer(nullptr);
 }
 

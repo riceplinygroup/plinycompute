@@ -29,7 +29,6 @@ Partitioner<KeyClass, ValueClass> :: Partitioner (std::pair<std::string, std::st
 
         this->inputDatabaseAndSet = inputDatabaseAndSet;
         this->outputDatabaseAndSet = outputDatabaseAndSet;
-
 }
 
 template<class KeyClass, class ValueClass>
@@ -72,11 +71,15 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
         queryClient->setQueryGraph(curPartitionComp);
         std::vector<Handle<Computation>> computations;
         std::string tcapString = queryClient->getTCAP(computations);
-
+        std::cout << "number of computations is " << computations.size() << std::endl;
         /* Step 9. to register the input-output mapping as well as the tcap string with StatsDB */
-        /* TODO */
-
-
+        queryClient->registerReplica(inputDatabaseAndSet, 
+                                     outputDatabaseAndSet,
+                                     curPartitionComp->getNumPartitions(),
+                                     curPartitionComp->getNumNodes(),
+                                     "Partition",
+                                     tcapString,
+                                     computations);
         /* Step 10. to execute the partition computation */ 
         return queryClient->executeComputations(errMsg, tcapString, computations);
       
@@ -127,8 +130,13 @@ bool Partitioner<KeyClass, ValueClass> :: partitionWithTransformation ( std::str
         std::string tcapString = queryClient->getTCAP(computations);
 
         /* Step 9. to register the input-output mapping as well as the tcap string with StatsDB */
-        /* TODO */
-
+        queryClient->registerReplica(inputDatabaseAndSet, 
+                                     outputDatabaseAndSet,
+                                     curPartitionComp->getNumPartitions(),
+                                     curPartitionComp->getNumNodes(),
+                                     "Transformation",
+                                     tcapString,
+                                     computations); 
 
         /* Step 10. to execute the partition computation */
         return queryClient->executeComputations(errMsg, tcapString, computations);

@@ -13,6 +13,7 @@ pdbRoot_*
 logs/*
 bin/*
 type-id-data
+statisticsDB*
 libraries/*
 tables_scale_0.2
 pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h

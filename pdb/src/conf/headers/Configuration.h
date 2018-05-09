@@ -121,6 +121,7 @@ private:
     string queryPlannerPlace;
     LogLevel logLevel;
     string rootDir;
+    string statisticsDB;
 
 public:
     Configuration() {
@@ -151,6 +152,7 @@ public:
         isManager = false;
         hashPageSize = DEFAULT_HASH_PAGE_SIZE;
         initDirs();
+        statisticsDB = "statisticsDB";
     }
 
     void initDirs() {
@@ -434,6 +436,14 @@ public:
         this->batchSize = batchSize;
     }
 
+    std::string getStatisticsDB() {
+        return this->statisticsDB;
+    }
+
+    void setStatisticsDB(std::string statisticsDB) {
+        this->statisticsDB = statisticsDB;
+    }
+
     void printOut() {
         cout << "nodeID: " << nodeId << endl;
         cout << "serverName: " << serverName << endl;
@@ -462,6 +472,7 @@ public:
         cout << "managerNodePort: " << managerNodePort << endl;
         cout << "logEnabled: " << logEnabled << endl;
         cout << "batchSize: " << batchSize << endl;
+        cout << "statisticsDB: " << statisticsDB << endl;
     }
 };
 

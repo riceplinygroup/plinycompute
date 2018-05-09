@@ -53,7 +53,6 @@ bool PDBCommunicator::sendObject(Handle<ObjType>& sendMe, std::string& errMsg) {
         logToMe->error("Fatal Error: BAD!  Trying to send a handle to a non-Object type.\n");
         exit(1);
     }
-    // std :: cout << "recType = " << recType << std :: endl;
     if (doTheWrite(((char*)&recType), ((char*)&recType) + sizeof(int16_t))) {
         errMsg = "PDBCommunicator: not able to send the object type";
         logToMe->error(errMsg);
@@ -61,7 +60,6 @@ bool PDBCommunicator::sendObject(Handle<ObjType>& sendMe, std::string& errMsg) {
         std::cout << errMsg << strerror(errno) << std::endl;
         return false;
     }
-    // std :: cout << "written the type\n";
     // next, write the object
     auto* record = getRecord(sendMe);
 
@@ -85,7 +83,6 @@ bool PDBCommunicator::sendObject(Handle<ObjType>& sendMe, std::string& errMsg) {
             exit(1);
         }
     }
-    // std :: cout << "record size ="<<record->numBytes()<<"\n";
     if (doTheWrite((char*)record, ((char*)record) + record->numBytes())) {
         PDB_COUT << "recType=" << recType << std::endl;
         errMsg = "PDBCommunicator: not able to send the object size";
@@ -192,7 +189,6 @@ Handle<ObjType> PDBCommunicator::getNextObject(void* readToHere,
     // the first few bytes of a record always record the size
     char* mem = (char*)readToHere;
     *((size_t*)mem) = msgSize;
-    // std :: cout << "msgSize = " << msgSize << std :: endl;
     // now we read the rest
     mem += sizeof(size_t);
     msgSize -= sizeof(size_t);
@@ -210,8 +206,8 @@ Handle<ObjType> PDBCommunicator::getNextObject(void* readToHere,
     logToMe->trace("PDBCommunicator: root offset is " +
                    std::to_string(((Record<ObjType>*)readToHere)->rootObjectOffset()));
     readCurMsgSize = false;
-    // std :: cout << "to get root object with typeId="<< nextTypeID  << std :: endl;
-    return ((Record<ObjType>*)readToHere)->getRootObject();
+    Handle<ObjType> request = ((Record<ObjType>*)readToHere)->getRootObject();
+    return request;
 }
 
 template <class ObjType>

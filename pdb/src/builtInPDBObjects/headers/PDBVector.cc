@@ -88,7 +88,6 @@ void Vector<TypeContained>::push_back() {
     if (myArray->isFull()) {
         myArray = myArray->doubleSize();
     }
-
     myArray->push_back();
 }
 
@@ -97,7 +96,6 @@ void Vector<TypeContained>::push_back(const TypeContained& val) {
     if (myArray->isFull()) {
         myArray = myArray->doubleSize();
     }
-
     myArray->push_back(val);
 }
 
