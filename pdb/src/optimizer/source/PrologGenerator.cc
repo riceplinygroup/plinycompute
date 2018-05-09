@@ -307,6 +307,19 @@ void PrologGenerator::parseAtomicComputation(AtomicComputationList* acl,
                << std::endl;  // << ", " << getLowerCaseFirstLetter(projection.getSetName())
         break;
       }
+
+
+      // To support the new PARTITION computation in TCAP:
+      case ApplyPartitionTypeID: {
+        std::shared_ptr<ApplyPartition> newResult = std::dynamic_pointer_cast<ApplyPartition>(result);
+        buffer << "partition(" << outputName << ", "
+               << getLowerCaseFirstLetter(input.getSetName()) << ")."
+               << std::endl;
+        break;
+      }
+
+
+
       case HashOneTypeID: {
         std::shared_ptr<HashOne> newResult = std::dynamic_pointer_cast<HashOne>(result);
         buffer << "hashone(" << outputName << ", "

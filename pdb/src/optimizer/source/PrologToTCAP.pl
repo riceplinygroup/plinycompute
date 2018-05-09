@@ -227,7 +227,24 @@ bottomUpSearch(Node, LeavesRemaining, ListofVisitedNodes):-
 				write(tcapOutput, ")\n"),
 				bottomUpSearch(Next, LeavesRemaining, Visited)
 			; true
-			)
+			),
+
+
+            % To support the new PARTITION computation in TCAP:
+            % Partition Node:
+            (Y = partition ->
+                link(Node,_,_,Input, Projection),
+                link(Next,Node,Out,_,_),
+                write(tcapOutput,Node),
+                write(tcapOutput,"("),printList(Out),write(tcapOutput,")<= PARTITION("),
+                partition(Node, InName),
+                printNameListPair(InName, Input), write(tcapOutput,","),
+                printString(CompName),
+                write(tcapOutput,", ["), printKeyValueList(KeyValueList), write(tcapOutput,"]"),
+                write(tcapOutput, ")\n"),
+                bottomUpSearch(Next, LeavesRemaining, Visited)
+            ; true
+            )
 		)
 	).
 
