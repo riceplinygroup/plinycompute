@@ -27,7 +27,6 @@ AdvancedPhysicalPipelineAlgorithm::AdvancedPhysicalPipelineAlgorithm(const Advan
                                                                        bool isProbing,
                                                                        bool isOutput,
                                                                        const Handle<SetIdentifier> &source,
-                                                                       const vector<AtomicComputationPtr> &pipeComputations,
                                                                        const Handle<ComputePlan> &computePlan,
                                                                        const LogicalPlanPtr &logicalPlan,
                                                                        const ConfigurationPtr &conf)
@@ -36,38 +35,24 @@ AdvancedPhysicalPipelineAlgorithm::AdvancedPhysicalPipelineAlgorithm(const Advan
                                                                                                            isProbing,
                                                                                                            isOutput,
                                                                                                            source,
-                                                                                                           pipeComputations,
                                                                                                            computePlan,
                                                                                                            logicalPlan,
-                                                                                                           conf) {
-
-  // check if this pipeline is joining. If so grab all the hash sets
-  if(handle->isJoining()) {
-
-    // get the probing hash sets
-    auto sets = handle->getProbingHashSets();
-
-    // there should always be one hash set we are probing for a join
-    assert(!sets.empty());
-
-    // add the tuple sets we are probing to the list
-    probingHashSets.insert(sets.begin(), sets.end());
-  }
-}
+                                                                                                           conf) {}
 
 PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextStageID,
                                                                        const StatisticsPtr &stats) {
 
-  // if we are joining, if so check if we need to include the hash computation into this pipeline
-  if(pipeline.front()->isJoining()) {
-    includeHashComputation();
-  }
+  // extract the atomic computations from the pipes for this algorithm
+  extractAtomicComputations();
+
+  // extract the hash sets we might want to probe
+  extractHashSetsToProbe();
 
   // get the final atomic computation
-  auto finalAtomicComputation = this->pipeComputations.back();
+  auto finalAtomicComputation = this->pipelineComputations.back();
 
   // get the source atomic computation
-  auto sourceAtomicComputation = this->pipeComputations.front();
+  auto sourceAtomicComputation = this->pipelineComputations.front();
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -121,7 +106,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextS
   tupleStageBuilder->setComputePlan(computePlan);
 
   // copy the computation names
-  for(const auto &it : this->pipeComputations) {
+  for(const auto &it : this->pipelineComputations) {
 
     // we don't need the output set name... (that is jsut the way the pipeline building works)
     if(it->getAtomicComputationTypeID() == WriteSetTypeID) {

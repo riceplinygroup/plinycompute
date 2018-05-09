@@ -42,7 +42,6 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAggregationPipe::selectOutp
                                                                              isJoining(),
                                                                              consumers.empty(),
                                                                              sourceSetIdentifier,
-                                                                             pipeComputations,
                                                                              computePlan,
                                                                              logicalPlan,
                                                                              conf);
@@ -57,7 +56,6 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalAggregationPipe::ge
                                                                                                                    isJoining(),
                                                                                                                    consumers.empty(),
                                                                                                                    sourceSetIdentifier,
-                                                                                                                   pipeComputations,
                                                                                                                    computePlan,
                                                                                                                    logicalPlan,
                                                                                                                    conf) };

@@ -41,7 +41,6 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipe::selectOutputA
                                                                            isJoining(),
                                                                            consumers.empty(),
                                                                            sourceSetIdentifier,
-                                                                           pipeComputations,
                                                                            computePlan,
                                                                            logicalPlan,
                                                                            conf);
@@ -57,7 +56,6 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipe::
                                                                                                                  isJoining(),
                                                                                                                  consumers.empty(),
                                                                                                                  sourceSetIdentifier,
-                                                                                                                 pipeComputations,
                                                                                                                  computePlan,
                                                                                                                  logicalPlan,
                                                                                                                  conf) };

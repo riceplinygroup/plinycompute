@@ -348,8 +348,8 @@ std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipe::getPr
     // grab the join side
     auto joinSide = p->to<AdvancedPhysicalJoinSidePipe>();
 
-    // if this is executed
-    if(joinSide->isExecuted()) {
+    // if this is executed and it has a hash set
+    if(joinSide->isExecuted() && joinSide->hasHashSet()) {
 
       // add the hash set
       ret[this->getPipelineComputationAt(0)->getOutputName()] = (p->to<AdvancedPhysicalJoinSidePipe>()->getGeneratedHashSet());

@@ -32,7 +32,6 @@ public:
                                       bool isProbing,
                                       bool isOutput,
                                       const Handle<SetIdentifier> &source,
-                                      const vector<AtomicComputationPtr> &pipeComputations,
                                       const Handle<ComputePlan> &computePlan,
                                       const LogicalPlanPtr &logicalPlan,
                                       const ConfigurationPtr &conf);

@@ -58,7 +58,6 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
                                                                                            isJoining(),
                                                                                            consumers.empty(),
                                                                                            sourceSetIdentifier,
-                                                                                           pipeComputations,
                                                                                            computePlan,
                                                                                            logicalPlan,
                                                                                            conf));
@@ -70,7 +69,6 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
                                                                                           isJoining(),
                                                                                           consumers.empty(),
                                                                                           sourceSetIdentifier,
-                                                                                          pipeComputations,
                                                                                           computePlan,
                                                                                           logicalPlan,
                                                                                           conf));
@@ -81,7 +79,6 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
                                                                              isJoining(),
                                                                              consumers.empty(),
                                                                              sourceSetIdentifier,
-                                                                             pipeComputations,
                                                                              computePlan,
                                                                              logicalPlan,
                                                                              conf));
@@ -92,7 +89,6 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
                                                                            isJoining(),
                                                                            consumers.empty(),
                                                                            sourceSetIdentifier,
-                                                                           pipeComputations,
                                                                            computePlan,
                                                                            logicalPlan,
                                                                            conf));
@@ -106,6 +102,10 @@ AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipe::getType() {
 
 std::string AdvancedPhysicalJoinSidePipe::getGeneratedHashSet() {
   return hashSet;
+}
+
+bool AdvancedPhysicalJoinSidePipe::hasHashSet() {
+  return !hashSet.empty();
 }
 
 void AdvancedPhysicalJoinSidePipe::setHashSet(const string &hashSet) {

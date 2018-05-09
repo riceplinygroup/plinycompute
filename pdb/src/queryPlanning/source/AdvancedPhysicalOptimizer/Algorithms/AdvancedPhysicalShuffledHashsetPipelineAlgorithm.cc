@@ -27,7 +27,6 @@ AdvancedPhysicalShuffledHashsetPipelineAlgorithm::AdvancedPhysicalShuffledHashse
                                                                                    bool isProbing,
                                                                                    bool isOutput,
                                                                                    const Handle<SetIdentifier> &source,
-                                                                                   const vector<AtomicComputationPtr> &pipeComputations,
                                                                                    const Handle<ComputePlan> &computePlan,
                                                                                    const LogicalPlanPtr &logicalPlan,
                                                                                    const ConfigurationPtr &conf)
@@ -36,7 +35,6 @@ AdvancedPhysicalShuffledHashsetPipelineAlgorithm::AdvancedPhysicalShuffledHashse
                                                                                                                        isProbing,
                                                                                                                        isOutput,
                                                                                                                        source,
-                                                                                                                       pipeComputations,
                                                                                                                        computePlan,
                                                                                                                        logicalPlan,
                                                                                                                        conf) {}
@@ -44,22 +42,23 @@ AdvancedPhysicalShuffledHashsetPipelineAlgorithm::AdvancedPhysicalShuffledHashse
 PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::generate(int nextStageID,
                                                                                       const StatisticsPtr &stats) {
 
-  // if we are joining, if so check if we need to include the hash computation into this pipeline
-  if(pipeline.front()->isJoining()) {
-    includeHashComputation();
-  }
+  // extract the atomic computations from the pipes for this algorithm
+  extractAtomicComputations();
+
+  // extract the hash sets we might want to probe
+  extractHashSetsToProbe();
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // get the source atomic computation
-  auto sourceAtomicComputation = this->pipeComputations.front();
+  auto sourceAtomicComputation = this->pipelineComputations.front();
 
   // we get the first atomic computation of the join pipeline this should be the apply join computation
   auto joinAtomicComputation = pipeline.back()->getConsumer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipelineComputationAt(0);
 
   // get the final atomic computation
-  string finalAtomicComputationName = this->pipeComputations.back()->getOutputName();
+  string finalAtomicComputationName = this->pipelineComputations.back()->getOutputName();
 
   Handle<SetIdentifier> sink = nullptr;
 
@@ -87,7 +86,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   TupleSetJobStageBuilderPtr tupleStageBuilder = make_shared<TupleSetJobStageBuilder>();
 
   // copy the computation names
-  for(const auto &it : this->pipeComputations) {
+  for(const auto &it : this->pipelineComputations) {
 
     // we don't need the output set name... (that is jsut the way the pipeline building works)
     if(it->getAtomicComputationTypeID() == WriteSetTypeID) {
@@ -103,6 +102,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   tupleStageBuilder->setSourceContext(source);
   tupleStageBuilder->setInputAggHashOut(source->isAggregationResult());
   tupleStageBuilder->setJobId(jobID);
+  tupleStageBuilder->setProbing(isProbing);
   tupleStageBuilder->setComputePlan(computePlan);
   tupleStageBuilder->setJobStageId(nextStageID++);
   tupleStageBuilder->setTargetTupleSetName(finalAtomicComputationName);
@@ -112,6 +112,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   tupleStageBuilder->setRepartition(true);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
   tupleStageBuilder->setRepartitionJoin(true);
+
+  // add all the probing hash sets
+  for(auto it : probingHashSets) {
+    tupleStageBuilder->addHashSetToProbe(it.first, it.second);
+  }
 
   // create the tuple stage to run a pipeline with a hash partition sink
   Handle<TupleSetJobStage> joinPrepStage = tupleStageBuilder->build();

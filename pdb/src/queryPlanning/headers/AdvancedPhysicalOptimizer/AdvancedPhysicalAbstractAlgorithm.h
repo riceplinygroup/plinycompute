@@ -45,7 +45,6 @@ public:
                                       bool isProbing,
                                       bool isOutput,
                                       Handle<SetIdentifier> source,
-                                      const vector<AtomicComputationPtr> &pipeComputations,
                                       Handle<ComputePlan> computePlan,
                                       const LogicalPlanPtr &logicalPlan,
                                       const ConfigurationPtr &conf);
@@ -59,12 +58,12 @@ public:
   /**
    * Generates the stages for pipelined operators
    * @param nextStageID
-   * @param pipeline
+   * @param pipesToPipeline
    * @return
    */
   virtual PhysicalOptimizerResultPtr generatePipelined(int nextStageID,
                                                        const StatisticsPtr &stats,
-                                                       std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline);
+                                                       std::vector<AdvancedPhysicalPipelineNodePtr> &pipesToPipeline);
 
   /**
    * Returns the type of the algorithm
@@ -98,6 +97,17 @@ protected:
   void includeHashComputation();
 
   /**
+   * This method goes through each pipe in the pipeline and extracts all the atomic computations in each pipe
+   * and inserts them into the @see pipeComputations list.
+   */
+  void extractAtomicComputations();
+
+  /**
+   * This method goes through each pipe and checks if it is joining.
+   */
+  void extractHashSetsToProbe();
+
+  /**
    * The handle to the node this algorithm is associated with
    */
   std::list<AdvancedPhysicalPipelineNodePtr> pipeline;
@@ -110,7 +120,7 @@ protected:
   /**
    * Contains all the atomic computations that make-up this pipe
    */
-  list<AtomicComputationPtr> pipeComputations;
+  list<AtomicComputationPtr> pipelineComputations;
 
   /**
    * All the hash sets we are probing in this algorithm

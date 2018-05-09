@@ -58,6 +58,12 @@ public:
   std::string getGeneratedHashSet();
 
   /**
+   * Returns true if this join side has generated a hash set, false otherwise
+   * @return the value
+   */
+  bool hasHashSet();
+
+  /**
    * Sets the hash set of the join side pipeline
    * @param hashSet - the hash set
    */

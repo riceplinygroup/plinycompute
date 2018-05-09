@@ -23,7 +23,6 @@ AdvancedPhysicalAbstractAlgorithm::AdvancedPhysicalAbstractAlgorithm(const Advan
                                                                      bool isProbing,
                                                                      bool isOutput,
                                                                      Handle<SetIdentifier> source,
-                                                                     const vector<AtomicComputationPtr> &pipeComputations,
                                                                      Handle<ComputePlan> computePlan,
                                                                      const LogicalPlanPtr &logicalPlan,
                                                                      const ConfigurationPtr &conf)
@@ -34,12 +33,6 @@ AdvancedPhysicalAbstractAlgorithm::AdvancedPhysicalAbstractAlgorithm(const Advan
                                                                        source(source),
                                                                        isProbing(isProbing),
                                                                        isOutput(isOutput) {
-
-  // insert the pipe computations
-  this->pipeComputations.insert(this->pipeComputations.begin(),
-                                pipeComputations.begin(),
-                                pipeComputations.end());
-
   // add the current node to the pipeline
   pipeline.push_back(handle);
 }
@@ -47,44 +40,13 @@ AdvancedPhysicalAbstractAlgorithm::AdvancedPhysicalAbstractAlgorithm(const Advan
 
 PhysicalOptimizerResultPtr AdvancedPhysicalAbstractAlgorithm::generatePipelined(int nextStageID,
                                                                                 const StatisticsPtr &stats,
-                                                                                std::vector<AdvancedPhysicalPipelineNodePtr> &pipelines) {
+                                                                                std::vector<AdvancedPhysicalPipelineNodePtr> &pipesToPipeline) {
 
   // get the source set identifier of the first node in the pipeline
-  source = pipelines.front()->getSourceSetIdentifier();
+  source = pipesToPipeline.front()->getSourceSetIdentifier();
 
-  // all the computations that are in the pipeline (we need to build this)
-  list<AtomicComputationPtr> pipelineComputations;
-
-  // go through each stage check if we a probing and copy the atomic computations
-  for(auto &p : pipelines) {
-
-    if(p->isJoining()) {
-
-      // set the is probing flag
-      this->isProbing = p->isJoining();
-
-      // get the probing hash sets
-      auto sets = p->getProbingHashSets();
-
-      // there should always be one hash set we are probing for a join
-      assert(!sets.empty());
-
-      // add the tuple sets we are probing to the list
-      probingHashSets.insert(sets.begin(), sets.end());
-    }
-
-    // get the atomic computations of the pipeline
-    auto computations = p->getPipeComputations();
-
-    // append the pipelined operators
-    pipelineComputations.insert(pipelineComputations.end(), computations.begin(), computations.end());
-  }
-
-  // insert the pipeline computations at the end
-  pipelineComputations.insert(pipelineComputations.end(), pipeComputations.begin(), pipeComputations.end());
-
-  // these are the new computations now
-  pipeComputations = pipelineComputations;
+  // add the pipesToPipeline to the current pipeline
+  pipeline.insert(pipeline.begin(), pipesToPipeline.begin(), pipesToPipeline.end());
 
   // generate the stage
   return generate(nextStageID, stats);
@@ -114,6 +76,8 @@ void AdvancedPhysicalAbstractAlgorithm::updateConsumers(const Handle<SetIdentifi
 
 DataStatistics AdvancedPhysicalAbstractAlgorithm::approximateResultSize(const StatisticsPtr &stats) {
 
+  // TODO this is a silly approximation, the size is never the same we need something better...
+
   // an algorithm should always have a source set
   assert(source != nullptr);
 
@@ -129,6 +93,7 @@ DataStatistics AdvancedPhysicalAbstractAlgorithm::approximateResultSize(const St
   // get the size of the source set in bytes
   return ds;
 }
+
 void AdvancedPhysicalAbstractAlgorithm::includeHashComputation() {
 
   // if we are calling this we always must have two producers
@@ -143,12 +108,57 @@ void AdvancedPhysicalAbstractAlgorithm::includeHashComputation() {
      rhs->getSelectedAlgorithm()->getType() == JOIN_SUFFLE_SET_ALGORITHM) {
 
     // the last computation is hash computation grab that and add to the front of our pipeline
-    pipeComputations.push_front(rhs->getPipeComputations().back());
+    pipelineComputations.push_front(rhs->getPipeComputations().back());
   }
   else if(rhs->getSelectedAlgorithm()->getType() == JOIN_SHUFFLED_HASHSET_ALGORITHM &&
           lhs->getSelectedAlgorithm()->getType() == JOIN_SUFFLE_SET_ALGORITHM) {
 
     // the last computation is hash computation grab that and add to the front of our pipeline
-    pipeComputations.push_front(lhs->getPipeComputations().back());
+    pipelineComputations.push_front(lhs->getPipeComputations().back());
+  }
+}
+
+void AdvancedPhysicalAbstractAlgorithm::extractAtomicComputations() {
+
+  // first clear it for reasons...
+  pipelineComputations.clear();
+
+  // go through each stage check if we a probing and copy the atomic computations
+  for(auto &p : pipeline) {
+
+    // get the atomic computations of the pipeline
+    auto computations = p->getPipeComputations();
+
+    // append the pipelined operators
+    pipelineComputations.insert(pipelineComputations.end(), computations.begin(), computations.end());
+  }
+
+  // if we are joining, if so check if we need to include the hash computation into this pipeline
+  if(pipeline.front()->isJoining()) {
+    includeHashComputation();
+  }
+}
+
+void AdvancedPhysicalAbstractAlgorithm::extractHashSetsToProbe() {
+
+  // first clear it for reasons...
+  probingHashSets.clear();
+
+  for(auto &p : pipeline) {
+
+    if (p->isJoining()) {
+
+      // set the is probing flag
+      this->isProbing = p->isJoining();
+
+      // get the probing hash sets
+      auto sets = p->getProbingHashSets();
+
+      // there should always be one hash set we are probing for a join
+      assert(!sets.empty());
+
+      // add the tuple sets we are probing to the list
+      probingHashSets.insert(sets.begin(), sets.end());
+    }
   }
 }
