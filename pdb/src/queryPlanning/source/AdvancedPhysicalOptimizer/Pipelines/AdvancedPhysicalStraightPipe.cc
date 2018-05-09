@@ -65,29 +65,6 @@ std::vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalStraightPipe::
   return ret;
 }
 
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalStraightPipe::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
-
-  //TODO this is just some placeholder logic to select the broadcast join if we can
-  AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
-
-  // go through each algorithm
-  for (const auto &algorithm : algorithms) {
-
-    // we prefer the broadcast algorithm, but if we have none we are fine
-    if (algorithm->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM || best == nullptr) {
-
-      // select the best algorithm
-      best = algorithm;
-    }
-  }
-
-  // if this is false there is something seriously wrong with our system
-  assert(best != nullptr);
-
-  // return the chosen algorithm
-  return best;
-}
-
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalStraightPipe::getType() {
   return STRAIGHT;
 }

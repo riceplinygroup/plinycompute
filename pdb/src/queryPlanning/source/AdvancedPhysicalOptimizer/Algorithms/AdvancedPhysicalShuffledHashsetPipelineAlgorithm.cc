@@ -41,7 +41,13 @@ AdvancedPhysicalShuffledHashsetPipelineAlgorithm::AdvancedPhysicalShuffledHashse
                                                                                                                        logicalPlan,
                                                                                                                        conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::generate(int nextStageID,
+                                                                                      const StatisticsPtr &stats) {
+
+  // if we are joining, if so check if we need to include the hash computation into this pipeline
+  if(pipeline.front()->isJoining()) {
+    includeHashComputation();
+  }
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -50,7 +56,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   auto sourceAtomicComputation = this->pipeComputations.front();
 
   // we get the first atomic computation of the join pipeline this should be the apply join computation
-  auto joinAtomicComputation = handle->getAdvancedPhysicalNodeHandle()->getPipelineComputationAt(0);
+  auto joinAtomicComputation = pipeline.back()->getConsumer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipelineComputationAt(0);
 
   // get the final atomic computation
   string finalAtomicComputationName = this->pipeComputations.back()->getOutputName();
@@ -101,7 +107,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   tupleStageBuilder->setJobStageId(nextStageID++);
   tupleStageBuilder->setTargetTupleSetName(finalAtomicComputationName);
   tupleStageBuilder->setTargetComputationName(computationSpecifier);
-  tupleStageBuilder->setOutputTypeName(joinAtomicComputation->getOutputName());
+  tupleStageBuilder->setOutputTypeName("IntermediateData");
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setRepartition(true);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
@@ -133,7 +139,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   hashBuilder->setComputePlan(computePlan);
 
   // we set the name of the hash we just generated
-  handle->to<AdvancedPhysicalJoinSidePipe>()->setHashSet(hashSetName);
+  pipeline.back()->to<AdvancedPhysicalJoinSidePipe>()->setHashSet(hashSetName);
 
   // create the build hash partitioned join hash table job stage to partition and shuffle the source set
   Handle<HashPartitionedJoinBuildHTJobStage> joinPartitionStage = hashBuilder->build();
@@ -148,15 +154,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
   return result;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
-  return nullptr;
-}
-
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffledHashsetPipelineAlgorithm::getType() {
   return JOIN_SHUFFLED_HASHSET_ALGORITHM;
-}
-
-void AdvancedPhysicalShuffledHashsetPipelineAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
-
 }
 

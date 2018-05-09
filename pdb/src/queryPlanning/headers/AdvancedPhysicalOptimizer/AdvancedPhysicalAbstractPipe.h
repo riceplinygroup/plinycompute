@@ -127,13 +127,19 @@ class AdvancedPhysicalAbstractPipe : public AbstractPhysicalNode {
    * @param algorithms - the algorithms that are available
    * @return the picked algorithm
    */
-  virtual AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) = 0;
+  virtual AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms);
 
   /**
    * Returns true if this pipeline is joining two sets
    * @return true if it does false otherwise
    */
   const bool isJoining();
+
+  /**
+   * Returns true if this pipe is aggregating the results
+   * @return true if it does false otherwise
+   */
+  const bool isAggregating();
 
   /**
    * Returns a list of all the hash sets this pipe will probe (in the current implementation only one)

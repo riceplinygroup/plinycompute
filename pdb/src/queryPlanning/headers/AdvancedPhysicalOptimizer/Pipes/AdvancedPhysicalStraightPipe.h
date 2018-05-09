@@ -51,13 +51,6 @@ public:
    */
   std::vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
 
-  /**
-   *
-   * @param algorithms
-   * @return
-   */
-  AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) override;
-
 };
 
 }

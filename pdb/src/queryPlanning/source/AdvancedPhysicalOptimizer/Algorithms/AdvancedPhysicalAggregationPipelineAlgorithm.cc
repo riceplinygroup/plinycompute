@@ -40,7 +40,14 @@ AdvancedPhysicalAggregationPipelineAlgorithm::AdvancedPhysicalAggregationPipelin
                                                                                                                computePlan,
                                                                                                                logicalPlan,
                                                                                                                conf) {}
-PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generate(int nextStageID,
+                                                                                  const StatisticsPtr &stats) {
+
+  // if we are joining, if so check if we need to include the hash computation into this pipeline
+  if(pipeline.front()->isJoining()) {
+    includeHashComputation();
+  }
+
   // get the final atomic computation
   auto finalAtomicComputation = this->pipeComputations.back();
 
@@ -106,6 +113,9 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
   // set the job id
   tupleStageBuilder->setJobId(jobID);
 
+  // are we probing a hash set in this pipeline
+  tupleStageBuilder->setProbing(isProbing);
+
   // set the compute plan
   tupleStageBuilder->setComputePlan(computePlan);
 
@@ -138,6 +148,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
   tupleStageBuilder->setRepartition(true);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
 
+  // add all the probing hash sets
+  for(auto it : probingHashSets) {
+    tupleStageBuilder->addHashSetToProbe(it.first, it.second);
+  }
+
   // add the created tuple job stage to the
   result->physicalPlanToOutput.emplace_back(tupleStageBuilder->build());
 
@@ -162,28 +177,21 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = handle;
+  result->newSourceComputation = pipeline.back();
 
   // we succeeded
   result->success = true;
 
   // the new source is the sink
-  source = sink;
+  updateConsumers(sink, approximateResultSize(stats), stats);
 
   return result;
-}
-
-PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
-  return nullptr;
 }
 
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalAggregationPipelineAlgorithm::getType() {
   return AGGREGATION_ALGORITHM;
 }
 
-void AdvancedPhysicalAggregationPipelineAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
-
-}
 
 }
 

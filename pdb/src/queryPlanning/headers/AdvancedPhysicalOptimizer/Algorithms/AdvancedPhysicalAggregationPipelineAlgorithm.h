@@ -41,27 +41,14 @@ class AdvancedPhysicalAggregationPipelineAlgorithm : public AdvancedPhysicalAbst
    * Generates the stages for this algorithm
    * @return
    */
-  PhysicalOptimizerResultPtr generate(int nextStageID) override;
-
-  /**
-   * Generates tha stages for the pipelined version of this algorithm
-   * @param nextStageID
-   * @param pipeline
-   * @return
-   */
-  PhysicalOptimizerResultPtr generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) override;
-
+  PhysicalOptimizerResultPtr generate(int nextStageID,
+                                      const StatisticsPtr &stats) override;
   /**
    * Returns the type of the algorithm
    * @return the type id
    */
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
 
-  /**
-   * Marks the provided node as executed by this algorithm
-   * @param handle the node
-   */
-  void markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) override;
 };
 
 }

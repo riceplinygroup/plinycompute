@@ -52,13 +52,6 @@ public:
   vector<AdvancedPhysicalAbstractAlgorithmPtr> getPossibleAlgorithms(const StatisticsPtr &stats) override;
 
   /**
-   * Picks one of the algorithms provided as the proposed (the best algorithm)
-   * @param algorithms - the lise of algorithms
-   * @return the algorithm we like
-   */
-  AdvancedPhysicalAbstractAlgorithmPtr propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) override;
-
-  /**
    * Returns the generated hash set if executed, otherwise it returns an empty string
    * @return - the hash set we generated
    */

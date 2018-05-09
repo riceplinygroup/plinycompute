@@ -55,7 +55,13 @@ AdvancedPhysicalPipelineAlgorithm::AdvancedPhysicalPipelineAlgorithm(const Advan
   }
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextStageID,
+                                                                       const StatisticsPtr &stats) {
+
+  // if we are joining, if so check if we need to include the hash computation into this pipeline
+  if(pipeline.front()->isJoining()) {
+    includeHashComputation();
+  }
 
   // get the final atomic computation
   auto finalAtomicComputation = this->pipeComputations.back();
@@ -148,11 +154,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextS
 
   // if this is the output we just created new source
   if(!isOutput) {
-    result->newSourceComputation = handle;
+    result->newSourceComputation = pipeline.back();
   }
 
   // the new source is now the sink
-  this->source = sink;
+  updateConsumers(sink, approximateResultSize(stats), stats);
 
   // return the result
   return result;
@@ -162,57 +168,7 @@ AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalPipelineAlgorithm::getTy
   return SELECTION_ALGORITHM;
 }
 
-PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipelines) {
 
-  // get the source set identifier of the first node in the pipeline
-  source = pipelines.front()->getSourceSetIdentifier();
 
-  // all the computations that are in the pipeline (we need to build this)
-  vector<AtomicComputationPtr> pipelineComputations;
-
-  // go through each stage check if we a probing and copy the atomic computations
-  for(auto &p : pipelines) {
-
-    if(p->isJoining()) {
-
-      // set the is probing flag
-      this->isProbing = p->isJoining();
-
-      // get the probing hash sets
-      auto sets = p->getProbingHashSets();
-
-      // there should always be one hash set we are probing for a join
-      assert(!sets.empty());
-
-      // add the tuple sets we are probing to the list
-      probingHashSets.insert(sets.begin(), sets.end());
-    }
-
-    // get the atomic computations of the pipeline
-    auto computations = p->getPipeComputations();
-
-    // append the pipelined operators
-    pipelineComputations.insert(pipelineComputations.end(), computations.begin(), computations.end());
-  }
-
-  // insert the pipeline computations at the end
-  pipelineComputations.insert(pipelineComputations.end(), pipeComputations.begin(), pipeComputations.end());
-
-  // these are the new computations now
-  pipeComputations = pipelineComputations;
-
-  for(auto &c : pipeComputations) {
-    std::cout << c->getOutputName() << std::endl;
-  }
-
-  std::cout << "-----------------------------------------" << std::endl;
-
-  // generate the stage
-  return generate(nextStageID);
-}
-
-void AdvancedPhysicalPipelineAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
-
-}
 
 }

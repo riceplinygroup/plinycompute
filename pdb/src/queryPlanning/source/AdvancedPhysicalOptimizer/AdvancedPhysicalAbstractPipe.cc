@@ -64,7 +64,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::analyze(const Statistic
 
   /// 2. is this a final operator
   if(consumers.empty()) {
-    return selectOutputAlgorithm()->generate(nextStageID);
+    return selectOutputAlgorithm()->generate(nextStageID, stats);
   }
 
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
@@ -77,11 +77,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::analyze(const Statistic
     // chain this thing to the next pipe
     return consumers.front()->to<AdvancedPhysicalAbstractPipe>()->chainMe(nextStageID,
                                                                           stats,
-                                                                          selectedAlgorithm->generate(nextStageID));
+                                                                          selectedAlgorithm->generate(nextStageID, stats));
   }
 
   /// 5. ok no chaining we simply generate the stages from the algorithm
-  return selectedAlgorithm->generate(nextStageID);
+  return selectedAlgorithm->generate(nextStageID, stats);
 }
 
 bool AdvancedPhysicalAbstractPipe::isPipelinable(AdvancedPhysicalPipelineNodePtr node) {
@@ -138,7 +138,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::pipelineMe(int nextStag
 
   /// 2. is this a final operator we can not pipeline lets select the output algorithm and run this thing
   if(consumers.empty()) {
-    return selectOutputAlgorithm()->generatePipelined(nextStageID, pipeline);
+    return selectOutputAlgorithm()->generatePipelined(nextStageID, stats, pipeline);
   }
 
   /// 3. ok this is not pipelinable we get all the algorithms we can use and propose them to the next operators
@@ -151,11 +151,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::pipelineMe(int nextStag
     // chain this thing to the next pipe
     return consumers.front()->to<AdvancedPhysicalAbstractPipe>()->chainMe(nextStageID,
                                                                           stats,
-                                                                          selectedAlgorithm->generate(nextStageID));
+                                                                          selectedAlgorithm->generate(nextStageID, stats));
   }
 
   /// 5. ok no chaining we simply generate the stages from the algorithm
-  return selectedAlgorithm->generatePipelined(nextStageID, pipeline);
+  return selectedAlgorithm->generatePipelined(nextStageID, stats, pipeline);
 }
 
 PhysicalOptimizerResultPtr AdvancedPhysicalAbstractPipe::chainMe(int nextStageID,
@@ -194,6 +194,21 @@ bool AdvancedPhysicalAbstractPipe::isExecuted() {
 
 const bool AdvancedPhysicalAbstractPipe::isJoining() {
   return producers.size() >= 2;
+}
+
+const bool AdvancedPhysicalAbstractPipe::isAggregating() {
+
+  // go through each computation in this pipe
+  for(auto &it : pipeComputations) {
+
+    // returns true if this computation is an aggregation
+    if(it->getAtomicComputationTypeID() == ApplyAggTypeID){
+      return true;
+    }
+  }
+
+  // of we could not find it return false
+  return false;
 }
 
 double AdvancedPhysicalAbstractPipe::getCost(const StatisticsPtr &stats) {
@@ -251,6 +266,74 @@ const Handle<SetIdentifier> &AdvancedPhysicalAbstractPipe::getSourceSetIdentifie
   return sourceSetIdentifier;
 }
 
+AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAbstractPipe::propose(std::vector<AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
+
+  AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
+
+  // if we are joining then we have a few extra rules when choosing the algorithm
+  if(isJoining()) {
+
+    // get the lhs
+    auto lhs = producers.front()->to<AdvancedPhysicalAbstractPipe>();
+
+    // grab the rhs
+    auto rhs = producers.back()->to<AdvancedPhysicalAbstractPipe>();
+
+    // if we have executed the right side or the left side with a broadcast join a we are here something is wrong
+    assert(!(lhs->isExecuted() && lhs->getSelectedAlgorithm()->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM));
+    assert(!(rhs->isExecuted() && rhs->getSelectedAlgorithm()->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM));
+
+    // if both the left and the right side are not executed then we just go though the algorithms
+    // if we can do a broadcast we do it otherwise we just select any of them
+    // TODO this is just placeholder logic
+    if(!lhs->isExecuted() && !rhs->isExecuted()) {
+
+      // go through each algorithm if we have a broad cast algorithm we chose it always
+      for (const auto &algorithm : algorithms) {
+
+        // we prefer the broadcast algorithm, but if we have none we are fine we just select any
+        if (algorithm->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM || best == nullptr) {
+
+          // select the best algorithm
+          best = algorithm;
+        }
+      }
+
+      // if this is false there is something seriously wrong with our system
+      assert(best != nullptr);
+
+      // return the best
+      return best;
+    }
+
+    // at this point we know that at least one of the sides is executed
+    // TODO this is just placeholder logic
+    auto otherAlgorithm = lhs->isExecuted() ? lhs->getSelectedAlgorithm() : rhs->getSelectedAlgorithm();
+
+    // the must be an algorithm selected for the other side if it is executed
+    assert(otherAlgorithm != nullptr);
+
+    // did we shuffle the other side, if we did then find the
+    if(otherAlgorithm->getType() == JOIN_SHUFFLED_HASHSET_ALGORITHM) {
+
+      // go through each algorithm if we find the join shuffle set algorithm return it
+      for (const auto &algorithm : algorithms) {
+        // we prefer the broadcast algorithm, but if we have none we are fine
+        if (algorithm->getType() == JOIN_SUFFLE_SET_ALGORITHM) {
+
+          return algorithm;
+        }
+      }
+    }
+
+    // this should not happen
+    assert(false);
+  }
+
+  // just pick the first on there at this stage this can only be an aggregation or a pipeline algorithm
+  return algorithms.front();
+}
+
 void AdvancedPhysicalAbstractPipe::setSourceSetIdentifier(const Handle<SetIdentifier> &sourceSetIdentifier) {
   AdvancedPhysicalAbstractPipe::sourceSetIdentifier = sourceSetIdentifier;
 }
@@ -276,7 +359,4 @@ std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipe::getPr
   return ret;
 }
 
-
 }
-
-

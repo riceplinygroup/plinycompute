@@ -54,7 +54,7 @@ public:
    * Generates the stages for this algorithm
    * @return
    */
-  virtual PhysicalOptimizerResultPtr generate(int nextStageID) = 0;
+  virtual PhysicalOptimizerResultPtr generate(int nextStageID, const StatisticsPtr &stats) = 0;
 
   /**
    * Generates the stages for pipelined operators
@@ -62,7 +62,9 @@ public:
    * @param pipeline
    * @return
    */
-  virtual PhysicalOptimizerResultPtr generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) = 0;
+  virtual PhysicalOptimizerResultPtr generatePipelined(int nextStageID,
+                                                       const StatisticsPtr &stats,
+                                                       std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline);
 
   /**
    * Returns the type of the algorithm
@@ -70,18 +72,35 @@ public:
    */
   virtual AdvancedPhysicalAbstractAlgorithmTypeID getType() = 0;
 
-  /**
-   * Marks the provided node as executed by this algorithm
-   * @param handle the node
-   */
-  virtual void markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) = 0;
-
 protected:
+
+  /**
+   * Approximates the size of the result of this algorithm. The default implementation simply returns the same size
+   * as the source set
+   * @return the size of the sets
+   */
+  virtual DataStatistics approximateResultSize(const StatisticsPtr &stats);
+
+  /**
+   * Goes through every consumer and sets the source set of this consumer to be the sink of this algorithm
+   * @param sourceSetIdentifier - the set identifier of the new source
+   * @param approxSize - the approximate size of the new source
+   */
+  void updateConsumers(const Handle<SetIdentifier> &sink,
+                       DataStatistics approxSize,
+                       const StatisticsPtr &stats);
+
+  /**
+   * A join has two sides in case that we generated a pipeline breaker for the probe set of the join (the one we don't
+   * use to build the hash map) we have to include it's hash atomic computation into the pipeComputations so we can
+   * do that join. (The reason why we have to do this is because TCAP is structured that way)
+   */
+  void includeHashComputation();
 
   /**
    * The handle to the node this algorithm is associated with
    */
-  AdvancedPhysicalPipelineNodePtr handle;
+  std::list<AdvancedPhysicalPipelineNodePtr> pipeline;
 
   /**
    * The id of the next stage
@@ -91,7 +110,7 @@ protected:
   /**
    * Contains all the atomic computations that make-up this pipe
    */
-  vector<AtomicComputationPtr> pipeComputations;
+  list<AtomicComputationPtr> pipeComputations;
 
   /**
    * All the hash sets we are probing in this algorithm

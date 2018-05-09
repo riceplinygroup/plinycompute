@@ -40,7 +40,13 @@ AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::AdvancedPhysicalJoinBroadcasted
                                                                                                                          logicalPlan,
                                                                                                                          conf) {}
 
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::generate(int nextStageID,
+                                                                                     const StatisticsPtr &stats) {
+
+  // if we are joining, if so check if we need to include the hash computation into this pipeline
+  if(pipeline.front()->isJoining()) {
+    includeHashComputation();
+  }
 
   // create a analyzer result
   PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
@@ -50,7 +56,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::gene
 
   // we get the first atomic computation of the join pipeline that comes after this one.
   // This computation should be the apply join computation
-  auto joinAtomicComputation = handle->getConsumer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipelineComputationAt(0);
+  auto joinAtomicComputation = pipeline.back()->getConsumer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipelineComputationAt(0);
 
   // get the final atomic computation
   string finalAtomicComputationName = this->pipeComputations.back()->getOutputName();
@@ -126,7 +132,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::gene
   Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = broadcastBuilder->build();
 
   // we set the name of the hash we just generated
-  handle->to<AdvancedPhysicalJoinSidePipe>()->setHashSet(hashSetName);
+  pipeline.back()->to<AdvancedPhysicalJoinSidePipe>()->setHashSet(hashSetName);
 
   // add the stage to the list of stages to be executed
   result->physicalPlanToOutput.emplace_back(joinBroadcastStage);
@@ -140,14 +146,6 @@ PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::gene
 
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::getType() {
   return JOIN_BROADCASTED_HASHSET_ALGORITHM;
-}
-
-PhysicalOptimizerResultPtr AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::generatePipelined(int nextStageID, std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
-  return nullptr;
-}
-
-void AdvancedPhysicalJoinBroadcastedHashsetAlgorithm::markAsExecuted(AdvancedPhysicalPipelineNodePtr &handle) {
-
 }
 
 

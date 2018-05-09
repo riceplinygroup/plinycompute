@@ -19,6 +19,8 @@
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalAbstractAlgorithm.h>
 #include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalJoinBroadcastedHashsetAlgorithm.h>
 #include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalShuffledHashsetPipelineAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalShuffleSetAlgorithm.h>
+#include <AdvancedPhysicalOptimizer/Algorithms/AdvancedPhysicalPipelineAlgorithm.h>
 #include "AdvancedPhysicalOptimizer/Pipes/AdvancedPhysicalJoinSidePipe.h"
 
 namespace pdb {
@@ -62,7 +64,7 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
                                                                                            conf));
   }
 
-  // we can always do a shuffle algorithm
+  // we can always do a shuffle algorithm and then build a hash set
   algorithms.push_back(std::make_shared<AdvancedPhysicalShuffledHashsetPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
                                                                                           jobId,
                                                                                           isJoining(),
@@ -73,31 +75,29 @@ vector<AdvancedPhysicalAbstractAlgorithmPtr> AdvancedPhysicalJoinSidePipe::getPo
                                                                                           logicalPlan,
                                                                                           conf));
 
+  // we can always do a hash shuffle partitioning
+  algorithms.push_back(std::make_shared<AdvancedPhysicalShuffleSetAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                             jobId,
+                                                                             isJoining(),
+                                                                             consumers.empty(),
+                                                                             sourceSetIdentifier,
+                                                                             pipeComputations,
+                                                                             computePlan,
+                                                                             logicalPlan,
+                                                                             conf));
+
+  // we can always do a pipeline algorithm on this single pipe
+  algorithms.push_back(std::make_shared<AdvancedPhysicalPipelineAlgorithm>(getAdvancedPhysicalNodeHandle(),
+                                                                           jobId,
+                                                                           isJoining(),
+                                                                           consumers.empty(),
+                                                                           sourceSetIdentifier,
+                                                                           pipeComputations,
+                                                                           computePlan,
+                                                                           logicalPlan,
+                                                                           conf));
+
   return algorithms;
-}
-
-AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalJoinSidePipe::propose(std::vector<
-    AdvancedPhysicalAbstractAlgorithmPtr> algorithms) {
-
-  //TODO this is just some placeholder logic to select the broadcast join if we can
-  AdvancedPhysicalAbstractAlgorithmPtr best = nullptr;
-
-  // go through each algorithm
-  for (const auto &algorithm : algorithms) {
-
-    // we prefer the broadcast algorithm, but if we have none we are fine
-    if (algorithm->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM || best == nullptr) {
-
-      // select the best algorithm
-      best = algorithm;
-    }
-  }
-
-  // if this is false there is something seriously wrong with our system
-  assert(best != nullptr);
-
-  // return the chosen algorithm
-  return best;
 }
 
 AdvancedPhysicalPipelineTypeID AdvancedPhysicalJoinSidePipe::getType() {

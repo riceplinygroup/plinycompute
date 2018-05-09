@@ -38,13 +38,19 @@ AdvancedPhysicalShuffleSetAlgorithm::AdvancedPhysicalShuffleSetAlgorithm(const A
                                                                                                                                            computePlan,
                                                                                                                                            logicalPlan,
                                                                                                                                            conf) {}
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffleSetAlgorithm::generate(int nextStageID) {
+PhysicalOptimizerResultPtr AdvancedPhysicalShuffleSetAlgorithm::generate(int nextStageID,
+                                                                         const StatisticsPtr &stats) {
+
+  // if we are joining, if so check if we need to include the hash computation into this pipeline
+  if(pipeline.front()->isJoining()) {
+    includeHashComputation();
+  }
 
   // get the source atomic computation
   auto sourceAtomicComputation = this->pipeComputations.front();
 
   // we get the first atomic computation of the join pipeline this should be the apply join computation
-  auto joinAtomicComputation = handle->getAdvancedPhysicalNodeHandle()->getPipelineComputationAt(0);
+  auto joinAtomicComputation = pipeline.back()->getConsumer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipelineComputationAt(0);
 
   // get the final atomic computation
   string finalAtomicComputationName = this->pipeComputations.back()->getOutputName();
@@ -86,11 +92,14 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleSetAlgorithm::generate(int nex
   tupleStageBuilder->setJobStageId(nextStageID++);
   tupleStageBuilder->setTargetTupleSetName(finalAtomicComputationName);
   tupleStageBuilder->setTargetComputationName(computationSpecifier);
-  tupleStageBuilder->setOutputTypeName(joinAtomicComputation->getOutputName());
+  tupleStageBuilder->setOutputTypeName("IntermediateData");
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setRepartition(true);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
   tupleStageBuilder->setRepartitionJoin(true);
+
+  // update the consumers
+  updateConsumers(sink, approximateResultSize(stats), stats);
 
   // we first create a pipeline breaker to partition RHS by setting
   // the isRepartitioning=true and isRepartitionJoin=true
@@ -110,11 +119,6 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleSetAlgorithm::generate(int nex
   result->newSourceComputation = nullptr;
 
   return result;
-}
-
-PhysicalOptimizerResultPtr AdvancedPhysicalShuffleSetAlgorithm::generatePipelined(int nextStageID,
-                                                                                  std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) {
-  return pdb::PhysicalOptimizerResultPtr();
 }
 
 AdvancedPhysicalAbstractAlgorithmTypeID AdvancedPhysicalShuffleSetAlgorithm::getType() {

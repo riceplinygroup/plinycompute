@@ -110,4 +110,22 @@ pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getConsumer(int idx) {
   return *it;
 }
 
+size_t AbstractPhysicalNode::getNumConsumers() {
+  return consumers.size();
+}
+
+pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getProducer(int idx) {
+
+  // set the iterator to the idx-th element
+  auto it = producers.begin();
+  std::advance(it, idx);
+
+  // return the consumer
+  return *it;
+}
+
+size_t AbstractPhysicalNode::getNumProducers() {
+  return producers.size();
+}
+
 }

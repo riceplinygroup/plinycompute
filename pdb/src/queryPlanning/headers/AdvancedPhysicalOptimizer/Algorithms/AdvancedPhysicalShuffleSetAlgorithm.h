@@ -25,6 +25,8 @@ namespace pdb {
 
 class AdvancedPhysicalShuffleSetAlgorithm : public AdvancedPhysicalAbstractAlgorithm {
 
+public:
+
   AdvancedPhysicalShuffleSetAlgorithm(const AdvancedPhysicalPipelineNodePtr &handle,
                                       const std::string &jobID,
                                       bool isProbing,
@@ -35,14 +37,10 @@ class AdvancedPhysicalShuffleSetAlgorithm : public AdvancedPhysicalAbstractAlgor
                                       const LogicalPlanPtr &logicalPlan,
                                       const ConfigurationPtr &conf);
 
- public:
-
-  PhysicalOptimizerResultPtr generate(int nextStageID) override;
-
-  PhysicalOptimizerResultPtr generatePipelined(int nextStageID,
-                                               std::vector<AdvancedPhysicalPipelineNodePtr> &pipeline) override;
+  PhysicalOptimizerResultPtr generate(int nextStageID, const StatisticsPtr &stats) override;
 
   AdvancedPhysicalAbstractAlgorithmTypeID getType() override;
+
 };
 
 }

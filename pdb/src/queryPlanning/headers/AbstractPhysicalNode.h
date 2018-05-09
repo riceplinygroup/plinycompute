@@ -135,7 +135,27 @@ public:
    * @param idx - the index
    * @return returns the consumer
    */
-  virtual pdb::AbstractPhysicalNodePtr getConsumer(int idx);
+  AbstractPhysicalNodePtr getConsumer(int idx);
+
+  /**
+   * Returns the number of consumers this pipe has
+   * @return the number
+   */
+  size_t getNumConsumers();
+
+  /**
+   * Returns the idx-th producer of this node
+   * @param idx - the index
+   * @return returns the producer
+   */
+  AbstractPhysicalNodePtr getProducer(int idx);
+
+  /**
+   * Returns the number of producers this pipe has
+   * @return the number
+   */
+  size_t getNumProducers();
+
 
   /**
    * This method is used to cast the handle to cast the abstract node to different kinds of node based on the
