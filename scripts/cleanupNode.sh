@@ -55,6 +55,11 @@ if [[ -n $(find /tmp/CatalogDir -name "*" 2>/dev/null) ]]; then
     rm -rf /tmp/CatalogDir*
 fi
 
+# remove everything from /tmp/pdb_install/CatalogDir* only if they exist
+if [[ -n $(find /tmp/pdb_install/CatalogDir* -name "*" 2>/dev/null) ]]; then
+    rm -rf /tmp/pdb_install/CatalogDir*
+fi
+
 # remove anything from logs only if they exist
 if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
     rm -rf logs/*
