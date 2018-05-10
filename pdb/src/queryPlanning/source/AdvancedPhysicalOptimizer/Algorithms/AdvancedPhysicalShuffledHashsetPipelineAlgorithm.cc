@@ -154,7 +154,6 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffledHashsetPipelineAlgorithm::gen
 
   // set the remaining parameters of the result
   result->success = true;
-  result->newSourceComputation = nullptr;
 
   return result;
 }

@@ -193,7 +193,6 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
-  result->newSourceComputation = nullptr;
 
   return result;
 }
@@ -247,7 +246,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSet
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
-  result->newSourceComputation = getSimpleNodeHandle();
+  result->createdSourceComputations.push_back(getSimpleNodeHandle());
 
   // the new source is now the sink
   sourceSetIdentifier = sink;

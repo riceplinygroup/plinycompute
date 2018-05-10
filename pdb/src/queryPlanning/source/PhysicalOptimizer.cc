@@ -59,9 +59,9 @@ bool PhysicalOptimizer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> 
     // increase the job stage
     jobStageId += result->physicalPlanToOutput.size();
 
-    // did we create a new source set
-    if(result->newSourceComputation != nullptr) {
-      sourceNodes[result->newSourceComputation->getNodeIdentifier()] = result->newSourceComputation;
+    // did we create a new source set add them
+    for(auto &it : result->createdSourceComputations) {
+      sourceNodes[it->getNodeIdentifier()] = it;
     }
 
     // does this source have any consumers

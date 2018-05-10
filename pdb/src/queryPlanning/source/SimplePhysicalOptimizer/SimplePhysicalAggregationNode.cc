@@ -101,9 +101,6 @@ PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeOutput(TupleSet
   // to push back the aggregation stage;
   result->physicalPlanToOutput.emplace_back(aggregationBuilder->build());
 
-  // this is the output so we are not creating a new source set
-  result->newSourceComputation = nullptr;
-
   // we succeeded
   result->success = true;
 
@@ -186,7 +183,7 @@ PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets (if the source node is not being used anymore we just remove it)
-  result->newSourceComputation = getSimpleNodeHandle();
+  result->createdSourceComputations.push_back(getSimpleNodeHandle());
 
   // we succeeded
   result->success = true;
@@ -282,7 +279,7 @@ PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeMultipleConsume
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = getSimpleNodeHandle();
+  result->createdSourceComputations.push_back(getSimpleNodeHandle());
 
   // we succeeded
   result->success = true;

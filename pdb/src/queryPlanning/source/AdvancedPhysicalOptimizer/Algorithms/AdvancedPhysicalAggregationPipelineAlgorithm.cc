@@ -70,7 +70,14 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
 
   // in the case that the current computation does not require materialization by default
   // we have to set an output to it, we it gets materialized
-  if (!curComp->needsMaterializeOutput()) {
+  if (!curComp->needsMaterializeOutput() && pipeline.back()->getNumConsumers() == 1) {
+
+    sink = makeObject<SetIdentifier>(jobID,
+                                     finalAtomicComputation->getOutputName() + "_aggregationResult",
+                                     PartitionedHashSetType,
+                                     true);
+  }
+  else if(!curComp->needsMaterializeOutput()){
 
     // set the output
     curComp->setOutput(jobID, finalAtomicComputation->getOutputName());
@@ -81,6 +88,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
 
     // add this set to the list of intermediate sets
     result->interGlobalSets.push_back(sink);
+
   } else {
     // this computation needs materialization either way so just create the sink set identifier
     sink = makeObject<SetIdentifier>(curComp->getDatabaseName(), curComp->getSetName());
@@ -175,8 +183,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
   // to push back the aggregator set
   result->interGlobalSets.push_back(aggregator);
 
-  // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = pipeline.back();
+  // update the source pipes to reflect the state after executing the job stages
+  // if we have a consumer we have a new source pipe since we materialize this result
+  if(pipeline.back()->getNumConsumers() != 0) {
+    result->createdSourceComputations.push_back(pipeline.back()->getConsumer(0));
+  }
 
   // we succeeded
   result->success = true;

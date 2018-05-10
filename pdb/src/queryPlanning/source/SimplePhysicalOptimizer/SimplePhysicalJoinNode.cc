@@ -90,7 +90,6 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       result->success = false;
       result->physicalPlanToOutput.clear();
       result->interGlobalSets.clear();
-      result->newSourceComputation = nullptr;
 
       //PDB_COUT << "WARNING: met a join sink with probing, to return and put cost " << sourceCost << " " << tupleStageBuilder->getSourceSetIdentifier()->toSourceSetName() << " to penalized list \n";
 
@@ -217,7 +216,6 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
 
     // set the remaining parameters of the result
     result->success = true;
-    result->newSourceComputation = nullptr;
 
     // return to indicate the we succeeded
     return result;

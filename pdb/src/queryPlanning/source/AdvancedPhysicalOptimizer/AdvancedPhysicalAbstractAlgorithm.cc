@@ -137,6 +137,12 @@ void AdvancedPhysicalAbstractAlgorithm::extractAtomicComputations() {
   if(pipeline.front()->isJoining()) {
     includeHashComputation();
   }
+  else if(pipeline.front()->getNumProducers() == 1){
+
+    // else we include the last atomic computation of the previous pipe
+    auto producer = pipeline.front()->getProducer(0)->to<AdvancedPhysicalAbstractPipe>();
+    pipelineComputations.push_front(producer->getPipeComputations().back());
+  }
 }
 
 void AdvancedPhysicalAbstractAlgorithm::extractHashSetsToProbe() {

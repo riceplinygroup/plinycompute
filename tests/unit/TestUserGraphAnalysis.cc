@@ -50,24 +50,23 @@
 #include <ScanStringSet.h>
 #include <CartesianJoin.h>
 #include <WriteStringIntPairSet.h>
+#include <FinalSelection.h>
+#include <SimpleSelection.h>
+#include <SimpleAggregation.h>
 
 using namespace pdb;
 int main(int argc, char *argv[]) {
   const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
   // create all of the computation objects
-  Handle<Computation> myScanSet1 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set1");
-  Handle<Computation> myScanSet2 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set2");
-  Handle<Computation> myScanSet3 = makeObject<ScanStringIntPairSet>("test93_db", "test93_set3");
-  Handle<Computation> myJoin = makeObject<OptimizedMethodJoin>();
-  myJoin->setInput(0, myScanSet1);
-  myJoin->setInput(1, myScanSet2);
-  Handle<Computation> myOtherJoin = makeObject<OptimizedMethodJoin>();
-  myOtherJoin->setInput(0, myJoin);
-  myOtherJoin->setInput(1, myScanSet3);
-  Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
-  mySelection->setInput(myOtherJoin);
-  Handle<Computation> myWriter = makeObject<WriteStringSet>("test93_db", "output_set1");
+  Handle<Computation> myScanSet = makeObject<ScanUserSet<Supervisor>>("test74_db", "test74_set");
+  Handle<Computation> myFilter = makeObject<SimpleSelection>();
+  myFilter->setInput(myScanSet);
+  Handle<Computation> myAgg = makeObject<SimpleAggregation>();
+  myAgg->setInput(myFilter);
+  Handle<Computation> mySelection = makeObject<FinalSelection>();
+  mySelection->setInput(myAgg);
+  Handle<Computation> myWriter = makeObject<WriteUserSet<double>>("test74_db", "output_set1");
   myWriter->setInput(mySelection);
 
   std::vector<Handle<Computation>> queryGraph;

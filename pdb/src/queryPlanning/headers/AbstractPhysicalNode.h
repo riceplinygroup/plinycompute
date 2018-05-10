@@ -59,7 +59,7 @@ struct PhysicalOptimizerResult {
   /**
    * The computation associated with the new set
    */
-  AbstractPhysicalNodePtr newSourceComputation;
+  list<AbstractPhysicalNodePtr> createdSourceComputations;
 
   /**
    * Is the result we got a good one to execute?

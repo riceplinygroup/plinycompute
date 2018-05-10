@@ -68,9 +68,6 @@ PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeOutput(TupleSetJo
   // to push back the job stage
   result->physicalPlanToOutput.emplace_back(tupleStageBuilder->build());
 
-  // this is the output so we are not creating a new source set
-  result->newSourceComputation = nullptr;
-
   // we succeeded
   result->success = true;
 
@@ -119,7 +116,7 @@ PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeSingleConsumer(Tu
 
 
   // update the source sets (if the source node is not being used anymore we just remove it)
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getHandle());
 
   // we succeeded
   result->success = true;
@@ -178,7 +175,7 @@ PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeMultipleConsumers
 
 
   // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getHandle());
 
   // we succeeded
   result->success = true;

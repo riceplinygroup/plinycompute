@@ -139,7 +139,7 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextS
 
   // if this is the output we just created new source
   if(!isOutput) {
-    result->newSourceComputation = pipeline.back();
+    result->createdSourceComputations.push_back(pipeline.back()->getConsumer(0));
   }
 
   // the new source is now the sink
