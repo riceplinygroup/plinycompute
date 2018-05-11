@@ -19,17 +19,14 @@ sharedMemSize=$2
 manager_ip=$3
 ip_addr=$4
 
-echo -e "+++++++++++ start server: $ip_addr"
-echo -e "+++++++++++ to kill existing processes"
-pkill -9 test603
-pkill -9 test404
+echo -e "+++++++++++ removing existing processes"
 pkill -9 pdb-worker
 pkill -9 pdb-manager 
 
-echo -e "+++++++++++ to start a pdb worker"
+echo -e "+++++++++++ launching a pdb-worker node at IP: $ip_addr"
 echo "bin/pdb-worker $numThreads $sharedMemSize $manager_ip $ip_addr &"
 if [ -n "${PDB_SSH_FOREGROUND}" ]; then
    bin/pdb-worker $numThreads $sharedMemSize $manager_ip $ip_addr
 else
-   nohup bin/pdb-worker $numThreads $sharedMemSize $manager_ip $ip_addr  >> log.out 2>&1 < /dev/null &
+   nohup bin/pdb-worker $numThreads $sharedMemSize $manager_ip $ip_addr  >> logs/log.out 2>&1 < /dev/null &
 fi

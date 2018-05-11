@@ -20,8 +20,9 @@ sharedMem=$4
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
+testSSHTimeout=3
 PDB_SSH_SLEEP=10
-PDB_SLEEP_TIME=40
+PDB_SLEEP_TIME=10
 pkill -9  pdb-manager
 pkill -9  pdb-worker
 
@@ -29,18 +30,21 @@ $PDB_HOME/bin/pdb-manager localhost 8108 N $pemFile 1.5 &
 
 echo ""
 echo "#####################################"
-echo "To sleep for 100 seconds in total for all ssh to return"
+echo " Launching manager node."
 echo "#####################################"
 
 sleep $PDB_SLEEP_TIME
 
 if pgrep -x "pdb-manager" > /dev/null
 then
-   echo "manager node has been started and is running!"
+   echo "manager node has been successfully started and is running!"
 else
    echo "manager node hasn't started! It could be that ssh takes too long time. Please retry!"
    exit -1;
 fi
+
+echo " Waiting 10 secs before launching worker nodes."
+
 sleep 10
 
 # By default disable strict host key checking
@@ -49,14 +53,14 @@ if [ "$PDB_SSH_OPTS" = "" ]; then
 fi
 
 if [ -z ${pemFile} ];
-   then echo "ERROR: please provide at least two parameters: one is your the path to your pem file and the other is the manager IP";
-   echo "Usage: scripts/startWorkers.sh #pemFile #managerIp #threadNum #sharedMemSize";
+   then echo "ERROR: please provide at least two parameters: one is your pem file and the other is the manager IP";
+   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #threadNum #sharedMemSize";
    exit -1;
 fi
 
 if [ -z ${managerIp} ];
-   then echo "ERROR: please provide at least two parameters: one is the path to your pem file and the other is the manager IP";
-   echo "Usage: scripts/startWorkers.sh #pemFile #managerIp #threadNum #sharedMemSize";
+   then echo "ERROR: please provide at least two parameters: one is your pem file and the other is the manager IP";
+   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #threadNum #sharedMemSize";
    exit -1;
 fi
     
@@ -70,18 +74,44 @@ fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
-echo "There are $length worker nodes in conf/serverlist"
+workersOk=0;
+workersFailed=0;
+
+echo "There are $length worker nodes defined in conf/serverlist"
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
    if [ ${#ip_addr} -gt "$ip_len_valid" ]
    then
-      echo -e "\n+++++++++++ starting worker node at IP: $ip_addr"
-      ssh -i $pemFile $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
-      sleep $PDB_SSH_SLEEP
-      ssh -i $pemFile $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
+     # checks that ssh to a node is possible, times out after 3 seconds
+     nc -zw$testSSHTimeout ${ip_addr} 22 
+     if [ $? -eq 0 ] 
+     then
+        echo -e "\n+++++++++++ starting worker node at IP address: $ip_addr"
+        ssh -i $pemFile $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+        sleep $PDB_SSH_SLEEP
+        ssh -i $pemFile $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
+        if [ $? -eq 0 ]
+        then
+           workersOk=$[$workersOk + 1]
+        else
+           workersFailed=$[$workersFailed + 1]
+        fi
+     else
+        echo "Cannot start worker node with IP address: ${ip_addr}, connection times out after $testSSHTimeout seconds."
+        workersFailed=$[$workersFailed + 1]
+     fi      
    fi
 done
 
-echo "workers have been successfuly started!"
+if [ $workersOk -eq 0 ]
+then
+   echo "PlinyCompute cluster failed to start, because $workersFailed worker nodes failed to launch!"
+else
+   echo "PlinyCompute cluster has been successfuly started with $workersOk worker nodes!"
+   if [ $workersFailed -gt 0 ]
+   then 
+      echo "There were $workersFailed workers nodes that failed to launch!"
+   fi
+fi
 

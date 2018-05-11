@@ -16,11 +16,7 @@
 
 
 PEM_FILE=$1
-
-
-
 USERNAME=ubuntu
-
 
 #remember to set environment variable: PDB_HOME first
 if [ -z ${PDB_HOME} ]; 
@@ -31,13 +27,12 @@ fi
 
 #remember to provide your pem file as parameter
 if [ -z ${PEM_FILE} ];
-    then PEM_FILE=$PDB_HOME/conf/pdb.key;
-    chmod -R 600 $PDB_HOME/conf/pdb.key
+    then PEM_FILE=$PDB_HOME/conf/pdb-key.pem;
+    chmod -R 600 $PDB_HOME/conf/pdb-key.pem
 else
     echo "Your pem file is: '$PEM_FILE'";
     chmod -R 600 $PEM_FILE
 fi
-
 
 if [ ! -d "$PDB_HOME/conf" ]
          then mkdir $PDB_HOME/conf

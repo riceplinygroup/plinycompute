@@ -104,35 +104,39 @@ void ResourceManagerServer::analyzeNodes(std::string serverlist) {
             if (inputLine.length() < 2) {
                 break;
             }
-            size_t pos = inputLine.find(":");
-            if (pos != string::npos) {
-                port = stoi(inputLine.substr(pos + 1, inputLine.size()));
-                address = inputLine.substr(0, pos);
-                if (address.find('.') != string::npos) {
-                    struct sockaddr_in sa;
-                    int result = inet_pton(AF_INET, address.c_str(), &(sa.sin_addr));
-                    if (result == 0) {
-                        std::cout << "ERROR: can't connect to IP:" << address << std::endl;
-                        continue;
+            size_t pos = inputLine.find("#");
+            // skips commented and empty lines
+            if (inputLine.length() != 0 && pos != string::npos) {
+                pos = inputLine.find(":");
+                if (pos != string::npos) {
+                    port = stoi(inputLine.substr(pos + 1, inputLine.size()));
+                    address = inputLine.substr(0, pos);
+                    if (address.find('.') != string::npos) {
+                        struct sockaddr_in sa;
+                        int result = inet_pton(AF_INET, address.c_str(), &(sa.sin_addr));
+                        if (result == 0) {
+                            std::cout << "ERROR: can't connect to IP:" << address << std::endl;
+                            continue;
+                        }
+                    } else {
+                        hostent* record = gethostbyname(address.c_str());
+                        if (record == nullptr) {
+                            std::cout << "ERROR: can't connect to host:" << address << std::endl;
+                            continue;
+                        }
                     }
                 } else {
-                    hostent* record = gethostbyname(address.c_str());
-                    if (record == nullptr) {
-                        std::cout << "ERROR: can't connect to host:" << address << std::endl;
-                        continue;
-                    }
+                    // TODO: we should not hardcode 8108
+                    port = 8108;
+                    address = inputLine;
                 }
-            } else {
-                // TODO: we should not hardcode 8108
-                port = 8108;
-                address = inputLine;
+                const UseTemporaryAllocationBlock block(1024);
+                Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
+                this->nodes->push_back(node);
+                PDB_COUT << "nodeId=" << nodeId << ", address=" << address << ", port=" << port
+                         << std::endl;
+                nodeId++;
             }
-            const UseTemporaryAllocationBlock block(1024);
-            Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
-            this->nodes->push_back(node);
-            PDB_COUT << "nodeId=" << nodeId << ", address=" << address << ", port=" << port
-                     << std::endl;
-            nodeId++;
         }
         if (nodes->size() == 0) {
             PDB_COUT << "No workers in the cluster, stopping" << std::endl;

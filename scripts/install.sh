@@ -19,6 +19,7 @@ pem_file=$1
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
+testSSHTimeout=3
 
 scripts/cleanupNode.sh
 echo "To strip shared libraries..."
@@ -51,15 +52,22 @@ length=${#arr[@]}
 echo "There are $length servers"
 for (( i=0 ; i<=$length ; i++ ))
 do
-        ip_addr=${arr[i]}
-        if [ ${#ip_addr} -gt "$ip_len_valid" ]
-        then
-                echo -e "\n+++++++++++ install server: $ip_addr"
-                ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
-                scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
-                scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
-                ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
-        fi
+   ip_addr=${arr[i]}
+   if [ ${#ip_addr} -gt "$ip_len_valid" ]
+   then
+      # checks that ssh to a node is possible, times out after 3 seconds
+      nc -zw$testSSHTimeout ${ip_addr} 22
+      if [ $? -eq 0 ]
+      then
+         echo -e "\n+++++++++++ install server: $ip_addr"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
+         scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
+         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
+         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+      else
+         echo "Cannot copy files to server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+      fi
+   fi
 done
 
 
