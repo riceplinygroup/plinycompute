@@ -152,7 +152,7 @@ public:
         isManager = false;
         hashPageSize = DEFAULT_HASH_PAGE_SIZE;
         initDirs();
-        statisticsDB = "statisticsDB";
+        statisticsDB = "statDB";
     }
 
     void initDirs() {

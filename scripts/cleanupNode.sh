@@ -60,9 +60,9 @@ if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
     rm -rf logs/*
 fi
 
-# remove anything from statisticsDB only if they exist
-if [[ -n $(find ./statisticsDB -name "*" 2>/dev/null) ]]; then
-    rm -rf statisticsDB*
+# remove anything from statDB only if they exist
+if [[ -n $(find ./statDB -name "*" 2>/dev/null) ]]; then
+    rm -rf statDB*
 fi
 
 
