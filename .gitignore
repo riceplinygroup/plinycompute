@@ -15,7 +15,6 @@ pdbRoot_*
 logs/*
 bin/*
 type-id-data
-statisticsDB*
 libraries/*
 tables_scale_0.2
 tables_scale_0.1
