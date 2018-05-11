@@ -72,8 +72,15 @@ if [ -z ${sharedMem} ];
    then sharedMem=4096;
 fi
 
-arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
+while read line
+do
+   [[ $line == *#* ]] && continue # skips commented lines
+   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/conf/serverlist
+
 length=${#arr[@]}
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
 workersOk=0;
 workersFailed=0;
 

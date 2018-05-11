@@ -106,7 +106,7 @@ void ResourceManagerServer::analyzeNodes(std::string serverlist) {
             }
             size_t pos = inputLine.find("#");
             // skips commented and empty lines
-            if (inputLine.length() != 0 && pos != string::npos) {
+            if (inputLine.length() != 0 && pos == string::npos) {
                 pos = inputLine.find(":");
                 if (pos != string::npos) {
                     port = stoi(inputLine.substr(pos + 1, inputLine.size()));

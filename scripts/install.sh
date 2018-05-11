@@ -22,9 +22,6 @@ pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
 
 scripts/cleanupNode.sh
-echo "To strip shared libraries..."
-strip libraries/*.so
-echo "stripped all shared libraries!"
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
@@ -47,9 +44,15 @@ else
   scripts/syncWithPliny.sh
 fi
 
-arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
+while read line
+do
+   [[ $line == *#* ]] && continue # skips commented lines
+   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/conf/serverlist
+
 length=${#arr[@]}
-echo "There are $length servers"
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}

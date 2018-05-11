@@ -28,8 +28,6 @@ else
   $PLINY_HOME/scripts/cleanup.sh
 fi
 
-
-
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
@@ -42,9 +40,15 @@ else
   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
-arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
+while read line
+do
+   [[ $line == *#* ]] && continue # skips commented lines
+   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/conf/serverlist
+
 length=${#arr[@]}
-echo "There are $length servers"
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
@@ -57,7 +61,7 @@ do
         echo -e "\n+++++++++++ cleanup server: $ip_addr"
         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
      else
-        echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 $testSSHTimeout seconds."
+        echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
      fi
    fi
 done
