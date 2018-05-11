@@ -12,6 +12,7 @@ CTestTestfile.cmake
 Makefile
 temp.so
 CatalogDir*
+statDB*
 pdbRoot_*
 logs/*
 bin/*
