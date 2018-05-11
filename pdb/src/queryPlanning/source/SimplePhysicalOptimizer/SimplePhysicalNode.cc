@@ -32,6 +32,7 @@ SimplePhysicalNode::SimplePhysicalNode(string jobId,
   if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
 
     // grab the computation
+    std::cout << node->getOutputName() << std::endl;
     Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
     // create a set identifier from it
@@ -170,6 +171,9 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
                                                             const StatisticsPtr &stats,
                                                             int nextStageID) {
 
+  // add this node to the pipeline
+  tupleStageBuilder->addTupleSetToBuildPipeline(node->getOutputName());
+
   // grab the computation associated with this node
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
@@ -178,7 +182,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
 
   // set the parameters
   tupleStageBuilder->setJobStageId(nextStageID);
-  tupleStageBuilder->setTargetTupleSetName(node->getInputName());
+  tupleStageBuilder->setTargetTupleSetName(node->getOutputName());
   tupleStageBuilder->setTargetComputationName(node->getComputationName());
   tupleStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleStageBuilder->setSinkContext(sink);
@@ -208,6 +212,9 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSet
   // grab the output of the current node
   std::string outputName = node->getOutputName();
 
+  // add this node to the pipeline
+  tupleSetJobStageBuilder->addTupleSetToBuildPipeline(outputName);
+
   // grab the computation associated with this node
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
@@ -234,7 +241,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSet
 
   // set the parameters
   tupleSetJobStageBuilder->setJobStageId(nextStageID);
-  tupleSetJobStageBuilder->setTargetTupleSetName(node->getInputName());
+  tupleSetJobStageBuilder->setTargetTupleSetName(outputName);
   tupleSetJobStageBuilder->setTargetComputationName(node->getComputationName());
   tupleSetJobStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleSetJobStageBuilder->setSinkContext(sink);
@@ -261,7 +268,7 @@ double SimplePhysicalNode::getCost(const StatisticsPtr &stats) {
 }
 
 string SimplePhysicalNode::getNodeIdentifier() {
-  return getSourceSetIdentifier()->toSourceSetName();
+  return node->getOutputName();
 }
 
 const Handle<SetIdentifier> &SimplePhysicalNode::getSourceSetIdentifier() const {

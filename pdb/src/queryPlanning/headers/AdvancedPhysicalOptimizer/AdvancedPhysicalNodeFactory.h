@@ -46,7 +46,7 @@ class AdvancedPhysicalNodeFactory : public AbstractPhysicalNodeFactory {
    *
    * @param curNode
    */
-  void transverseTCAPGraph(const AtomicComputationPtr &curNode);
+  void transverseTCAPGraph(AtomicComputationPtr curNode);
 
   /**
    * This method updates the @see consumedBy for the node we provide.

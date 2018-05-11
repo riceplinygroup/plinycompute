@@ -49,6 +49,21 @@
 #include <FinalSelection.h>
 #include <SimpleAggregation.h>
 #include <SimpleSelection.h>
+#include <WriteIntDoubleVectorPairSet.h>
+#include <LDAInitialWordTopicProbSelection.h>
+#include <LDADocWordTopicJoin.h>
+#include <LDADocWordTopicAssignmentIdentity.h>
+#include <LDADocAssignmentMultiSelection.h>
+#include <LDADocTopicAggregate.h>
+#include <LDATopicAssignmentMultiSelection.h>
+#include <LDATopicWordAggregate.h>
+#include <LDATopicWordProbMultiSelection.h>
+#include <LDAWordTopicAggregate.h>
+#include <LDADocTopicProbSelection.h>
+#include <WriteTopicsPerWord.h>
+#include <LDADocIDAggregate.h>
+#include <ScanLDADocumentSet.h>
+#include <LDAInitialTopicProbSelection.h>
 
 class Tests {
 
@@ -1133,6 +1148,284 @@ class Tests {
           QUNIT_IS_EQUAL(buildMe[1], "methodCall_0OutFor_SelectionComp3");
           QUNIT_IS_EQUAL(buildMe[2], "filteredInputForSelectionComp3");
           QUNIT_IS_EQUAL(buildMe[3], "methodCall_1OutFor_SelectionComp3");
+
+          // remove the stages we don't need them anymore
+          queryPlan.clear();
+
+          break;
+        }
+        default: {
+
+          // this situation should never happen
+          QUNIT_IS_TRUE(false);
+        }
+      }
+    }
+  }
+
+  /**
+  * This tests LDA
+  */
+  void test7() {
+
+    const pdb::UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
+
+    pdb::Vector<double> whateva;
+
+    /* Initialize the topic mixture probabilities for each document */
+    Handle<Computation> myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
+    Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
+    myDocID->setInput(myInitialScanSet);
+    Handle<Computation> input1 = makeObject<LDAInitialTopicProbSelection>(whateva);
+    input1->setInput(myDocID);
+
+    /* Initialize the (wordID, topic prob vector) */
+    Handle<Computation> myMetaScanSet = makeObject<ScanIntSet>("LDA_db", "LDA_meta_data_set");
+    Handle<Computation> input2 = makeObject<LDAInitialWordTopicProbSelection>(10.0);
+    input2->setInput(myMetaScanSet);
+
+    // create all of the computation objects
+    /* [1] Set up the join that will assign all of the words in the corpus to topics */
+    Handle<Computation> myDocWordTopicJoin = makeObject<LDADocWordTopicJoin>(10.0);
+    myDocWordTopicJoin->setInput(0, myInitialScanSet);
+    myDocWordTopicJoin->setInput(1, input1);
+    myDocWordTopicJoin->setInput(2, input2);
+
+    /* Do an identity selection */
+    Handle<Computation> myIdentitySelection = makeObject<LDADocWordTopicAssignmentIdentity>();
+    myIdentitySelection->setInput(myDocWordTopicJoin);
+
+    /* [2] Set up the sequence of actions that re-compute the topic probabilities for each document */
+
+    /* Get the set of topics assigned for each doc */
+    Handle<Computation> myDocWordTopicCount = makeObject<LDADocAssignmentMultiSelection>();
+    myDocWordTopicCount->setInput(myIdentitySelection);
+
+    /* Aggregate the topics */
+    Handle<Computation> myDocTopicCountAgg = makeObject<LDADocTopicAggregate>();
+    myDocTopicCountAgg->setInput(myDocWordTopicCount);
+
+    /* Get the new set of doc-topic probabilities */
+    Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(whateva);
+    myDocTopicProb->setInput(myDocTopicCountAgg);
+
+    /* [3] Set up the sequence of actions that re-compute the word probs for each topic */
+
+    /* Get the set of words assigned for each topic in each doc */
+    Handle<Computation> myTopicWordCount = makeObject<LDATopicAssignmentMultiSelection>();
+    myTopicWordCount->setInput(myIdentitySelection);
+
+    /* Aggregate them */
+    Handle<Computation> myTopicWordCountAgg = makeObject<LDATopicWordAggregate>();
+    myTopicWordCountAgg->setInput(myTopicWordCount);
+
+    /* Use those aggregations to get per-topic probabilities */
+    Handle<Computation> myTopicWordProb = makeObject<LDATopicWordProbMultiSelection>(whateva, 10);
+    myTopicWordProb->setInput(myTopicWordCountAgg);
+
+    /* Get the per-word probabilities */
+    Handle<Computation> myWordTopicProb = makeObject<LDAWordTopicAggregate>();
+    myWordTopicProb->setInput(myTopicWordProb);
+
+    /*
+  * [4] Write the intermediate results doc-topic probability and word-topic probability to sets
+  *     Use them in the next iteration
+  */
+    std::string myWriterForTopicsPerWordSetName = std::string("TopicsPerWord") + std::to_string((10 + 1) % 2);
+    Handle<Computation> myWriterForTopicsPerWord = makeObject<WriteTopicsPerWord>("LDA_db", myWriterForTopicsPerWordSetName);
+    myWriterForTopicsPerWord->setInput(myWordTopicProb);
+
+    std::string myWriterForTopicsPerDocSetName = std::string("TopicsPerDoc") + std::to_string((10 + 1) % 2);
+    Handle<Computation> myWriterForTopicsPerDoc = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", myWriterForTopicsPerDocSetName);
+    myWriterForTopicsPerDoc->setInput(myDocTopicProb);
+
+    std::vector<Handle<Computation>> queryGraph;
+    queryGraph.push_back(myWriterForTopicsPerWord);
+    queryGraph.push_back(myWriterForTopicsPerDoc);
+
+    // create the graph analyzer
+    QueryGraphAnalyzer queryAnalyzer(queryGraph);
+
+    // parse the tcap string
+    std::string tcapString = queryAnalyzer.parseTCAPString();
+
+    // the computations we want to send
+    std::vector<Handle<Computation>> computations;
+    queryAnalyzer.parseComputations(computations);
+
+    // copy the computations
+    Handle<Vector<Handle<Computation>>> computationsToSend = makeObject<Vector<Handle<Computation>>>();
+    for (const auto &computation : computations) {
+      computationsToSend->push_back(computation);
+    }
+
+    // initialize the logger
+    PDBLoggerPtr logger = make_shared<PDBLogger>("testSelectionAnalysis.log");
+
+    // create a dummy configuration object4
+    ConfigurationPtr conf = make_shared<Configuration>();
+
+    // the job id
+    std::string jobId = "TestSelectionJob";
+
+    // parse the plan and initialize the values we need
+    Handle<ComputePlan> computePlan = makeObject<ComputePlan>(String(tcapString), *computationsToSend);
+    LogicalPlanPtr logicalPlan = computePlan->getPlan();
+    AtomicComputationList computationGraph = logicalPlan->getComputations();
+    std::vector<AtomicComputationPtr> sourcesComputations = computationGraph.getAllScanSets();
+
+    // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
+    auto analyzerNodeFactory = make_shared<AdvancedPhysicalNodeFactory>(jobId, computePlan, conf);
+
+    // generate the analysis graph (it is a list of source nodes for that graph)
+    auto graph = analyzerNodeFactory->generateAnalyzerGraph(sourcesComputations);
+
+    // initialize the physicalAnalyzer - used to generate the pipelines and pipeline stages we need to execute
+    PhysicalOptimizer physicalOptimizer(graph, logger);
+
+    // output variables
+    int jobStageId = 0;
+    StatisticsPtr statsForOptimization = nullptr;
+    std::vector<Handle<AbstractJobStage>> queryPlan;
+    std::vector<Handle<SetIdentifier>> interGlobalSets;
+
+    size_t step = 0;
+
+    while (physicalOptimizer.hasSources()) {
+
+      // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
+      bool success = physicalOptimizer.getNextStagesOptimized(queryPlan,
+                                                              interGlobalSets,
+                                                              statsForOptimization,
+                                                              jobStageId);
+
+      // go to the next step
+      step += success;
+
+      switch(step) {
+
+        // do not do anything
+        case 0 : break;
+
+        case 1 : {
+
+          // get the tuple set job stage
+          Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+
+          // get the pipline computations
+          std::vector<std::string> buildMe;
+          tupleStage->getTupleSetsToBuildPipeline(buildMe);
+
+          QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getStageId(), 0);
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "LDA_db");
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "LDA_input_set");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "aggOutForClusterAggregationComp1_aggregationData");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
+          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "nativ_1OutForClusterAggregationComp1");
+          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "ClusterAggregationComp_1");
+          QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
+
+          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(buildMe[1], "nativ_0OutForClusterAggregationComp1");
+          QUNIT_IS_EQUAL(buildMe[2], "nativ_1OutForClusterAggregationComp1");
+
+          // get the aggregation stage
+          Handle<AggregationJobStage> aggStage = unsafeCast<AggregationJobStage, AbstractJobStage>(queryPlan[1]);
+
+          QUNIT_IS_EQUAL(aggStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(aggStage->getStageId(), 1);
+          QUNIT_IS_EQUAL(aggStage->getSourceContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(aggStage->getSourceContext()->getSetName(), "aggOutForClusterAggregationComp1_aggregationData");
+          QUNIT_IS_EQUAL(aggStage->getSinkContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(aggStage->getSinkContext()->getSetName(), "aggOutForClusterAggregationComp1_aggregationResult");
+          QUNIT_IS_EQUAL(aggStage->getOutputTypeName(), "pdb::SumResult");
+
+          // remove the stages we don't need them anymore
+          queryPlan.clear();
+
+          break;
+        }
+        case 2: {
+
+          // get the tuple set job stage
+          Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+
+          // get the pipline computations
+          std::vector<std::string> buildMe;
+          tupleStage->getTupleSetsToBuildPipeline(buildMe);
+
+          QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getStageId(), 2);
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "LDA_db");
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "LDA_input_set");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp5_broadcastData");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
+          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "methodCall_0ExtractedFor_JoinComp5_hashed");
+          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_5");
+          QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
+
+          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(buildMe[1], "methodCall_0ExtractedFor_JoinComp5");
+          QUNIT_IS_EQUAL(buildMe[2], "methodCall_0ExtractedFor_JoinComp5_hashed");
+
+          // get the build hash table
+          Handle<HashPartitionedJoinBuildHTJobStage> buildHashTable = unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage>(queryPlan[1]);
+
+          QUNIT_IS_EQUAL(buildHashTable->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(buildHashTable->getSourceContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(buildHashTable->getSourceContext()->getSetName(), "JoinedFor_equals2JoinComp5_broadcastData");
+          QUNIT_IS_EQUAL(buildHashTable->getStageId(), 2);
+          QUNIT_IS_EQUAL(buildHashTable->getHashSetName(), "TestSelectionJob:JoinedFor_equals2JoinComp5_broadcastData");
+          QUNIT_IS_EQUAL(buildHashTable->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(buildHashTable->getTargetTupleSetSpecifier(), "methodCall_0ExtractedFor_JoinComp5_hashed");
+          QUNIT_IS_EQUAL(buildHashTable->getTargetComputationSpecifier(), "JoinComp_5");
+
+          // remove the stages we don't need them anymore
+          queryPlan.clear();
+
+          break;
+        }
+        case 3: {
+
+          // get the tuple set job stage
+          Handle<TupleSetJobStage> tupleStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(queryPlan[0]);
+
+          // get the pipline computations
+          std::vector<std::string> buildMe;
+          tupleStage->getTupleSetsToBuildPipeline(buildMe);
+
+          QUNIT_IS_EQUAL(tupleStage->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getStageId(), 2);
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getDatabase(), "LDA_db");
+          QUNIT_IS_EQUAL(tupleStage->getSourceContext()->getSetName(), "LDA_input_set");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(tupleStage->getSinkContext()->getSetName(), "JoinedFor_equals2JoinComp5_broadcastData");
+          QUNIT_IS_EQUAL(tupleStage->getOutputTypeName(), "IntermediateData");
+          QUNIT_IS_EQUAL(tupleStage->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(tupleStage->getTargetTupleSetSpecifier(), "methodCall_0ExtractedFor_JoinComp5_hashed");
+          QUNIT_IS_EQUAL(tupleStage->getTargetComputationSpecifier(), "JoinComp_5");
+          QUNIT_IS_EQUAL(tupleStage->getAllocatorPolicy(), defaultAllocator);
+
+          QUNIT_IS_EQUAL(buildMe[0], "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(buildMe[1], "methodCall_0ExtractedFor_JoinComp5");
+          QUNIT_IS_EQUAL(buildMe[2], "methodCall_0ExtractedFor_JoinComp5_hashed");
+
+          // get the build hash table
+          Handle<HashPartitionedJoinBuildHTJobStage> buildHashTable = unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage>(queryPlan[1]);
+
+          QUNIT_IS_EQUAL(buildHashTable->getJobId(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(buildHashTable->getSourceContext()->getDatabase(), "TestSelectionJob");
+          QUNIT_IS_EQUAL(buildHashTable->getSourceContext()->getSetName(), "JoinedFor_equals2JoinComp5_broadcastData");
+          QUNIT_IS_EQUAL(buildHashTable->getStageId(), 2);
+          QUNIT_IS_EQUAL(buildHashTable->getHashSetName(), "TestSelectionJob:JoinedFor_equals2JoinComp5_broadcastData");
+          QUNIT_IS_EQUAL(buildHashTable->getSourceTupleSetSpecifier(), "inputDataForScanUserSet_0");
+          QUNIT_IS_EQUAL(buildHashTable->getTargetTupleSetSpecifier(), "methodCall_0ExtractedFor_JoinComp5_hashed");
+          QUNIT_IS_EQUAL(buildHashTable->getTargetComputationSpecifier(), "JoinComp_5");
 
           // remove the stages we don't need them anymore
           queryPlan.clear();

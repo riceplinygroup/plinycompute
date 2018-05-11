@@ -57,7 +57,7 @@ vector<AbstractPhysicalNodePtr> AdvancedPhysicalNodeFactory::generateAnalyzerGra
   return this->physicalSourceNodes;
 }
 
-void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr &curNode) {
+void AdvancedPhysicalNodeFactory::transverseTCAPGraph(AtomicComputationPtr curNode) {
 
   // did we already visit this node
   if(visitedNodes.find(curNode) != visitedNodes.end()) {
@@ -113,15 +113,15 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(const AtomicComputationPtr
   if(consumers.size() > 1 && !currentPipe.empty()) {
 
     // this is a pipeline breaker create a pipe
-    currentPipe.push_back(curNode);
+    //currentPipe.push_back(curNode);
     createPhysicalPipeline<AdvancedPhysicalStraightPipe>();
     currentPipe.clear();
   }
 
   // go through each consumer and transverse to get the next pipe
   for(auto &consumer : consumers) {
-    currentPipe.push_back(consumers.front());
-    transverseTCAPGraph(consumers.front());
+    currentPipe.push_back(consumer);
+    transverseTCAPGraph(consumer);
   }
 }
 
@@ -153,6 +153,7 @@ void AdvancedPhysicalNodeFactory::connectThePipes() {
     // go through each at
     for(const auto &atomicComputation : consumingAtomicComputation) {
 
+      std::cout << atomicComputation << std::endl;
       // get the consuming pipeline
       auto consumer = startsWith[atomicComputation];
 
@@ -163,7 +164,3 @@ void AdvancedPhysicalNodeFactory::connectThePipes() {
 }
 
 }
-
-
-
-
