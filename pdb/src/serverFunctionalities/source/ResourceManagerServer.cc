@@ -101,11 +101,8 @@ void ResourceManagerServer::analyzeNodes(std::string serverlist) {
     if (nodeFile.is_open()) {
         while (!nodeFile.eof()) {
             std::getline(nodeFile, inputLine);
-            if (inputLine.length() < 2) {
-                break;
-            }
             size_t pos = inputLine.find("#");
-            // skips commented and empty lines
+            // processes only valid entries, skips commented and empty lines
             if (inputLine.length() != 0 && pos == string::npos) {
                 pos = inputLine.find(":");
                 if (pos != string::npos) {

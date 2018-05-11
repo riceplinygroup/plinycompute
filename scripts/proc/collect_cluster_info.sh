@@ -6,9 +6,15 @@ pem_file=$1
 user=$2
 testSSHTimeout=3
 
-arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
+while read line
+do
+   [[ $line == *#* ]] && continue # skips commented lines
+   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/conf/serverlist
+
 length=${#arr[@]}
-echo "There are $length servers"
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}

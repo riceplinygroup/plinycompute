@@ -7,9 +7,15 @@ testSSHTimeout=3
 ip_len_valid=3
 
 echo "-------------step2: clean PDB temp directory"
+while read line
+do
+   [[ $line == *#* ]] && continue # skips commented lines
+   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/conf/serverlist
 
-arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
