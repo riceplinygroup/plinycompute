@@ -79,17 +79,18 @@ def start_pseudo_cluster():
         print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
         time.sleep(9)
         num = 0
-        with open('conf/serverlist.test') as f:
+        with open('conf/serverlist') as f:
             for each_line in f:
-                print(BColor.OK_BLUE + "start a pdbServer at " + each_line + "as " + str(
-                    num) + "-th worker" + BColor.END_C)
-                num = num + 1
-                serverProcess = subprocess.Popen(
-                    ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
-                print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
-                time.sleep(9)
-                each_line = each_line.split(':')
-                port = int(each_line[1])
+                if "#" not in each_line.strip() and len(each_line.strip()) >0:
+                    print(BColor.OK_BLUE + "start a pdbServer at " + each_line + "as " + str(
+                        num) + "-th worker" + BColor.END_C)
+                    num = num + 1
+                    serverProcess = subprocess.Popen(
+                        ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
+                    print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
+                    time.sleep(9)
+                    each_line = each_line.split(':')
+                    port = int(each_line[1])
 
     except subprocess.CalledProcessError as e:
         print(BColor.FAIL + "[ERROR] in starting pseudo cluster" + BColor.END_C)

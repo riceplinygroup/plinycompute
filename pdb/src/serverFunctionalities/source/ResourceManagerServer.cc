@@ -95,7 +95,8 @@ void ResourceManagerServer::analyzeNodes(std::string serverlist) {
     PDB_COUT << serverlist << std::endl;
     std::string inputLine;
     std::string address;
-    int port;
+    int port, sfd;
+    bool connectSuccess = true;
     NodeID nodeId = 0;
     std::ifstream nodeFile(serverlist);
     if (nodeFile.is_open()) {
@@ -108,31 +109,67 @@ void ResourceManagerServer::analyzeNodes(std::string serverlist) {
                 if (pos != string::npos) {
                     port = stoi(inputLine.substr(pos + 1, inputLine.size()));
                     address = inputLine.substr(0, pos);
-                    if (address.find('.') != string::npos) {
-                        struct sockaddr_in sa;
-                        int result = inet_pton(AF_INET, address.c_str(), &(sa.sin_addr));
-                        if (result == 0) {
-                            std::cout << "ERROR: can't connect to IP:" << address << std::endl;
-                            continue;
-                        }
-                    } else {
-                        hostent* record = gethostbyname(address.c_str());
-                        if (record == nullptr) {
-                            std::cout << "ERROR: can't connect to host:" << address << std::endl;
-                            continue;
-                        }
-                    }
                 } else {
                     // TODO: we should not hardcode 8108
                     port = 8108;
                     address = inputLine;
                 }
-                const UseTemporaryAllocationBlock block(1024);
-                Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
-                this->nodes->push_back(node);
-                PDB_COUT << "nodeId=" << nodeId << ", address=" << address << ", port=" << port
-                         << std::endl;
-                nodeId++;
+
+                struct addrinfo hints;
+                struct addrinfo *result, *rp;
+                char portValue[10];
+                sprintf(portValue, "%d", 22);
+
+                memset(&hints, 0, sizeof(struct addrinfo));
+                hints.ai_family = AF_INET;
+                hints.ai_socktype = SOCK_STREAM;
+                hints.ai_flags = 0;
+                hints.ai_protocol = 0;
+                std::cout<< "Testing connection to " << address << ":22" << std::endl;
+
+                int s = getaddrinfo(address.c_str(), portValue, &hints, &result);
+                if (s != 0) {
+                    std::cout << "Could not get addr info " << strerror(errno) << gai_strerror(s) << std::endl;
+                    continue;
+                 } else {
+                     std::cout << " Addr info correct " << std::endl;
+                     for (rp = result; rp != NULL; rp = rp->ai_next) {
+                         int count = 0;
+                         while (count <= 3) {
+                             sfd = socket(result->ai_family, result->ai_socktype,
+                                          result->ai_protocol);
+                             std::cout << "Result socket " << std::to_string(sfd) << std::endl;
+                             if (sfd == -1) {
+                                 std::cout << "Socket failed!!!! " << std::endl;
+                                 continue;
+                             }
+                             std::cout << "No errors!!!!!!!" << std::endl;
+                             int co = ::connect(sfd, rp->ai_addr, rp->ai_addrlen);
+                             std::cout << "Connect restul " << std::to_string(co) << endl;
+                             if (co != -1) {
+                                 std::cout << "Connection succeded " << std::endl;
+                                 connectSuccess = true;
+                     const UseTemporaryAllocationBlock block(1024);
+                     Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
+                     this->nodes->push_back(node);
+                     std::cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port
+                               << std::endl;
+                     nodeId++;
+                                 break;
+                             } else { 
+                                 connectSuccess = false;
+                                 std::cout << "Connection failed!!!! " << std::endl;
+                                 continue;
+                             }
+                             count++;
+                             std::cout << "Trying to connect to: " << address << " attempt (" << std::to_string(count)<< ")" << std::endl;
+                             close(sfd);
+                         } // while
+                         if (connectSuccess == true) {
+                             break;
+                         }
+                     } // for
+                 } // else
             }
         }
         if (nodes->size() == 0) {
