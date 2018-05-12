@@ -10,8 +10,5 @@
 # line below and add the public IP addresses of the worker nodes in the
 # cluster, one IP per line (without the colon and port).
 
-#localhost:8109
+localhost:8109
 
-34.227.30.53
-18.208.106.112
-#1.2.3.4
