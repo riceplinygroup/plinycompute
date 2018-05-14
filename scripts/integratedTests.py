@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #  ========================================================================
 #  Copyright 2018 Rice University
 #
@@ -35,22 +36,22 @@ shared_memory_size = "2048"
 # list of failed tests
 failed_tests = []
 
-# ensures that environment is clean
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
-print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
-time.sleep(5)
-
-#download data
-os.system('rm -rf tables_scale_0.2*')
-os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
-os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
-# by default it runs the ml test if no
-# test suite is specified
+# by default it runs the machine learning tests if no test suite is specified
 what_tests = "tests-ml"
 num_total = 0
 num_errors = 0
 num_passed = 0
 
+def prepare_environment():
+   # ensures that the environment is clean
+   subprocess.call(['bash', './scripts/cleanupNode.sh'])
+   print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+   time.sleep(5)
+
+   #download data
+   #os.system('rm -rf tables_scale_0.2*')
+   #os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
+   #os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
 
 # Returns a dictionary of tests, given its name
 # as a string
@@ -68,9 +69,9 @@ def list_of_tests(test_list_name):
     elif test_list_name == 'int':
         return tests
     else:
-        # default is integration tests
-        return tests
-
+        print "Test suite with the name %s does not exist." % test_list_name
+        print "Use one test suite from the following list: ml, tpch, la, int"
+        sys.exit()
 
 def start_pseudo_cluster():
     try:
@@ -133,13 +134,13 @@ def run_tests(test_list):
     for test in failed_tests:
         print "TEST %s FAILED" % test
 
-
+# runs one test from a test suite
 def run_specified_test(test_list, test):
-    if test in test_list:
-        run_tests({test: test_list[test]})
+    if (test in list_of_tests(test_list)):
+        run_test(test, list_of_tests(test_list)[test][0], list_of_tests(test_list)[test][1])
     else:
-        print "Test with the name %s does not exist." % test
-
+        print "Test with the name %s does not exist in test suite %s." %(test, test_list)
+        sys.exit()
 
 def run_test(id, test_name, test_command):
     # we want to use the global variables
@@ -223,7 +224,7 @@ tests_la = {
     "TestLA_unit14_Inverse": ("TEST LA14_INVERSE", ['bin/TestLA_unit14_Inverse', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit15_RowSum": ("TEST LA15_ROWSUM", ['bin/TestLA_unit15_RowSum', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit16_ColSum": ("TEST LA16_COLSUM", ['bin/TestLA_unit16_ColSum', 'Y', 'Y', '64', 'localhost', 'Y']),
-    "TestLA_unit18_TransposeMultiply": ("TEST LA17_TRANSPOSEMULTIPLY", ['bin/TestLA_unit17_TransposeMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA_unit17_TransposeMultiply": ("TEST LA17_TRANSPOSEMULTIPLY", ['bin/TestLA_unit17_TransposeMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit18_TransposeMultiply_Gram": ("TEST LA18_TRANSPOSEMULTIPLY_GRAM", ['bin/TestLA_unit18_TransposeMultiply_Gram', 'Y', 'Y', '64', 'localhost', 'Y'])
 }
 
@@ -252,26 +253,25 @@ if len(sys.argv) > 1:
     what_tests = sys.argv[1]
 
 if len(sys.argv) == 3:
-
     # runs the test specified in the 2nd argument
     # from the list in the 1st argument
     run_specified_test(sys.argv[1], sys.argv[2])
 
 elif len(sys.argv) == 2:
-
     # runs all tests from a given list
     if sys.argv[1] == "tpch":
         run_tests(test_tpch_main)
         run_tests(list_of_tests(sys.argv[1]))
     else:
         run_tests(list_of_tests(sys.argv[1]))
+
 else:
-    # run all the integration tests
-    run_tests(tests)
-    run_tests(tests_la)
-    run_tests(tests_ml)
-    run_tests(test_tpch_main)
-    run_tests(tests_tpch)
+    # run all the test suites
+    run_tests(tests)           # integration tests
+    run_tests(tests_la)        # linear algebra tests
+    run_tests(tests_ml)        # machine learning tests
+    run_tests(test_tpch_main)  # tpch generate data test
+    run_tests(tests_tpch)      # tpch query tests
 
 #remove downloaded files
-os.system('rm -rf tables_scale_0.2*')
+#os.system('rm -rf tables_scale_0.2*')
