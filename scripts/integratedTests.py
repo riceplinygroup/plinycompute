@@ -37,6 +37,7 @@ shared_memory_size = "2048"
 failed_tests = []
 
 # by default it runs the machine learning tests if no test suite is specified
+run_as_pseudo_cluster = "Y" 	# By default runs as pseudo cluster
 what_tests = "tests-ml"
 num_total = 0
 num_errors = 0
@@ -144,6 +145,7 @@ def run_specified_test(test_list, test):
 
 def run_test(id, test_name, test_command):
     # we want to use the global variables
+    global run_as_pseudo_cluster
     global what_tests
     global num_errors
     global num_passed
@@ -153,8 +155,12 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
-        start_pseudo_cluster()
-
+        if run_as_pseudo_cluster == "Y":
+            start_pseudo_cluster()
+        else:
+            subprocess.call(['bash', './scripts/launchCluster.sh', 'conf/pdb-key.pem', '18.206.127.124', '4', '4096'])
+            print (BColor.OK_BLUE + "waiting 5 seconds to launch cluster...")
+            
         print(BColor.OK_BLUE + "start a query client to store and query data from pdb cluster" + BColor.END_C)
         subprocess.check_call(test_command)
 
@@ -252,12 +258,14 @@ tests_tpch = {
 if len(sys.argv) > 1:
     what_tests = sys.argv[1]
 
-if len(sys.argv) == 3:
+if len(sys.argv) == 4:
+    run_as_pseudo_cluster = sys.argv[3]
     # runs the test specified in the 2nd argument
     # from the list in the 1st argument
     run_specified_test(sys.argv[1], sys.argv[2])
 
-elif len(sys.argv) == 2:
+elif len(sys.argv) == 3:
+    run_as_pseudo_cluster = sys.argv[3]
     # runs all tests from a given list
     if sys.argv[1] == "tpch":
         run_tests(test_tpch_main)
@@ -266,6 +274,7 @@ elif len(sys.argv) == 2:
         run_tests(list_of_tests(sys.argv[1]))
 
 else:
+    run_as_pseudo_cluster = sys.argv[1]
     # run all the test suites
     run_tests(tests)           # integration tests
     run_tests(tests_la)        # linear algebra tests
