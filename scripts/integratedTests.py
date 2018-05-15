@@ -110,7 +110,11 @@ def run_tests(test_list):
     global num_total
 
     if what_tests != "tpch":
-        subprocess.call(['bash', './scripts/cleanupNode.sh'])
+        if (run_as_pseudo_cluster=="Y"):
+            subprocess.call(['bash', './scripts/cleanupNode.sh'])
+        else:
+            subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
+
         print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
         # set the total number of tests
@@ -158,6 +162,7 @@ def run_test(id, test_name, test_command):
         if run_as_pseudo_cluster == "Y":
             start_pseudo_cluster()
         else:
+            #TODO replace hard-coded IP
             subprocess.call(['bash', './scripts/launchCluster.sh', 'conf/pdb-key.pem', '18.206.127.124', '4', '4096'])
             print (BColor.OK_BLUE + "waiting 5 seconds to launch cluster...")
             
@@ -178,11 +183,15 @@ def run_test(id, test_name, test_command):
 
     if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and what_tests != "tpch":
         # do the cleanup except when running tpchRegisterAndCreateSets
-        subprocess.call(['bash', './scripts/cleanupNode.sh'])
+        if run_as_pseudo_cluster == "N":
+            print (BColor.OK_BLUE + "Cleaning cluster before running test.")
+            subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
+        else:
+            print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test.")
+            subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
         print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
-
-    time.sleep(10)
-
+        time.sleep(10)
 
 # Integration tests
 tests = {
@@ -265,7 +274,7 @@ if len(sys.argv) == 4:
     run_specified_test(sys.argv[1], sys.argv[2])
 
 elif len(sys.argv) == 3:
-    run_as_pseudo_cluster = sys.argv[3]
+    run_as_pseudo_cluster = sys.argv[2]
     # runs all tests from a given list
     if sys.argv[1] == "tpch":
         run_tests(test_tpch_main)

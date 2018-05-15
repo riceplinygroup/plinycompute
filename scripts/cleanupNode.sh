@@ -74,5 +74,3 @@ fi
 # kill all the processes
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
-pkill -9 test603 || true
-pkill -9 test404 || true

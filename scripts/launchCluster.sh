@@ -21,8 +21,8 @@ user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
-PDB_SSH_SLEEP=10
-PDB_SLEEP_TIME=10
+PDB_SSH_SLEEP=3
+PDB_SLEEP_TIME=3
 pkill -9  pdb-manager
 pkill -9  pdb-worker
 
@@ -45,7 +45,7 @@ fi
 
 echo " Waiting 10 secs before launching worker nodes."
 
-sleep 10
+sleep 3
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
