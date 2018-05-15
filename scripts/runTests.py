@@ -18,6 +18,7 @@ import subprocess
 import time
 import sys
 import os
+import argparse
 
 class BColor:
     HEADER = '\033[95m'
@@ -108,11 +109,15 @@ def run_tests(test_list):
     print("CLEAN UP THE TESTING ENVIRONMENT")
     print("#################################")
     global num_total
+    global run_as_pseudo_cluster
+    print "Pseudo Cluster value in run_tests=" + run_as_pseudo_cluster
 
     if what_tests != "tpch":
         if (run_as_pseudo_cluster=="Y"):
             subprocess.call(['bash', './scripts/cleanupNode.sh'])
+            print(BColor.OK_BLUE + "cleaning up pseudo cluster...")
         else:
+            print(BColor.OK_BLUE + "cleaning up cluster...")
             subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
 
         print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
@@ -163,8 +168,10 @@ def run_test(id, test_name, test_command):
             start_pseudo_cluster()
         else:
             #TODO replace hard-coded IP
-            subprocess.call(['bash', './scripts/launchCluster.sh', 'conf/pdb-key.pem', '18.206.127.124', '4', '4096'])
-            print (BColor.OK_BLUE + "waiting 5 seconds to launch cluster...")
+            print "Launching real cluster"
+            subprocess.call(['bash', './scripts/startCluster.sh', 'conf/pdb-key.pem', '18.206.127.124', '4', '4096'])
+            print (BColor.OK_BLUE + "waiting 10 seconds to launch cluster...")
+            time.sleep(10)
             
         print(BColor.OK_BLUE + "start a query client to store and query data from pdb cluster" + BColor.END_C)
         subprocess.check_call(test_command)
@@ -190,8 +197,8 @@ def run_test(id, test_name, test_command):
             print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test.")
             subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
-        print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
-        time.sleep(10)
+        print (BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+        time.sleep(5)
 
 # Integration tests
 tests = {
@@ -275,6 +282,7 @@ if len(sys.argv) == 4:
 
 elif len(sys.argv) == 3:
     run_as_pseudo_cluster = sys.argv[2]
+    print "Pseudo Cluster value in elif=" + run_as_pseudo_cluster
     # runs all tests from a given list
     if sys.argv[1] == "tpch":
         run_tests(test_tpch_main)
