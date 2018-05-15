@@ -20,6 +20,26 @@ import sys
 import os
 import argparse
 
+# parses the command line args
+parser = argparse.ArgumentParser(description='Script for running different PlinyCompute test suites.')
+parser.add_argument('--cluster-type', choices=['standalone','distributed'], type=str, default="standalone",
+    help='type of cluster to be used (default: standalone)')
+parser.add_argument('--test-suite', choices=['ml','la','tpch','int','all'], type=str, default="ml",
+    help='test suite to run (default: ml)')  
+parser.add_argument('--test-name', type=str, 
+    help='name of test to run, executables can be found in the $PDB_HOME/bin folder ')
+parser.add_argument('--pem-file', type=str, default="conf/pdb-key.pem",
+    help="the pem key file to connect to the cluster nodes (default: conf/pdb-key.pem)")
+parser.add_argument('--ip', type=str, default="localhost",
+    help="ip address of the manager node (default: localhost)")
+parser.add_argument('--num-threads', type=int, default=1,
+    help="number of processors for each worker node (default: 1)")
+parser.add_argument('--shared-mem', type=int, default=2048,
+    help="amount of memory in Mbytesi for each worker node (default: 2048)")
+
+args = vars(parser.parse_args())
+print(args)
+
 class BColor:
     HEADER = '\033[95m'
     OK_BLUE = '\033[94m'
@@ -30,16 +50,32 @@ class BColor:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-thread_num = "1"
-shared_memory_size = "2048"
-
 # list of failed tests
 failed_tests = []
 
 # by default it runs the machine learning tests if no test suite is specified
-run_as_pseudo_cluster = "Y" 	# By default runs as pseudo cluster
-what_tests = "tests-ml"
+cluster_type = args['cluster_type']
+test_suite = args['test_suite'] 
+thread_num = str(args['num_threads'])
+shared_memory_size = str(args['shared_mem'])
+pem_file = args["pem_file"]
+manager_ip = args["ip"]
+test_name = args["test_name"]
+if args["test_name"] is None:
+   print "test value is not set "
+else:
+   print "test value %s " % args["test_name"]
+#print "test suite %s " % args.test_suite
+
+print("t num=" + thread_num)
+print("s_mem=" + shared_memory_size)
+print("what_test= " +test_suite)
+print("cluster type=" +cluster_type)
+print("pem file=" + pem_file)
+print("manager ip=" + manager_ip)
+#print("test name=" + test_name)
+#sys.exit(1)
+
 num_total = 0
 num_errors = 0
 num_passed = 0
@@ -109,11 +145,11 @@ def run_tests(test_list):
     print("CLEAN UP THE TESTING ENVIRONMENT")
     print("#################################")
     global num_total
-    global run_as_pseudo_cluster
-    print "Pseudo Cluster value in run_tests=" + run_as_pseudo_cluster
+    global cluster_type
+    print "Pseudo Cluster value in run_tests=" + cluster_type
 
-    if what_tests != "tpch":
-        if (run_as_pseudo_cluster=="Y"):
+    if test_suite != "tpch":
+        if (cluster_type=="standalone"):
             subprocess.call(['bash', './scripts/cleanupNode.sh'])
             print(BColor.OK_BLUE + "cleaning up pseudo cluster...")
         else:
@@ -154,8 +190,8 @@ def run_specified_test(test_list, test):
 
 def run_test(id, test_name, test_command):
     # we want to use the global variables
-    global run_as_pseudo_cluster
-    global what_tests
+    global cluster_type
+    global test_suite
     global num_errors
     global num_passed
 
@@ -164,12 +200,23 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
-        if run_as_pseudo_cluster == "Y":
+        if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and test_suite != "tpch":
+            # do the cleanup except when running tpchRegisterAndCreateSets
+            if cluster_type == "distributed":
+                print (BColor.OK_BLUE + "Cleaning cluster before running test.")
+                subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
+            else:
+                print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test.")
+                subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
+            print (BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+            time.sleep(5)
+
+        if cluster_type == "standalone":
             start_pseudo_cluster()
         else:
-            #TODO replace hard-coded IP
-            print "Launching real cluster"
-            subprocess.call(['bash', './scripts/startCluster.sh', 'conf/pdb-key.pem', '18.206.127.124', '4', '4096'])
+            print "Launching distributed cluster"
+            subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, thread_num, shared_memory_size])
             print (BColor.OK_BLUE + "waiting 10 seconds to launch cluster...")
             time.sleep(10)
             
@@ -187,18 +234,6 @@ def run_test(id, test_name, test_command):
     else:
         print(BColor.OK_BLUE + "[PASSED] %s" % test_name + BColor.END_C)
         num_passed = num_passed + 1
-
-    if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and what_tests != "tpch":
-        # do the cleanup except when running tpchRegisterAndCreateSets
-        if run_as_pseudo_cluster == "N":
-            print (BColor.OK_BLUE + "Cleaning cluster before running test.")
-            subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
-        else:
-            print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test.")
-            subprocess.call(['bash', './scripts/cleanupNode.sh'])
-
-        print (BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
-        time.sleep(5)
 
 # Integration tests
 tests = {
@@ -271,27 +306,22 @@ tests_tpch = {
     "tpchJaccard": ("TEST TPCH JACCARD", ['bin/tpchJaccard', 'localhost', '20', 'applications/TPCHBench/query.txt'])
 }
 
-if len(sys.argv) > 1:
-    what_tests = sys.argv[1]
 
-if len(sys.argv) == 4:
-    run_as_pseudo_cluster = sys.argv[3]
+#if len(sys.argv) == 4:
+if args["test_name"] is not None and args["test_suite"] is not None:
     # runs the test specified in the 2nd argument
     # from the list in the 1st argument
-    run_specified_test(sys.argv[1], sys.argv[2])
+    run_specified_test(test_suite, test_name)
 
-elif len(sys.argv) == 3:
-    run_as_pseudo_cluster = sys.argv[2]
-    print "Pseudo Cluster value in elif=" + run_as_pseudo_cluster
+elif args["test_suite"] is not None:
     # runs all tests from a given list
-    if sys.argv[1] == "tpch":
+    if test_suite == "tpch":
         run_tests(test_tpch_main)
-        run_tests(list_of_tests(sys.argv[1]))
+        run_tests(list_of_tests(test_suite))
     else:
-        run_tests(list_of_tests(sys.argv[1]))
+        run_tests(list_of_tests(test_suite))
 
 else:
-    run_as_pseudo_cluster = sys.argv[1]
     # run all the test suites
     run_tests(tests)           # integration tests
     run_tests(tests_la)        # linear algebra tests
