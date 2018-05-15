@@ -242,19 +242,18 @@ int main(int argc, char *argv[]) {
                 std::pair<std::string, std::string>("kmeans_input_set",
                                                     "kmeans_db"),
                 storeMe);
-        pdbClient.flushData();
       } catch (pdb::NotEnoughSpace &n) {
         pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                 std::pair<std::string, std::string>("kmeans_input_set",
                                                     "kmeans_db"),
                 storeMe);
-        pdbClient.flushData();
         rollback = true;
       }
     }
     inFile.close();
   }
-
+  
+  pdbClient.flushData();
   /* Create a new set to store the normalized inpu data */
   pdbClient.createSet<KMeansDoubleVector>(
           "kmeans_db", "kmeans_norm_vector_set");
