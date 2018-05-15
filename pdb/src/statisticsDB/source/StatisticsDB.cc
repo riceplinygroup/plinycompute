@@ -37,15 +37,15 @@ StatisticsDB::~StatisticsDB () {
 
 bool StatisticsDB::openDB () {
 
-    std::cout << "to open DB " << this->pathToDBFile << std::endl;
+    PDB_COUT << "to open DB " << this->pathToDBFile << std::endl;
     if (sqlite3_open_v2(this->pathToDBFile.c_str(), &statisticsDBHandler,
                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI, NULL) == SQLITE_OK) {
 
         sqlite3_exec(statisticsDBHandler, "PRAGMA journal_mode=WAL", NULL, NULL, NULL);
-        std::cout << "self learning database open successfully" << std::endl;
+        PDB_COUT << "self learning database open successfully" << std::endl;
         return true;
     } else {
-        std::cout << "failure in opening self learning database" << std::endl;
+        PDB_COUT << "failure in opening self learning database" << std::endl;
         return false;
     }
     return false;
@@ -92,7 +92,7 @@ bool StatisticsDB::createTables () {
 
 bool StatisticsDB::execDB (std::string cmdString) {
 
-    std::cout << "command: " << cmdString << std::endl;
+    PDB_COUT << "command: " << cmdString << std::endl;
     sqlite3_stmt * cmdStatement;
     if (sqlite3_prepare_v2 (statisticsDBHandler, cmdString.c_str(), -1, &cmdStatement,
                      NULL) == SQLITE_OK) {
@@ -101,7 +101,7 @@ bool StatisticsDB::execDB (std::string cmdString) {
         return true;
     } else {
         std::string error = sqlite3_errmsg(statisticsDBHandler);
-        std::cout << error << std::endl;
+        PDB_COUT << error << std::endl;
         sqlite3_finalize(cmdStatement);
         return false;
     }
@@ -127,7 +127,7 @@ bool StatisticsDB::createData (std::string databaseName,
                      size_t pageSize,
                      long & id) {
 
-     std::cout << "to create data..." << std::endl;
+     PDB_COUT << "to create data..." << std::endl;
      id = dataId;
      dataId ++;
      string cmdString = "INSERT INTO DATA "
@@ -144,7 +144,7 @@ bool StatisticsDB::createData (std::string databaseName,
                           + "0,"
                           + std::to_string(pageSize) + ","
                           + "strftime('%s', 'now', 'localtime'));";
-      std::cout << "CreateData: " << cmdString << std::endl;
+      PDB_COUT << "CreateData: " << cmdString << std::endl;
       return execDB(cmdString);
 
 
@@ -156,7 +156,7 @@ bool StatisticsDB::updateDataForSize (long id,
       std::string cmdString = "UPDATE DATA set SIZE = " + std::to_string(size) +
                               ", MODIFICATION_TIME = strftime('%s', 'now', 'localtime') where ID = " +
                               std::to_string(id);
-      std::cout << "UpdateDataForSize: " << cmdString << std::endl;
+      PDB_COUT << "UpdateDataForSize: " << cmdString << std::endl;
       return execDB(cmdString);
 
 }
@@ -166,7 +166,7 @@ bool StatisticsDB::updateDataForRemoval (long id) {
       std::string cmdString = std::string("UPDATE DATA set IS_REMOVED = 1") +
                               std::string(", MODIFICATION_TIME = strftime('%s', 'now', 'localtime') where ID = ") +
                               std::to_string(id);
-      std::cout << "UpdateDataForRemoval: " << cmdString << std::endl;
+      PDB_COUT << "UpdateDataForRemoval: " << cmdString << std::endl;
       return execDB(cmdString);
 
 }
@@ -180,7 +180,7 @@ bool StatisticsDB::createDataTransformation (long input_data_id,
                                    Handle<Vector<Handle<Computation>>> computations,
                                    long& id) {
 
-     std::cout << "to create data transformation..." << std::endl;
+     PDB_COUT << "to create data transformation..." << std::endl;
      id = transformationId;
      sqlite3_stmt * statement;
      transformationId ++;
@@ -195,7 +195,7 @@ bool StatisticsDB::createDataTransformation (long input_data_id,
                           + quoteStr(transformationType) + ","
                           + quoteStr(tcap)
                           + ", ?);";
-      std::cout << "CreateDataTransformation: " << cmdString << std::endl;
+      PDB_COUT << "CreateDataTransformation: " << cmdString << std::endl;
       Handle<Vector<Handle<Computation>>> myComputations = 
                 deepCopyToCurrentAllocationBlock<Vector<Handle<Computation>>>(computations);
       if (sqlite3_prepare_v2(statisticsDBHandler, cmdString.c_str(), -1, &statement, NULL) == SQLITE_OK) {
@@ -208,7 +208,7 @@ bool StatisticsDB::createDataTransformation (long input_data_id,
 
                 return true;          
       } else {
-                std::cout << (std::string)(sqlite3_errmsg(statisticsDBHandler)) << std::endl;
+                PDB_COUT << (std::string)(sqlite3_errmsg(statisticsDBHandler)) << std::endl;
                 sqlite3_finalize(statement);
                 return false;
       }
@@ -238,7 +238,7 @@ long StatisticsDB::getLatestId (std::string tableName) {
             id = -1;
          }
      } else {
-         std::cout << (std::string)(sqlite3_errmsg(statisticsDBHandler)) << std::endl;
+         PDB_COUT << (std::string)(sqlite3_errmsg(statisticsDBHandler)) << std::endl;
          id = -1;
      }
      sqlite3_finalize(statement);
@@ -252,7 +252,7 @@ long StatisticsDB::getLatestDataId (std::pair<std::string, std::string> database
      sqlite3_stmt * statement;
      std::string queryString = "SELECT MAX(ID) from DATA where DATABASE_NAME=" + quoteStr(databaseAndSetName.first) 
                                   + " AND SET_NAME=" + quoteStr(databaseAndSetName.second);
-     std::cout << "Get Latest Data Id: " << queryString << std::endl;
+     PDB_COUT << "Get Latest Data Id: " << queryString << std::endl;
      if (sqlite3_prepare_v2(statisticsDBHandler, queryString.c_str(), -1, &statement, NULL) == SQLITE_OK) {
          int res = sqlite3_step(statement);
          if (res == SQLITE_ROW) {
@@ -261,7 +261,7 @@ long StatisticsDB::getLatestDataId (std::pair<std::string, std::string> database
             id = -1;
          }
      } else {
-         std::cout << (std::string)(sqlite3_errmsg(statisticsDBHandler)) << std::endl;
+         PDB_COUT << (std::string)(sqlite3_errmsg(statisticsDBHandler)) << std::endl;
          id = -1;
      }
      sqlite3_finalize(statement);
