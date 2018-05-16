@@ -32,7 +32,7 @@ pdb::SimplePhysicalJoinNode::SimplePhysicalJoinNode(string jobId,
                                                                                                 computePlan,
                                                                                                 logicalPlan,
                                                                                                 std::move(conf)),
-                                                                             transversed(false) {}
+                                                                             transversed(false), rollbacked(false) {}
 
 pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
                                                                            SimplePhysicalNodePtr &prevNode,
@@ -84,7 +84,10 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
 
     // are we already probing a set in the pipeline, and is the cost of the current source smaller than the join
     // threshold? if so might be better to go back and process the other side of the join first
-    if (tupleStageBuilder->isPipelineProbing() && (sourceCost <= BROADCAST_JOIN_COST_THRESHOLD)) {
+    if (tupleStageBuilder->isPipelineProbing() && (sourceCost <= BROADCAST_JOIN_COST_THRESHOLD) && !rollbacked) {
+
+      // of we tried to rollback the planning for this join if this happens again we will not do it
+      rollbacked = true;
 
       // we should go back therefore this analysis is not successful
       result->success = false;

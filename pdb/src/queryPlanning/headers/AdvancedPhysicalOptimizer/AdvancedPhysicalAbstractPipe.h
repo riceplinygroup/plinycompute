@@ -174,6 +174,8 @@ class AdvancedPhysicalAbstractPipe : public AbstractPhysicalNode {
    */
   bool hasConsumers() override;
 
+  bool isConsuming(Handle<SetIdentifier> &set) override;
+
   /**
    * Returns the identifier of this node. In the format of "node_{id}"
    * @return the identifier

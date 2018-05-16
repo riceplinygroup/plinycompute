@@ -127,16 +127,20 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
   tupleStageBuilder->setComputePlan(computePlan);
 
   // copy the computation names
-  for(const auto &it : this->pipelineComputations) {
+  for(auto it = this->pipelineComputations.begin(); it != this->pipelineComputations.end(); ++it) {
+
+    // grab the computation
+    auto &comp = *it;
 
     // we don't need the output set name... (that is just the way the pipeline building works)
     // the aggregation is not applied here it is applied in the next job stage
-    if(it->getAtomicComputationTypeID() == WriteSetTypeID || it->getAtomicComputationTypeID() == ApplyAggTypeID) {
+    if(comp->getAtomicComputationTypeID() == WriteSetTypeID ||
+      (it != this->pipelineComputations.begin() && comp->getAtomicComputationTypeID() == ApplyAggTypeID)) {
       continue;
     }
 
     // add the set name of the atomic computation to the pipeline
-    tupleStageBuilder->addTupleSetToBuildPipeline(it->getOutputName());
+    tupleStageBuilder->addTupleSetToBuildPipeline(comp->getOutputName());
   }
 
   // create the tuple set job stage to run the pipeline with a shuffle sink
@@ -186,7 +190,11 @@ PhysicalOptimizerResultPtr AdvancedPhysicalAggregationPipelineAlgorithm::generat
   // update the source pipes to reflect the state after executing the job stages
   // if we have a consumer we have a new source pipe since we materialize this result
   if(pipeline.back()->getNumConsumers() != 0) {
-    result->createdSourceComputations.push_back(pipeline.back()->getConsumer(0));
+
+    // add consumers as new sources
+    for(int i = 0; i < pipeline.back()->getNumConsumers(); ++i) {
+      result->createdSourceComputations.push_back(pipeline.back()->getConsumer(i));
+    }
   }
 
   // we succeeded

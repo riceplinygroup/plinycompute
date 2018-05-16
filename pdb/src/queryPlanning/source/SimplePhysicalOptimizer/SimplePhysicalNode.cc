@@ -109,6 +109,10 @@ bool SimplePhysicalNode::hasConsumers() {
   return !activeConsumers.empty();
 }
 
+bool SimplePhysicalNode::isConsuming(Handle<SetIdentifier> &set) {
+  return *sourceSetIdentifier == *set;
+}
+
 void SimplePhysicalNode::addConsumer(const pdb::AbstractPhysicalNodePtr &consumer) {
   // call the consumer
   AbstractPhysicalNode::addConsumer(consumer);
@@ -147,9 +151,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJob
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
 
-
-
-  // this is a source so there is no last node
+  // set this node as the previous node
   SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
   // go to the next node
@@ -171,9 +173,6 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
                                                             const StatisticsPtr &stats,
                                                             int nextStageID) {
 
-  // add this node to the pipeline
-  tupleStageBuilder->addTupleSetToBuildPipeline(node->getOutputName());
-
   // grab the computation associated with this node
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
@@ -182,7 +181,7 @@ PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBui
 
   // set the parameters
   tupleStageBuilder->setJobStageId(nextStageID);
-  tupleStageBuilder->setTargetTupleSetName(node->getOutputName());
+  tupleStageBuilder->setTargetTupleSetName(node->getInputName());
   tupleStageBuilder->setTargetComputationName(node->getComputationName());
   tupleStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleStageBuilder->setSinkContext(sink);
@@ -279,7 +278,6 @@ SimplePhysicalNodePtr SimplePhysicalNode::getSimpleNodeHandle() {
   // return the handle to this node
   return std::dynamic_pointer_cast<SimplePhysicalNode>(getHandle());
 }
-
 
 }
 

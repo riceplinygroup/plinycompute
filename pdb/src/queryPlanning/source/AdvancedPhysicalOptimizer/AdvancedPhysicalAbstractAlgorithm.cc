@@ -137,7 +137,7 @@ void AdvancedPhysicalAbstractAlgorithm::extractAtomicComputations() {
   if(pipeline.front()->isJoining()) {
     includeHashComputation();
   }
-  else if(pipeline.front()->getNumProducers() == 1){
+  else if(pipeline.front()->getNumProducers() == 1 && pipeline.front()->getProducer(0)->to<AdvancedPhysicalAbstractPipe>()->getPipeComputations().back()->getAtomicComputationTypeID() == ApplyAggTypeID){
 
     // else we include the last atomic computation of the previous pipe
     auto producer = pipeline.front()->getProducer(0)->to<AdvancedPhysicalAbstractPipe>();

@@ -95,6 +95,12 @@ void AdvancedPhysicalNodeFactory::transverseTCAPGraph(AtomicComputationPtr curNo
     }
     case WriteSetTypeID: {
 
+      // do we just have one write set that was after an aggregation in this pipeline we just skip it no pipe is created
+      if(currentPipe.size() == 1) {
+        currentPipe.clear();
+        return;
+      }
+
       // write set also breaks the pipe because this is where the pipe ends
       createPhysicalPipeline<AdvancedPhysicalStraightPipe>();
       currentPipe.clear();
@@ -133,6 +139,13 @@ void AdvancedPhysicalNodeFactory::setConsumers(shared_ptr<AdvancedPhysicalAbstra
   // go trough each consumer of this node
   for(const auto &consumer : computationGraph.getConsumingAtomicComputations(this->currentPipe.back()->getOutputName())) {
 
+    // if the next pipe begins with a write set we just ignore it...
+    // this is happening usually when we have an aggregation connected to a write set which is not really necessary
+    if(consumer->getAtomicComputationTypeID() == WriteSetTypeID){
+      std::cout << consumer->getOutputName() << std::endl;
+      continue;
+    }
+
     // add them to the consumers
     consumers.push_back(consumer->getOutputName());
   }
@@ -153,7 +166,7 @@ void AdvancedPhysicalNodeFactory::connectThePipes() {
     // go through each at
     for(const auto &atomicComputation : consumingAtomicComputation) {
 
-      std::cout << atomicComputation << std::endl;
+      std::cout << node.second->getPipeComputations().back()->getOutputName() << ":" << atomicComputation << std::endl;
       // get the consuming pipeline
       auto consumer = startsWith[atomicComputation];
 

@@ -53,24 +53,109 @@
 #include <FinalSelection.h>
 #include <SimpleSelection.h>
 #include <SimpleAggregation.h>
+#include <ScanLDADocumentSet.h>
+#include <LDADocTopicProbSelection.h>
+#include <LDAInitialTopicProbSelection.h>
+#include <LDATopicWordAggregate.h>
+#include <LDADocIDAggregate.h>
+#include <LDADocWordTopicJoin.h>
+#include <LDAInitialWordTopicProbSelection.h>
+#include <LDADocWordTopicAssignmentIdentity.h>
+#include <LDADocAssignmentMultiSelection.h>
+#include <LDADocTopicAggregate.h>
+#include <LDATopicAssignmentMultiSelection.h>
+#include <LDATopicWordProbMultiSelection.h>
+#include <LDAWordTopicAggregate.h>
+#include <WriteTopicsPerWord.h>
+#include <WriteIntDoubleVectorPairSet.h>
 
 using namespace pdb;
 int main(int argc, char *argv[]) {
   const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
-  // create all of the computation objects
-  Handle<Computation> myScanSet = makeObject<ScanUserSet<Supervisor>>("test74_db", "test74_set");
-  Handle<Computation> myFilter = makeObject<SimpleSelection>();
-  myFilter->setInput(myScanSet);
-  Handle<Computation> myAgg = makeObject<SimpleAggregation>();
-  myAgg->setInput(myFilter);
-  Handle<Computation> mySelection = makeObject<FinalSelection>();
-  mySelection->setInput(myAgg);
-  Handle<Computation> myWriter = makeObject<WriteUserSet<double>>("test74_db", "output_set1");
-  myWriter->setInput(mySelection);
+  pdb::Handle<pdb::Vector<double>> alpha =
+      pdb::makeObject<pdb::Vector<double>>(0, 0);
+  pdb::Handle<pdb::Vector<double>> beta = pdb::makeObject<pdb::Vector<double>>(0, 0);
+  alpha->fill(1.0);
+  beta->fill(1.0);
+
+
+  /* Initialize the topic mixture probabilities for each document */
+  Handle<Computation> myInitialScanSet =
+      makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
+  Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
+  myDocID->setInput(myInitialScanSet);
+  Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
+  myDocTopicProb->setInput(myDocID);
+
+  /* Initialize the (wordID, topic prob vector) */
+  Handle<Computation> myMetaScanSet = makeObject<ScanIntSet>("LDA_db", "LDA_meta_data_set");
+  Handle<Computation> myWordTopicProb = makeObject<LDAInitialWordTopicProbSelection>(0);
+  myWordTopicProb->setInput(myMetaScanSet);
+
+  Handle<Computation> input1 = myDocTopicProb;
+  Handle<Computation> input2 = myWordTopicProb;
+
+  /* [1] Set up the join that will assign all of the words in the corpus to topics */
+  Handle<Computation> myDocWordTopicJoin = makeObject<LDADocWordTopicJoin>(0);
+  myDocWordTopicJoin->setInput(0, myInitialScanSet);
+  myDocWordTopicJoin->setInput(1, input1);
+  myDocWordTopicJoin->setInput(2, input2);
+
+  /* Do an identity selection */
+  Handle<Computation> myIdentitySelection = makeObject<LDADocWordTopicAssignmentIdentity>();
+  myIdentitySelection->setInput(myDocWordTopicJoin);
+
+  /* [2] Set up the sequence of actions that re-compute the topic probabilities for each document */
+
+  /* Get the set of topics assigned for each doc */
+  Handle<Computation> myDocWordTopicCount = makeObject<LDADocAssignmentMultiSelection>();
+  myDocWordTopicCount->setInput(myIdentitySelection);
+
+  /* Aggregate the topics */
+  Handle<Computation> myDocTopicCountAgg = makeObject<LDADocTopicAggregate>();
+  myDocTopicCountAgg->setInput(myDocWordTopicCount);
+
+  /* Get the new set of doc-topic probabilities */
+  myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
+  myDocTopicProb->setInput(myDocTopicCountAgg);
+
+  /* [3] Set up the sequence of actions that re-compute the word probs for each topic */
+
+  /* Get the set of words assigned for each topic in each doc */
+  Handle<Computation> myTopicWordCount = makeObject<LDATopicAssignmentMultiSelection>();
+  myTopicWordCount->setInput(myIdentitySelection);
+
+  /* Aggregate them */
+  Handle<Computation> myTopicWordCountAgg = makeObject<LDATopicWordAggregate>();
+  myTopicWordCountAgg->setInput(myTopicWordCount);
+
+  /* Use those aggregations to get per-topic probabilities */
+  Handle<Computation> myTopicWordProb = makeObject<LDATopicWordProbMultiSelection>(*beta, 0);
+  myTopicWordProb->setInput(myTopicWordCountAgg);
+
+  /* Get the per-word probabilities */
+  myWordTopicProb = makeObject<LDAWordTopicAggregate>();
+  myWordTopicProb->setInput(myTopicWordProb);
+
+  /*
+* [4] Write the intermediate results doc-topic probability and word-topic probability to sets
+*     Use them in the next iteration
+*/
+  std::string myWriterForTopicsPerWordSetName =
+      std::string("TopicsPerWord") + std::to_string((1) % 2);
+  Handle<Computation> myWriterForTopicsPerWord =
+      makeObject<WriteTopicsPerWord>("LDA_db", myWriterForTopicsPerWordSetName);
+  myWriterForTopicsPerWord->setInput(myWordTopicProb);
+
+  std::string myWriterForTopicsPerDocSetName =
+      std::string("TopicsPerDoc") + std::to_string((1) % 2);
+  Handle<Computation> myWriterForTopicsPerDoc = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", myWriterForTopicsPerDocSetName);
+  myWriterForTopicsPerDoc->setInput(myDocTopicProb);
 
   std::vector<Handle<Computation>> queryGraph;
-  queryGraph.push_back(myWriter);
+  queryGraph.push_back(myWriterForTopicsPerWord);
+  queryGraph.push_back(myWriterForTopicsPerDoc);
   QueryGraphAnalyzer queryAnalyzer(queryGraph);
   std::string tcapString = queryAnalyzer.parseTCAPString();
   std::cout << "TCAP OUTPUT:" << std::endl;
@@ -125,14 +210,15 @@ int main(int argc, char *argv[]) {
 
   // create the data statistics
   StatisticsPtr stats = make_shared<Statistics>();
-  ds.numBytes = 100000000000;
-  stats->addSet("test93_db", "test93_set1", ds);
+  ds.numBytes = 1000;
+  stats->addSet("LDA_db", "LDA_input_set", ds);
 
-  ds.numBytes = 100000000000;
-  stats->addSet("test93_db", "test93_set2", ds);
+  ds.numBytes = 10000;
+  stats->addSet("LDA_db", "LDA_meta_data_set", ds);
 
-  ds.numBytes = 100000000000;
-  stats->addSet("test93_db", "test93_set3", ds);
+
+  ds.numBytes = 1000000;
+  stats->addSet("TestSelectionJob", "aggOutForClusterAggregationComp1_aggregationResult", ds);
 
   while (physicalOptimizer.hasSources()) {
 
@@ -158,6 +244,8 @@ int main(int argc, char *argv[]) {
   if (code < 0) {
     std::cout << "Can't cleanup so files" << std::endl;
   }
+
+  graph.clear();
 
   getAllocator().cleanInactiveBlocks(36 * 1024 * 1024);
 

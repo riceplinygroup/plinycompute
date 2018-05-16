@@ -121,7 +121,16 @@ PhysicalOptimizerResultPtr AdvancedPhysicalShuffleSetAlgorithm::generate(int nex
 
   // set the remaining parameters of the result
   result->success = true;
-  result->createdSourceComputations.push_back(pipeline.back()->getConsumer(0));
+
+  // update the source pipes to reflect the state after executing the job stages
+  // if we have a consumer we have a new source pipe since we materialize this result
+  if(pipeline.back()->getNumConsumers() != 0) {
+
+    // add consumers as new sources
+    for(int i = 0; i < pipeline.back()->getNumConsumers(); ++i) {
+      result->createdSourceComputations.push_back(pipeline.back()->getConsumer(i));
+    }
+  }
 
   return result;
 }

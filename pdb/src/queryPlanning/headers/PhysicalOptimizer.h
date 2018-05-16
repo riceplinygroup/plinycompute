@@ -62,6 +62,8 @@ class PhysicalOptimizer {
    */
   PhysicalOptimizer(std::vector<AbstractPhysicalNodePtr> &sources, PDBLoggerPtr &logger);
 
+  ~PhysicalOptimizer();
+
   /**
      * Returns a sequence of job stages that, make up a partial physical plan. After the execution we gather the
      * statistics about the newly created sets and use them to generate the next partial plan.
@@ -84,10 +86,10 @@ class PhysicalOptimizer {
 
   /**
    * Returns true if the the provided source still has any consumers that we need to process
-   * @param name source set name in the form of "databaseName:setName"
+   * @param set - the set identifier of the source that we want to check if it is being consumed by later stages
    * @return true if the the provided source has any consumers, false otherwise
    */
-  bool hasConsumers(std::string &name);
+  bool hasConsumers(Handle<SetIdentifier> &set);
 
 
   /**

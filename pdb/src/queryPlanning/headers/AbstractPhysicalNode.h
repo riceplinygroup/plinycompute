@@ -101,6 +101,13 @@ public:
   virtual bool hasConsumers() = 0;
 
   /**
+   * Returns true if the set provided is consumed by some later stage in the planning
+   * @param set - the set identifier of the set we want to check
+   * @return true if it does false otherwise
+   */
+  virtual bool isConsuming(Handle<SetIdentifier> &set) = 0;
+
+  /**
    * Returns a string that uniquely identifies this node
    * @return the string
    */

@@ -621,7 +621,7 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
       auto sourcesComputations = computationGraph.getAllScanSets();
 
       // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
-      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<AdvancedPhysicalNodeFactory>(jobId,
+      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
                                                                                                     computePlan,
                                                                                                     conf);
 
@@ -694,11 +694,10 @@ void QuerySchedulerServer::removeUnusedIntermediateSets(DistributedStorageManage
                                                         vector<Handle<SetIdentifier>> &intermediateSets) {
 
     // to remove the intermediate sets:
-    for (const auto &intermediateSet : intermediateSets) {
+    for (auto &intermediateSet : intermediateSets) {
 
         // check whether intermediateSet is a source set and has consumers
-        string setName = intermediateSet->toSourceSetName();
-        if (this->physicalOptimizerPtr->hasConsumers(setName)) {
+        if (this->physicalOptimizerPtr->hasConsumers(intermediateSet)) {
 
             // if it does then we need to remember this set and not remove it, because it will be used later
             this->interGlobalSets.push_back(intermediateSet);
@@ -774,19 +773,22 @@ void QuerySchedulerServer::createIntermediateSets(DistributedStorageManagerClien
     }
 }
 
-void QuerySchedulerServer:: extractPipelineStages(int &jobStageId,
+void QuerySchedulerServer::extractPipelineStages(int &jobStageId,
                                                   vector<Handle<AbstractJobStage>> &jobStages,
                                                   vector<Handle<SetIdentifier>> &intermediateSets) {
 
     // try to get a sequence of stages, if we have any sources left
+    int idx = 0;
     bool success = false;
     while (this->physicalOptimizerPtr->hasSources() && !success) {
 
         // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
         success = this->physicalOptimizerPtr->getNextStagesOptimized(jobStages,
-                                                                intermediateSets,
-                                                                statsForOptimization,
-                                                                jobStageId);
+                                                                     intermediateSets,
+                                                                     statsForOptimization,
+                                                                     jobStageId);
+
+        std::cout << idx << std::endl;
     }
 }
 

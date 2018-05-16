@@ -245,6 +245,10 @@ bool AdvancedPhysicalAbstractPipe::hasConsumers() {
   return false;
 }
 
+bool AdvancedPhysicalAbstractPipe::isConsuming(Handle<SetIdentifier> &set) {
+  return *sourceSetIdentifier == *set;
+}
+
 string AdvancedPhysicalAbstractPipe::getNodeIdentifier() {
   return "node_" + to_string(id);
 }

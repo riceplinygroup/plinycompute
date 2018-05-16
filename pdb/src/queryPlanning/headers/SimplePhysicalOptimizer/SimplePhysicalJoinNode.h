@@ -88,6 +88,11 @@ private:
    */
   string hashSetName;
 
+  /**
+   * Did we rollback the planning for this join or not...
+   */
+  bool rollbacked;
+
 };
 
 }

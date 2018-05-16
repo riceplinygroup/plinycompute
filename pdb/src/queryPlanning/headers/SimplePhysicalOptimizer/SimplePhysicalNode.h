@@ -81,6 +81,8 @@ public:
    */
   bool hasConsumers() override;
 
+  bool isConsuming(Handle<SetIdentifier> &set) override;
+
   /**
    * Return the cost by calling the @see getCost method with the @see sourceSetIdentifier as a parameter.
    * @param stats - the statistics about the sets

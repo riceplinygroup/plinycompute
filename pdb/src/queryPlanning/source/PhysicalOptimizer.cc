@@ -40,6 +40,8 @@ bool PhysicalOptimizer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> 
   // grab the best node
   auto source = getBestNode(stats);
 
+  std::cout << "<<<<<<<<" << source->getNodeIdentifier() << ">>>>>>>>" << std::endl;
+
   // analyze this source node and do physical planning
   auto result = source->analyze(stats, jobStageId);
 
@@ -81,14 +83,15 @@ bool PhysicalOptimizer::hasSources() {
   return !sourceNodes.empty();
 }
 
-bool PhysicalOptimizer::hasConsumers(std::string &name) {
+bool PhysicalOptimizer::hasConsumers(Handle<SetIdentifier> &set) {
 
-  // do we even have this node if not return false
-  if(sourceNodes.find(name) == sourceNodes.end()){
-    return false;
+  for(auto &source: sourceNodes) {
+    if(source.second->isConsuming(set)) {
+      return true;
+    }
   }
 
-  return sourceNodes[name]->hasConsumers();
+  return false;
 }
 
 AbstractPhysicalNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
@@ -116,6 +119,11 @@ AbstractPhysicalNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
   }
 
   return ret;
+}
+
+PhysicalOptimizer::~PhysicalOptimizer() {
+  penalizedSets.clear();
+  sourceNodes.clear();
 }
 
 }

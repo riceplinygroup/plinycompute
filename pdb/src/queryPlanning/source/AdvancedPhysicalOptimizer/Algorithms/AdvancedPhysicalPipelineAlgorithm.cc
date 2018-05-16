@@ -137,9 +137,14 @@ PhysicalOptimizerResultPtr AdvancedPhysicalPipelineAlgorithm::generate(int nextS
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
 
-  // if this is the output we just created new source
-  if(!isOutput) {
-    result->createdSourceComputations.push_back(pipeline.back()->getConsumer(0));
+  // update the source pipes to reflect the state after executing the job stages
+  // if we have a consumer we have a new source pipe since we materialize this result
+  if(pipeline.back()->getNumConsumers() != 0) {
+
+    // add consumers as new sources
+    for(int i = 0; i < pipeline.back()->getNumConsumers(); ++i) {
+      result->createdSourceComputations.push_back(pipeline.back()->getConsumer(i));
+    }
   }
 
   // the new source is now the sink
