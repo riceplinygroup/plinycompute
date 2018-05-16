@@ -123,20 +123,21 @@ void SimplePhysicalNode::addConsumer(const pdb::AbstractPhysicalNodePtr &consume
 
 double SimplePhysicalNode::getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) {
 
-  // do we have statistics, if not just return 0
-  if(stats == nullptr) {
+  // if the set identifier does not exist log that
+  if (source == nullptr) {
+    PDB_COUT << "WARNING: the set provided to the get cost is a nullptr\n";
     return 0;
   }
 
-  // if the set identifier does not exist log that
-  if (source == nullptr) {
-    PDB_COUT << "WARNING: there is no source set for key=" << source->toSourceSetName() << "\n";
+  // do we have statistics, if not just return 0
+  if(stats == nullptr) {
+    PDB_COUT << "WARNING: there are not stats when looking for the set=" << source->toSourceSetName() << "\n";
     return 0;
   }
 
   // calculate the cost based on the formula cost = number_of_bytes / 1000000
   double cost = stats->getNumBytes(source->getDatabase(), source->getSetName());
-  return double((size_t) cost / 1000000);
+  return cost / 1000000.0;
 }
 
 PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,

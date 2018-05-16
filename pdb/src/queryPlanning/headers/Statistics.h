@@ -227,6 +227,21 @@ public:
     lambdaSelectivity[lambdaType] = selectivity;
     pthread_mutex_unlock(&mutex);
   }
+
+  /**
+   * This method prints out all the sets in the statistics object
+   */
+  void printSets(){
+
+    // print the header
+    std::cout << "----------- STATS ------------" << std::endl;
+
+    // go through the data statistics and print out the sets
+    for(auto &it : dataStatistics) {
+      std::cout << it.first << std::endl;
+      std::cout << "------------------------------" << std::endl;
+    }
+  }
 };
 }
 
