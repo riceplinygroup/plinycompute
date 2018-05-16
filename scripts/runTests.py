@@ -105,7 +105,7 @@ def list_of_tests(test_list_name):
         return tests_la
     # integration tests
     elif test_list_name == 'int':
-        return tests
+        return tests_int
     else:
         print "Test suite with the name %s does not exist." % test_list_name
         print "Use one test suite from the following list: ml, tpch, la, int"
@@ -200,7 +200,7 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
-        if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and test_suite != "tpch":
+        if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionPartitionData" and test_suite != "tpch":
             # do the cleanup except when running tpchRegisterAndCreateSets
             if cluster_type == "distributed":
                 print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
@@ -236,7 +236,7 @@ def run_test(id, test_name, test_command):
         num_passed = num_passed + 1
 
 # Integration tests
-tests = {
+tests_int = {
     "Pre-partitionLoadData": ("Pre-Partition LoadData", ['bin/tpchDataLoader', 'tables_scale_0.2']),
     "Pre-partitionPartitionData": ("Pre-Partition PartitionData", ['bin/tpchDataPartitioner']),
     "TestCatalog": ("CATALOG FUNCTIONS TEST", ['bin/TestCatalog', 'localhost', '8108']),
@@ -268,14 +268,14 @@ tests_la = {
     "TestLA_unit01_Transpose": ("TEST LA01_TRANSPOSE", ['bin/TestLA_unit01_Transpose', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit02_Add": ("TEST LA02_ADD", ['bin/TestLA_unit02_Add', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit03_Substract": ("TEST LA03_SUBSTRACT", ['bin/TestLA_unit03_Substract', 'Y', 'Y', '64', 'localhost', 'Y']),
-#    "TestLA_unit04_Multiply": ("TEST LA04_MULTIPLY", ['bin/TestLA_unit04_Multiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA_unit04_Multiply": ("TEST LA04_MULTIPLY", ['bin/TestLA_unit04_Multiply', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit05_MaxElement": ("TEST LA05_MAXELEMENT", ['bin/TestLA_unit05_MaxElement', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit06_MinElement": ("TEST LA06_MINELEMENT", ['bin/TestLA_unit06_MinElement', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit07_ScaleMultiply": ("TEST LA07_SCALEMULTIPLY", ['bin/TestLA_unit07_ScaleMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit08_RowMax": ("TEST LA08_ROWMAX", ['bin/TestLA_unit08_RowMax', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit09_RowMin": ("TEST LA09_ROWMIN", ['bin/TestLA_unit09_RowMin', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit10_ColMax": ("TEST LA10_COLMAX", ['bin/TestLA_unit10_ColMax', 'Y', 'Y', '64', 'localhost', 'Y']),
-#    "TestLA_unit11_ColMin": ("TEST LA11_COLMIN", ['bin/TestLA_unit11_ColMin', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA_unit11_ColMin": ("TEST LA11_COLMIN", ['bin/TestLA_unit11_ColMin', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit12_DuplicateRow": ("TEST LA12_DUPLICATEROW", ['bin/TestLA_unit12_DuplicateRow', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit13_DuplicateCol": ("TEST LA13_DUPLICATECOL", ['bin/TestLA_unit13_DuplicateCol', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit14_Inverse": ("TEST LA14_INVERSE", ['bin/TestLA_unit14_Inverse', 'Y', 'Y', '64', 'localhost', 'Y']),
@@ -324,7 +324,7 @@ elif args["test_suite"] is not None:
 # if neither test_suite nor test_name were provided as args
 else:
     # run all the test suites
-    run_tests(tests)           # integration tests
+    run_tests(tests_int)           # integration tests
     run_tests(tests_la)        # linear algebra tests
     run_tests(tests_ml)        # machine learning tests
     run_tests(test_tpch_main)  # tpch generate data test
