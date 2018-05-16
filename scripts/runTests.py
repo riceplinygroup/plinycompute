@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python -u
 #  ========================================================================
 #  Copyright 2018 Rice University
 #
@@ -83,7 +83,7 @@ num_passed = 0
 def prepare_environment():
    # ensures that the environment is clean
    subprocess.call(['bash', './scripts/cleanupNode.sh'])
-   print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+   print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
    time.sleep(5)
 
    #download data
@@ -151,12 +151,12 @@ def run_tests(test_list):
     if test_suite != "tpch":
         if (cluster_type=="standalone"):
             subprocess.call(['bash', './scripts/cleanupNode.sh'])
-            print(BColor.OK_BLUE + "cleaning up pseudo cluster...")
+            print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
         else:
-            print(BColor.OK_BLUE + "cleaning up cluster...")
+            print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
             subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
 
-        print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+        print("waiting for 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
         # set the total number of tests
         num_total = len(test_list.items())
@@ -203,13 +203,13 @@ def run_test(id, test_name, test_command):
         if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and test_suite != "tpch":
             # do the cleanup except when running tpchRegisterAndCreateSets
             if cluster_type == "distributed":
-                print (BColor.OK_BLUE + "Cleaning cluster before running test.")
+                print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
             else:
-                print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test.")
+                print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
-            print (BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+            print ("waiting for 5 seconds for server to be fully cleaned up...")
             time.sleep(5)
 
         if cluster_type == "standalone":
@@ -217,7 +217,7 @@ def run_test(id, test_name, test_command):
         else:
             print "Launching distributed cluster"
             subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, thread_num, shared_memory_size])
-            print (BColor.OK_BLUE + "waiting 10 seconds to launch cluster...")
+            print ("waiting 10 seconds to launch cluster...")
             time.sleep(10)
             
         print(BColor.OK_BLUE + "start a query client to store and query data from pdb cluster" + BColor.END_C)
@@ -268,14 +268,14 @@ tests_la = {
     "TestLA_unit01_Transpose": ("TEST LA01_TRANSPOSE", ['bin/TestLA_unit01_Transpose', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit02_Add": ("TEST LA02_ADD", ['bin/TestLA_unit02_Add', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit03_Substract": ("TEST LA03_SUBSTRACT", ['bin/TestLA_unit03_Substract', 'Y', 'Y', '64', 'localhost', 'Y']),
-    "TestLA_unit04_Multiply": ("TEST LA04_MULTIPLY", ['bin/TestLA_unit04_Multiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+#    "TestLA_unit04_Multiply": ("TEST LA04_MULTIPLY", ['bin/TestLA_unit04_Multiply', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit05_MaxElement": ("TEST LA05_MAXELEMENT", ['bin/TestLA_unit05_MaxElement', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit06_MinElement": ("TEST LA06_MINELEMENT", ['bin/TestLA_unit06_MinElement', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit07_ScaleMultiply": ("TEST LA07_SCALEMULTIPLY", ['bin/TestLA_unit07_ScaleMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit08_RowMax": ("TEST LA08_ROWMAX", ['bin/TestLA_unit08_RowMax', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit09_RowMin": ("TEST LA09_ROWMIN", ['bin/TestLA_unit09_RowMin', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit10_ColMax": ("TEST LA10_COLMAX", ['bin/TestLA_unit10_ColMax', 'Y', 'Y', '64', 'localhost', 'Y']),
-    "TestLA_unit11_ColMin": ("TEST LA11_COLMIN", ['bin/TestLA_unit11_ColMin', 'Y', 'Y', '64', 'localhost', 'Y']),
+#    "TestLA_unit11_ColMin": ("TEST LA11_COLMIN", ['bin/TestLA_unit11_ColMin', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit12_DuplicateRow": ("TEST LA12_DUPLICATEROW", ['bin/TestLA_unit12_DuplicateRow', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit13_DuplicateCol": ("TEST LA13_DUPLICATECOL", ['bin/TestLA_unit13_DuplicateCol', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit14_Inverse": ("TEST LA14_INVERSE", ['bin/TestLA_unit14_Inverse', 'Y', 'Y', '64', 'localhost', 'Y']),
@@ -306,21 +306,22 @@ tests_tpch = {
     "tpchJaccard": ("TEST TPCH JACCARD", ['bin/tpchJaccard', 'localhost', '20', 'applications/TPCHBench/query.txt'])
 }
 
-
-#if len(sys.argv) == 4:
-if args["test_name"] is not None and args["test_suite"] is not None:
+# if both test_suite and test_name were provided as args
+if args["test_suite"] is not None and args["test_name"] is not None:
     # runs the test specified in the 2nd argument
     # from the list in the 1st argument
     run_specified_test(test_suite, test_name)
 
+# if only test_suite was provided as arg
 elif args["test_suite"] is not None:
-    # runs all tests from a given list
+    # runs all tests from a given test_suite
     if test_suite == "tpch":
         run_tests(test_tpch_main)
         run_tests(list_of_tests(test_suite))
     else:
         run_tests(list_of_tests(test_suite))
 
+# if neither test_suite nor test_name were provided as args
 else:
     # run all the test suites
     run_tests(tests)           # integration tests
