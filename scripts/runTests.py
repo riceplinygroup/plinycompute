@@ -20,22 +20,22 @@ import sys
 import os
 import argparse
 
-# parses the command line args
+# parses the command line arguments
 parser = argparse.ArgumentParser(description='Script for running different PlinyCompute test suites.')
-parser.add_argument('--cluster-type', choices=['standalone','distributed'], type=str, default="standalone",
-    help='type of cluster to be used (default: standalone)')
-parser.add_argument('--test-suite', choices=['ml','la','tpch','int','all'], type=str, default="ml",
-    help='test suite to run (default: ml)')  
+parser.add_argument('--cluster-type', choices=['standalone','distributed'], type=str, 
+                    default="standalone", help='type of cluster to be used (default: standalone)')
+parser.add_argument('--test-suite', choices=['ml','la','tpch','int','all'], type=str, 
+                     default="ml", help='test suite to run (default: ml)')  
 parser.add_argument('--test-name', type=str, 
-    help='name of test to run, executables can be found in the $PDB_HOME/bin folder ')
+                    help='name of test to run, executables can be found in the $PDB_HOME/bin folder ')
 parser.add_argument('--pem-file', type=str, default="conf/pdb-key.pem",
-    help="the pem key file to connect to the cluster nodes (default: conf/pdb-key.pem)")
+                    help="the pem key file to connect to the cluster nodes (default: conf/pdb-key.pem)")
 parser.add_argument('--ip', type=str, default="localhost",
-    help="ip address of the manager node (default: localhost)")
+                    help="ip address of the manager node (default: localhost)")
 parser.add_argument('--num-threads', type=int, default=1,
-    help="number of processors for each worker node (default: 1)")
+                    help="number of processors for each worker node (default: 1)")
 parser.add_argument('--shared-mem', type=int, default=2048,
-    help="amount of memory in Mbytesi for each worker node (default: 2048)")
+                    help="amount of memory in Mbytesi for each worker node (default: 2048)")
 
 args = vars(parser.parse_args())
 print(args)
@@ -53,7 +53,7 @@ class BColor:
 # list of failed tests
 failed_tests = []
 
-# by default it runs the machine learning tests if no test suite is specified
+# assigns the command line arguments to variables
 cluster_type = args['cluster_type']
 test_suite = args['test_suite'] 
 thread_num = str(args['num_threads'])
@@ -61,11 +61,6 @@ shared_memory_size = str(args['shared_mem'])
 pem_file = args["pem_file"]
 manager_ip = args["ip"]
 test_name = args["test_name"]
-if args["test_name"] is None:
-   print "test value is not set "
-else:
-   print "test value %s " % args["test_name"]
-#print "test suite %s " % args.test_suite
 
 print("t num=" + thread_num)
 print("s_mem=" + shared_memory_size)
@@ -321,14 +316,18 @@ elif args["test_suite"] is not None:
     else:
         run_tests(list_of_tests(test_suite))
 
-# if neither test_suite nor test_name were provided as args
-else:
+# if test_suite s set to "all" it runs all test suites
+elif args["test_suite"] == "all":
     # run all the test suites
     run_tests(tests_int)           # integration tests
     run_tests(tests_la)        # linear algebra tests
     run_tests(tests_ml)        # machine learning tests
     run_tests(test_tpch_main)  # tpch generate data test
     run_tests(tests_tpch)      # tpch query tests
+
+# if neither test_suite nor test_name were provided as args
+else:
+    print("At least one test suite has to be selected")
 
 #remove downloaded files
 #os.system('rm -rf tables_scale_0.2*')
