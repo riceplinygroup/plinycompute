@@ -22,12 +22,6 @@ testSSHTimeout=3
 
 scripts/cleanupNode.sh
 
-if [ "$PLINY_HOME" = "" ]; then
-  echo "We do not have pliny dependency."
-else
-  $PLINY_HOME/scripts/cleanup.sh
-fi
-
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
@@ -52,18 +46,25 @@ echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
-   if [ ${#ip_addr} -gt "$ip_len_valid" ]
-   then
-     # checks that ssh to a node is possible, times out after 3 seconds
-     nc -zw$testSSHTimeout ${ip_addr} 22
-     if [ $? -eq 0 ]
-     then
-        echo -e "\n+++++++++++ cleanup server: $ip_addr"
-        ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
-     else
-        echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
-     fi
-   fi
+   if [ ${#ip_addr} -gt "$ip_len_valid" ];then
+      only_ip=${ip_addr%:*}
+      # checks that ssh to a node is possible, times out after 3 seconds
+      if [[ ${ip_addr} != *":"* ]];then
+         nc -zw$testSSHTimeout ${ip_addr} 22
+      else
+         nc -zw$testSSHTimeout ${only_ip} 22
+      fi
+      if [ $? -eq 0 ];then
+         if [[ ${ip_addr} != *":"* ]];then
+            echo -e "\n+++++++++++ cleanup server: $ip_addr"
+            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+         else
+            ./scripts/cleanupNode.sh
+         fi
+      else
+         echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+      fi
+    fi
 done
 
 

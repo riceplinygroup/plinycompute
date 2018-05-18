@@ -23,15 +23,18 @@ pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
 PDB_SSH_SLEEP=3
 PDB_SLEEP_TIME=3
+
+# kills running processes
 pkill -9  pdb-manager
 pkill -9  pdb-worker
-
-$PDB_HOME/bin/pdb-manager localhost 8108 N $pemFile 1.5 &
 
 echo ""
 echo "#####################################"
 echo " Launching manager node."
 echo "#####################################"
+
+# launches manager node
+$PDB_HOME/bin/pdb-manager localhost 8108 N $pemFile 1.5 &
 
 sleep $PDB_SLEEP_TIME
 
@@ -45,7 +48,7 @@ fi
 
 echo " Waiting 10 secs before launching worker nodes."
 
-sleep 3
+sleep 10
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -72,6 +75,7 @@ if [ -z ${sharedMem} ];
    then sharedMem=4096;
 fi
 
+# parses conf/serverlist file
 while read line
 do
    [[ $line == *#* ]] && continue # skips commented lines
@@ -84,20 +88,30 @@ echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
 workersOk=0;
 workersFailed=0;
 
-echo "There are $length worker nodes defined in conf/serverlist"
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
-   if [ ${#ip_addr} -gt "$ip_len_valid" ]
-   then
-     # checks that ssh to a node is possible, times out after 3 seconds
-     nc -zw$testSSHTimeout ${ip_addr} 22 
+   if [ ${#ip_addr} -gt "$ip_len_valid" ];then
+     # checks that ssh to a remote node is possible, times out after 3 seconds
+     only_ip=${ip_addr%:*}
+     if [[ ${ip_addr} != *":"* ]];then
+        nc -zw$testSSHTimeout ${ip_addr} 22
+     else
+        nc -zw$testSSHTimeout ${only_ip} 22
+     fi
+     # launches worker nodes only if connection is established
      if [ $? -eq 0 ] 
      then
         echo -e "\n+++++++++++ starting worker node at IP address: $ip_addr"
-        ssh -i $pemFile $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
-        sleep $PDB_SSH_SLEEP
-        ssh -i $pemFile $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
+        if [[ ${ip_addr} != *":"* ]];then
+           ssh -i $pemFile $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+           sleep $PDB_SSH_SLEEP
+           ssh -i $pemFile $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
+        else
+           ./bin/pdb-worker $numThreads $sharedMem $managerIp $ip_addr &
+           sleep $PDB_SSH_SLEEP
+           ./scripts/checkProcess.sh pdb-worker
+        fi
         if [ $? -eq 0 ]
         then
            workersOk=$[$workersOk + 1]

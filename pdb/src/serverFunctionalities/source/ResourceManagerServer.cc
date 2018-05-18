@@ -121,44 +121,32 @@ void ResourceManagerServer::analyzeNodes(std::string serverlist) {
                 hints.ai_socktype = SOCK_STREAM;
                 hints.ai_flags = 0;
                 hints.ai_protocol = 0;
-                std::cout<< "Testing connection to " << address << ":22" << std::endl;
 
                 int s = getaddrinfo(address.c_str(), portValue, &hints, &result);
                 if (s != 0) {
-                    std::cout << "Could not get addr info " << strerror(errno) << gai_strerror(s) << std::endl;
                     continue;
                  } else {
-                     std::cout << " Addr info correct " << std::endl;
                      for (rp = result; rp != NULL; rp = rp->ai_next) {
                          int count = 0;
                          while (count <= 3) {
                              sfd = socket(result->ai_family, result->ai_socktype,
                                           result->ai_protocol);
-                             std::cout << "Result socket " << std::to_string(sfd) << std::endl;
                              if (sfd == -1) {
-                                 std::cout << "Socket failed!!!! " << std::endl;
                                  continue;
                              }
-                             std::cout << "No errors!!!!!!!" << std::endl;
                              int co = ::connect(sfd, rp->ai_addr, rp->ai_addrlen);
-                             std::cout << "Connect restul " << std::to_string(co) << endl;
                              if (co != -1) {
-                                 std::cout << "Connection succeded " << std::endl;
                                  connectSuccess = true;
-                     const UseTemporaryAllocationBlock block(1024);
-                     Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
-                     this->nodes->push_back(node);
-                     std::cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port
-                               << std::endl;
-                     nodeId++;
+                                 const UseTemporaryAllocationBlock block(1024);
+                                 Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
+                                 this->nodes->push_back(node);
+                                 nodeId++;
                                  break;
                              } else { 
                                  connectSuccess = false;
-                                 std::cout << "Connection failed!!!! " << std::endl;
                                  continue;
                              }
                              count++;
-                             std::cout << "Trying to connect to: " << address << " attempt (" << std::to_string(count)<< ")" << std::endl;
                              close(sfd);
                          } // while
                          if (connectSuccess == true) {

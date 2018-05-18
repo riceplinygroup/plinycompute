@@ -38,7 +38,6 @@ parser.add_argument('--shared-mem', type=int, default=2048,
                     help="amount of memory in Mbytesi for each worker node (default: 2048)")
 
 args = vars(parser.parse_args())
-print(args)
 
 class BColor:
     HEADER = '\033[95m'
@@ -62,14 +61,12 @@ pem_file = args["pem_file"]
 manager_ip = args["ip"]
 test_name = args["test_name"]
 
-print("t num=" + thread_num)
-print("s_mem=" + shared_memory_size)
-print("what_test= " +test_suite)
-print("cluster type=" +cluster_type)
-print("pem file=" + pem_file)
-print("manager ip=" + manager_ip)
-#print("test name=" + test_name)
-#sys.exit(1)
+print("  thread num: " + thread_num)
+print(" shared _mem: " + shared_memory_size)
+print("  test suite: " + test_suite)
+print("cluster type: " + cluster_type)
+print("    pem file: " + pem_file)
+print("  manager ip: " + manager_ip)
 
 num_total = 0
 num_errors = 0
@@ -80,11 +77,6 @@ def prepare_environment():
    subprocess.call(['bash', './scripts/cleanupNode.sh'])
    print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
    time.sleep(5)
-
-   #download data
-   #os.system('rm -rf tables_scale_0.2*')
-   #os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
-   #os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
 
 # Returns a dictionary of tests, given its name
 # as a string
@@ -122,7 +114,7 @@ def start_pseudo_cluster():
                     serverProcess = subprocess.Popen(
                         ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
                     print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
-                    time.sleep(9)
+                    time.sleep(5)
                     each_line = each_line.split(':')
                     port = int(each_line[1])
 
@@ -141,7 +133,7 @@ def run_tests(test_list):
     print("#################################")
     global num_total
     global cluster_type
-    print "Pseudo Cluster value in run_tests=" + cluster_type
+    print "Cluster for running tests is set to:" + cluster_type
 
     if test_suite != "tpch":
         if (cluster_type=="standalone"):
@@ -213,7 +205,7 @@ def run_test(id, test_name, test_command):
             print "Launching distributed cluster"
             subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, thread_num, shared_memory_size])
             print ("waiting 10 seconds to launch cluster...")
-            time.sleep(10)
+            time.sleep(5)
             
         print(BColor.OK_BLUE + "start a query client to store and query data from pdb cluster" + BColor.END_C)
         subprocess.check_call(test_command)
@@ -229,6 +221,8 @@ def run_test(id, test_name, test_command):
     else:
         print(BColor.OK_BLUE + "[PASSED] %s" % test_name + BColor.END_C)
         num_passed = num_passed + 1
+    
+    time.sleep(5)
 
 # Integration tests
 tests_int = {
@@ -308,7 +302,7 @@ if args["test_suite"] is not None and args["test_name"] is not None:
     run_specified_test(test_suite, test_name)
 
 # if only test_suite was provided as arg
-elif args["test_suite"] is not None:
+elif args["test_suite"] is not None and args["test_suite"] != "all":
     # runs all tests from a given test_suite
     if test_suite == "tpch":
         run_tests(test_tpch_main)
@@ -316,7 +310,7 @@ elif args["test_suite"] is not None:
     else:
         run_tests(list_of_tests(test_suite))
 
-# if test_suite s set to "all" it runs all test suites
+# if test_suite is set to "all" it runs all test suites
 elif args["test_suite"] == "all":
     # run all the test suites
     run_tests(tests_int)           # integration tests
@@ -329,5 +323,3 @@ elif args["test_suite"] == "all":
 else:
     print("At least one test suite has to be selected")
 
-#remove downloaded files
-#os.system('rm -rf tables_scale_0.2*')
