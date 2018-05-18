@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     else serverListFile = "conf/serverlist";
 
     frontEnd.addFunctionality<pdb::ResourceManagerServer>(
-        "conf/serverlist", port, pseudoClusterMode, pemFile);
+        serverListFile, port, pseudoClusterMode, pemFile);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
 
