@@ -13,13 +13,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && { usage; }
 
 pem_file=$1
-
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
+
+if [ ! -f ${pem_file} ]; then
+    echo "Pem file $pem_file not found!"
+    exit -1;
+fi
 
 scripts/cleanupNode.sh
 # By default disable strict host key checking
@@ -35,14 +50,6 @@ else
 fi
 
 echo $PDB_HOME/conf/serverlist
-
-if [ "$PLINY_HOME" = "" ]; then
-  echo "We do not have pliny dependency."
-else
-  mkdir bin
-  $PLINY_HOME/scripts/cleanup.sh
-  scripts/syncWithPliny.sh
-fi
 
 while read line
 do
