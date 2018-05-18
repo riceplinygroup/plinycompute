@@ -15,6 +15,7 @@
 #  ========================================================================    
 
 pem_file=$1
+cluster_type=$2
 pdb_dir=$PDB_INSTALL
 user=ubuntu
 ip_len_valid=3
@@ -34,14 +35,26 @@ else
   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
+   exit -1;
+fi
+
+# parses conf/serverlist file
+if [ "$cluster_type" = "standalone" ];then
+   conf_file="conf/serverlist.test"
+else
+   conf_file="conf/serverlist"
+fi
+
 while read line
 do
    [[ $line == *#* ]] && continue # skips commented lines
    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
-done < $PDB_HOME/conf/serverlist
+done < $PDB_HOME/$conf_file
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length servers defined in $PDB_HOME/$conf_file"
 
 for (( i=0 ; i<=$length ; i++ ))
 do

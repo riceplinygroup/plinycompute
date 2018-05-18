@@ -80,7 +80,7 @@ done < $PDB_HOME/$conf_file
 echo ${arr}
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length servers defined in $PDB_HOME/$conf_file"
 
 echo ""
 echo "#####################################"

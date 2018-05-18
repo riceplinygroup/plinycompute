@@ -61,6 +61,9 @@ pem_file = args["pem_file"]
 manager_ip = args["ip"]
 test_name = args["test_name"]
 
+print(" -----------------------------------------------------")
+print(" Running PlinyCompute tests with the following values:")
+print(" -----------------------------------------------------")
 print("  thread num: " + thread_num)
 print(" shared _mem: " + shared_memory_size)
 print("  test suite: " + test_suite)
@@ -142,7 +145,7 @@ def run_tests(test_list):
             print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
         else:
             print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
-            subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
+            subprocess.call(['bash', './scripts/cleanup.sh', pem_file , cluster_type])
 
         print("waiting for 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
@@ -192,7 +195,7 @@ def run_test(id, test_name, test_command):
             # because they need data generated in previous tests
             if cluster_type == "distributed":
                 print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
-                subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
+                subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
             else:
                 print (BColor.OK_BLUE + "Cleaning pseudo cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanupNode.sh'])
@@ -278,7 +281,7 @@ tests_la = {
 # Machine learning tests
 tests_ml = {
 #    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
-#    "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
+    "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
     "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001',
                                    'applications/TestKMeans/kmeans_data'])
 }
