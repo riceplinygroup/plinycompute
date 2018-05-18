@@ -15,8 +15,9 @@
 #  ========================================================================    
 pemFile=$1
 managerIp=$2
-numThreads=$3
-sharedMem=$4
+cluster_type=$3
+numThreads=$4
+sharedMem=$5
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
@@ -28,9 +29,62 @@ PDB_SLEEP_TIME=3
 pkill -9  pdb-manager
 pkill -9  pdb-worker
 
+# By default disable strict host key checking
+if [ "$PDB_SSH_OPTS" = "" ]; then
+   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
+fi
+
+if [ -z ${pemFile} ];
+   then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
+   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #threadNum #sharedMemSize #clusterType";
+   exit -1;
+fi
+
+if [ -z ${managerIp} ];
+   then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
+   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #clusterType #threadNum #sharedMemSize";
+   exit -1;
+fi
+
+if [ -z ${cluster_type} ];
+   then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
+   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #clusterType #threadNum #sharedMemSize";
+   exit -1;
+fi
+
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";   
+fi
+    
+if [ -z ${numThreads} ];
+   then numThreads=4;
+fi
+
+if [ -z ${sharedMem} ];
+   then sharedMem=4096;
+fi
+
+# parses conf/serverlist file
+if [ "$cluster_type" = "standalone" ];then
+   conf_file="conf/serverlist.test"
+else
+   conf_file="conf/serverlist"
+fi
+
+echo "Reading cluster IP addresses from file: $conf_file" 
+while read line
+do
+   [[ $line == *#* ]] && continue # skips commented lines
+   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/$conf_file
+echo ${arr}
+
+length=${#arr[@]}
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
 echo ""
 echo "#####################################"
-echo " Launching manager node."
+echo " Launching a manager node."
 echo "#####################################"
 
 # launches manager node
@@ -49,41 +103,6 @@ fi
 echo " Waiting 10 secs before launching worker nodes."
 
 sleep 10
-
-# By default disable strict host key checking
-if [ "$PDB_SSH_OPTS" = "" ]; then
-   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
-fi
-
-if [ -z ${pemFile} ];
-   then echo "ERROR: please provide at least two parameters: one is your pem file and the other is the manager IP";
-   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #threadNum #sharedMemSize";
-   exit -1;
-fi
-
-if [ -z ${managerIp} ];
-   then echo "ERROR: please provide at least two parameters: one is your pem file and the other is the manager IP";
-   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #threadNum #sharedMemSize";
-   exit -1;
-fi
-    
-if [ -z ${numThreads} ];
-   then numThreads=4;
-fi
-
-if [ -z ${sharedMem} ];
-   then sharedMem=4096;
-fi
-
-# parses conf/serverlist file
-while read line
-do
-   [[ $line == *#* ]] && continue # skips commented lines
-   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
-done < $PDB_HOME/conf/serverlist
-
-length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
 
 workersOk=0;
 workersFailed=0;

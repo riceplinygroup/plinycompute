@@ -80,17 +80,22 @@ int main(int argc, char* argv[]) {
         std::cout << "fatal error in initializing statisticsDB" << std::endl;
         exit(1);
     } 
-    frontEnd.addFunctionality<pdb::ResourceManagerServer>(
-        "conf/serverlist", port, pseudoClusterMode, pemFile);
-    frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
-    auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
 
     std::string errMsg = " ";
     int numNodes = 1;
     string line = "";
     string nodeName = "";
     string hostName = "";
+    string serverListFile;
     int portValue = 8108;
+
+    if (pseudoClusterMode==true) serverListFile = "conf/serverlist.test";
+    else serverListFile = "conf/serverlist";
+
+    frontEnd.addFunctionality<pdb::ResourceManagerServer>(
+        "conf/serverlist", port, pseudoClusterMode, pemFile);
+    frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
+    auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
 
     // registers metadata for manager node in the catalog
     pdb::Handle<pdb::CatalogNodeMetadata> nodeData =

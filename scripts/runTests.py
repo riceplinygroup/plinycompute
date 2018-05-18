@@ -35,7 +35,7 @@ parser.add_argument('--ip', type=str, default="localhost",
 parser.add_argument('--num-threads', type=int, default=1,
                     help="number of processors for each worker node (default: 1)")
 parser.add_argument('--shared-mem', type=int, default=2048,
-                    help="amount of memory in Mbytesi for each worker node (default: 2048)")
+                    help="amount of memory in Mbytes for each worker node (default: 2048)")
 
 args = vars(parser.parse_args())
 
@@ -72,14 +72,13 @@ num_total = 0
 num_errors = 0
 num_passed = 0
 
+# Ensure that the environment is clean
 def prepare_environment():
-   # ensures that the environment is clean
-   subprocess.call(['bash', './scripts/cleanupNode.sh'])
-   print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
-   time.sleep(5)
+    subprocess.call(['bash', './scripts/cleanupNode.sh'])
+    print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
+    time.sleep(5)
 
-# Returns a dictionary of tests, given its name
-# as a string
+# Return a dictionary of tests, given its name as string
 def list_of_tests(test_list_name):
     # machine learning tests
     if test_list_name == 'ml':
@@ -98,34 +97,36 @@ def list_of_tests(test_list_name):
         print "Use one test suite from the following list: ml, tpch, la, int"
         sys.exit()
 
+# Launche a pseudo cluster for testing, simulating worker nodes as 
+# processes listening on different ports 
 def start_pseudo_cluster():
     try:
-        print(BColor.OK_BLUE + "start a pdbServer as the coordinator" + BColor.END_C)
+        print(BColor.OK_BLUE + "starts a pdb-manager process" + BColor.END_C)
         serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
-        print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
+        print(BColor.OK_BLUE + "waiting 9 seconds for pdb-manager to be launched..." + BColor.END_C)
         time.sleep(9)
         num = 0
-        with open('conf/serverlist') as f:
+        with open('conf/serverlist.test') as f:
             for each_line in f:
                 if "#" not in each_line.strip() and len(each_line.strip()) >0:
-                    print(BColor.OK_BLUE + "start a pdbServer at " + each_line + "as " + str(
+                    print(BColor.OK_BLUE + "starts a pdb-worker node at " + each_line + "as " + str(
                         num) + "-th worker" + BColor.END_C)
                     num = num + 1
                     serverProcess = subprocess.Popen(
                         ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
-                    print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
-                    time.sleep(5)
+                    print(BColor.OK_BLUE + "waiting 9 seconds for pdb-worker to be launched..." + BColor.END_C)
+                    time.sleep(9)
                     each_line = each_line.split(':')
                     port = int(each_line[1])
 
     except subprocess.CalledProcessError as e:
-        print(BColor.FAIL + "[ERROR] in starting pseudo cluster" + BColor.END_C)
+        print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
 
 def run_tests(test_list):
     print("###############################################")
-    print("REQUIRE 8192 MB MEMORY TO RUN INTEGRATION TESTS")
+    print("REQUIRE 8192 MB MEMORY TO RUN TEST SUITES")
     print("###############################################")
 
     print("#################################")
@@ -163,7 +164,6 @@ def run_tests(test_list):
     print(BColor.OK_GREEN + "PASSED TESTS: " + str(num_passed) + BColor.END_C)
     print(BColor.FAIL + "FAILED TESTS: " + str(num_errors) + BColor.END_C)
 
-    # printout each test that failed
     for test in failed_tests:
         print "TEST %s FAILED" % test
 
@@ -188,26 +188,27 @@ def run_test(id, test_name, test_command):
 
     try:
         if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionPartitionData" and test_suite != "tpch":
-            # do the cleanup except when running tpchRegisterAndCreateSets
+            # do the cleanup except when running tpchRegisterAndCreateSets, Pre-partitionPartitionData or tpch
+            # because they need data generated in previous tests
             if cluster_type == "distributed":
                 print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanup.sh', 'conf/pdb-key.pem'])
             else:
-                print (BColor.OK_BLUE + "Cleaning Pseudo cluster before running test." + BColor.END_C)
+                print (BColor.OK_BLUE + "Cleaning pseudo cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
-            print ("waiting for 5 seconds for server to be fully cleaned up...")
+            print ("waiting 5 seconds for cluster to be cleaned up...")
             time.sleep(5)
 
         if cluster_type == "standalone":
             start_pseudo_cluster()
         else:
-            print "Launching distributed cluster"
-            subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, thread_num, shared_memory_size])
+            print "Launching a distributed cluster"
+            subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, cluster_type, thread_num, shared_memory_size])
             print ("waiting 10 seconds to launch cluster...")
             time.sleep(5)
             
-        print(BColor.OK_BLUE + "start a query client to store and query data from pdb cluster" + BColor.END_C)
+        print(BColor.OK_BLUE + "running a test" + BColor.END_C)
         subprocess.check_call(test_command)
 
     except subprocess.CalledProcessError as e:
@@ -276,7 +277,7 @@ tests_la = {
 
 # Machine learning tests
 tests_ml = {
-    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
+#    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
     "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
     "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001',
                                    'applications/TestKMeans/kmeans_data'])
@@ -313,11 +314,11 @@ elif args["test_suite"] is not None and args["test_suite"] != "all":
 # if test_suite is set to "all" it runs all test suites
 elif args["test_suite"] == "all":
     # run all the test suites
-    run_tests(tests_int)           # integration tests
+    run_tests(tests_int)       # integration tests
     run_tests(tests_la)        # linear algebra tests
-    run_tests(tests_ml)        # machine learning tests
     run_tests(test_tpch_main)  # tpch generate data test
     run_tests(tests_tpch)      # tpch query tests
+    run_tests(tests_ml)        # machine learning tests
 
 # if neither test_suite nor test_name were provided as args
 else:
