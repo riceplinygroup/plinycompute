@@ -70,7 +70,6 @@ if [[ -n $(find ./statDB -name "*" 2>/dev/null) ]]; then
     rm -rf statDB*
 fi
 
-
 # kill all the processes
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true

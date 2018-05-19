@@ -16,18 +16,17 @@
 
 usage() {
     cat <<EOM
-    Usage: scripts/$(basename $0) param1 param2
+    Usage: scripts/$(basename $0) param1
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <cluster_type> (either 'distributed' or 'standalone')
+
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && { usage; }
+[ -z $1 ] && { usage; }
 
 pem_file=$1
-cluster_type=$2
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
@@ -38,7 +37,9 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
-scripts/cleanupNode.sh
+echo "To strip shared libraries, this may take some time..."
+strip libraries/*.so
+echo "stripped all shared libraries!"
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -52,49 +53,34 @@ else
   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
-if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
-   exit -1;
-fi
-
-# parses conf/serverlist file
-if [ "$cluster_type" = "standalone" ];then
-   conf_file="conf/serverlist.test"
-else
-   conf_file="conf/serverlist"
-fi
+echo "Removes local catalog and temp shared libraries"
+rm -rf $PDB_HOME/CatalogDir
+rm /var/tmp/*.so
 
 while read line
 do
    [[ $line == *#* ]] && continue # skips commented lines
    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
-done < $PDB_HOME/$conf_file
+done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/$conf_file"
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
 
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
-   if [ ${#ip_addr} -gt "$ip_len_valid" ];then
-      only_ip=${ip_addr%:*}
+   if [ ${#ip_addr} -gt "$ip_len_valid" ]
+   then
       # checks that ssh to a node is possible, times out after 3 seconds
-      if [[ ${ip_addr} != *":"* ]];then
-         nc -zw$testSSHTimeout ${ip_addr} 22
-      else
-         nc -zw$testSSHTimeout ${only_ip} 22
+      nc -zw$testSSHTimeout ${ip_addr} 22
+      if [ $? -eq 0 ]
+      then
+         echo -e "\n+++++++++++ install server: $ip_addr"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "rm /var/tmp/*.so; rm $pdb_dir/log.out; rm -rf $pdb_dir/Catalog*; rm $pdb_dir/logs/*"
+         scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
+         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
       fi
-      if [ $? -eq 0 ];then
-            echo -e "\n+++++++++++ cleanup server: $ip_addr"
-         if [[ ${ip_addr} != *":"* ]];then
-            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
-         else
-            ./scripts/cleanupNode.sh
-         fi
-      else
-         echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
-      fi
-    fi
+   fi
 done
 
 

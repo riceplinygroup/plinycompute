@@ -25,7 +25,8 @@ else
     echo "Your current PDB_HOME is: '$PDB_HOME'";
 fi
 
-#remember to provide your pem file as parameter
+# remember to provide your pem file as parameter
+# if no pem file is provided, uses conf/pdb-key.pem as default
 if [ -z ${PEM_FILE} ];
     then PEM_FILE=$PDB_HOME/conf/pdb-key.pem;
     chmod -R 600 $PDB_HOME/conf/pdb-key.pem
@@ -34,9 +35,16 @@ else
     chmod -R 600 $PEM_FILE
 fi
 
+# if pem_file doesn't exist, exit!
+if [ ! -f ${PEM_FILE} ]; then
+    echo "Pem file '$PEM_FILE' not found, make sure the path and file name are correct!"
+    exit -1;
+fi
+
 if [ ! -d "$PDB_HOME/conf" ]
          then mkdir $PDB_HOME/conf
 fi
+
 if [ ! -f "$PDB_HOME/conf/serverlist" ]
    then cp serverlist $PDB_HOME/conf/serverlist
 fi

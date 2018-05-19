@@ -13,22 +13,55 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-# by Jia
 
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && { usage; }
 
 user=ubuntu
-pemFile=$1
+pem_file=$1
+ip_len_valid=3
+testSSHTimeout=3
 
-arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
-length=${#arr[@]}
-echo "There are $length servers"
-for (( i=0 ; i<$length ; i++ ))
+if [ ! -f ${pem_file} ]; then
+    echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
+    exit -1;
+fi
+
+while read line
 do
-        host=${arr[i]}
-        echo -e "\n+++++++++++ ls: $host"
-        sleep 1 
-        ssh -i $pemFile $host 'ps aux | grep pdb-worker'
-        sleep 1
-        ssh -i $pemFile $host "cat $PDB_INSTALL/log.out"
-       
+    [[ $line == *#* ]] && continue # skips commented lines
+    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+done < $PDB_HOME/conf/serverlist
+
+length=${#arr[@]}
+echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
+for (( i=0 ; i<=$length ; i++ ))
+do
+   ip_addr=${arr[i]}
+   if [ ${#ip_addr} -gt "$ip_len_valid" ]
+   then
+      # checks that ssh to a node is possible, times out after 3 seconds
+      nc -zw$testSSHTimeout ${ip_addr} 22
+      if [ $? -eq 0 ]
+      then
+         echo -e "\n+++++++++++ ls: $ip_addr"
+         sleep 1
+         ssh -i $pem_file $ip_addr 'ps aux | grep pdb-worker'
+         sleep 1
+         ssh -i $pem_file $ip_addr "cat $PDB_INSTALL/log.out"
+      else
+         echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."            
+      fi
+   fi
 done
+

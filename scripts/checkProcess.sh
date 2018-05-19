@@ -13,6 +13,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1
+
+           param1: <process_name> (the name of the process to check)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && { usage; }
+
 processName=$1
 echo "checking if $processName is running"
 

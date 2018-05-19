@@ -1,11 +1,36 @@
 
 #!/usr/bin/env bash
 
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param2: <username> (username)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && [ -z $2 ] && { usage; }
+
 local_c_dir=$PDB_HOME/scripts/proc
 ip_len_valid=3
 pem_file=$1
 user=$2
 testSSHTimeout=3
+
+if [ -z ${pem_file} ];
+    then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
+    echo "Usage: scripts/proc/distribute.sh #pem_file #username";
+    exit -1;
+fi
+
+if [ -z ${user} ];
+    then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
+    echo "Usage: scripts/proc/distribute.sh #pem_file #username";
+    exit -1;
+fi
 
 echo "-------------step1: distribute the shell programs"
 while read line

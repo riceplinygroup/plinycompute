@@ -51,8 +51,6 @@ else
    PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
-
-
 while read line
 do
     [[ $line == *#* ]] && continue # skips commented lines

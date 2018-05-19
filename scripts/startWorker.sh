@@ -14,6 +14,21 @@
 #  limitations under the License.
 #  ========================================================================    
 
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1 param2 param3 param4
+
+           param1: <num_threads> (number of threads)
+           param2: <shared_memory> (amount of memory in Mbytes (e.g. 4096 = 4Gb)
+           param3: <manager_node_ip> (IP address of manager node)
+           param4: <worker_node_ip> (IP address of worker node)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && [ -z $2 ] && [ -z $3 ] && [ -z $4 ] && { usage; }
+
 numThreads=$1
 sharedMemSize=$2
 manager_ip=$3

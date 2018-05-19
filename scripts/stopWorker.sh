@@ -14,8 +14,5 @@
 #  limitations under the License.
 #  ========================================================================    
 
-
 pkill -9 pdb-worker
-pkill -9 test603
 pkill -9 pdb-manager
-pkill -9 test404
