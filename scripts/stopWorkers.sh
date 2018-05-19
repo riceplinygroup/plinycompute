@@ -29,6 +29,7 @@ pem_file=$1
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
+PDB_SSH_SLEEP=30
 testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
@@ -36,25 +37,26 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
-scripts/cleanupNode.sh
+pkill -9 pdb-manager
+
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
-  PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
+   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
 if [ -z ${pem_file} ];
 then
-  PDB_SSH_OPTS=$PDB_SSH_OPTS
+   PDB_SSH_OPTS=$PDB_SSH_OPTS
 else
-  PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
+   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
-echo $PDB_HOME/conf/serverlist
+
 
 while read line
 do
-   [[ $line == *#* ]] && continue # skips commented lines
-   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+    [[ $line == *#* ]] && continue # skips commented lines
+    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
@@ -69,15 +71,12 @@ do
       nc -zw$testSSHTimeout ${ip_addr} 22
       if [ $? -eq 0 ]
       then
-         echo -e "\n+++++++++++ install server: $ip_addr"
-         ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
-         scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
-         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
-         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+         echo -e "\n+++++++++++ stop server: $ip_addr"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/stopWorker.sh"
       else
-         echo "Cannot copy files to server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+         echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
       fi
    fi
 done
 
-
+echo "pdb-worker nodes have been stopped!"

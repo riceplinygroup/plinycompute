@@ -13,7 +13,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-pemFile=$1
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1 param2 param3 param4
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param2: <manager_node_ip> (IP address of manager node)
+           param3: <cluster_type> (either: 'standalone' or 'distributed')
+           param4: <num_threads> (number of threads)
+           param5: <shared_memory> (amount of memory in Mbytes (e.g. 4096 = 4Gb)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && [ -z $2 ] && [ -z $3 ] && { usage; }
+
+pem_file=$1
 managerIp=$2
 cluster_type=$3
 numThreads=$4
@@ -34,21 +50,21 @@ if [ "$PDB_SSH_OPTS" = "" ]; then
    PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
-if [ -z ${pemFile} ];
+if [ -z ${pem_file} ];
    then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
-   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #threadNum #sharedMemSize #clusterType";
+   echo "Usage: ./scripts/launchCluster.sh #pem_file #managerIp #threadNum #sharedMemSize #clusterType";
    exit -1;
 fi
 
 if [ -z ${managerIp} ];
    then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
-   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #clusterType #threadNum #sharedMemSize";
+   echo "Usage: ./scripts/launchCluster.sh #pem_file #managerIp #clusterType #threadNum #sharedMemSize";
    exit -1;
 fi
 
 if [ -z ${cluster_type} ];
    then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
-   echo "Usage: ./scripts/launchCluster.sh #pemFile #managerIp #clusterType #threadNum #sharedMemSize";
+   echo "Usage: ./scripts/launchCluster.sh #pem_file #managerIp #clusterType #threadNum #sharedMemSize";
    exit -1;
 fi
 
@@ -88,7 +104,7 @@ echo " Launching a manager node."
 echo "#####################################"
 
 # launches manager node
-$PDB_HOME/bin/pdb-manager localhost 8108 N $pemFile 1.5 &
+$PDB_HOME/bin/pdb-manager localhost 8108 N $pem_file 1.5 &
 
 sleep $PDB_SLEEP_TIME
 
@@ -123,9 +139,9 @@ do
      then
         echo -e "\n+++++++++++ starting worker node at IP address: $ip_addr"
         if [[ ${ip_addr} != *":"* ]];then
-           ssh -i $pemFile $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+           ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
            sleep $PDB_SSH_SLEEP
-           ssh -i $pemFile $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
+           ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
         else
            ./bin/pdb-worker $numThreads $sharedMem $managerIp $ip_addr &
            sleep $PDB_SSH_SLEEP

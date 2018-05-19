@@ -14,6 +14,29 @@
 #  limitations under the License.
 #  ========================================================================    
 
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1 param2
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param2: <cluster_type> (either 'distributed' or 'standalone')
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && [ -z $2 ] && { usage; }
+
+pem_file=$1
+user=ubuntu
+ip_len_valid=3
+pdb_dir=$PDB_INSTALL
+testSSHTimeout=3
+
+if [ ! -f ${pem_file} ]; then
+    echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
+    exit -1;
+fi
+
 pem_file=$1
 cluster_type=$2
 pdb_dir=$PDB_INSTALL
@@ -68,8 +91,8 @@ do
          nc -zw$testSSHTimeout ${only_ip} 22
       fi
       if [ $? -eq 0 ];then
-         if [[ ${ip_addr} != *":"* ]];then
             echo -e "\n+++++++++++ cleanup server: $ip_addr"
+         if [[ ${ip_addr} != *":"* ]];then
             ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
          else
             ./scripts/cleanupNode.sh

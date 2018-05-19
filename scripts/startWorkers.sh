@@ -15,20 +15,27 @@
 #  ========================================================================    
 usage() {
     cat <<EOM
-    Usage: scripts/$(basename $0) param1
+    Usage: scripts/$(basename $0) param1 param2 param3 param4
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param2: <manager_node_ip> (IP address of manager node)
+           param3: <num_threads> (number of threads)
+           param4: <shared_memory> (amount of memory in Mbytes (e.g. 4096 = 4Gb)
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && { usage; }
 
 pem_file=$1
+managerIp=$2
+numThreads=$3
+sharedMem=$4
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
+PDB_SSH_SLEEP=10
 testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
@@ -36,25 +43,35 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
-scripts/cleanupNode.sh
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
 if [ -z ${pem_file} ];
-then
-  PDB_SSH_OPTS=$PDB_SSH_OPTS
-else
-  PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
+    then echo "ERROR: please provide at least two parameters: one is your the path to your pem file and the other is the manager IP";
+    echo "Usage: scripts/startWorkers.sh #pem_file #managerIp #threadNum #sharedMemSize";
+    exit -1;
 fi
 
-echo $PDB_HOME/conf/serverlist
+if [ -z ${managerIp} ];
+    then echo "ERROR: please provide at least two parameters: one is the path to your pem file and the other is the manager IP";
+    echo "Usage: scripts/startWorkers.sh #pem_file #managerIp #threadNum #sharedMemSize";
+    exit -1;
+fi
+
+if [ -z ${numThreads} ];
+     then numThreads=4;
+fi
+
+if [ -z ${sharedMem} ];
+     then sharedMem=4096;
+fi
 
 while read line
 do
-   [[ $line == *#* ]] && continue # skips commented lines
-   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+    [[ $line == *#* ]] && continue # skips commented lines
+    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
@@ -69,15 +86,14 @@ do
       nc -zw$testSSHTimeout ${ip_addr} 22
       if [ $? -eq 0 ]
       then
-         echo -e "\n+++++++++++ install server: $ip_addr"
-         ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
-         scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
-         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
-         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+          echo -e "\n+++++++++++ start server: $ip_addr"
+          ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+          sleep $PDB_SSH_SLEEP
+          ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
       else
-         echo "Cannot copy files to server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+          echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."            
       fi
    fi
 done
 
-
+echo "pdb-worker nodes have been launched!"
