@@ -64,12 +64,12 @@ test_name = args["test_name"]
 print(" -----------------------------------------------------")
 print(" Running PlinyCompute tests with the following values:")
 print(" -----------------------------------------------------")
-print("  thread num: " + thread_num)
-print(" shared _mem: " + shared_memory_size)
-print("  test suite: " + test_suite)
-print("cluster type: " + cluster_type)
-print("    pem file: " + pem_file)
-print("  manager ip: " + manager_ip)
+print("  num of threads: " + thread_num)
+print(" shared mem size: " + shared_memory_size)
+print("      test suite: " + test_suite)
+print("    cluster type: " + cluster_type)
+print("        pem file: " + pem_file)
+print("      manager ip: " + manager_ip + "\n")
 
 num_total = 0
 num_errors = 0
@@ -105,6 +105,11 @@ def list_of_tests(test_list_name):
 def start_pseudo_cluster():
     try:
         print(BColor.OK_BLUE + "starts a pdb-manager process" + BColor.END_C)
+
+        if (os.path.isfile('bin/pdb-manager') == False):
+           print(BColor.FAIL + "PlinyCompute manager executable 'bin/pdb-manager' does not exist." + BColor.END_C)           
+           sys.exit()
+
         serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
         print(BColor.OK_BLUE + "waiting 9 seconds for pdb-manager to be launched..." + BColor.END_C)
         time.sleep(9)
@@ -112,9 +117,13 @@ def start_pseudo_cluster():
         with open('conf/serverlist.test') as f:
             for each_line in f:
                 if "#" not in each_line.strip() and len(each_line.strip()) >0:
-                    print(BColor.OK_BLUE + "starts a pdb-worker node at " + each_line + "as " + str(
-                        num) + "-th worker" + BColor.END_C)
                     num = num + 1
+                    print(BColor.OK_BLUE + "starts a pdb-worker node at " + each_line + "as worker no. " + str(
+                        num) + BColor.END_C + ".")
+                    if (os.path.isfile('bin/pdb-worker') == False):
+                        print(BColor.FAIL + "PlinyCompute worker executable 'bin/pdb-worker' does not exist." + BColor.END_C)
+                        sys.exit()
+
                     serverProcess = subprocess.Popen(
                         ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
                     print(BColor.OK_BLUE + "waiting 9 seconds for pdb-worker to be launched..." + BColor.END_C)
@@ -129,7 +138,7 @@ def start_pseudo_cluster():
 
 def run_tests(test_list):
     print("###############################################")
-    print("REQUIRE 8192 MB MEMORY TO RUN TEST SUITES")
+    print("REQUIRES 8192 MB MEMORY TO RUN TEST SUITES")
     print("###############################################")
 
     print("#################################")
@@ -137,7 +146,7 @@ def run_tests(test_list):
     print("#################################")
     global num_total
     global cluster_type
-    print "Cluster for running tests is set to:" + cluster_type
+    print "Cluster for running these tests is set to: " + cluster_type
 
     if test_suite != "tpch":
         if (cluster_type=="standalone"):
@@ -147,7 +156,7 @@ def run_tests(test_list):
             print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
             subprocess.call(['bash', './scripts/cleanup.sh', pem_file , cluster_type])
 
-        print("waiting for 5 seconds for server to be fully cleaned up...")
+        print("waiting 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
         # set the total number of tests
         num_total = len(test_list.items())
@@ -284,7 +293,7 @@ tests_la = {
 
 # Machine learning tests
 tests_ml = {
-#    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
+    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
     "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
     "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001',
                                    'applications/TestKMeans/kmeans_data'])

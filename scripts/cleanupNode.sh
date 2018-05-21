@@ -27,7 +27,7 @@ EOM
    exit -1;
 }
 
-[ -z $1 ] && { usage; }
+[ $# -ne 0 ] && { usage; }
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
