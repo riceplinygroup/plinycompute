@@ -14,6 +14,21 @@
 #  limitations under the License.
 #  ========================================================================    
 
+set -o errexit
+
+usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
+    cat <<EOM
+
+    Description: This script deletes all PlinyCompute storage and catalog metadata in one machine.
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && { usage; }
+
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
     rm -rf /var/tmp/*.so

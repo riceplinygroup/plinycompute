@@ -14,5 +14,18 @@
 #  limitations under the License.
 #  ========================================================================    
 
+usage() {
+    cat <<EOM
+
+    Description: This script stops the pdb-manager and pdb-worker processes.
+
+    Usage: scripts/$(basename $0)
+
+EOM
+   exit -1;
+}
+
+[ $# -eq 1 ] && { usage; }
+
 pkill -9 pdb-worker
 pkill -9 pdb-manager

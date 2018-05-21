@@ -13,9 +13,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+set -o errexit 
 
 usage() {
+    echo ""    
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
+
     cat <<EOM
+
+    Description: This script deletes all PlinyCompute storage, catalog metadata, and kills
+    both pdb-manager and pdb-worker processes in one machine if cluster-type=standalone or
+    the entire cluster if cluster_type=distributed.
+
     Usage: scripts/$(basename $0) param1 param2
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)

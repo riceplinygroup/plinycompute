@@ -13,9 +13,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+
 usage() {
     cat <<EOM
-    Usage: scripts/$(basename $0) param1 param2 param3 param4
+
+    Description: This script launches a cluster of PlinyCompute, including the
+    manager node and all worker nodes (defined in conf/serverlist).
+
+    Usage: scripts/$(basename $0) param1 param2 param3 param4 param5
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)
            param2: <manager_node_ip> (IP address of manager node)
@@ -93,6 +98,16 @@ do
    [[ $line == *#* ]] && continue # skips commented lines
    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/$conf_file
+
+if [ $? -ne 0 ]
+then
+   echo -e "Either ""\033[33;31m""conf/serverlist""\e[0m" or "\033[33;31m""conf/serverlist.test""\e[0m"" files were not found."
+   echo -e "If running in standalone mode, make sure ""\033[33;31m""conf/serverlist.test""\e[0m"" exists."
+   echo -e "If running in distributed mode, make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "with the IP addresses of the worker nodes."
+   exit -1
+fi
+
 echo ${arr}
 
 length=${#arr[@]}
@@ -140,10 +155,6 @@ do
         echo -e "\n+++++++++++ starting worker node at IP address: $ip_addr"
         if [[ ${ip_addr} != *":"* ]];then
            ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
-           if [ $? -ne 0 ]; then
-              echo "Error $?" 
-              exit $?
-           fi
            sleep $PDB_SSH_SLEEP
            ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
         else
@@ -166,7 +177,7 @@ done
 
 if [ $workersOk -eq 0 ]
 then
-   echo "PlinyCompute cluster failed to start, because $workersFailed worker nodes failed to launch!"
+   echo -e "\033[33;31m""PlinyCompute cluster failed to start, because $workersFailed worker nodes failed to launch!""\033[33;31m"
 else
    echo "PlinyCompute cluster has been successfuly started with $workersOk worker nodes!"
    if [ $workersFailed -gt 0 ]

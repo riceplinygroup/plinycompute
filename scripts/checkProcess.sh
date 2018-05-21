@@ -16,6 +16,9 @@
 
 usage() {
     cat <<EOM
+
+    This script checks whether or not a process is running.
+
     Usage: scripts/$(basename $0) param1
 
            param1: <process_name> (the name of the process to check)

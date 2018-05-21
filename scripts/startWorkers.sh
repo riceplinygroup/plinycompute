@@ -13,7 +13,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+
 usage() {
+    cat <<EOM
+
+    Description: This script launches a cluster of PlinyCompute worker nodes
+    whose IP addresses are defined in the conf/serverlist file.
+
     cat <<EOM
     Usage: scripts/$(basename $0) param1 param2 param3 param4
 

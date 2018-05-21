@@ -16,6 +16,9 @@
 
 usage() {
     cat <<EOM
+
+    Description: This script launches a PlinyCompute worker node.
+
     Usage: scripts/$(basename $0) param1 param2 param3 param4
 
            param1: <num_threads> (number of threads)

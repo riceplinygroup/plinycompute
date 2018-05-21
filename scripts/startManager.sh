@@ -13,8 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+
 usage() {
     cat <<EOM
+
+    Description: This script launches a PlinyCompute manager node.
+
     Usage: scripts/$(basename $0) param1
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)
@@ -26,7 +30,7 @@ EOM
 [ -z $1 ] && { usage; }
 
 pem_file=$1
-PDB_SLEEP_TIME=40
+PDB_SLEEP_TIME=10
 
 if [ ! -f ${pem_file} ]; then
     echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
@@ -39,7 +43,8 @@ pkill -9  pdb-worker
 $PDB_HOME/bin/pdb-manager localhost 8108 N $pem_file 1.5 &
 
 echo "#####################################"
-echo "To sleep for 100 seconds in total for all ssh to return"
+echo "To sleep for 100 seconds in total for"
+echo "all ssh connections to return"
 echo "#####################################"
 
 sleep $PDB_SLEEP_TIME
@@ -48,10 +53,10 @@ for x in {1..10};
 do
    if pgrep -x "pdb-manager" > /dev/null
    then
-       echo "manager is started!"
+       echo "PlinyCompute manager node successfully started!"
        exit 0
    fi
    sleep 10
 done
 
-echo "manager hasn't started! It could be that ssh takes too long time. Please retry!"
+echo -e "\033[33;31m""PlinyCompute manager node didn't started! It could be that ssh takes too long. Please retry!""\033[33;31m"

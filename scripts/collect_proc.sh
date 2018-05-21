@@ -14,6 +14,22 @@
 #  limitations under the License.
 #  ========================================================================    
 
+set -o errexit
+
+usage() {
+    cat <<EOM
+
+    Description: This script collects CPU and memory information about the machines in a cluster
+    of PlinyCompute.
+
+    Usage: scripts/$(basename $0) param1 param2
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && { usage; }
 
 PEM_FILE=$1
 USERNAME=ubuntu

@@ -13,8 +13,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+
+set -o errexit
+
+pem_file=$1
+user=ubuntu
+ip_len_valid=3
+pdb_dir=$PDB_INSTALL
+testSSHTimeout=3
+
 usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script deletes PlinyCompute stored data in remote""
+    echo -e "    "machines in a cluster, use with care!"\e[0m"
+    echo ""
+
     cat <<EOM
+
+    Description: This script installs a distributed instance of PlinyCompute by copying
+    executables and scripts to the nodes in a cluster. It first cleans the contents of 
+    an installation of PlinyCompute in folder '$pdb_dir' (if exists).
+
     Usage: scripts/$(basename $0) param1
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)
@@ -24,12 +43,6 @@ EOM
 }
 
 [ -z $1 ] && { usage; }
-
-pem_file=$1
-user=ubuntu
-ip_len_valid=3
-pdb_dir=$PDB_INSTALL
-testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
     echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
