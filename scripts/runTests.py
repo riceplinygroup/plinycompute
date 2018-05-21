@@ -190,9 +190,13 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
-        if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionPartitionData" and test_suite != "tpch":
-            # do the cleanup except when running tpchRegisterAndCreateSets, Pre-partitionPartitionData or tpch
-            # because they need data generated in previous tests
+        # stops cluster but keeps stored data for the following test and test_suite
+        if id == "Pre-partitionPartitionData" or test_suite == "tpch":
+        #if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionPartitionData" and test_suite != "tpch":
+            print (BColor.OK_BLUE + "Stoping cluster but keeps stored data and catalog metadata." + BColor.END_C)
+            subprocess.call(['bash', './scripts/stopWorkers.sh', pem_file])            
+        else:
+            # ... but stops cluster and removes data for the rest of the tests that need a en empty environment
             if cluster_type == "distributed":
                 print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
@@ -280,7 +284,7 @@ tests_la = {
 
 # Machine learning tests
 tests_ml = {
-    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
+#    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
     "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
     "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001',
                                    'applications/TestKMeans/kmeans_data'])

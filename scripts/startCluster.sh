@@ -140,6 +140,10 @@ do
         echo -e "\n+++++++++++ starting worker node at IP address: $ip_addr"
         if [[ ${ip_addr} != *":"* ]];then
            ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+           if [ $? -ne 0 ]; then
+              echo "Error $?" 
+              exit $?
+           fi
            sleep $PDB_SSH_SLEEP
            ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
         else

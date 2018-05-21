@@ -37,6 +37,7 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
+pkill -9 pdb-worker
 pkill -9 pdb-manager
 
 # By default disable strict host key checking
