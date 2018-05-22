@@ -135,8 +135,8 @@ def start_pseudo_cluster():
         print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
-
-def run_tests(test_list):
+# runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
+def run_tests(test_list, clear_data):
     print("###############################################")
     print("REQUIRES 8192 MB MEMORY TO RUN TEST SUITES")
     print("###############################################")
@@ -148,7 +148,7 @@ def run_tests(test_list):
     global cluster_type
     print "Cluster for running these tests is set to: " + cluster_type
 
-    if test_suite != "tpch":
+    if clear_data == True:
         if (cluster_type=="standalone"):
             subprocess.call(['bash', './scripts/cleanupNode.sh'])
             print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
@@ -159,9 +159,8 @@ def run_tests(test_list):
         print("waiting 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
         # set the total number of tests
-        num_total = len(test_list.items())
-    else:
-        num_total = num_total + len(test_list.items())
+
+    num_total = num_total + len(test_list.items())
 
     time.sleep(5)
 
@@ -199,13 +198,13 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
-        # stops cluster but keeps stored data for the following test and test_suite
-        if id == "Pre-partitionPartitionData" or test_suite == "tpch":
-        #if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionPartitionData" and test_suite != "tpch":
+        # stops cluster but keeps stored data for the following tests because they depend on
+        # previously generated data
+        if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
             print (BColor.OK_BLUE + "Stoping cluster but keeps stored data and catalog metadata." + BColor.END_C)
-            subprocess.call(['bash', './scripts/stopWorkers.sh', pem_file])            
+            subprocess.call(['bash', './scripts/stopWorker.sh', pem_file])            
         else:
-            # ... but stops cluster and removes data for the rest of the tests that need a en empty environment
+            # for the rest of the tests, removes data and stops cluster because they need an empty environment
             if cluster_type == "distributed":
                 print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
@@ -293,18 +292,18 @@ tests_la = {
 
 # Machine learning tests
 tests_ml = {
-    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
+#    "TestLDA": ("LDA TEST ON G-2 PIPELINE", ['bin/TestLDA', 'localhost', '3', '100', '10', 'Y', 'N', '100']),
     "TestGmmLazy": ("TEST GMM LAZY", ['bin/TestGmmLazy', 'Y', 'Y', '10', 'localhost', 'Y', 'Y', '5', '3', '1000', '2']),
     "TestKMeans": ("TEST KMEANS", ['bin/TestKMeans', 'Y', 'Y', 'localhost', 'Y', '3', '3', '0.00001',
                                    'applications/TestKMeans/kmeans_data'])
 }
 
-# TPCH test (generates storage and register shared libraries)
+# TPCH test (generates storage and registers shared libraries)
 test_tpch_main = {
     "tpchRegisterAndCreateSets": ("TEST TPCH REGISTER AND CREATE SETS", ['bin/tpchRegisterAndCreateSets'])
 }
 
-# TPCH benchmark tests (to be run after "test_tpch_main"
+# TPCH benchmark tests (to be run after "test_tpch_main")
 tests_tpch = {
     "tpchDataGenerator": ("TEST TPCH DATA GENERATOR NEW", ['bin/tpchDataGenerator', '0.1', '2']),
     "tpchGetCustomerCount": ("TEST TPCH GET CUSTOMER COUNT", ['bin/tpchGetCustomerCount']),
@@ -322,19 +321,19 @@ if args["test_suite"] is not None and args["test_name"] is not None:
 elif args["test_suite"] is not None and args["test_suite"] != "all":
     # runs all tests from a given test_suite
     if test_suite == "tpch":
-        run_tests(test_tpch_main)
-        run_tests(list_of_tests(test_suite))
+        run_tests(test_tpch_main, True)
+        run_tests(list_of_tests(test_suite), False)
     else:
-        run_tests(list_of_tests(test_suite))
+        run_tests(list_of_tests(test_suite), True)
 
 # if test_suite is set to "all" it runs all test suites
 elif args["test_suite"] == "all":
     # run all the test suites
-    run_tests(tests_int)       # integration tests
-    run_tests(tests_la)        # linear algebra tests
-    run_tests(test_tpch_main)  # tpch generate data test
-    run_tests(tests_tpch)      # tpch query tests
-    run_tests(tests_ml)        # machine learning tests
+    run_tests(tests_int, True)       # integration tests
+    run_tests(tests_la, True)        # linear algebra tests
+    run_tests(test_tpch_main, True)  # tpch generate data test
+    run_tests(tests_tpch, False)      # tpch query tests
+    run_tests(tests_ml, True)        # machine learning tests
 
 # if neither test_suite nor test_name were provided as args
 else:
