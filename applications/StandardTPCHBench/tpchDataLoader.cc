@@ -406,6 +406,10 @@ void loadData(PDBClient & pdbClient, std::string fileName, std::string dataType)
     bool end = false;
     int numObjects = 0;
     infile.open(fileName.c_str());
+    if (infile.good() == false) {
+        cout << "file: " << fileName.c_str() << ", can't be open! "  << endl;
+        exit(-1);
+    }
 
     //different types
     Handle<Vector<Handle<TPCHCustomer>>> customers = nullptr; 

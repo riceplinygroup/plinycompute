@@ -22,17 +22,22 @@ usage() {
 
     Usage: scripts/$(basename $0) param1 param2 param3 param4 param5
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <manager_node_ip> (IP address of manager node)
-           param3: <cluster_type> (either: 'standalone' or 'distributed')
-           param4: <num_threads> (number of threads)
-           param5: <shared_memory> (amount of memory in Mbytes (e.g. 4096 = 4Gb)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in the cluster; the default is conf/pdb-key.pem
+           param2: <manager_node_ip> 
+                      Specify the public IP address of the manager node in a cluster; the default is localhost
+           param3: <cluster_type>
+                      Specify the type of cluster; {'standalone', 'distributed'}
+           param4: <num_threads>
+                      Specify the number of threads; default 4
+           param5: <shared_memory>
+                      Specify the amount of shared memory in Mbytes; default is 4096
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && [ -z $3 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && [ -z $3 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 pem_file=$1
 managerIp=$2
