@@ -3,7 +3,7 @@
 
 usage() {
    
-    echo -e "    Description: This script copies scripts needed for collecting
+    echo -e "    Description: This script copies scripts needed for collecting"
     echo -e "    information about CPUs and memory of the machines in a cluster."
 
     cat <<EOM

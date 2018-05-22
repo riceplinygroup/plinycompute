@@ -100,7 +100,7 @@ def list_of_tests(test_list_name):
         print "Use one test suite from the following list: ml, tpch, la, int"
         sys.exit()
 
-# Launche a pseudo cluster for testing, simulating worker nodes as 
+# Launches a pseudo cluster for testing, simulating worker nodes as 
 # processes listening on different ports 
 def start_pseudo_cluster():
     try:
