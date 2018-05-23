@@ -1,6 +1,4 @@
-statisticsDB
-conf/cluster/cluster_info.txt
-conf/*.pem
+.cproject
 .idea
 cmake-build-debug
 CMakeFiles
@@ -19,7 +17,6 @@ bin/*
 type-id-data
 libraries/*
 tables_scale_0.2
-tables_scale_0.1
 pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h
 pdb/src/objectModel/headers/BuiltinPDBObjects.cc
 pdb/src/objectModel/headers/BuiltinPDBObjects.h
