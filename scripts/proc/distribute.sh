@@ -10,14 +10,17 @@ usage() {
 
     Usage: scripts/$(basename $0) param1
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <username> (username)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster; the default is conf/pdb-key.pem
+           param2: <user_name>
+                      Specify the username to ssh into worker nodes.
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 local_c_dir=$PDB_HOME/scripts/proc
 ip_len_valid=3
@@ -37,6 +40,10 @@ if [ -z ${user} ];
     exit -1;
 fi
 
+if [ ! -f ${pem_file} ]; then
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+    exit -1;
+fi
 
 echo "-------------step1: distribute the shell programs"
 

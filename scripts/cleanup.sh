@@ -21,19 +21,23 @@ usage() {
 
     cat <<EOM
 
-    Description: This script deletes all PlinyCompute storage, catalog metadata, and kills
-    both pdb-manager and pdb-worker processes in one machine if cluster-type=standalone or
-    the entire cluster if cluster_type=distributed.
+    Description: This script deletes all PlinyCompute storage, catalog metadata,
+    and kills both pdb-manager and pdb-worker processes in one machine if 
+    cluster-type=standalone or the entire cluster if cluster_type=distributed.
 
     Usage: scripts/$(basename $0) param1 param2
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <cluster_type> (either 'distributed' or 'standalone')
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in 
+                      the cluster; the default is conf/pdb-key.pem
+           param2: <cluster_type>
+                      Specify the type of cluster; {'standalone', 'distributed'}
+
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 pem_file=$1
 cluster_type=$2
@@ -43,7 +47,7 @@ pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
-    echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
     exit -1;
 fi
 

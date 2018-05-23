@@ -21,13 +21,15 @@ usage() {
     echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
     cat <<EOM
 
-    Description: This script deletes all PlinyCompute storage and catalog metadata in one machine.
+    Description: This script deletes all PlinyCompute storage, catalog metadata,
+    and kills both pdb-manager and pdb-worker processes in the machine where it
+    is executed.
 
 EOM
    exit -1;
 }
 
-[ $# -ne 0 ] && { usage; }
+[ $# -ne 0 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then

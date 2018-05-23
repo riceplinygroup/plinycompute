@@ -30,22 +30,25 @@ usage() {
 
     cat <<EOM
 
-    Description: This script installs a distributed instance of PlinyCompute by copying
-    executables and scripts to the nodes in a cluster. It first cleans the contents of 
-    an installation of PlinyCompute in folder '$pdb_dir' (if exists).
+    Description: This script installs a distributed instance of PlinyCompute by
+    copying the required executables and scripts to the nodes in a cluster. It 
+    first cleans the contents of an installation of PlinyCompute in folder 
+    '$pdb_dir' (if it exists).
 
     Usage: scripts/$(basename $0) param1
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster; the default is conf/pdb-key.pem
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && { usage; }
+[ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 if [ ! -f ${pem_file} ]; then
-    echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
     exit -1;
 fi
 

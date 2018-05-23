@@ -15,19 +15,25 @@
 #  ========================================================================    
 
 usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script replaces executables and scripts in remote""
+    echo -e "    "machines in a PlinyCompute cluster, use with care!"\e[0m"
+    echo ""
     cat <<EOM
 
     Description: This script updates executables and scripts on worker nodes.
 
     Usage: scripts/$(basename $0) param1
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster; the default is conf/pdb-key.pem
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && { usage; }
+[ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 pem_file=$1
 user=ubuntu
@@ -36,7 +42,7 @@ pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
-    echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
     exit -1;
 fi
 

@@ -23,15 +23,18 @@ usage() {
     Usage: scripts/$(basename $0) param1 param2 param3 param4 param5
 
            param1: <pem_file>
-                      Specify the private key to connect to other machines in the cluster; the default is conf/pdb-key.pem
+                      Specify the private key to connect to other machines in 
+                      the cluster; the default is conf/pdb-key.pem
            param2: <manager_node_ip> 
-                      Specify the public IP address of the manager node in a cluster; the default is localhost
+                      Specify the public IP address of the manager node in a 
+                      cluster; the default is localhost
            param3: <cluster_type>
                       Specify the type of cluster; {'standalone', 'distributed'}
            param4: <num_threads>
                       Specify the number of threads; default 4
            param5: <shared_memory>
-                      Specify the amount of shared memory in Mbytes; default is 4096
+                      Specify the amount of shared memory in Mbytes; default 
+                      is 4096
 
 EOM
    exit -1;
@@ -80,6 +83,11 @@ fi
 
 if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
    then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";   
+fi
+
+if [ ! -f ${pem_file} ]; then
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+    exit -1;
 fi
     
 if [ -z ${numThreads} ];

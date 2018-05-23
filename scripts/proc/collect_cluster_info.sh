@@ -8,19 +8,27 @@ usage() {
     cat <<EOM
     Usage: scripts/$(basename $0) param1 param2
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <user> (username)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster; the default is conf/pdb-key.pem
+           param2: <user_name>
+                      Specify the username to ssh into worker nodes.
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 ip_len_valid=3
 pem_file=$1
-user=$2
+user_name=$2
 testSSHTimeout=3
+
+if [ ! -f ${pem_file} ]; then
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+    exit -1;
+fi
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
@@ -28,7 +36,7 @@ if [ -z ${pem_file} ];
     exit -1;
 fi
 
-if [ -z ${user} ];
+if [ -z ${user_name} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
     echo "Usage: scripts/proc/collect_cluster_info.sh #pem_file #username";
     exit -1;
@@ -63,7 +71,7 @@ do
       if [ $? -eq 0 ]
       then
         echo -e "\n+++++++++++ collect system info for server: $ip_addr"
-        ssh -i $pem_file $user@$ip_addr '~/pdb_temp/local_sys_collect.sh'
+        ssh -i $pem_file $user_name@$ip_addr '~/pdb_temp/local_sys_collect.sh'
       else
          echo "Cannot collect system info for server with IP address: ${ip_addr} on port 22, times out after $testSSHTimeout seconds."
       fi

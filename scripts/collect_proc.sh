@@ -19,20 +19,29 @@ set -o errexit
 usage() {
     cat <<EOM
 
-    Description: This script collects CPU and memory information about the machines in a cluster
-    of PlinyCompute.
+    Description: This script collects CPU and memory information of the 
+    machines in a cluster of PlinyCompute.
 
-    Usage: scripts/$(basename $0) param1 param2
+    Usage: scripts/$(basename $0) param1
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in 
+                      the cluster; the default is conf/pdb-key.pem
+
 EOM
    exit -1;
 }
 
-[ -z $1 ] && { usage; }
+[ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
-PEM_FILE=$1
+
+pem_file=$1
 USERNAME=ubuntu
+
+if [ ! -f ${pem_file} ]; then
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+    exit -1;
+fi
 
 #remember to set environment variable: PDB_HOME first
 if [ -z ${PDB_HOME} ]; 
@@ -43,22 +52,16 @@ fi
 
 # remember to provide your pem file as parameter
 # if no pem file is provided, uses conf/pdb-key.pem as default
-if [ -z ${PEM_FILE} ];
-    then PEM_FILE=$PDB_HOME/conf/pdb-key.pem;
+if [ -z ${pem_file} ];
+    then pem_file=$PDB_HOME/conf/pdb-key.pem;
     chmod -R 600 $PDB_HOME/conf/pdb-key.pem
 else
-    echo "Your pem file is: '$PEM_FILE'";
-    chmod -R 600 $PEM_FILE
-fi
-
-# if pem_file doesn't exist, exit!
-if [ ! -f ${PEM_FILE} ]; then
-    echo "Pem file '$PEM_FILE' not found, make sure the path and file name are correct!"
-    exit -1;
+    echo "Your pem file is: '$pem_file'";
+    chmod -R 600 $pem_file
 fi
 
 if [ ! -d "$PDB_HOME/conf" ]
-         then mkdir $PDB_HOME/conf
+    then mkdir $PDB_HOME/conf
 fi
 
 if [ ! -f "$PDB_HOME/conf/serverlist" ]
@@ -66,10 +69,10 @@ if [ ! -f "$PDB_HOME/conf/serverlist" ]
 fi
 
 #distribute the collection scripts
-$PDB_HOME/scripts/proc/distribute.sh $PEM_FILE $USERNAME
+$PDB_HOME/scripts/proc/distribute.sh $pem_file $USERNAME
 
 #collect the information of the distributed cluster
-$PDB_HOME/scripts/proc/collect.sh $PEM_FILE $USERNAME
+$PDB_HOME/scripts/proc/collect.sh $pem_file $USERNAME
 
 #cleanup the collection scripts
-$PDB_HOME/scripts/proc/cleanupLocal.sh $PEM_FILE $USERNAME
+$PDB_HOME/scripts/proc/cleanupLocal.sh $pem_file $USERNAME

@@ -27,7 +27,7 @@ EOM
    exit -1;
 }
 
-[ -z $1 ] && { usage; }
+[ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 processName=$1
 echo "checking if $processName is running"

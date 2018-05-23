@@ -20,19 +20,25 @@ usage() {
     Description: This script launches a cluster of PlinyCompute worker nodes
     whose IP addresses are defined in the conf/serverlist file.
 
-    cat <<EOM
     Usage: scripts/$(basename $0) param1 param2 param3 param4
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <manager_node_ip> (IP address of manager node)
-           param3: <num_threads> (number of threads)
-           param4: <shared_memory> (amount of memory in Mbytes (e.g. 4096 = 4Gb)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster; the default is conf/pdb-key.pem
+           param2: <manager_node_ip>
+                      Specify the public IP address of the manager node in a
+                      cluster.
+           param3: <num_threads>
+                      Specify the number of threads; default 4
+           param4: <shared_memory>
+                      Specify the amount of shared memory in Mbytes; default
+                      is 4096
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 pem_file=$1
 managerIp=$2
@@ -45,7 +51,7 @@ PDB_SSH_SLEEP=10
 testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
-    echo "Pem file '$pem_file' not found, make sure the path and file name are correct!"
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
     exit -1;
 fi
 

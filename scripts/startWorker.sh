@@ -17,20 +17,27 @@
 usage() {
     cat <<EOM
 
-    Description: This script launches a PlinyCompute worker node.
+    Description: This script launches a PlinyCompute worker node in the machine
+    where it is executed.
 
     Usage: scripts/$(basename $0) param1 param2 param3 param4
 
-           param1: <num_threads> (number of threads)
-           param2: <shared_memory> (amount of memory in Mbytes (e.g. 4096 = 4Gb)
-           param3: <manager_node_ip> (IP address of manager node)
-           param4: <worker_node_ip> (IP address of worker node)
+           param1: <num_threads>
+                      Specify the number of threads; default 4
+           param2: <shared_memory>
+                      Specify the amount of shared memory in Mbytes; default
+                      is 4096
+           param3: <manager_node_ip>
+                      Specify the public IP address of the manager node in a
+                      cluster.
+           param4: <worker_node_ip>
+                      Specify the public IP address of this worker node.
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && [ -z $3 ] && [ -z $4 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && [ -z $3 ] && [ -z $4 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 numThreads=$1
 sharedMemSize=$2

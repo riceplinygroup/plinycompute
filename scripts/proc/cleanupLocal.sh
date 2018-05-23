@@ -9,19 +9,27 @@ usage() {
 
     Usage: scripts/$(basename $0) param1 param2
 
-           param1: <pem_file> (e.g. conf/pdb-key.pem)
-           param2: <user_name> (username to ssh to worker nodes)
+           param1: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster; the default is conf/pdb-key.pem
+           param2: <user_name>
+                      Specify the username to ssh into worker nodes.
 
 EOM
    exit -1;
 }
 
-[ -z $1 ] && [ -z $2 ] && { usage; }
+[ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 pem_file=$1
 user=$2
 testSSHTimeout=3
 ip_len_valid=3
+
+if [ ! -f ${pem_file} ]; then
+    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+    exit -1;
+fi
 
 echo "-------------step2: clean PDB temp directory"
 
