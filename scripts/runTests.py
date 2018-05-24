@@ -22,7 +22,7 @@ import argparse
 
 # parses the command line arguments
 parser = argparse.ArgumentParser(description='Script for running different PlinyCompute test suites.')
-parser.add_argument('--cluster-type', choices=['standalone','distributed'], type=str, 
+parser.add_argument('--cluster-type', choices=['standalone','distributed'], type=str,
                     default="standalone", help='type of cluster to be used (default: standalone)')
 parser.add_argument('--test-suite', choices=['ml','la','tpch','int','all'], type=str, 
                      default="ml", help='test suite to run (default: ml)')  
