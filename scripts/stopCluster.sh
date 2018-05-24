@@ -16,12 +16,13 @@
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script replaces executables and scripts in remote""
-    echo -e "    "machines in a PlinyCompute cluster, use with care!"\e[0m"
+    echo -e "\033[33;31m""    "Warning: This script stops a cluster of PlinyCompute,""
+    echo -e "    "use with care!"\e[0m"
     echo ""
     cat <<EOM
 
-    Description: This script updates executables and scripts on worker nodes.
+    Description: This script stops a cluster of PlinyCompute, including the
+    manager node and all worker nodes (defined in conf/serverlist).
 
     Usage: scripts/$(basename $0) param1
 
@@ -39,6 +40,7 @@ pem_file=$1
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
+PDB_SSH_SLEEP=30
 testSSHTimeout=3
 
 if [ ! -f ${pem_file} ]; then
@@ -46,34 +48,41 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
-echo "To strip shared libraries, this may take some time..."
-strip libraries/*.so
-echo "stripped all shared libraries!"
+pkill -9 pdb-worker
+pkill -9 pdb-manager
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
-  PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
+   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
 if [ -z ${pem_file} ];
 then
-  PDB_SSH_OPTS=$PDB_SSH_OPTS
+   PDB_SSH_OPTS=$PDB_SSH_OPTS
 else
-  PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
+   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
-echo "Reading cluster IP addresses from file: $PDB_HOME/conf/serverlist"
+# parses conf/serverlist file
+if [ "$cluster_type" = "standalone" ];then
+   conf_file="conf/serverlist.test"
+else
+   conf_file="conf/serverlist"
+fi
+
+echo "Reading cluster IP addresses from file: $conf_file"
 while read line
 do
-   [[ $line == *#* ]] && continue # skips commented lines
-   [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
+    [[ $line == *#* ]] && continue # skips commented lines
+    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/conf/serverlist
 
 if [ $? -ne 0 ]
 then
-   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
-   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
-   echo -e "and contains the IP addresses of the worker nodes."
+   echo -e "Either ""\033[33;31m""conf/serverlist""\e[0m" or "\033[33;31m""conf/serverlist.test""\e[0m"" files were not found."
+   echo -e "If running in standalone mode, make sure ""\033[33;31m""conf/serverlist.test""\e[0m"" exists."
+   echo -e "If running in distributed mode, make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "with the IP addresses of the worker nodes."
    exit -1
 fi
 
@@ -89,12 +98,12 @@ do
       nc -zw$testSSHTimeout ${ip_addr} 22
       if [ $? -eq 0 ]
       then
-         echo -e "\n+++++++++++ install server: $ip_addr"
-         ssh $PDB_SSH_OPTS $user@$ip_addr "rm $pdb_dir/log.out; rm $pdb_dir/logs/*"
-         scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
-         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
+         echo -e "\n+++++++++++ stop server: $ip_addr"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/stopWorker.sh"
+      else
+         echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
       fi
    fi
 done
 
-
+echo "pdb-worker nodes have been stopped!"

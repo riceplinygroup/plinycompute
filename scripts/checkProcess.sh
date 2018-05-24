@@ -13,24 +13,36 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
+
+usage() {
+    cat <<EOM
+
+    This script checks whether or not a process is running.
+
+    Usage: scripts/$(basename $0) param1
+
+           param1: <process_name> (the name of the process to check)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
+
 processName=$1
-echo "to check $processName"
+echo "checking if $processName is running"
 
 numProcesses=0
 
-for x in {1..10};
-do
-   if pgrep -x $processName > /dev/null
-   then
-       echo "$processName is started!"
-       numProcesses=1
-       break
-   fi
-   sleep 15
-done
+if pgrep -x $processName > /dev/null
+then
+   echo "$processName has been successfully started!"
+   numProcesses=1
+fi
+sleep 15
 
 if [ "$numProcesses" -eq 0 ]; then
-    echo "$processName hasn't started!"
-    exit 1
+   echo "$processName hasn't started!"
+   exit 1
 fi
-
+exit 0

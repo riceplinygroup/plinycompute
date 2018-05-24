@@ -1,2 +1,13 @@
-54.167.40.165
-184.72.129.0
+# This file contains the IP addresses of the worker nodes in a cluster
+# of PlinyCompute. The IP address of the manager node is not required.
+
+# This launches a pseudo cluster. Where the nodes are simulated as
+# separate processes: a) the manager node (listening on port 8108),
+# and b) one worker node listening on port 8109.
+
+# For a real cluster deployment, comment or remove the "localhost:8109"
+# line below and add the public IP addresses of the worker nodes in the
+# cluster, one IP per line (without the colon and port).
+
+18.207.196.232
+#54.165.222.72

@@ -1,3 +1,4 @@
+#!/usr/bin/python -u
 #  ========================================================================
 #  Copyright 2018 Rice University
 #
@@ -17,6 +18,26 @@ import subprocess
 import time
 import sys
 import os
+import argparse
+
+# parses the command line arguments
+parser = argparse.ArgumentParser(description='Script for running different PlinyCompute test suites.')
+parser.add_argument('--cluster-type', choices=['standalone','distributed'], type=str,
+                    default="standalone", help='type of cluster to be used (default: standalone)')
+parser.add_argument('--test-suite', choices=['ml','la','tpch','int','all'], type=str, 
+                     default="ml", help='test suite to run (default: ml)')  
+parser.add_argument('--test-name', type=str, 
+                    help='name of test to run, executables can be found in the $PDB_HOME/bin folder ')
+parser.add_argument('--pem-file', type=str, default="conf/pdb-key.pem",
+                    help="the pem key file to connect to the cluster nodes (default: conf/pdb-key.pem)")
+parser.add_argument('--ip', type=str, default="localhost",
+                    help="ip address of the manager node (default: localhost)")
+parser.add_argument('--num-threads', type=int, default=1,
+                    help="number of processors for each worker node (default: 1)")
+parser.add_argument('--shared-mem', type=int, default=2048,
+                    help="amount of memory in Mbytes for each worker node (default: 2048)")
+
+args = vars(parser.parse_args())
 
 class BColor:
     HEADER = '\033[95m'
@@ -28,32 +49,39 @@ class BColor:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-thread_num = "1"
-shared_memory_size = "2048"
-
 # list of failed tests
 failed_tests = []
 
-# ensures that environment is clean
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
-print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
-time.sleep(5)
+# assigns the command line arguments to variables
+cluster_type = args['cluster_type']
+test_suite = args['test_suite'] 
+thread_num = str(args['num_threads'])
+shared_memory_size = str(args['shared_mem'])
+pem_file = args["pem_file"]
+manager_ip = args["ip"]
+test_name = args["test_name"]
 
-#download data
-os.system('rm -rf tables_scale_0.2*')
-os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
-os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
-# by default it runs the ml test if no
-# test suite is specified
-what_tests = "tests-ml"
+print(" -----------------------------------------------------")
+print(" Running PlinyCompute tests with the following values:")
+print(" -----------------------------------------------------")
+print("  num of threads: " + thread_num)
+print(" shared mem size: " + shared_memory_size)
+print("      test suite: " + test_suite)
+print("    cluster type: " + cluster_type)
+print("        pem file: " + pem_file)
+print("      manager ip: " + manager_ip + "\n")
+
 num_total = 0
 num_errors = 0
 num_passed = 0
 
+# Ensure that the environment is clean
+def prepare_environment():
+    subprocess.call(['bash', './scripts/cleanupNode.sh'])
+    print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
+    time.sleep(5)
 
-# Returns a dictionary of tests, given its name
-# as a string
+# Return a dictionary of tests, given its name as string
 def list_of_tests(test_list_name):
     # machine learning tests
     if test_list_name == 'ml':
@@ -66,54 +94,73 @@ def list_of_tests(test_list_name):
         return tests_la
     # integration tests
     elif test_list_name == 'int':
-        return tests
+        return tests_int
     else:
-        # default is integration tests
-        return tests
+        print "Test suite with the name %s does not exist." % test_list_name
+        print "Use one test suite from the following list: ml, tpch, la, int"
+        sys.exit()
 
-
+# Launches a pseudo cluster for testing, simulating worker nodes as 
+# processes listening on different ports 
 def start_pseudo_cluster():
     try:
-        print(BColor.OK_BLUE + "start a pdbServer as the coordinator" + BColor.END_C)
+        print(BColor.OK_BLUE + "starts a pdb-manager process" + BColor.END_C)
+
+        if (os.path.isfile('bin/pdb-manager') == False):
+           print(BColor.FAIL + "PlinyCompute manager executable 'bin/pdb-manager' does not exist." + BColor.END_C)           
+           sys.exit()
+
         serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
-        print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
+        print(BColor.OK_BLUE + "waiting 9 seconds for pdb-manager to be launched..." + BColor.END_C)
         time.sleep(9)
         num = 0
         with open('conf/serverlist.test') as f:
             for each_line in f:
-                print(BColor.OK_BLUE + "start a pdbServer at " + each_line + "as " + str(
-                    num) + "-th worker" + BColor.END_C)
-                num = num + 1
-                serverProcess = subprocess.Popen(
-                    ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
-                print(BColor.OK_BLUE + "waiting for 9 seconds for server to be fully started..." + BColor.END_C)
-                time.sleep(9)
-                each_line = each_line.split(':')
-                port = int(each_line[1])
+                if "#" not in each_line.strip() and len(each_line.strip()) >0:
+                    num = num + 1
+                    print(BColor.OK_BLUE + "starts a pdb-worker node at " + each_line + "as worker no. " + str(
+                        num) + BColor.END_C + ".")
+                    if (os.path.isfile('bin/pdb-worker') == False):
+                        print(BColor.FAIL + "PlinyCompute worker executable 'bin/pdb-worker' does not exist." + BColor.END_C)
+                        sys.exit()
+
+                    serverProcess = subprocess.Popen(
+                        ['bin/pdb-worker', thread_num, shared_memory_size, 'localhost:8108', each_line])
+                    print(BColor.OK_BLUE + "waiting 9 seconds for pdb-worker to be launched..." + BColor.END_C)
+                    time.sleep(9)
+                    each_line = each_line.split(':')
+                    port = int(each_line[1])
 
     except subprocess.CalledProcessError as e:
-        print(BColor.FAIL + "[ERROR] in starting pseudo cluster" + BColor.END_C)
+        print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
-
-def run_tests(test_list):
+# runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
+def run_tests(test_list, clear_data):
     print("###############################################")
-    print("REQUIRE 8192 MB MEMORY TO RUN INTEGRATION TESTS")
+    print("REQUIRES 8192 MB MEMORY TO RUN TEST SUITES")
     print("###############################################")
 
     print("#################################")
     print("CLEAN UP THE TESTING ENVIRONMENT")
     print("#################################")
     global num_total
+    global cluster_type
+    print "Cluster for running these tests is set to: " + cluster_type
 
-    if what_tests != "tpch":
-        subprocess.call(['bash', './scripts/cleanupNode.sh'])
-        print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up...")
+    if clear_data == True:
+        if (cluster_type=="standalone"):
+            subprocess.call(['bash', './scripts/cleanupNode.sh'])
+            print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
+        else:
+            print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
+            subprocess.call(['bash', './scripts/cleanup.sh', pem_file , cluster_type])
+
+        print("waiting 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
         # set the total number of tests
-        num_total = len(test_list.items())
-    else:
-        num_total = num_total + len(test_list.items())
+
+    num_total = num_total + len(test_list.items())
 
     time.sleep(5)
 
@@ -128,21 +175,21 @@ def run_tests(test_list):
     print(BColor.OK_GREEN + "PASSED TESTS: " + str(num_passed) + BColor.END_C)
     print(BColor.FAIL + "FAILED TESTS: " + str(num_errors) + BColor.END_C)
 
-    # printout each test that failed
     for test in failed_tests:
         print "TEST %s FAILED" % test
 
-
+# runs one test from a test suite
 def run_specified_test(test_list, test):
-    if test in test_list:
-        run_tests({test: test_list[test]})
+    if (test in list_of_tests(test_list)):
+        run_test(test, list_of_tests(test_list)[test][0], list_of_tests(test_list)[test][1])
     else:
-        print "Test with the name %s does not exist." % test
-
+        print "Test with the name %s does not exist in test suite %s." %(test, test_list)
+        sys.exit()
 
 def run_test(id, test_name, test_command):
     # we want to use the global variables
-    global what_tests
+    global cluster_type
+    global test_suite
     global num_errors
     global num_passed
 
@@ -151,9 +198,32 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
-        start_pseudo_cluster()
+        # stops cluster but keeps stored data for the following tests because they depend on
+        # previously generated data
+        if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
+            print (BColor.OK_BLUE + "Stoping cluster but keeps stored data and catalog metadata." + BColor.END_C)
+            subprocess.call(['bash', './scripts/stopWorker.sh', pem_file])            
+        else:
+            # for the rest of the tests, removes data and stops cluster because they need an empty environment
+            if cluster_type == "distributed":
+                print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
+                subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
+            else:
+                print (BColor.OK_BLUE + "Cleaning pseudo cluster before running test." + BColor.END_C)
+                subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
-        print(BColor.OK_BLUE + "start a query client to store and query data from pdb cluster" + BColor.END_C)
+            print ("waiting 5 seconds for cluster to be cleaned up...")
+            time.sleep(5)
+
+        if cluster_type == "standalone":
+            start_pseudo_cluster()
+        else:
+            print "Launching a distributed cluster"
+            subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, cluster_type, thread_num, shared_memory_size])
+            print ("waiting 10 seconds to launch cluster...")
+            time.sleep(5)
+            
+        print(BColor.OK_BLUE + "running a test" + BColor.END_C)
         subprocess.check_call(test_command)
 
     except subprocess.CalledProcessError as e:
@@ -167,17 +237,11 @@ def run_test(id, test_name, test_command):
     else:
         print(BColor.OK_BLUE + "[PASSED] %s" % test_name + BColor.END_C)
         num_passed = num_passed + 1
-
-    if id != "tpchRegisterAndCreateSets" and id != "Pre-partitionLoadData" and what_tests != "tpch":
-        # do the cleanup except when running tpchRegisterAndCreateSets
-        subprocess.call(['bash', './scripts/cleanupNode.sh'])
-        print (BColor.OK_BLUE + "waiting for 10 seconds for server to be fully cleaned up...")
-
-    time.sleep(10)
-
+    
+    time.sleep(5)
 
 # Integration tests
-tests = {
+tests_int = {
     "Pre-partitionLoadData": ("Pre-Partition LoadData", ['bin/tpchDataLoader', 'tables_scale_0.2']),
     "Pre-partitionPartitionData": ("Pre-Partition PartitionData", ['bin/tpchDataPartitioner']),
     "TestCatalog": ("CATALOG FUNCTIONS TEST", ['bin/TestCatalog', 'localhost', '8108']),
@@ -222,7 +286,7 @@ tests_la = {
     "TestLA_unit14_Inverse": ("TEST LA14_INVERSE", ['bin/TestLA_unit14_Inverse', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit15_RowSum": ("TEST LA15_ROWSUM", ['bin/TestLA_unit15_RowSum', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit16_ColSum": ("TEST LA16_COLSUM", ['bin/TestLA_unit16_ColSum', 'Y', 'Y', '64', 'localhost', 'Y']),
-    "TestLA_unit18_TransposeMultiply": ("TEST LA17_TRANSPOSEMULTIPLY", ['bin/TestLA_unit17_TransposeMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
+    "TestLA_unit17_TransposeMultiply": ("TEST LA17_TRANSPOSEMULTIPLY", ['bin/TestLA_unit17_TransposeMultiply', 'Y', 'Y', '64', 'localhost', 'Y']),
     "TestLA_unit18_TransposeMultiply_Gram": ("TEST LA18_TRANSPOSEMULTIPLY_GRAM", ['bin/TestLA_unit18_TransposeMultiply_Gram', 'Y', 'Y', '64', 'localhost', 'Y'])
 }
 
@@ -234,12 +298,12 @@ tests_ml = {
                                    'applications/TestKMeans/kmeans_data'])
 }
 
-# TPCH test (generates storage and register shared libraries)
+# TPCH test (generates storage and registers shared libraries)
 test_tpch_main = {
     "tpchRegisterAndCreateSets": ("TEST TPCH REGISTER AND CREATE SETS", ['bin/tpchRegisterAndCreateSets'])
 }
 
-# TPCH benchmark tests (to be run after "test_tpch_main"
+# TPCH benchmark tests (to be run after "test_tpch_main")
 tests_tpch = {
     "tpchDataGenerator": ("TEST TPCH DATA GENERATOR NEW", ['bin/tpchDataGenerator', '0.1', '2']),
     "tpchGetCustomerCount": ("TEST TPCH GET CUSTOMER COUNT", ['bin/tpchGetCustomerCount']),
@@ -247,30 +311,31 @@ tests_tpch = {
     "tpchJaccard": ("TEST TPCH JACCARD", ['bin/tpchJaccard', 'localhost', '20', 'applications/TPCHBench/query.txt'])
 }
 
-if len(sys.argv) > 1:
-    what_tests = sys.argv[1]
-
-if len(sys.argv) == 3:
-
+# if both test_suite and test_name were provided as args
+if args["test_suite"] is not None and args["test_name"] is not None:
     # runs the test specified in the 2nd argument
     # from the list in the 1st argument
-    run_specified_test(sys.argv[1], sys.argv[2])
+    run_specified_test(test_suite, test_name)
 
-elif len(sys.argv) == 2:
-
-    # runs all tests from a given list
-    if sys.argv[1] == "tpch":
-        run_tests(test_tpch_main)
-        run_tests(list_of_tests(sys.argv[1]))
+# if only test_suite was provided as arg
+elif args["test_suite"] is not None and args["test_suite"] != "all":
+    # runs all tests from a given test_suite
+    if test_suite == "tpch":
+        run_tests(test_tpch_main, True)
+        run_tests(list_of_tests(test_suite), False)
     else:
-        run_tests(list_of_tests(sys.argv[1]))
-else:
-    # run all the integration tests
-    run_tests(tests)
-    run_tests(tests_la)
-    run_tests(tests_ml)
-    run_tests(test_tpch_main)
-    run_tests(tests_tpch)
+        run_tests(list_of_tests(test_suite), True)
 
-#remove downloaded files
-os.system('rm -rf tables_scale_0.2*')
+# if test_suite is set to "all" it runs all test suites
+elif args["test_suite"] == "all":
+    # run all the test suites
+    run_tests(tests_int, True)       # integration tests
+    run_tests(tests_la, True)        # linear algebra tests
+    run_tests(test_tpch_main, True)  # tpch generate data test
+    run_tests(tests_tpch, False)      # tpch query tests
+    run_tests(tests_ml, True)        # machine learning tests
+
+# if neither test_suite nor test_name were provided as args
+else:
+    print("At least one test suite has to be selected")
+

@@ -74,8 +74,30 @@ int main(int argc, char* argv[]) {
     frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, managerIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
 
-    // to register node metadata
+    //initialize StatisticsDB
+    std::shared_ptr<StatisticsDB> statisticsDB = std::make_shared<StatisticsDB>(conf);
+    if (statisticsDB == nullptr) {
+        std::cout << "fatal error in initializing statisticsDB" << std::endl;
+        exit(1);
+    } 
+
     std::string errMsg = " ";
+    int numNodes = 1;
+    string line = "";
+    string nodeName = "";
+    string hostName = "";
+    string serverListFile;
+    int portValue = 8108;
+
+    if (pseudoClusterMode==true) serverListFile = "conf/serverlist.test";
+    else serverListFile = "conf/serverlist";
+
+    frontEnd.addFunctionality<pdb::ResourceManagerServer>(
+        serverListFile, port, pseudoClusterMode, pemFile);
+    frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
+    auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
+
+    // registers metadata for manager node in the catalog
     pdb::Handle<pdb::CatalogNodeMetadata> nodeData =
         pdb::makeObject<pdb::CatalogNodeMetadata>(String("localhost:" + std::to_string(port)),
                                                   String("localhost"),
@@ -83,74 +105,37 @@ int main(int argc, char* argv[]) {
                                                   String("manager"),
                                                   String("manager"),
                                                   1);
+
     if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
-        std::cout << "Node metadata was not added because " + errMsg << std::endl;
+        std::cout << "Metadata for manager node was not added because " + errMsg << std::endl;
     } else {
-        std::cout << "Node metadata successfully added." << std::endl;
+        std::cout << "Metadata for manager node successfully added to catalog." << std::endl;
     }
+ 
+    // registers metadata for worker nodes in the catalog
+    makeObjectAllocatorBlock(4 * 1024 * 1024, true);
 
-    string serverListFile = "";
-
-    if (pseudoClusterMode==true) serverListFile = "conf/serverlist.test";
-    else serverListFile = "conf/serverlist";
-
-    std::ifstream infile;
-    infile.open(serverListFile.c_str());
-
-    int numNodes = 1;
-    string line = "";
-    string nodeName = "";
-    string hostName = "";
-    int portValue = 8108;
-
-    if (infile.is_open()) {
-        while (getline(infile, line)) {
-
-           std::size_t pos = line.find(":");
-
-           if (pos!=std::string::npos) {
-              hostName = line.substr(0, pos);
-              portValue = std::atoi(line.substr(pos+1,line.length()-1).c_str());
-           } else {
-              hostName = line;
-              portValue = 8108;
-           }
-
-           nodeName = "worker_" + std::to_string(numNodes);
-           makeObjectAllocatorBlock(4 * 1024 * 1024, true);
-           pdb::Handle<pdb::CatalogNodeMetadata> workerNode =
-               pdb::makeObject<pdb::CatalogNodeMetadata>(String(hostName + ":" + std::to_string(portValue)),
-                                                  String(hostName),
-                                                  portValue,
-                                                  String(nodeName),
-                                                  String("worker"),
-                                                  1);
-           if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(workerNode, errMsg)) {
-               std::cout << "Node metadata was not added because " + errMsg << std::endl;
-           } else {
-               std::cout << "Node metadata successfully added." 
-                         << hostName << " | " << std::to_string(portValue) << " | " << nodeName << " | "
-                         << std::endl;
-           }
-           numNodes++;
+    for (int i = 0; i < allNodes->size(); i++) {
+       nodeName = "worker_" + std::to_string(numNodes);
+       hostName = (*allNodes)[i]->getAddress().c_str();
+       portValue = (*allNodes)[i]->getPort();
+       pdb::Handle<pdb::CatalogNodeMetadata> workerNode =
+       pdb::makeObject<pdb::CatalogNodeMetadata>(String(hostName + ":" + std::to_string(portValue)),
+                                                 String(hostName),
+                                                 portValue,
+                                                 String(nodeName),
+                                                 String("worker"),
+                                                 1);
+       if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(workerNode, errMsg)) {
+          std::cout << "Metadata for worker node was not added because " + errMsg << std::endl;
+       } else {
+          std::cout << "Metadata for worker node successfully added to catalog. "
+                    << hostName << " | " << std::to_string(portValue) << " | " << nodeName << " | "
+                    << std::endl;
        }
-    } else {
-        cout << "conf/serverlist file not found." << endl;
+       numNodes++;
     }
-    infile.close();
-    infile.clear();
 
-
-    //initialize StatisticsDB
-    std::shared_ptr<StatisticsDB> statisticsDB = std::make_shared<StatisticsDB>(conf);
-    if (statisticsDB == nullptr) {
-        std::cout << "fatal error in initializing statisticsDB" << std::endl;
-        exit(1);
-    } 
-    frontEnd.addFunctionality<pdb::ResourceManagerServer>(
-        "conf/serverlist", port, pseudoClusterMode, pemFile);
-    frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
-    auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger, statisticsDB);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
 

@@ -1,11 +1,36 @@
 
 #!/usr/bin/env bash
 
-PEM_FILE=$1
-USERNAME=$2
+usage() {
+    cat <<EOM
+    Usage: scripts/$(basename $0) param1
+
+           param1: <pem_file> (e.g. conf/pdb-key.pem)
+           param2: <username> (username)
+
+EOM
+   exit -1;
+}
+
+[ -z $1 ] && [ -z $2 ] && { usage; }
+
+pem_file=$1
+username=$2
+
+if [ -z ${pem_file} ];
+    then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
+    echo "Usage: scripts/startWorkers.sh #pem_file #username";
+    exit -1;
+fi
+
+if [ -z ${username} ];
+    then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
+    echo "Usage: scripts/startWorkers.sh #pem_file #username";
+    exit -1;
+fi
 
 if [ ! -d "$PDB_HOME/conf/cluster" ]
-         then mkdir $PDB_HOME/conf/cluster
+   then mkdir $PDB_HOME/conf/cluster
 fi
-$PDB_HOME/scripts/proc/collect_cluster_info.sh $PEM_FILE $USERNAME > $PDB_HOME/conf/cluster/cluster_info.txt
+$PDB_HOME/scripts/proc/collect_cluster_info.sh $pem_file $username > $PDB_HOME/conf/cluster/cluster_info.txt
 echo "Done! The info of cluster are written to $PDB_HOME/conf/cluster/cluster_info.txt"

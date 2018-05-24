@@ -58,11 +58,12 @@ try:
     num = 0;
     with open('conf/serverlist.test') as f:
         for each_line in f:
-            print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
-            num = num + 1
-            serverProcess = subprocess.Popen(['bin/pdb-worker', threadNum, sharedMemorySize, 'localhost:8108', each_line])
-            print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
-            time.sleep(9)
+            if "#" not in each_line.strip() and len(each_line.strip()) >0:
+                print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
+                num = num + 1
+                serverProcess = subprocess.Popen(['bin/pdb-worker', threadNum, sharedMemorySize, 'localhost:8108', each_line])
+                print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+                time.sleep(9)
 
 
 except subprocess.CalledProcessError as e:

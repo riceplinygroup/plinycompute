@@ -1,3 +1,5 @@
+conf/pdb-key.pem
+.cproject
 .idea
 cmake-build-debug
 CMakeFiles
@@ -15,6 +17,7 @@ logs/*
 bin/*
 type-id-data
 libraries/*
+tables_scale_0.1
 tables_scale_0.2
 pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h
 pdb/src/objectModel/headers/BuiltinPDBObjects.cc
