@@ -42,6 +42,7 @@ public:
     /* constructor
      * @param inputDatabaseAndSet: the input pair of database name and set name, the set is expected to be created and often non-empty before being called by this function;
      * @param outputDatabaseAndSet: the output pair of database name and set name, the set is expected to be created and often empty before being called by this function;
+     * @param storeConflictingObjects: whether to store conflicting objects that have source and destination of the partitioning on the same node, default: false.
      */
     Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet, 
                  std::pair<std::string, std::string> outputDatabaseAndSet);
@@ -73,6 +74,11 @@ private:
     /* the output set identifier */
     std::pair<std::string, std::string> outputDatabaseAndSet;
 
+    /* whether to store conflicting objects for failure recovery*/
+    bool storeConflictingObjects = false;
+
+    /* the set identifier for conflicting objects */
+    std::pair<std::string, std::string> conflictsDatabaseAndSet;
 
 };
 
