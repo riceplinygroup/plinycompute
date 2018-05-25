@@ -73,11 +73,12 @@ if (cluster_type == "distributed"):
         print("Error: the " + BColor.FAIL + "--pem-file '" + pem_file + "'" + BColor.END_C + " does not exist ")
         sys.exit()
 
-try:
-    socket.inet_pton(socket.AF_INET, manager_ip)
-except socket.error:
-    print(BColor.FAIL + "Error IP manager node address: " + manager_ip + " is invalid." + BColor.END_C)
-    sys.exit()
+if (manager_ip != "localhost"):
+    try:
+        socket.inet_pton(socket.AF_INET, manager_ip)
+    except socket.error:
+        print("Error: the IP address of the manager node " + BColor.FAIL + manager_ip + BColor.END_C + " is incorrect.")
+        sys.exit()
 
 print(" -----------------------------------------------------")
 print(BColor.HEADER + " Running PlinyCompute tests with the following values:" + BColor.END_C)
