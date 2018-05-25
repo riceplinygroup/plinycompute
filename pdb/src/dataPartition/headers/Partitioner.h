@@ -45,7 +45,8 @@ public:
      * @param storeConflictingObjects: whether to store conflicting objects that have source and destination of the partitioning on the same node, default: false.
      */
     Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet, 
-                 std::pair<std::string, std::string> outputDatabaseAndSet);
+                 std::pair<std::string, std::string> outputDatabaseAndSet,
+                 bool storeConflictingObjects = false);
 
 
     /* to partition the data stored in the inputDatabaseAndSet */

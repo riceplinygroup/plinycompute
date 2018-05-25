@@ -58,6 +58,20 @@ public:
         queryGraph = nullptr;
     }
 
+
+    int getPort () {
+       return this->port;
+    }
+
+    std::string getAddress() {
+       return this->address;
+    }
+
+    PDBLoggerPtr getLogger() {
+       return this->myLogger;
+    }
+
+
     // access a set in the database
     template <class Type>
     Handle<Set<Type>> getSet(std::string databaseName, std::string setName) {

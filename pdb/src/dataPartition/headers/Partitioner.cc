@@ -25,10 +25,15 @@ namespace pdb {
 
 template<class KeyClass, class ValueClass>
 Partitioner<KeyClass, ValueClass> :: Partitioner (std::pair<std::string, std::string> inputDatabaseAndSet,
-                            std::pair<std::string, std::string> outputDatabaseAndSet) {
+        std::pair<std::string, std::string> outputDatabaseAndSet,
+        bool storeConflictingObjects) {
 
         this->inputDatabaseAndSet = inputDatabaseAndSet;
         this->outputDatabaseAndSet = outputDatabaseAndSet;
+        this->storeConflictingObjects = storeConflictingObjects;
+        if (this->storeConflictingObjects) {
+            this->conflictsDatabaseAndSet = std::pair<std::string, std::string> (outputDatabaseAndSet.first, std::string("conflict_")+outputDatabaseAndSet.second);
+        }
 }
 
 template<class KeyClass, class ValueClass>
@@ -36,17 +41,18 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
                                                          std::shared_ptr<pdb::QueryClient> queryClient,
                                                          Handle<PartitionComp<KeyClass, ValueClass>> partitionComp) {
 
-        /* Step 1. to check whether the input set and output set exists, if not we return false
+        /* Step 0. to check whether the input set and output set exists, if not we return false
          * TODO: we do not have such function at master yet
          */
 
-        /* Step 2. to check whether partitionComp is null, if yes, we return false */
+
+        /* Step 1. to check whether partitionComp is null, if yes, we return false */
         if (partitionComp == nullptr) {
             errMsg = "Error: null partitionComp";
             return false;
         }
 
-        /* Step 3. to check whether queryClient is null, if yes, we return false */
+        /* Step 2. to check whether queryClient is null, if yes, we return false */
         if (queryClient == nullptr) {
             errMsg = "Error: null queryClient";
             return false;
@@ -54,11 +60,27 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
         
         const UseTemporaryAllocationBlock myBlock{256 * 1024 * 1024};
 
-        /* Step 4. to deep copy the partition computation */
+        /* Step 3. to deep copy the partition computation */
         Handle<PartitionComp<KeyClass, ValueClass>> curPartitionComp 
           = deepCopyToCurrentAllocationBlock<PartitionComp<KeyClass, ValueClass>>(partitionComp);
 
         curPartitionComp->setOutput(outputDatabaseAndSet.first, outputDatabaseAndSet.second);
+
+
+        /* Step 4. check whether to store conflicting objects and set parameters in PartitionComp correspondingly */
+        if (this->storeConflictingObjects) {
+            //create the set for storing conflicting objects
+            std::shared_ptr<DistributedStorageManagerClient> storageClient =
+                std::make_shared<DistributedStorageManagerClient> (queryClient->getPort(), 
+                        queryClient->getAddress(), queryClient->getLogger());
+            storageClient->createSet(this->conflictsDatabaseAndSet.first,
+                                     this->conflictsDatabaseAndSet.second,
+                                     getTypeName<ValueClass>(),
+                                     errMsg);
+            curPartitionComp->setStoreConflictingObjects(true);
+            curPartitionComp->setDatabaseNameForConflictingObjects (this->conflictsDatabaseAndSet.first);
+            curPartitionComp->setSetNameForConflictingObjects (this->conflictsDatabaseAndSet.second);
+        }
 
         /* Step 5. to create a scanner computation */
         Handle<ScanUserSet<ValueClass>> scanner 
@@ -81,8 +103,19 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
                                      tcapString,
                                      computations);
         /* Step 10. to execute the partition computation */ 
-        return queryClient->executeComputations(errMsg, tcapString, computations);
-      
+        bool success = queryClient->executeComputations(errMsg, tcapString, computations);
+
+        /* Step 11. to scan the stored conflicting objects if needed */
+        if (this->storeConflictingObjects) {
+           SetIterator<ValueClass> result = queryClient->getSetIterator<ValueClass>(
+              this->conflictsDatabaseAndSet.first, 
+              this->conflictsDatabaseAndSet.second);
+           int count = 0;
+           for (auto a : result) {
+                  count++;
+           }
+           std::cout << "conflicting objects count:" << count << "\n";
+        }
 }
 
 template<class KeyClass, class ValueClass>
