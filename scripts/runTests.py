@@ -154,6 +154,11 @@ def start_pseudo_cluster():
         print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
+#download data
+os.system('rm -rf tables_scale_0.2*')
+os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
+os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
+
 # runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
 def run_tests(test_list, clear_data):
     print("###############################################")
@@ -358,3 +363,5 @@ elif args["test_suite"] == "all":
 else:
     print("At least one test suite has to be selected")
 
+#remove downloaded files
+os.system('rm -rf tables_scale_0.2*')
