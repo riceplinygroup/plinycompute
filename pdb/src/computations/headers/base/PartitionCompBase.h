@@ -245,7 +245,7 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
                                 TupleSpec &projection,
                                 ComputePlan &plan) override {
 
-      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection);
+      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection, this->storeConflictingObjects, this->port, this->myNodeId, this->dbName, this->setName);
   }
 
 
@@ -256,10 +256,103 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
     return outputSetScanner;
   }
 
+  /**
+   * @param storeConflictingObjects: whether to store conflicting objects
+   */
+  void setStoreConflictingObjects (bool storeConflictingObjects) {
+    this->storeConflictingObjects = storeConflictingObjects;
+  }
+
+  /**
+   * @return: whether to store conflicting objects
+   */
+  bool getStoreConflictingObjects () {
+    return this->storeConflictingObjects;
+  }
+
+  /**
+   * @param databaseName: the name of the database for storing conflicting objects
+   */
+  void setDatabaseNameForConflictingObjects (std::string databaseName) {
+    this->dbName = databaseName;
+  }
+
+  /**
+   * @return: the database name
+   */
+  std::string getDatabaseNameForConflictingObjects () {
+    return this->dbName;
+  }
+
+  /**
+   * @param setName: the name of the set for storing conflicting objects
+   */
+  void setSetNameForConflictingObjects (std::string setName) {
+    this->setName = setName;
+  }
+
+  /**
+   * @return: the set name
+   */
+  std::string getSetNameForConflictingObjects () {
+    return this->setName;
+  }
+
+  /**
+   * @param port: the PDB server port on the node that runs this computation
+   */
+  void setPort (int port) {
+    this->port = port;
+  }
+
+  /**
+   * @return: the PDB server port on the node that runs this computation
+   */
+  int getPort () {
+    return this->port;
+  }
+
+
+  /**
+   * @param nodeId: the id of the node that runs this computation
+   */
+  void setNodeId (int nodeId) {
+    this->myNodeId = nodeId;
+  }
+
+  /**
+   * @return: the id of the node that runs this computation
+   */
+  int getNodeId () {
+    return this->myNodeId;
+  }
 
 private:
 
   Handle<ScanUserSet<ValueClass>> outputSetScanner = nullptr;
+
+
+  // below parameters should be set by the partitioner in the system code
+
+  // whether to detect and store conflicting objects for heterogeneous replication in case of failure recovery
+  bool storeConflictingObjects = false;
+
+  // database name for storing conflicting objects
+  String dbName = "";
+
+  // set name for storing conflicting objects
+  String setName = "";
+
+  
+  // below parameter should be set by the system at query scheduling time or in backend
+
+  // the port of current node
+  int port = 8108;
+
+  // the node Id of current node
+  int myNodeId = 0;
+
+
 
 };
 
