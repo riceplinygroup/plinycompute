@@ -437,6 +437,9 @@ void PipelineStage::executePipelineWork(int i,
             Handle<PartitionComp<Object, Object>> partitioner =
                 unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
             scanner = partitioner->getOutputSetScanner();
+            int nodeId = this->jobStage->getNodeId();
+            partitioner->setNodeId(nodeId);
+            partitioner->setPort(this->jobStage->getPort(nodeId));
         } else {
             std::cout << "Error: we can't support source computation type "
                       << computation->getComputationType() << std::endl;

@@ -343,6 +343,8 @@ Handle<TupleSetJobStage> QuerySchedulerServer::getStageToSend(unsigned long inde
     // do a deep copy of the stage
     Handle<TupleSetJobStage> stageToSend = deepCopyToCurrentAllocationBlock<TupleSetJobStage>(stage);
 
+
+
     // set the number of nodes and the number of hash partitions
     stageToSend->setNumNodes(this->shuffleInfo->getNumNodes());
     stageToSend->setNumTotalPartitions(this->shuffleInfo->getNumHashPartitions());
