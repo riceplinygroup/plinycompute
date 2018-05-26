@@ -439,7 +439,9 @@ void PipelineStage::executePipelineWork(int i,
             scanner = partitioner->getOutputSetScanner();
             int nodeId = this->jobStage->getNodeId();
             partitioner->setNodeId(nodeId);
+            std::cout << "PartitionComp's nodeId is set to be " << nodeId << std::endl;
             partitioner->setPort(this->jobStage->getPort(nodeId));
+            std::cout << "PartitionComp's port is set to be " << this->jobStage->getPort(nodeId) << std::endl;
         } else {
             std::cout << "Error: we can't support source computation type "
                       << computation->getComputationType() << std::endl;
@@ -561,6 +563,11 @@ void PipelineStage::executePipelineWork(int i,
         PDB_COUT << "num partitions in the cluster is " << numPartitionsInCluster << std::endl;
         partitioner->setNumPartitions(numPartitionsInCluster);
         partitioner->setNumNodes(jobStage->getNumNodes());
+        int nodeId = this->jobStage->getNodeId();
+        partitioner->setNodeId(nodeId);
+        std::cout << "PartitionComp's nodeId is set to be " << nodeId << std::endl;
+        partitioner->setPort(this->jobStage->getPort(nodeId));
+        std::cout << "PartitionComp's port is set to be " << this->jobStage->getPort(nodeId) << std::endl;
     }
 
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER

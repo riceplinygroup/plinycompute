@@ -113,10 +113,11 @@ namespace pdb {
     template <class KeyClass, class ValueClass>
     bool PDBClient::partitionSet(std::pair<std::string, std::string> inputSet, 
                                  std::pair<std::string, std::string> outputSet, 
-                                 Handle<PartitionComp<KeyClass, ValueClass>> partitionComp) {
+                                 Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
+                                 bool storeConflictingObjects) {
 
         std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner 
-                          = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet);
+                          = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet, storeConflictingObjects);
         return myPartitioner->partition(errorMsg, this->queryClient, partitionComp);
 
     }

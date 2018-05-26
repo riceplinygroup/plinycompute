@@ -63,11 +63,16 @@ public:
         std::cout << "numNodes=" << numNodes << std::endl;
 
         if ( storeConflictingObjectsOrNot == true ) {
+            this->storeConflictingObjects = true;
+            UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
+            this->placeHolderForCurConflictingObject = makeObject<Vector<Handle<Object>>> (1, 1);
             this->myNodeId = myNodeId;
+            std::cout << "my nodeId is set to " << this->myNodeId << std::endl; 
             PDBLoggerPtr logger = make_shared<PDBLogger>("hashpartitionsink-"+(std::to_string(myNodeId)));
             this->myClient = make_shared<StorageClient>(port, "localhost", logger);
             this->dbName = dbNameForConflictingObjects;            
             this->setName = setNameForConflictingObjects;
+            (this->temp).connectToInternetServer(logger, port, "localhost", errMsg);
         }
 
 
@@ -88,7 +93,6 @@ public:
                 = makeObject<Vector<Handle<ValueType>>>();
             returnVal->push_back(curNodeVec);
         }
-        this->placeHolderForCurConflictingObject = makeObject<Vector<Handle<Object>>> ();
         return returnVal;
     }
 
@@ -122,21 +126,18 @@ public:
             if ((nodeId == myNodeId) && storeConflictingObjects) {
                 std::cout << "detect a conflicting object, we need replicate it differently for failure recovery" << std::endl;
                 try {
-                     this->placeHolderForCurConflictingObject->push_back( valueColumn[i] );
+                     (*(this->placeHolderForCurConflictingObject))[0] = valueColumn[i];
                      std::string errMsg = "";
                      this->myClient->storeData(this->placeHolderForCurConflictingObject,
-                           dbName, setName, getTypeName<ValueType>(), errMsg);
-                     this->placeHolderForCurConflictingObject->clear();
+                           dbName, setName, getTypeName<ValueType>(), errMsg, temp);
                 } catch (NotEnoughSpace & n) {
                      std::cout << "not enough space when trying to store one conflicting object" << std::endl;
                      UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
-                     this->placeHolderForCurConflictingObject =  makeObject<Vector<Handle<Object>>> ();
-                     this->placeHolderForCurConflictingObject->push_back( valueColumn[i] );
-                
+                     this->placeHolderForCurConflictingObject =  makeObject<Vector<Handle<Object>>> (1, 1);
+                     (*(this->placeHolderForCurConflictingObject))[0] = valueColumn[i]; 
                      std::string errMsg = "";
                      this->myClient->storeData(this->placeHolderForCurConflictingObject, 
-                           dbName, setName, getTypeName<ValueType>(), errMsg);
-                     this->placeHolderForCurConflictingObject->clear();
+                           dbName, setName, getTypeName<ValueType>(), errMsg, temp);
                      keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
                      valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
                      throw n;
@@ -195,6 +196,12 @@ private:
 
     // vector of single element to store current conflicting object
     Handle<Vector<Handle<Object>>> placeHolderForCurConflictingObject = nullptr;
+
+    // connection for storing conflicting objects
+    PDBCommunicator temp;
+
+    // error message for storing conflicting objects
+    std::string errMsg;
 
 };
 }

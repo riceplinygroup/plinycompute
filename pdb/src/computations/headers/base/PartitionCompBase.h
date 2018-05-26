@@ -244,7 +244,13 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
   ComputeSinkPtr getComputeSink(TupleSpec &consumeMe,
                                 TupleSpec &projection,
                                 ComputePlan &plan) override {
-
+      std::cout << "#######################################" << std::endl;
+      if (this->storeConflictingObjects) {
+         std::cout << "we need store conflicting objects to database=" << this->dbName << " and set =" << this->setName << std::endl;
+      } else {
+         std::cout << "we do not need store any conflicting objects" << std::endl;
+      }
+      std::cout << "#######################################" << std::endl;
       return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection, this->storeConflictingObjects, this->port, this->myNodeId, this->dbName, this->setName);
   }
 

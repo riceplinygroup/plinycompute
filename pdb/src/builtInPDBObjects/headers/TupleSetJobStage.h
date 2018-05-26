@@ -294,6 +294,7 @@ public:
         std::cout << "Number of cluster nodes=" << getNumNodes() << std::endl;
         std::cout << "Total memory on this node is " << totalMemoryOnThisNode << std::endl;
         std::cout << "Number of total partitions=" << getNumTotalPartitions() << std::endl;
+        std::cout << "ID of the node to execute this JobStage is " << myNodeId << std::endl;
         int i;
         for (i = 0; i < numNodes; i++) {
             Handle<Vector<HashPartitionID>> partitions = getNumPartitions(i);

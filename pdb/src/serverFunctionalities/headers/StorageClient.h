@@ -28,6 +28,7 @@ class StorageClient;
 #include "CatalogClient.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
+#include "PDBCommunicator.h"
 
 namespace pdb {
 
@@ -81,6 +82,13 @@ public:
                    std::string setName,
                    std::string typeName,
                    std::string& errMsg);
+
+    bool storeData(Handle<Vector<Handle<Object>>> data,
+                   std::string databaseName,
+                   std::string setName,
+                   std::string typeName,
+                   std::string& errMsg,
+                   PDBCommunicator temp);
 
 
     // this retrieves data into a set... returns true on success

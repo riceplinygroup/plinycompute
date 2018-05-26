@@ -45,11 +45,11 @@ ReturnType simpleSendDataRequest(PDBLoggerPtr myLogger,
                                  Handle<Vector<DataType>> dataToSend,
                                  RequestTypeParams&&... args) {
 
+    PDBCommunicator temp;
     int retries = 0;
 
     while (retries <= MAX_RETRIES) {
 
-        PDBCommunicator temp;
         string errMsg;
         bool success;
 
@@ -60,6 +60,106 @@ ReturnType simpleSendDataRequest(PDBLoggerPtr myLogger,
                       << " and address =" << address << std::endl;
             return onErr;
         }
+
+        // build the request
+        if (bytesForRequest < HEADER_SIZE) {
+            std::cout << "ERROR: block size is too small" << std::endl;
+            return onErr;
+        }
+        const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
+        Handle<RequestType> request = makeObject<RequestType>(args...);
+        if (!temp.sendObject(request, errMsg)) {
+            myLogger->error(errMsg);
+            myLogger->error("simpleSendDataRequest: not able to send request to server.\n");
+            if (retries < MAX_RETRIES) {
+                retries++;
+                continue;
+            } else {
+                return onErr;
+            }
+        }
+        // now, send the data
+        if (!temp.sendObject(dataToSend, errMsg)) {
+            myLogger->error(errMsg);
+            myLogger->error("simpleSendDataRequest: not able to send data to server.\n");
+            if (retries < MAX_RETRIES) {
+                retries++;
+                continue;
+            } else {
+               return onErr;
+            }
+        }
+
+        // get the response and process it
+        size_t objectSize = temp.getSizeOfNextObject();
+        if (objectSize == 0) {
+            myLogger->error("simpleRequest: not able to get next object size");
+            std::cout << "simpleRequest: not able to get next object size" << std::endl;
+            if (retries < MAX_RETRIES) {
+                retries++;
+                continue;
+            } else {
+                return onErr;
+            }
+        }
+        void* memory = malloc(objectSize);
+        if (memory == nullptr) {
+            myLogger->error(std::string("FATAL ERROR: not able to allocate memory with size=") +
+                            std::to_string(objectSize));
+            std::cout << "FATAL ERROR: not able to allocate memory" << std::endl;
+            exit(-1);
+        }
+        ReturnType finalResult;
+        {
+            Handle<ResponseType> result = temp.getNextObject<ResponseType>(memory, success, errMsg);
+            if (!success) {
+                myLogger->error(errMsg);
+                myLogger->error("simpleRequest: not able to get next object over the wire.\n");
+                // JiaNote: we need free memory here!!!
+                free(memory);
+                if (retries < MAX_RETRIES) {
+                    retries++;
+                    continue;
+                } else {
+                    return onErr;
+                }
+            }
+
+            finalResult = processResponse(result);
+        }
+
+        free(memory);
+        return finalResult;
+    }
+    return onErr;
+
+}
+
+
+
+template <class RequestType,
+          class DataType,
+          class ResponseType,
+          class ReturnType,
+          class... RequestTypeParams>
+ReturnType simpleSendDataRequest(PDBCommunicator temp,
+                                 PDBLoggerPtr myLogger,
+                                 int port,
+                                 std::string address,
+                                 ReturnType onErr,
+                                 size_t bytesForRequest,
+                                 function<ReturnType(Handle<ResponseType>)> processResponse,
+                                 Handle<Vector<DataType>> dataToSend,
+                                 RequestTypeParams&&... args
+                                 ) {
+
+    int retries = 0;
+
+    while (retries <= MAX_RETRIES) {
+
+        string errMsg;
+        bool success;
+
 
         // build the request
         if (bytesForRequest < HEADER_SIZE) {

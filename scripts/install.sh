@@ -53,6 +53,11 @@ if [ ! -f ${pem_file} ]; then
 fi
 
 scripts/cleanupNode.sh
+
+echo "To strip shared libraries..."
+strip libraries/*.so
+echo "stripped all shared libraries!"
+
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"

@@ -108,10 +108,7 @@ void partitionData (PDBClient & pdbClient) {
        = makeObject<LineItemPartitionComp>();
     pdbClient.partitionSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
                         std::pair<std::string, std::string>("tpch", "lineitem_pt"),
-                        partitionComp);
-
-    
-
+                        partitionComp, true);
 
 }
 

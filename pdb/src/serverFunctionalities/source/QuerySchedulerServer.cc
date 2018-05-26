@@ -379,8 +379,8 @@ Handle<TupleSetJobStage> QuerySchedulerServer::getStageToSend(unsigned long inde
 
     // set the addresses of the nodes
     stageToSend->setIPAddresses(addresses);
-    stageToSend->setNodeId(static_cast<NodeID>(index));
-
+    std::cout << "QueryScheduler set nodeId=" << index << std::endl;
+    stageToSend->setNodeId(index);
     return stageToSend;
 }
 

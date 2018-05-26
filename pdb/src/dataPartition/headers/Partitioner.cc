@@ -66,12 +66,11 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
 
         curPartitionComp->setOutput(outputDatabaseAndSet.first, outputDatabaseAndSet.second);
 
-
+        std::shared_ptr<DistributedStorageManagerClient> storageClient = nullptr;
         /* Step 4. check whether to store conflicting objects and set parameters in PartitionComp correspondingly */
         if (this->storeConflictingObjects) {
             //create the set for storing conflicting objects
-            std::shared_ptr<DistributedStorageManagerClient> storageClient =
-                std::make_shared<DistributedStorageManagerClient> (queryClient->getPort(), 
+            storageClient = std::make_shared<DistributedStorageManagerClient> (queryClient->getPort(), 
                         queryClient->getAddress(), queryClient->getLogger());
             storageClient->createSet(this->conflictsDatabaseAndSet.first,
                                      this->conflictsDatabaseAndSet.second,
@@ -107,6 +106,7 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
 
         /* Step 11. to scan the stored conflicting objects if needed */
         if (this->storeConflictingObjects) {
+           storageClient->flushData(errMsg);
            SetIterator<ValueClass> result = queryClient->getSetIterator<ValueClass>(
               this->conflictsDatabaseAndSet.first, 
               this->conflictsDatabaseAndSet.second);
@@ -116,6 +116,8 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
            }
            std::cout << "conflicting objects count:" << count << "\n";
         }
+        return success;
+
 }
 
 template<class KeyClass, class ValueClass>

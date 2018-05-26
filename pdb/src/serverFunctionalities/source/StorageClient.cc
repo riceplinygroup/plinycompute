@@ -121,6 +121,34 @@ bool StorageClient::storeData(Handle<Vector<Handle<Object>>> data,
 }
 
 
+bool StorageClient::storeData(Handle<Vector<Handle<Object>>> data,
+                              std::string databaseName,
+                              std::string setName,
+                              std::string typeName,
+                              std::string& errMsg,
+                              PDBCommunicator temp) {
+    return simpleSendDataRequest<StorageAddData, Handle<Object>, SimpleRequestResult, bool>(
+        temp,
+        myLogger,
+        port,
+        address,
+        false,
+        1024,
+        [&](Handle<SimpleRequestResult> result) {
+            if (result != nullptr)
+                if (!result->getRes().first) {
+                    myLogger->error("Error sending data: " + result->getRes().second);
+                    errMsg = "Error sending data: " + result->getRes().second;
+                }
+            return true;
+        },
+        data,
+        databaseName,
+        setName,
+        typeName,
+        true);
+}
+
 std::string StorageClient::getObjectType(std::string databaseName,
                                          std::string setName,
                                          std::string& errMsg) {

@@ -107,12 +107,14 @@ namespace pdb {
       /* @param inputSet: identifier to input set             
          @param outputSet: identifier to output set
          @param PartitionComp: partition comp used to partition the input set, and resulting in the output set
+         @param storeConflictingObjects: whether to store conflicting objects
          @return: success or not                            
       */
       template <class KeyClass, class ValueClass>
       bool partitionSet(std::pair<std::string, std::string> inputSet, 
                         std::pair<std::string, std::string> outputSet, 
-                        Handle<PartitionComp<KeyClass, ValueClass>> partitionComp);
+                        Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
+                        bool storeConflictingObjects = false);
 
 
       /* Partitions and transform data stored in a created set using a partitioner */

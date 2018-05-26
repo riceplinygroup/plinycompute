@@ -20,6 +20,7 @@
 #define SIMPLE_SEND_DATA_REQUEST_H
 
 #include "PDBLogger.h"
+#include "PDBCommunicator.h"
 
 // This templated function makes it easy to write a simple network client that asks a request,
 // as a PDB object, then sends some data (as a Handle <pdb :: Vector <DataType>>) to a server and
@@ -58,6 +59,25 @@ ReturnType simpleSendDataRequest(PDBLoggerPtr myLogger,
                                  function<ReturnType(Handle<ResponseType>)> processResponse,
                                  Handle<Vector<DataType>> dataToSend,
                                  RequestTypeParams&&... args);
+
+
+template <class RequestType,
+          class DataType,
+          class ResponseType,
+          class ReturnType,
+          class... RequestTypeParams>
+ReturnType simpleSendDataRequest(PDBLoggerPtr myLogger,
+                                 int port,
+                                 std::string address,
+                                 ReturnType onErr,
+                                 size_t bytesForRequest,
+                                 function<ReturnType(Handle<ResponseType>)> processResponse,
+                                 Handle<Vector<DataType>> dataToSend,
+                                 RequestTypeParams&&... args,
+                                 PDBCommunicator temp);
+
+
+
 }
 
 #endif

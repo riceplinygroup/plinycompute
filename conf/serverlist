@@ -9,5 +9,5 @@
 # line below and add the public IP addresses of the worker nodes in the
 # cluster, one IP per line (without the colon and port).
 
-18.207.196.232
-#54.165.222.72
+34.230.43.164
+34.227.17.89
