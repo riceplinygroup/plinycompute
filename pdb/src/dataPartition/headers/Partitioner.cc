@@ -97,7 +97,7 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
           = deepCopyToCurrentAllocationBlock<PartitionComp<KeyClass, ValueClass>>(partitionComp);
 
         curPartitionComp->setOutput(output.first, output.second);
-        curPartitionComp->setStoreConflictingObjects(storeConflictingObjects);
+        curPartitionComp->setStoreConflictingObjects(whetherToStoreConflictingObjects);
 
         /* Step 5. to create a scanner computation */
         Handle<ScanUserSet<ValueClass>> scanner 
