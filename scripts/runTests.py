@@ -19,6 +19,8 @@ import time
 import sys
 import os
 import argparse
+import socket
+import os.path
 
 # parses the command line arguments
 parser = argparse.ArgumentParser(description='Script for running different PlinyCompute test suites.')
@@ -57,19 +59,36 @@ cluster_type = args['cluster_type']
 test_suite = args['test_suite'] 
 thread_num = str(args['num_threads'])
 shared_memory_size = str(args['shared_mem'])
-pem_file = args["pem_file"]
 manager_ip = args["ip"]
 test_name = args["test_name"]
 
+if (cluster_type == "distributed"):
+    pem_file = args["pem_file"]
+    if (manager_ip == "localhost"):
+        print(BColor.FAIL + "Error: when using --cluster_type='distributed' the value of --ip should be")
+        print("the IP address of the manager node, instead of 'localhost'" + BColor.END_C)
+        sys.exit()
+
+    if (os.path.isfile(pem_file) == False):
+        print("Error: the " + BColor.FAIL + "--pem-file '" + pem_file + "'" + BColor.END_C + " does not exist ")
+        sys.exit()
+
+if (manager_ip != "localhost"):
+    try:
+        socket.inet_pton(socket.AF_INET, manager_ip)
+    except socket.error:
+        print("Error: the IP address of the manager node " + BColor.FAIL + manager_ip + BColor.END_C + " is incorrect.")
+        sys.exit()
+
 print(" -----------------------------------------------------")
-print(" Running PlinyCompute tests with the following values:")
+print(BColor.HEADER + " Running PlinyCompute tests with the following values:" + BColor.END_C)
 print(" -----------------------------------------------------")
-print("  num of threads: " + thread_num)
-print(" shared mem size: " + shared_memory_size)
-print("      test suite: " + test_suite)
-print("    cluster type: " + cluster_type)
-print("        pem file: " + pem_file)
-print("      manager ip: " + manager_ip + "\n")
+print(BColor.BOLD + "  num of threads: " + BColor.END_C + thread_num)
+print(BColor.BOLD + " shared mem size: " + BColor.END_C + shared_memory_size)
+print(BColor.BOLD + "      test suite: " + BColor.END_C + test_suite)
+print(BColor.BOLD + "    cluster type: " + BColor.END_C + cluster_type)
+if (cluster_type == "distributed"): print(BColor.BOLD + "        pem file: " + BColor.END_C + pem_file)
+print(BColor.BOLD + "      manager ip: " + BColor.END_C + manager_ip + "\n")
 
 num_total = 0
 num_errors = 0
@@ -135,6 +154,11 @@ def start_pseudo_cluster():
         print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
+#download data
+os.system('rm -rf tables_scale_0.2*')
+os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
+os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
+
 # runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
 def run_tests(test_list, clear_data):
     print("###############################################")
@@ -183,7 +207,7 @@ def run_specified_test(test_list, test):
     if (test in list_of_tests(test_list)):
         run_test(test, list_of_tests(test_list)[test][0], list_of_tests(test_list)[test][1])
     else:
-        print "Test with the name %s does not exist in test suite %s." %(test, test_list)
+        print BColor.FAIL + "Test with the name %s does not exist in test suite %s." %(test, test_list) + BColor.END_C
         sys.exit()
 
 def run_test(id, test_name, test_command):
@@ -194,36 +218,36 @@ def run_test(id, test_name, test_command):
     global num_passed
 
     print("#################################")
-    print("RUN %s" % test_name)
+    print(BColor.HEADER + "RUN test: %s" % test_name + BColor.END_C)
     print("#################################")
 
     try:
         # stops cluster but keeps stored data for the following tests because they depend on
         # previously generated data
         if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
-            print (BColor.OK_BLUE + "Stoping cluster but keeps stored data and catalog metadata." + BColor.END_C)
-            subprocess.call(['bash', './scripts/stopWorker.sh', pem_file])            
+            print (BColor.OK_BLUE + "stops cluster but keeps stored data and catalog metadata" + BColor.END_C)
+            subprocess.call(['bash', './scripts/stopWorker.sh'])            
         else:
             # for the rest of the tests, removes data and stops cluster because they need an empty environment
             if cluster_type == "distributed":
-                print (BColor.OK_BLUE + "Cleaning cluster before running test." + BColor.END_C)
+                print (BColor.OK_BLUE + "cleans cluster before running test" + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
             else:
-                print (BColor.OK_BLUE + "Cleaning pseudo cluster before running test." + BColor.END_C)
+                print (BColor.OK_BLUE + "cleans standalone cluster before running test" + BColor.END_C)
                 subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
-            print ("waiting 5 seconds for cluster to be cleaned up...")
+            print ("waits 5 seconds for cluster to be cleaned up...")
             time.sleep(5)
 
         if cluster_type == "standalone":
             start_pseudo_cluster()
         else:
-            print "Launching a distributed cluster"
+            print "launches a distributed cluster"
             subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, cluster_type, thread_num, shared_memory_size])
-            print ("waiting 10 seconds to launch cluster...")
+            print ("waits 10 seconds to launch cluster...")
             time.sleep(5)
             
-        print(BColor.OK_BLUE + "running a test" + BColor.END_C)
+        print(BColor.OK_BLUE + "runs the test" + BColor.END_C)
         subprocess.check_call(test_command)
 
     except subprocess.CalledProcessError as e:
@@ -339,3 +363,5 @@ elif args["test_suite"] == "all":
 else:
     print("At least one test suite has to be selected")
 
+#remove downloaded files
+os.system('rm -rf tables_scale_0.2*')
