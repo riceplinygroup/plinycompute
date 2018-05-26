@@ -114,7 +114,8 @@ namespace pdb {
       bool partitionSet(std::pair<std::string, std::string> inputSet, 
                         std::pair<std::string, std::string> outputSet, 
                         Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
-                        bool storeConflictingObjects = false);
+                        bool storeConflictingObjects = false,
+                        bool whetherToRecover = false);
 
 
       /* Partitions and transform data stored in a created set using a partitioner */

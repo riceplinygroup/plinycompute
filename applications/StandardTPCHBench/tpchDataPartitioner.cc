@@ -120,10 +120,10 @@ void recoverData (PDBClient & pdbClient) {
        = makeObject<LineItemPartitionComp>();
     pdbClient.partitionSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
                         std::pair<std::string, std::string>("tpch", "lineitem_pt_1"),
-                        partitionComp, false);
+                        partitionComp, false, true);
     pdbClient.partitionSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
                         std::pair<std::string, std::string>("tpch", "conflict_lineitem_pt_1"),
-                        partitionComp, false);
+                        partitionComp, false, true);
 
 
 }

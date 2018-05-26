@@ -40,14 +40,15 @@ Partitioner<KeyClass, ValueClass> :: Partitioner (std::pair<std::string, std::st
 template<class KeyClass, class ValueClass>
 bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
                                                          std::shared_ptr<pdb::QueryClient> queryClient,
-                                                         Handle<PartitionComp<KeyClass, ValueClass>> partitionComp) {
+                                                         Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
+                                                         bool whetherToRecover) {
         bool success;
         std::cout << "To partition database = " << this->inputDatabaseAndSet.first << ", set = " << this->inputDatabaseAndSet.second << std::endl;
-        success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->outputDatabaseAndSet, false);
+        success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->outputDatabaseAndSet, false, whetherToRecover);
 
         if (this->storeConflictingObjects) {
             std::cout << "To store conflicting objects" << std::endl;
-            success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->conflictsDatabaseAndSet, true);
+            success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->conflictsDatabaseAndSet, true, whetherToRecover);
         }
        
         return success;
@@ -62,7 +63,8 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
                                                          Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
                                                          std::pair<std::string, std::string> input,
                                                          std::pair<std::string, std::string> output,
-                                                         bool whetherToStoreConflictingObjects) {
+                                                         bool whetherToStoreConflictingObjects, 
+                                                         bool whetherToRecover) {
 
 
         /* Step 1. to check whether partitionComp is null, if yes, we return false */
@@ -130,18 +132,19 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
         bool success = queryClient->executeComputations(errMsg, tcapString, computations);
 
         /* Step 10. to scan the stored data if needed */
-        storageClient->flushData(errMsg);
-        SetIterator<ValueClass> result = queryClient->getSetIterator<ValueClass>(
-            output.first, 
-            output.second);
-        int count = 0;
-        for (auto a : result) {
-            count++;
-        }
-        if (whetherToStoreConflictingObjects) {
-            std::cout << "conflicting objects count:" << count << "\n";
-        } else {
-            std::cout << "partitioned objects count:" << count << "\n";
+        if (whetherToRecover == false) {
+            SetIterator<ValueClass> result = queryClient->getSetIterator<ValueClass>(
+                output.first, 
+                output.second);
+            int count = 0;
+            for (auto a : result) {
+                count++;
+            }
+            if (whetherToStoreConflictingObjects) {
+                std::cout << "conflicting objects count:" << count << "\n";
+            } else {
+                std::cout << "partitioned objects count:" << count << "\n";
+            }
         }
         return success;
 

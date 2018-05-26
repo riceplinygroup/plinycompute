@@ -114,11 +114,12 @@ namespace pdb {
     bool PDBClient::partitionSet(std::pair<std::string, std::string> inputSet, 
                                  std::pair<std::string, std::string> outputSet, 
                                  Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
-                                 bool storeConflictingObjects) {
+                                 bool storeConflictingObjects,
+                                 bool whetherToRecover) {
 
         std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner 
                           = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet, storeConflictingObjects);
-        return myPartitioner->partition(errorMsg, this->queryClient, partitionComp);
+        return myPartitioner->partition(errorMsg, this->queryClient, partitionComp, whetherToRecover);
 
     }
 
