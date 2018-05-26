@@ -92,6 +92,7 @@ void createPartitionSets (PDBClient & pdbClient) {
     pdbClient.removeSet("tpch", "lineitem_pt");
     std::cout << "to create set for TPCHLineItem" << std::endl;
     pdbClient.createSet<TPCHLineItem>("tpch", "lineitem_pt", (size_t)64*(size_t)1024*(size_t)1024);
+    pdbClient.createSet<TPCHLineItem>("tpch", "lineitem_pt_1", (size_t)64*(size_t)1024*(size_t)1024);
 }
 
 void removePartitionedSets (PDBClient & pdbClient) {
@@ -111,6 +112,22 @@ void partitionData (PDBClient & pdbClient) {
                         partitionComp, true);
 
 }
+
+void recoverData (PDBClient & pdbClient) {
+
+
+    Handle<LineItemPartitionComp> partitionComp
+       = makeObject<LineItemPartitionComp>();
+    pdbClient.partitionSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
+                        std::pair<std::string, std::string>("tpch", "lineitem_pt_1"),
+                        partitionComp, false);
+    pdbClient.partitionSet<int, TPCHLineItem>(std::pair<std::string, std::string>("tpch", "lineitem"),
+                        std::pair<std::string, std::string>("tpch", "conflict_lineitem_pt_1"),
+                        partitionComp, false);
+
+
+}
+
 
 
 int main(int argc, char* argv[]) {
@@ -323,8 +340,32 @@ int main(int argc, char* argv[]) {
         cout << "Set removed. \n";
     }
 
+    if (!pdbClient.removeSet("tpch", "lineitem_pt")) {
+        cout << "Not able to remove the set";
+        exit(-1);
+    } else {
+        cout << "Set removed. \n";
+    }    
 
+    if (!pdbClient.removeSet("tpch", "conflict_lineitem_pt")) {
+        cout << "Not able to remove the set";
+        exit(-1);
+    } else {
+        cout << "Set removed. \n";
+    }
 
+    begin = std::chrono::high_resolution_clock::now();
+
+    recoverData(pdbClient);    
+
+    std::cout << std::endl;
+    end = std::chrono::high_resolution_clock::now();
+
+    timeDifference =
+        (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) /
+        (float)1000000000;
+
+    std::cout << "#TimeDuration for recovery: " << timeDifference << " Second " << std::endl;
     // Clean up the SO files.
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

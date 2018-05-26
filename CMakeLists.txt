@@ -21,7 +21,7 @@ if (APPLE)
     SET(CMAKE_CXX_FLAGS "-g -fPIC -Wno-deprecated-declarations")
     SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (UNIX AND NOT APPLE)
-    SET(CMAKE_CXX_FLAGS "-g -fPIC -Wno-deprecated-declarations")
+    SET(CMAKE_CXX_FLAGS "-Oz -g -fPIC -Wno-deprecated-declarations")
 endif ()
 
 # set the definitions for the compiler
