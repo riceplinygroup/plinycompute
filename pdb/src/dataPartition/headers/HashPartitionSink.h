@@ -45,7 +45,7 @@ public:
      * @param storeConflictingObjectsOrNot: whether to store conflicting objects
      * @param port: port of PDB server on current node
      */
-    HashPartitionSink(int numPartitions, int numNodes, TupleSpec& inputSchema, TupleSpec& attsToOperateOn, bool storeConflictingObjectsOrNot = false, int port = 8108, int myNodeId = 0, String dbNameForConflictingObjects = "", String setNameForConflictingObjects = "") {
+    HashPartitionSink(int numPartitions, int numNodes, TupleSpec& inputSchema, TupleSpec& attsToOperateOn, bool storeConflictingObjectsOrNot = false, int myNodeId = 0) {
 
         // to setup the output tuple set
         TupleSpec empty;
@@ -62,20 +62,8 @@ public:
         std::cout << "numPartitions=" << numPartitions << std::endl;
         std::cout << "numNodes=" << numNodes << std::endl;
 
-        if ( storeConflictingObjectsOrNot == true ) {
-            this->storeConflictingObjects = true;
-            UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
-            this->placeHolderForCurConflictingObject = makeObject<Vector<Handle<Object>>> (1, 1);
-            this->myNodeId = myNodeId;
-            std::cout << "my nodeId is set to " << this->myNodeId << std::endl; 
-            PDBLoggerPtr logger = make_shared<PDBLogger>("hashpartitionsink-"+(std::to_string(myNodeId)));
-            this->myClient = make_shared<StorageClient>(port, "localhost", logger);
-            this->dbName = dbNameForConflictingObjects;            
-            this->setName = setNameForConflictingObjects;
-            (this->temp).connectToInternetServer(logger, port, "localhost", errMsg);
-        }
-
-
+        this->storeConflictingObjects = storeConflictingObjectsOrNot;
+        this->myNodeId = myNodeId;
 
     }
 
@@ -124,42 +112,43 @@ public:
             hashVal = Hasher<KeyType>::hash(keyColumn[i]);
             int nodeId = (hashVal % (numPartitions))/(numPartitions/numNodes);
             if ((nodeId == myNodeId) && storeConflictingObjects) {
-                std::cout << "detect a conflicting object, we need replicate it differently for failure recovery" << std::endl;
+                Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
                 try {
-                     (*(this->placeHolderForCurConflictingObject))[0] = valueColumn[i];
-                     std::string errMsg = "";
-                     this->myClient->storeData(this->placeHolderForCurConflictingObject,
-                           dbName, setName, getTypeName<ValueType>(), errMsg, temp);
+                    //to add the value to the partition
+                    myVec.push_back(valueColumn[i]);
+
                 } catch (NotEnoughSpace & n) {
-                     std::cout << "not enough space when trying to store one conflicting object" << std::endl;
-                     UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
-                     this->placeHolderForCurConflictingObject =  makeObject<Vector<Handle<Object>>> (1, 1);
-                     (*(this->placeHolderForCurConflictingObject))[0] = valueColumn[i]; 
-                     std::string errMsg = "";
-                     this->myClient->storeData(this->placeHolderForCurConflictingObject, 
-                           dbName, setName, getTypeName<ValueType>(), errMsg, temp);
-                     keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
-                     valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
-                     throw n;
+
+                    /* if we got here then we run out of space and we need delete the already-processed
+                     *  data, throw an exception so that new space can be allocated by handling the exception,
+                     *  and try to process the remaining unprocessed data again */
+                    keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
+                    valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
+                    throw n;
+
                 }
-                
             }
-            Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
+            if (! storeConflictingObjects) {
+                Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
 
-            try {
-                //to add the value to the partition
-                myVec.push_back(valueColumn[i]);
+                try {
+                    //to add the value to the partition
+                    myVec.push_back(valueColumn[i]);
 
-            } catch (NotEnoughSpace & n) {
+                } catch (NotEnoughSpace & n) {
 
-                /* if we got here then we run out of space and we need delete the already-processed
-                 *  data, throw an exception so that new space can be allocated by handling the exception,
-                 *  and try to process the remaining unprocessed data again */
-                keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
-                valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
-                throw n;
+                    /* if we got here then we run out of space and we need delete the already-processed
+                     *  data, throw an exception so that new space can be allocated by handling the exception,
+                     *  and try to process the remaining unprocessed data again */
+                    keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
+                    valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
+                    throw n;
+
+                }
 
             }
+
+
         }
     }
 
@@ -182,26 +171,9 @@ private:
     // whether to detect and store conflicting objects for heterogeneous replication in case of failure recovery
     bool storeConflictingObjects = false;
 
-    // database name for storing conflicting objects
-    String dbName = "";
-
-    // set name for storing conflicting objects
-    String setName = "";
-
-    // storage client
-    std::shared_ptr<StorageClient> myClient = nullptr;
-
     // the node Id of current node
     int myNodeId = 0;
 
-    // vector of single element to store current conflicting object
-    Handle<Vector<Handle<Object>>> placeHolderForCurConflictingObject = nullptr;
-
-    // connection for storing conflicting objects
-    PDBCommunicator temp;
-
-    // error message for storing conflicting objects
-    std::string errMsg;
 
 };
 }

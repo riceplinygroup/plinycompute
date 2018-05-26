@@ -52,15 +52,33 @@ public:
     /* to partition the data stored in the inputDatabaseAndSet */
     /* @param errMsg: error message 
      * @param queryClient: the client used to send partition at the server
+     * @param partitionComp: the partition computation 
      * @return: whether this execution succeeds or not */
     bool partition ( std::string & errMsg, 
                      std::shared_ptr<pdb::QueryClient> queryClient,
                      Handle<PartitionComp<KeyClass, ValueClass>> partitionComp);
 
 
+    /* to partition the data stored in the inputDatabaseAndSet */
+    /* @param errMsg: error message 
+     * @param queryClient: the client used to send partition at the server
+     * @param partitionComp: the partition computation 
+     * @param input: the input database
+     * @param input: the output database
+     * @param whetherToStoreConflictingObject
+     * @return: whether this execution succeeds or not */
+    bool partition ( std::string & errMsg,
+                     std::shared_ptr<pdb::QueryClient> queryClient,
+                     Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
+                     std::pair<std::string, std::string> input,
+                     std::pair<std::string, std::string> output,
+                     bool whetherToStoreConflictingObjects);
+
+
     /* to extract, partition and store the key in the data stored in the inputDatabaseAndSet*/
     /* @param errMsg: error message 
      * @param queryClient: the client used to send partition at the server
+     * @param partitionComp: the partition computation
      * @return: whether this execution succeeds or not */
     bool partitionWithTransformation ( std::string & errMsg, 
                      std::shared_ptr<pdb::QueryClient> queryClient,

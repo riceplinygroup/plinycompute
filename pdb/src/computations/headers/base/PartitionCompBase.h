@@ -244,14 +244,7 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
   ComputeSinkPtr getComputeSink(TupleSpec &consumeMe,
                                 TupleSpec &projection,
                                 ComputePlan &plan) override {
-      std::cout << "#######################################" << std::endl;
-      if (this->storeConflictingObjects) {
-         std::cout << "we need store conflicting objects to database=" << this->dbName << " and set =" << this->setName << std::endl;
-      } else {
-         std::cout << "we do not need store any conflicting objects" << std::endl;
-      }
-      std::cout << "#######################################" << std::endl;
-      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection, this->storeConflictingObjects, this->port, this->myNodeId, this->dbName, this->setName);
+      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection, this->storeConflictingObjects, this->myNodeId);
   }
 
 
@@ -274,48 +267,6 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
    */
   bool getStoreConflictingObjects () {
     return this->storeConflictingObjects;
-  }
-
-  /**
-   * @param databaseName: the name of the database for storing conflicting objects
-   */
-  void setDatabaseNameForConflictingObjects (std::string databaseName) {
-    this->dbName = databaseName;
-  }
-
-  /**
-   * @return: the database name
-   */
-  std::string getDatabaseNameForConflictingObjects () {
-    return this->dbName;
-  }
-
-  /**
-   * @param setName: the name of the set for storing conflicting objects
-   */
-  void setSetNameForConflictingObjects (std::string setName) {
-    this->setName = setName;
-  }
-
-  /**
-   * @return: the set name
-   */
-  std::string getSetNameForConflictingObjects () {
-    return this->setName;
-  }
-
-  /**
-   * @param port: the PDB server port on the node that runs this computation
-   */
-  void setPort (int port) {
-    this->port = port;
-  }
-
-  /**
-   * @return: the PDB server port on the node that runs this computation
-   */
-  int getPort () {
-    return this->port;
   }
 
 
@@ -343,17 +294,6 @@ private:
   // whether to detect and store conflicting objects for heterogeneous replication in case of failure recovery
   bool storeConflictingObjects = false;
 
-  // database name for storing conflicting objects
-  String dbName = "";
-
-  // set name for storing conflicting objects
-  String setName = "";
-
-  
-  // below parameter should be set by the system at query scheduling time or in backend
-
-  // the port of current node
-  int port = 8108;
 
   // the node Id of current node
   int myNodeId = 0;
