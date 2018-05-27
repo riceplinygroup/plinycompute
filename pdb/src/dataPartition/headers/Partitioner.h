@@ -53,12 +53,14 @@ public:
     /* @param errMsg: error message 
      * @param queryClient: the client used to send partition at the server
      * @param partitionComp: the partition computation 
-     * @param whetherToRecover
+     * @param whetherToRecover: whether it is just to recover for a few nodes
+     * @param nodesToRecover: nodes to recover
      * @return: whether this execution succeeds or not */
     bool partition ( std::string & errMsg, 
                      std::shared_ptr<pdb::QueryClient> queryClient,
                      Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
-                     bool whetherToRecover = false);
+                     bool whetherToRecover = false,
+                     std::vector<int> * nodesToRecover = nullptr);
 
 
     /* to partition the data stored in the inputDatabaseAndSet */
@@ -69,6 +71,7 @@ public:
      * @param input: the output database
      * @param whetherToStoreConflictingObject
      * @param whetherToRecover
+     * @param nodesToRecover: nodes to recover
      * @return: whether this execution succeeds or not */
     bool partition ( std::string & errMsg,
                      std::shared_ptr<pdb::QueryClient> queryClient,
@@ -76,7 +79,8 @@ public:
                      std::pair<std::string, std::string> input,
                      std::pair<std::string, std::string> output,
                      bool whetherToStoreConflictingObjects,
-                     bool whetherToRecover = false);
+                     bool whetherToRecover = false,
+                     std::vector<int> * nodesToRecover = nullptr);
 
 
     /* to extract, partition and store the key in the data stored in the inputDatabaseAndSet*/

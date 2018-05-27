@@ -115,11 +115,12 @@ namespace pdb {
                                  std::pair<std::string, std::string> outputSet, 
                                  Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
                                  bool storeConflictingObjects,
-                                 bool whetherToRecover) {
+                                 bool whetherToRecover,
+                                 std::vector<int> * nodesToRecover) {
 
         std::shared_ptr<Partitioner<KeyClass, ValueClass>> myPartitioner 
                           = std::make_shared<Partitioner<KeyClass, ValueClass>>(inputSet, outputSet, storeConflictingObjects);
-        return myPartitioner->partition(errorMsg, this->queryClient, partitionComp, whetherToRecover);
+        return myPartitioner->partition(errorMsg, this->queryClient, partitionComp, whetherToRecover, nodesToRecover);
 
     }
 

@@ -41,14 +41,15 @@ template<class KeyClass, class ValueClass>
 bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
                                                          std::shared_ptr<pdb::QueryClient> queryClient,
                                                          Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
-                                                         bool whetherToRecover) {
+                                                         bool whetherToRecover,
+                                                         std::vector<int> * nodesToRecover) {
         bool success;
         std::cout << "To partition database = " << this->inputDatabaseAndSet.first << ", set = " << this->inputDatabaseAndSet.second << std::endl;
         success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->outputDatabaseAndSet, false, whetherToRecover);
 
         if (this->storeConflictingObjects) {
             std::cout << "To store conflicting objects" << std::endl;
-            success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->conflictsDatabaseAndSet, true, whetherToRecover);
+            success = this->partition(errMsg, queryClient, partitionComp, this->inputDatabaseAndSet, this->conflictsDatabaseAndSet, true, whetherToRecover, nodesToRecover);
         }
        
         return success;
@@ -64,7 +65,8 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
                                                          std::pair<std::string, std::string> input,
                                                          std::pair<std::string, std::string> output,
                                                          bool whetherToStoreConflictingObjects, 
-                                                         bool whetherToRecover) {
+                                                         bool whetherToRecover,
+                                                         std::vector<int> * nodesToRecover) {
 
 
         /* Step 1. to check whether partitionComp is null, if yes, we return false */
@@ -100,6 +102,10 @@ bool Partitioner<KeyClass, ValueClass> :: partition ( std::string & errMsg,
 
         curPartitionComp->setOutput(output.first, output.second);
         curPartitionComp->setStoreConflictingObjects(whetherToStoreConflictingObjects);
+        curPartitionComp->setRecoverData (whetherToRecover);
+        if ((whetherToRecover == true) && (nodesToRecover != nullptr)) {
+             curPartitionComp->setNodesToRecover (*nodesToRecover);
+        }
 
         /* Step 5. to create a scanner computation */
         Handle<ScanUserSet<ValueClass>> scanner 

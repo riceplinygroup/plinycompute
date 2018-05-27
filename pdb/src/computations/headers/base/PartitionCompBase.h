@@ -244,7 +244,7 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
   ComputeSinkPtr getComputeSink(TupleSpec &consumeMe,
                                 TupleSpec &projection,
                                 ComputePlan &plan) override {
-      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection, this->storeConflictingObjects, this->myNodeId);
+      return std::make_shared<HashPartitionSink<KeyClass, ValueClass>>(this->numPartitions, this->numNodes, consumeMe, projection, this->storeConflictingObjects, this->myNodeId, this->recoverData, this->nodesToRecover);
   }
 
 
@@ -284,6 +284,38 @@ class PartitionCompBase : public AbstractPartitionComp<KeyClass, ValueClass> {
     return this->myNodeId;
   }
 
+
+  /**
+   * @param recoverData: whether to recover data
+   */
+  void setRecoverData (bool recoverData) {
+    this->recoverData = recoverData;
+  }
+
+  /**
+   * @return: whether to recover data
+   */
+  bool getRecoverData () {
+    return this->recoverData;
+  }
+
+  /**
+   * @param nodesToRecover: an array of nodes to recover
+   */
+  void setNodesToRecover (std::vector<int> nodesToRecover) {
+    this->nodesToRecover = makeObject<Vector<int>> ();
+    for (size_t i = 0; i < nodesToRecover.size(); i++) {
+        this->nodesToRecover->push_back(nodesToRecover[i]);
+    }
+  }
+
+   /**
+    * @return: a Vector of nodes to recover
+    */
+   Handle<Vector<int>> getNodesToRecover () {
+      return this->nodesToRecover;
+   }
+
 private:
 
   Handle<ScanUserSet<ValueClass>> outputSetScanner = nullptr;
@@ -298,7 +330,11 @@ private:
   // the node Id of current node
   int myNodeId = 0;
 
+  // whether to recover data
+  bool recoverData = false;
 
+  // the Ids of nodes to recover
+  Handle<Vector<int>> nodesToRecover = nullptr;
 
 };
 

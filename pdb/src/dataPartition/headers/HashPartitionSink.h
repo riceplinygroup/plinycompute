@@ -45,7 +45,7 @@ public:
      * @param storeConflictingObjectsOrNot: whether to store conflicting objects
      * @param port: port of PDB server on current node
      */
-    HashPartitionSink(int numPartitions, int numNodes, TupleSpec& inputSchema, TupleSpec& attsToOperateOn, bool storeConflictingObjectsOrNot = false, int myNodeId = 0) {
+    HashPartitionSink(int numPartitions, int numNodes, TupleSpec& inputSchema, TupleSpec& attsToOperateOn, bool storeConflictingObjectsOrNot = false, int myNodeId = 0, bool recoverData = false, Handle<Vector<int>> nodesToRecover = nullptr) {
 
         // to setup the output tuple set
         TupleSpec empty;
@@ -64,6 +64,16 @@ public:
 
         this->storeConflictingObjects = storeConflictingObjectsOrNot;
         this->myNodeId = myNodeId;
+
+        for (int i = 0; i < numNodes; i++) {
+            nodeStatus.push_back(false);
+        }
+        this->recoverData = recoverData;
+        if ((recoverData == true) && (nodesToRecover != nullptr)) {
+            for (size_t i = 0; i < nodesToRecover->size(); i++) {
+                nodeStatus[((*nodesToRecover)[i])] = true;
+            }       
+        }
 
     }
 
@@ -112,40 +122,43 @@ public:
             hashVal = Hasher<KeyType>::hash(keyColumn[i]);
             int nodeId = (hashVal % (numPartitions))/(numPartitions/numNodes);
             if ((nodeId == myNodeId) && storeConflictingObjects) {
-                Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
-                try {
-                    //to add the value to the partition
-                    myVec.push_back(valueColumn[i]);
+                if ((!recoverData) || ((recoverData)&&(nodeStatus[nodeId] == true))) {
+                    Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
+                    try {
+                       //to add the value to the partition
+                        myVec.push_back(valueColumn[i]);
 
-                } catch (NotEnoughSpace & n) {
+                    } catch (NotEnoughSpace & n) {
 
-                    /* if we got here then we run out of space and we need delete the already-processed
-                     *  data, throw an exception so that new space can be allocated by handling the exception,
-                     *  and try to process the remaining unprocessed data again */
-                    keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
-                    valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
-                    throw n;
+                       /* if we got here then we run out of space and we need delete the already-processed
+                        *  data, throw an exception so that new space can be allocated by handling the exception,
+                        *  and try to process the remaining unprocessed data again */
+                        keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
+                        valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
+                        throw n;
 
+                    }
                 }
             }
             if (! storeConflictingObjects) {
-                Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
+                if ((!recoverData) || ((recoverData)&&(nodeStatus[nodeId] == true))) {
+                    Vector<Handle<ValueType>>& myVec = *((*writeMe)[nodeId]);
 
-                try {
-                    //to add the value to the partition
-                    myVec.push_back(valueColumn[i]);
+                    try {
+                        //to add the value to the partition
+                        myVec.push_back(valueColumn[i]);
 
-                } catch (NotEnoughSpace & n) {
+                    } catch (NotEnoughSpace & n) {
 
-                    /* if we got here then we run out of space and we need delete the already-processed
-                     *  data, throw an exception so that new space can be allocated by handling the exception,
-                     *  and try to process the remaining unprocessed data again */
-                    keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
-                    valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
-                    throw n;
+                        /* if we got here then we run out of space and we need delete the already-processed
+                         *  data, throw an exception so that new space can be allocated by handling the exception,
+                         *  and try to process the remaining unprocessed data again */
+                        keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
+                        valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
+                        throw n;
 
+                   }
                 }
-
             }
 
 
@@ -174,7 +187,11 @@ private:
     // the node Id of current node
     int myNodeId = 0;
 
+    // whether to recover data
+    bool recoverData = false;
 
+    // the node Id to recover;
+    Vector<bool> nodeStatus;
 };
 }
 

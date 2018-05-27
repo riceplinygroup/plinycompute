@@ -108,6 +108,8 @@ namespace pdb {
          @param outputSet: identifier to output set
          @param PartitionComp: partition comp used to partition the input set, and resulting in the output set
          @param storeConflictingObjects: whether to store conflicting objects
+         @param whetherToRecover: whether just to recover data for some nodes
+         @param nodesToRecover: an array of nodes to recover (user need manage the free of memory)
          @return: success or not                            
       */
       template <class KeyClass, class ValueClass>
@@ -115,7 +117,8 @@ namespace pdb {
                         std::pair<std::string, std::string> outputSet, 
                         Handle<PartitionComp<KeyClass, ValueClass>> partitionComp,
                         bool storeConflictingObjects = false,
-                        bool whetherToRecover = false);
+                        bool whetherToRecover = false,
+                        std::vector<int> * nodesToRecover = nullptr);
 
 
       /* Partitions and transform data stored in a created set using a partitioner */
