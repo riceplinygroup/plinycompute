@@ -154,10 +154,15 @@ def start_pseudo_cluster():
         print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
-#download data
-os.system('rm -rf tables_scale_0.2*')
-os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
-os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
+# downloads TPCH data needed for some tests
+def downloadTPCHData():
+    os.system('rm -rf tables_scale_0.2*')
+    os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0 -O tables_scale_0.2.tar.bz2')
+    os.system('tar xvf tables_scale_0.2.tar.bz2')
+
+# removes TPCH data after tests
+def removeTPCHData():
+    os.system('rm -rf tables_scale_0.2*')
 
 # runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
 def run_tests(test_list, clear_data):
@@ -222,11 +227,15 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
+        if (id == "Pre-partitionLoadData"):
+            downloadTPCHData()
+
         # stops cluster but keeps stored data for the following tests because they depend on
         # previously generated data
         if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
             print (BColor.OK_BLUE + "stops cluster but keeps stored data and catalog metadata" + BColor.END_C)
             subprocess.call(['bash', './scripts/stopWorker.sh'])            
+
         else:
             # for the rest of the tests, removes data and stops cluster because they need an empty environment
             if cluster_type == "distributed":
@@ -250,6 +259,9 @@ def run_test(id, test_name, test_command):
         print(BColor.OK_BLUE + "runs the test" + BColor.END_C)
         subprocess.check_call(test_command)
 
+        if (id == "Pre-partitionLoadData"):
+            removeTPCHData()
+        
     except subprocess.CalledProcessError as e:
         print(BColor.FAIL + "[ERROR] in running %s" % test_name + BColor.END_C)
         print(e.returncode)
