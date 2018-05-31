@@ -20,7 +20,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "IntDoubleVectorPair.h"
 #include "LDATopicWordProb.h"
 
@@ -28,7 +28,7 @@
 using namespace pdb;
 
 class LDAWordTopicAggregate
-    : public ClusterAggregateComp<LDATopicWordProb, LDATopicWordProb, unsigned, LDATopicWordProb> {
+    : public AggregateComp<LDATopicWordProb, LDATopicWordProb, unsigned, LDATopicWordProb> {
 
 public:
     ENABLE_DEEP_COPY

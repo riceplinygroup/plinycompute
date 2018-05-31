@@ -75,7 +75,7 @@ public:
             myLogger->error("output iterator: not able to send request to server.\n");
             return OutputIterator<OutType>();
         }
-        PDB_COUT << "sent SetScan object to master" << std::endl;
+        PDB_COUT << "sent SetScan object to manager" << std::endl;
         return OutputIterator<OutType>(temp);
     }
 

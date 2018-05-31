@@ -26,10 +26,8 @@
 #include "PDBVector.h"
 #include "QueryBase.h"
 #include "ResourceInfo.h"
-#include "JobStage.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
-#include "QueryGraphIr.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
@@ -38,13 +36,15 @@
 #include "TCAPAnalyzer.h"
 #include "ShuffleInfo.h"
 #include "DistributedStorageManagerClient.h"
+#include "StatisticsDB.h"
+#include "RegisterReplica.h"
 #include <vector>
 #include <ExecuteComputation.h>
 
 namespace pdb {
 
 /**
- *  This class is working on Master node to schedule JobStages dynamically from TCAP logical plan
+ *  This class is working on the Manager node to schedule JobStages dynamically from TCAP logical plan
  *  So far following JobStages are supported:
  *
  * -- TupleSetJobStage
@@ -72,6 +72,7 @@ public:
      */
     QuerySchedulerServer(PDBLoggerPtr logger,
                          ConfigurationPtr conf,
+                         std::shared_ptr<StatisticsDB> statisticsDB,
                          bool pseudoClusterMode = false,
                          double partitionToCoreRatio = 0.75);
 
@@ -86,6 +87,7 @@ public:
     QuerySchedulerServer(int port,
                          PDBLoggerPtr logger,
                          ConfigurationPtr conf,
+                         std::shared_ptr<StatisticsDB> statisticsDB,
                          bool pseudoClusterMode = false,
                          double partitionToCoreRatio = 0.75);
 
@@ -255,6 +257,14 @@ protected:
     pair<bool, basic_string<char>> executeComputation(Handle<ExecuteComputation> &request,
                                                       PDBCommunicatorPtr &sendUsingMe);
 
+    /**
+     * This method registers a replica with statisticsDB per client request
+     * @param request the object that describes the computation
+     * @param sendUsingMe an instance of the PDBCommunicator that points to the client
+     */
+    pair<bool, basic_string<char>> registerReplica(Handle<RegisterReplica> &request,
+                                                                     PDBCommunicatorPtr &sendUsingMe);
+
 
     /**
      * This method finds the best source operator using a heuristic, then uses this operator to extract a sequence of
@@ -327,6 +337,11 @@ protected:
      * The configuration of the node provided by the constructor
      */
     ConfigurationPtr conf;
+
+    /**
+     * A pointer to StatisticsDB that manages various statistics
+     */
+    std::shared_ptr<StatisticsDB> statisticsDB;
 
     /**
      * True if we are running PDB in pseudo cluster mode false otherwise

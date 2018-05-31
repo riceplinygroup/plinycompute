@@ -64,15 +64,17 @@
 namespace pdb {
 
 DistributedStorageManagerServer::DistributedStorageManagerServer(PDBLoggerPtr logger,
-                                                                 ConfigurationPtr conf)
+                                                                 ConfigurationPtr conf,
+                                                                 std::shared_ptr<StatisticsDB> statisticsDB)
     : BroadcastServer(logger, conf) {
-    // no-op
+    this->statisticsDB = statisticsDB;
 }
 
 
-DistributedStorageManagerServer::DistributedStorageManagerServer(PDBLoggerPtr logger)
+DistributedStorageManagerServer::DistributedStorageManagerServer(PDBLoggerPtr logger,
+                                                                 std::shared_ptr<StatisticsDB> statisticsDB)
     : BroadcastServer(logger) {
-    // no-op
+    this->statisticsDB = statisticsDB;
 }
 
 
@@ -418,6 +420,18 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 stats->setNumPages(request->getDatabase(), request->getSetName(), 0);
                 stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
             }
+            long id = -1;
+            int typeId = VTableMap::getIDByName(request->getTypeName());
+            this->statisticsDB->createData(request->getDatabase(), 
+                                           request->getSetName(),
+                                           "UNKNOWN", 
+                                           "UserSet",
+                                           request->getTypeName(), 
+                                           typeId,
+                                           request->getPageSize(), 
+                                           id);
+            std::cout << "created data in statistics database with id = " << id << std::endl;
+
             auto catalogAddSetEnd = std::chrono::high_resolution_clock::now();
 
             PDB_COUT << "Time Duration for catalog create set Metadata:\t "

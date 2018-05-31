@@ -22,10 +22,11 @@
 
 #include "BroadcastServer.h"
 #include "SimpleRequestResult.h"
+#include "StatisticsDB.h"
 
 namespace pdb {
 
-// This ServerFunctionality runs on the Master server, and talks with
+// This ServerFunctionality runs on the Manager server, and talks with
 // the PangeaStorageServer deployed on each Worker server to serve
 // storage-related requests. Include following:
 // -- DistributedStorageAddDatabase: to add a database over the cluster
@@ -45,15 +46,19 @@ namespace pdb {
 class DistributedStorageManagerServer : public BroadcastServer {
 
 public:
-    DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf);
+    DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf, std::shared_ptr<StatisticsDB> statisticsDB);
 
 
-    DistributedStorageManagerServer(PDBLoggerPtr logger);
+    DistributedStorageManagerServer(PDBLoggerPtr logger, std::shared_ptr<StatisticsDB> statisticsDB);
+
     ~DistributedStorageManagerServer();
 
     void registerHandlers(PDBServer& forMe) override;
 
 private:
+
+    std::shared_ptr<StatisticsDB> statisticsDB;
+
     bool findNodesForDatabase(const std::string& databaseName,
                               std::vector<std::string>& nodesForDatabase,
                               std::string& errMsg);

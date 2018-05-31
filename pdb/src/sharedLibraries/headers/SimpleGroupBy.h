@@ -20,7 +20,7 @@
 
 // by Jia, Mar 2017
 
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "Employee.h"
 #include "Supervisor.h"
 #include "LambdaCreationFunctions.h"
@@ -28,7 +28,7 @@
 
 using namespace pdb;
 
-class SimpleGroupBy : public ClusterAggregateComp<DepartmentEmployeeAges,
+class SimpleGroupBy : public AggregateComp<DepartmentEmployeeAges,
                                                  Supervisor,
                                                  String,
                                                  Handle<Map<String, Vector<int>>>> {

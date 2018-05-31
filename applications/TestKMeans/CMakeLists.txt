@@ -6,7 +6,7 @@
 add_pdb_application(TestKMeans)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestKMeans)
+add_dependencies(build-ml-tests TestKMeans)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestKMeans KMeansAggregateOutputType)

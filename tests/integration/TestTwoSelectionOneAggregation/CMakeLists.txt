@@ -2,7 +2,7 @@
 add_pdb_integration_test(TestTwoSelectionOneAggregation)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestTwoSelectionOneAggregation)
+add_dependencies(build-integration-tests TestTwoSelectionOneAggregation)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestTwoSelectionOneAggregation SimpleSelection)

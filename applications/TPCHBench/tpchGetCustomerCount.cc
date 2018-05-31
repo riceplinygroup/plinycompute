@@ -87,9 +87,9 @@
 using namespace std;
 
 // Run a Cluster on Localhost
-// ./bin/pdb-cluster localhost 8108 Y
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8109
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8110
+// ./bin/pdb-manager localhost 8108 Y
+// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8109
+// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8110
 
 // TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
 // Just unzip the file and put the folder in main directory of PDB
@@ -105,22 +105,11 @@ int main(int argc, char* argv[]) {
 
 
     // Connection info
-    string masterHostname = "localhost";
-    int masterPort = 8108;
+    string managerHostname = "localhost";
+    int managerPort = 8108;
 
     // register the shared employee class
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-    PDBClient pdbClient(
-            masterPort, masterHostname,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            masterPort,
-            masterHostname,
-            clientLogger);
+    PDBClient pdbClient(managerPort, managerHostname);
 
     string errMsg;
 
@@ -130,13 +119,8 @@ int main(int argc, char* argv[]) {
     // WE CHECK THE NUBMER OF STORED CUSTOMERS
 
     // now, create the sets for storing Customer Data
-    if (!pdbClient.createSet<SumResultWriteSet>(
-            "TPCH_db", "output_setCustomer", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<SumResultWriteSet>(
+            "TPCH_db", "output_setCustomer");
 
 
     // for allocations
@@ -161,10 +145,7 @@ int main(int argc, char* argv[]) {
     // execute the query
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriteSet);
     std::cout << std::endl;
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Time Duration: "
@@ -187,12 +168,7 @@ int main(int argc, char* argv[]) {
 
 
     // CLEAN UP. Remove the Customer output set
-    if (!pdbClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
-        cout << "Not able to remove the set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Set removed. \n";
-    }
+    pdbClient.removeSet("TPCH_db", "output_setCustomer");
 
     // Clean up the SO files.
     int code = system("scripts/cleanupSoFiles.sh");

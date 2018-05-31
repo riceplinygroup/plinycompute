@@ -1,18 +1,35 @@
-#  Copyright 2018 Rice University                                           
-#                                                                           
-#  Licensed under the Apache License, Version 2.0 (the "License");          
-#  you may not use this file except in compliance with the License.         
-#  You may obtain a copy of the License at                                  
-#                                                                           
-#      http://www.apache.org/licenses/LICENSE-2.0                           
-#                                                                           
-#  Unless required by applicable law or agreed to in writing, software      
-#  distributed under the License is distributed on an "AS IS" BASIS,        
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-#  See the License for the specific language governing permissions and      
-#  limitations under the License.                                           
-#  ======================================================================== 
 #!/usr/bin/env bash
+#  Copyright 2018 Rice University
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#  ========================================================================    
+
+set -o errexit
+
+usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
+    cat <<EOM
+
+    Description: This script deletes all PlinyCompute storage, catalog metadata,
+    and kills both pdb-manager and pdb-worker processes in the machine where it
+    is executed.
+
+EOM
+   exit -1;
+}
+
+[ $# -ne 0 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
@@ -39,6 +56,7 @@ if [[ -e /tmp/CatalogDir ]]; then
     rm -rf /tmp/CatalogDir
 fi
 
+
 # remove the content from CatalogDir only if they exist
 if [[ -n $(find ./CatalogDir -name "*" 2>/dev/null) ]]; then
     rm -rf CatalogDir/*
@@ -54,13 +72,21 @@ if [[ -n $(find /tmp/CatalogDir -name "*" 2>/dev/null) ]]; then
     rm -rf /tmp/CatalogDir*
 fi
 
+# remove everything from CatalogDir* only if they exist
+if [[ -n $(find CatalogDir* -name "*" 2>/dev/null) ]]; then
+    rm -rf CatalogDir*
+fi
+
 # remove anything from logs only if they exist
 if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
     rm -rf logs/*
 fi
 
+# remove anything from statDB only if they exist
+if [[ -n $(find ./statDB -name "*" 2>/dev/null) ]]; then
+    rm -rf statDB*
+fi
+
 # kill all the processes
-pkill -9 pdb-server || true
-pkill -9 pdb-cluster || true
-pkill -9 test603 || true
-pkill -9 test404 || true
+pkill -9 pdb-worker || true
+pkill -9 pdb-manager || true

@@ -56,8 +56,8 @@ void DistributionManagerClient::registerHandlers(
     PDBServer& forMe) { /* no handlers for a DistributionManager client!! */
 }
 
-void DistributionManagerClient::sendHeartBeat(string& masterHostName,
-                                              int masterNodePort,
+void DistributionManagerClient::sendHeartBeat(string& managerHostName,
+                                              int managerNodePort,
                                               bool& wasError,
                                               string& errMsg) {
 
@@ -78,7 +78,7 @@ void DistributionManagerClient::sendHeartBeat(string& masterHostName,
             // First build a new connection to the Server
             PDBCommunicator myCommunicator;
             if (myCommunicator.connectToInternetServer(
-                    logger, masterNodePort, masterHostName, errMsg)) {
+                    logger, managerNodePort, managerHostName, errMsg)) {
                 logger->error("[DistributionManagerClient] - Error when connecting to server: " +
                               errMsg);
 
@@ -103,13 +103,13 @@ void DistributionManagerClient::sendHeartBeat(string& masterHostName,
     }
 }
 
-Handle<ListOfNodes> DistributionManagerClient::getCurrentNodes(string& masterHostName,
-                                                               int masterNodePort,
+Handle<ListOfNodes> DistributionManagerClient::getCurrentNodes(string& managerHostName,
+                                                               int managerNodePort,
                                                                bool& wasError,
                                                                string& errMsg) {
     // First build a new connection to the Server
     PDBCommunicator myCommunicator;
-    if (myCommunicator.connectToInternetServer(logger, masterNodePort, masterHostName, errMsg)) {
+    if (myCommunicator.connectToInternetServer(logger, managerNodePort, managerHostName, errMsg)) {
         logger->error("[DistributionManagerClient] - Error when connecting to server: " + errMsg);
         wasError = true;
         return nullptr;
@@ -162,7 +162,7 @@ Handle<ListOfNodes> DistributionManagerClient::getCurrentNodes(string& masterHos
 
 Handle<QueryPermitResponse> DistributionManagerClient::sendQueryPermitt(
     string& hostName,
-    int masterNodePort,
+    int managerNodePort,
     pdb::Handle<QueryPermit> m_queryPermit,
     bool& wasError,
     string& errMsg) {
@@ -170,7 +170,7 @@ Handle<QueryPermitResponse> DistributionManagerClient::sendQueryPermitt(
     // First build a new connection to the Server
     PDBCommunicator myCommunicator;
 
-    if (myCommunicator.connectToInternetServer(logger, masterNodePort, hostName, errMsg)) {
+    if (myCommunicator.connectToInternetServer(logger, managerNodePort, hostName, errMsg)) {
         logger->error("Error when connecting to server: " + errMsg);
         wasError = true;
         return nullptr;
@@ -199,7 +199,7 @@ Handle<QueryPermitResponse> DistributionManagerClient::sendQueryPermitt(
 }
 
 Handle<Ack> DistributionManagerClient::sendQueryDone(string& hostName,
-                                                     int masterNodePort,
+                                                     int managerNodePort,
                                                      Handle<QueryDone> m_queryDone,
                                                      bool& wasError,
                                                      string& errMsg) {
@@ -207,7 +207,7 @@ Handle<Ack> DistributionManagerClient::sendQueryDone(string& hostName,
     // First build a new connection to the Server
     PDBCommunicator myCommunicator;
 
-    if (myCommunicator.connectToInternetServer(logger, masterNodePort, hostName, errMsg)) {
+    if (myCommunicator.connectToInternetServer(logger, managerNodePort, hostName, errMsg)) {
         logger->error("Error when connecting to server: " + errMsg);
         wasError = true;
         return nullptr;
@@ -233,8 +233,8 @@ Handle<Ack> DistributionManagerClient::sendQueryDone(string& hostName,
 }
 
 Handle<Ack> DistributionManagerClient::sendGetPlaceOfQueryPlanner(
-    string& masterNodeHostName,
-    int masterNodePort,
+    string& manangerNodeHostName,
+    int managerNodePort,
     Handle<PlaceOfQueryPlanner> m_PlaceOfQueryPlanner,
     bool& wasError,
     string& errMsg) {
@@ -243,7 +243,7 @@ Handle<Ack> DistributionManagerClient::sendGetPlaceOfQueryPlanner(
     PDBCommunicator myCommunicator;
 
     if (myCommunicator.connectToInternetServer(
-            logger, masterNodePort, masterNodeHostName, errMsg)) {
+            logger, managerNodePort, manangerNodeHostName, errMsg)) {
         logger->error("Error when connecting to server: " + errMsg);
         wasError = true;
         return nullptr;

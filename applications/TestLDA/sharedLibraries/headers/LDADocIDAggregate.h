@@ -20,7 +20,7 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
-#include "ClusterAggregateComp.h"
+#include "AggregateComp.h"
 #include "limits.h"
 #include "SumResult.h"
 #include "LDADocument.h"
@@ -28,7 +28,7 @@
 /* The class for extracting document IDs */
 using namespace pdb;
 
-class LDADocIDAggregate : public ClusterAggregateComp<SumResult, LDADocument, int, int> {
+class LDADocIDAggregate : public AggregateComp<SumResult, LDADocument, int, int> {
 
 public:
     ENABLE_DEEP_COPY

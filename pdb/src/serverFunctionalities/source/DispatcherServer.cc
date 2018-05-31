@@ -36,8 +36,9 @@
 
 namespace pdb {
 
-DispatcherServer::DispatcherServer(PDBLoggerPtr logger) {
+DispatcherServer::DispatcherServer(PDBLoggerPtr logger, std::shared_ptr<StatisticsDB> statisticsDB) {
     this->logger = logger;
+    this->statisticsDB = statisticsDB;
     this->storageNodes = pdb::makeObject<Vector<Handle<NodeDispatcherData>>>();
     this->partitionPolicies = std::map<std::pair<std::string, std::string>, PartitionPolicyPtr>();
     pthread_mutex_init(&mutex, nullptr);

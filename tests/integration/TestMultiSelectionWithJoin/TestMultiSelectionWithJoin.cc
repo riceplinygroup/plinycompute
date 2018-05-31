@@ -27,7 +27,6 @@
 #include "Pipeline.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
-#include "AggregateComp.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
 
     bool printResult = true;
     bool clusterMode = false;
-    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #managerIp #addData[Y/N]"
               << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
@@ -96,11 +95,11 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "To add data with size: " << numOfMb << "MB" << std::endl;
 
-    std::string masterIp = "localhost";
+    std::string managerIp = "localhost";
     if (argc > 4) {
-        masterIp = argv[4];
+        managerIp = argv[4];
     }
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+    std::cout << "Manager IP Address is " << managerIp << std::endl;
 
     bool whetherToAddData = true;
     if (argc > 5) {
@@ -109,54 +108,24 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
+    PDBClient pdbClient(8108, managerIp);
 
-    PDBClient pdbClient(
-            8108, masterIp,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
     string errMsg;
 
     if (whetherToAddData == true) {
 
 
         // now, create a new database
-        if (!pdbClient.createDatabase("test95_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("test95_db");
 
         // now, create the int set in that database
-        if (!pdbClient.createSet<StringIntPair>("test95_db", "test95_set1", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 1.\n";
-        }
+        pdbClient.createSet<StringIntPair>("test95_db", "test95_set1");
 
         // now, create the StringIntPair set in that database
-        if (!pdbClient.createSet<StringIntPair>("test95_db", "test95_set2", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 2.\n";
-        }
+        pdbClient.createSet<StringIntPair>("test95_db", "test95_set2");
 
         // now, create the String set in that database
-        if (!pdbClient.createSet<StringIntPair>("test95_db", "test95_set3", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created input set 3.\n";
-        }
+        pdbClient.createSet<StringIntPair>("test95_db", "test95_set3");
 
 
 
@@ -190,13 +159,9 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     std::cout << "got to " << i << " when producing data for input set 1.\n";
-                    if (!pdbClient.sendData<StringIntPair>(
+                    pdbClient.sendData<StringIntPair>(
                             std::pair<std::string, std::string>("test95_set1", "test95_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -204,7 +169,7 @@ int main(int argc, char* argv[]) {
             std::cout << "input set 1: total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
 
 
@@ -238,13 +203,9 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     std::cout << "got to " << i << " when producing data for input set 2.\n";
-                    if (!pdbClient.sendData<StringIntPair>(
+                    pdbClient.sendData<StringIntPair>(
                             std::pair<std::string, std::string>("test95_set2", "test95_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -252,7 +213,7 @@ int main(int argc, char* argv[]) {
             std::cout << "input set 2: total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
 
         // Step 4. Add data to set3
@@ -285,13 +246,9 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     std::cout << "got to " << i << " when producing data for input set 3.\n";
-                    if (!pdbClient.sendData<StringIntPair>(
+                    pdbClient.sendData<StringIntPair>(
                             std::pair<std::string, std::string>("test95_set3", "test95_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -299,27 +256,22 @@ int main(int argc, char* argv[]) {
             std::cout << "input set 3: total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<String>("test95_db", "output_set1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<String>("test95_db", "output_set1");
 
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    pdbClient.registerType("libraries/libOptimizedMethodJoin.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
-    pdbClient.registerType("libraries/libStringSelectionOfStringIntPair.so", errMsg);
-    pdbClient.registerType("libraries/libStringIntPairMultiSelection.so", errMsg);
-    pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
+    pdbClient.registerType("libraries/libOptimizedMethodJoin.so");
+    pdbClient.registerType("libraries/libScanStringIntPairSet.so");
+    pdbClient.registerType("libraries/libStringSelectionOfStringIntPair.so");
+    pdbClient.registerType("libraries/libStringIntPairMultiSelection.so");
+    pdbClient.registerType("libraries/libWriteStringSet.so");
     // create all of the computation objects
     Handle<Computation> myScanSet1 = makeObject<ScanStringIntPairSet>("test95_db", "test95_set1");
     Handle<Computation> myMultiSelection = makeObject<StringIntPairMultiSelection>();
@@ -333,10 +285,7 @@ int main(int argc, char* argv[]) {
     myWriter->setInput(mySelection);
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriter)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriter);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -360,12 +309,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("test95_db", "output_set1");
     } else {
-        if (!pdbClient.removeSet("test95_db", "output_set1", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        pdbClient.removeSet("test95_db", "output_set1");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

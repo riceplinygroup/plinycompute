@@ -47,7 +47,7 @@ using namespace pdb;
 int main(int argc, char* argv[]) {
     bool printResult = true;
     bool clusterMode = false;
-    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #managerIp #addData[Y/N]"
               << std::endl;
     if (argc > 1) {
         if (strcmp(argv[1], "N") == 0) {
@@ -83,11 +83,11 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "To add data with size: " << numOfMb << "MB" << std::endl;
 
-    std::string masterIp = "localhost";
+    std::string managerIp = "localhost";
     if (argc > 4) {
-        masterIp = argv[4];
+        managerIp = argv[4];
     }
-    std::cout << "Master IP Address is " << masterIp << std::endl;
+    std::cout << "Manager IP Address is " << managerIp << std::endl;
 
     bool whetherToAddData = true;
     if (argc > 5) {
@@ -96,42 +96,20 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-    PDBClient pdbClient(
-            8108,
-            masterIp,
-            clientLogger,
-            false,
-            true);
-
-    CatalogClient catalogClient(
-            8108,
-            masterIp,
-            clientLogger);
+    PDBClient pdbClient(8108, managerIp);
 
     string errMsg;
 
     if (whetherToAddData == true) {
         // Step 1. Create Database and Set
         // now, register a type for user data
-        pdbClient.registerType("libraries/libSharedEmployee.so", errMsg);
+        pdbClient.registerType("libraries/libSharedEmployee.so");
 
         // now, create a new database
-        if (!pdbClient.createDatabase("by8_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created database.\n";
-        }
+        pdbClient.createDatabase("by8_db");
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<SharedEmployee>("by8_db", "input_set", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Created set.\n";
-        }
+        pdbClient.createSet<SharedEmployee>("by8_db", "input_set");
 
 
         // Step 2. Add data
@@ -164,13 +142,9 @@ int main(int argc, char* argv[]) {
                         total++;
                     }
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!pdbClient.sendData<SharedEmployee>(
+                    pdbClient.sendData<SharedEmployee>(
                             std::pair<std::string, std::string>("input_set", "by8_db"),
-                            storeMe,
-                            errMsg)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                        return -1;
-                    }
+                            storeMe);
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std::endl;
             }
@@ -178,26 +152,21 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            pdbClient.flushData(errMsg);
+            pdbClient.flushData();
         }
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<Employee>("by8_db", "output_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit(-1);
-    } else {
-        cout << "Created set.\n";
-    }
+    pdbClient.createSet<Employee>("by8_db", "output_set");
 
     // Step 3. To execute a Query
     // for allocations
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    pdbClient.registerType("libraries/libScanEmployeeSet.so", errMsg);
-    pdbClient.registerType("libraries/libEmployeeBuiltInIdentitySelection.so", errMsg);
-    pdbClient.registerType("libraries/libWriteBuiltinEmployeeSet.so", errMsg);
+    pdbClient.registerType("libraries/libScanEmployeeSet.so");
+    pdbClient.registerType("libraries/libEmployeeBuiltInIdentitySelection.so");
+    pdbClient.registerType("libraries/libWriteBuiltinEmployeeSet.so");
 
     // connect to the query client
     Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("by8_db", "input_set");
@@ -213,10 +182,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
-        std::cout << "Query failed. Message was: " << errMsg << "\n";
-        return 1;
-    }
+    pdbClient.executeComputations(myWriteSet);
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -242,12 +208,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         pdbClient.deleteSet("by8_db", "output_set");
     } else {
-        if (!pdbClient.removeSet("by8_db", "output_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit(-1);
-        } else {
-            cout << "Removed set.\n";
-        }
+        pdbClient.removeSet("by8_db", "output_set");
     }
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

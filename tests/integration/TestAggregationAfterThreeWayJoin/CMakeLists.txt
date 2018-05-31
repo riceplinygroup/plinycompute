@@ -2,7 +2,7 @@
 add_pdb_integration_test(TestAggregationAfterThreeWayJoin)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestAggregationAfterThreeWayJoin)
+add_dependencies(build-integration-tests TestAggregationAfterThreeWayJoin)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestAggregationAfterThreeWayJoin IntSimpleJoin)

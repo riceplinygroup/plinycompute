@@ -24,7 +24,6 @@
 #include "Object.h"
 #include "PDBString.h"
 #include "PDBVector.h"
-#include "QueryAlgo.h"
 #include "PDBDebug.h"
 
 using std::function;

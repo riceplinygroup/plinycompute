@@ -75,7 +75,7 @@ enum PDBMsgType {
     ShutDownDoneMsg,  // 7
     // Database operations
     /*
-     * Needs to integrate with Master/Catalog for adding meta-data
+     * Needs to integrate with Manager/Catalog for adding meta-data
      */
     /*
      * MsgType: 4 bytes

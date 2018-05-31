@@ -25,36 +25,40 @@
 #include "PDBDebug.h"
 #include "PDBString.h"
 #include "Query.h"
-#include "Lambda.h"
 #include "ScanEmployeeSet.h"
 #include "WriteStringSet.h"
 #include "EmployeeSelection.h"
-#include "SharedEmployee.h"
-#include "Set.h"
-#include "DataTypes.h"
 #include "QueryGraphAnalyzer.h"
-#include "PDBLogger.h"
 #include "AbstractJobStage.h"
 #include "SetIdentifier.h"
 #include "TCAPAnalyzer.h"
 #include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <vector>
 #include <chrono>
-#include <fcntl.h>
+#include <SumResult.h>
+#include <IntAggregation.h>
+#include <IntSimpleJoin.h>
+#include <StringSelectionOfStringIntPair.h>
 
 using namespace pdb;
 int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
-    Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
-    Handle<Computation> myQuery = makeObject<EmployeeSelection>();
-    myQuery->setInput(myScanSet);
-    Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");
-    myWriteSet->setInput(myQuery);
+
+    // create all of the computation objects
+    Handle<Computation> myScanSet1 = makeObject<ScanUserSet<int>>("test78_db", "test78_set1");
+    Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test78_db", "test78_set2");
+    Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
+    mySelection->setInput(myScanSet2);
+    Handle<Computation> myJoin = makeObject<IntSimpleJoin>();
+    myJoin->setInput(0, myScanSet1);
+    myJoin->setInput(1, myScanSet2);
+    myJoin->setInput(2, mySelection);
+    Handle<Computation> myAggregation = makeObject<IntAggregation>();
+    myAggregation->setInput(myJoin);
+    Handle<Computation> myWriter = makeObject<WriteUserSet<SumResult>>("test78_db", "output_set1");
+    myWriter->setInput(myAggregation);
+
     std::vector<Handle<Computation>> queryGraph;
-    queryGraph.push_back(myWriteSet);
+    queryGraph.push_back(myWriter);
     QueryGraphAnalyzer queryAnalyzer(queryGraph);
     std::string tcapString = queryAnalyzer.parseTCAPString();
     std::cout << "TCAP OUTPUT:" << std::endl;
@@ -72,7 +76,7 @@ int main(int argc, char* argv[]) {
     ConfigurationPtr conf = make_shared<Configuration>();
     std::string jobId = "TestSelectionJob";
 
-    TCAPAnalyzer tcapAnalyzer(jobId, computationsToSend, tcapString, logger, conf);
+    TCAPAnalyzer tcapAnalyzer(jobId, logger, conf, tcapString, computationsToSend);
     std::vector<Handle<AbstractJobStage>> queryPlan;
     std::vector<Handle<SetIdentifier>> interGlobalSets;
     std::cout << "PARSE TCAP STRING..." << std::endl;
@@ -100,6 +104,8 @@ int main(int argc, char* argv[]) {
     if (code < 0) {
         std::cout << "Can't cleanup so files" << std::endl;
     }
+
+    getAllocator().cleanInactiveBlocks(36 * 1024 * 1024);
 }
 
 #endif

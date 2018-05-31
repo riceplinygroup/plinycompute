@@ -20,7 +20,7 @@ endforeach()
 add_pdb_application(TestGmmLazy)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestGmmLazy)
+add_dependencies(build-ml-tests TestGmmLazy)
 
 # add build dependencies to shared libraries it uses
 add_dependencies(TestGmmLazy GmmAggregateLazy)
@@ -38,4 +38,4 @@ add_dependencies(TestGmmLazy GmmSampleSelection)
 add_pdb_application(TestGmmLoadData)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestGmmLoadData)
+add_dependencies(build-ml-tests TestGmmLoadData)

@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef QUERY_H
 #define QUERY_H
 

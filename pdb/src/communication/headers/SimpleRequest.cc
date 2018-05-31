@@ -72,7 +72,6 @@ ReturnType simpleRequest(PDBLoggerPtr myLogger,
         const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
         PDB_COUT << "to make object" << std::endl;
         Handle<RequestType> request = makeObject<RequestType>(args...);
-        ;
         PDB_COUT << "to send object" << std::endl;
         if (!temp.sendObject(request, errMsg)) {
             myLogger->error(errMsg);

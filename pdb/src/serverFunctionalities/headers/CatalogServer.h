@@ -26,26 +26,26 @@
 
 /**
  * Class for handling requests regarding the Catalog Server functionality.
- * This can be used either by the Catalog Master Server or a Catalog in any
+ * This can be used either by the Catalog Manager Server or a Catalog in any
  * Worker Node in the cluster. All metadata is stored and retrieved via
  * the pdbCatalog class, which has an SQLite database as the underlying
  * persistent storage.
  *
- * If this is the master catalog server, it will receive a metadata
+ * If this is the manager catalog server, it will receive a metadata
  * registration request and perform the following operations:
  *
- *    1) update metadata in the local master catalog SQLite database
+ *    1) update metadata in the local manager catalog SQLite database
  *    2) iterate over all registered nodes in the cluster and send the metadata
  * object
  *    3) update catalog version
  *
  *  if this is the catalog instance of a worker node, it will receive a metadata
  * registration
- *  request from the master catalog server and perform the following operations:
+ *  request from the manager catalog server and perform the following operations:
  *
  *    1) update metadata in the local catalog SQLite database
  *    2) update catalog version
- *    3) send acknowledgement to master catalog server
+ *    3) send acknowledgement to manager catalog server
  */
 
 namespace pdb {
@@ -58,13 +58,13 @@ public:
 
   /* Creates a Catalog Server
    *        catalogDirectory: the path of the location of the catalog
-   *   isMasterCatalogServer: true if this is the Master Catalog Server
+   *   isManagerCatalogServer: true if this is the Manager Catalog Server
    *                          workers nodes have this parameter set to false
-   *                masterIP: the IP address of the Master Catalog
-   *              masterPort: the port number of the Master Catalog
+   *                managerIP: the IP address of the Manager Catalog
+   *              managerPort: the port number of the Manager Catalog
    */
-  CatalogServer(std::string catalogDirectory, bool isMasterCatalogServer,
-                std::string masterIP, int masterPort);
+  CatalogServer(std::string catalogDirectory, bool isManagerCatalogServer,
+                std::string managerIP, int managerPort);
 
   /* From the ServerFunctionality interface */
   void registerHandlers(PDBServer &forMe) override;
@@ -137,7 +137,7 @@ public:
 
   /* Adds a new object type... return -1 on failure, this is done on a worker
    * node catalog
-   * the typeID is given by the master catalog
+   * the typeID is given by the manager catalog
    */
   int16_t addObjectType(int16_t typeID, string &soFile, string &errMsg);
 
@@ -164,11 +164,11 @@ public:
   bool updateDatabaseMetadata(Handle<CatalogDatabaseMetadata> &dbMetadata,
                               std::string &errMsg);
 
-  /* Returns true if this is the master catalog server */
-  bool getIsMasterCatalogServer();
+  /* Returns true if this is the manager catalog server */
+  bool getIsManagerCatalogServer();
 
-  /* Sets if this is the Master Catalog Server (true) or not (false) */
-  void setIsMasterCatalogServer(bool isMasterCatalogServerIn);
+  /* Sets if this is the Manager Catalog Server (true) or not (false) */
+  void setIsManagerCatalogServer(bool isManagerCatalogServerIn);
 
   /* Broadcasts a metadata item to all available nodes in a cluster, when an
    * update has occurred
@@ -226,8 +226,8 @@ private:
    */
   PDBCatalogPtr pdbCatalog;
 
-  /* Catalog client helper to connect to the Master Catalog Server */
-  CatalogClient catalogClientConnectionToMasterCatalogServer;
+  /* Catalog client helper to connect to the Manager Catalog Server */
+  CatalogClient catalogClientConnectionToManagerCatalogServer;
 
   /* Path where the catalog file is located */
   std::string catalogDirectory;
@@ -235,14 +235,14 @@ private:
   /* To ensure serialized access */
   pthread_mutex_t workingMutex;
 
-  /* True if this is the Master Catalog Server */
-  bool isMasterCatalogServer;
+  /* True if this is the Manager Catalog Server */
+  bool isManagerCatalogServer;
 
   /* Default IP of the Catalog Server, can be changed in the constructor */
-  string masterIP = "localhost";
+  string managerIP = "localhost";
 
   /* Default port of the Catalog Server, can be changed in the constructor */
-  int masterPort = 8108;
+  int managerPort = 8108;
 
   /* Logger to capture debug information for the Catalog Server */
   PDBLoggerPtr catServerLogger;

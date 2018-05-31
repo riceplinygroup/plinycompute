@@ -58,31 +58,31 @@ public:
     //	bool shutDownServer (std :: string &errMsg);
 
     // send the HeartBeat info to the server.
-    void sendHeartBeat(string& masterHostName, int masterNodePort, bool& wasError, string& errMsg);
+    void sendHeartBeat(string& managerHostName, int managerNodePort, bool& wasError, string& errMsg);
 
     // send the HeartBeat info to the server.
-    Handle<ListOfNodes> getCurrentNodes(string& masterHostName,
-                                        int masterNodePort,
+    Handle<ListOfNodes> getCurrentNodes(string& managerHostName,
+                                        int managerNodePort,
                                         bool& wasError,
                                         string& errMsg);
 
     // send a request for running a query
     Handle<QueryPermitResponse> sendQueryPermitt(string& hostName,
-                                                 int masterNodePort,
+                                                 int managerNodePort,
                                                  pdb::Handle<QueryPermit> m_queryPermit,
                                                  bool& wasError,
                                                  string& errMsg);
 
     // informs the server that running of a specific query is done
     Handle<Ack> sendQueryDone(string& hostName,
-                              int masterNodePort,
+                              int managerNodePort,
                               Handle<QueryDone> m_queryDone,
                               bool& wasError,
                               string& errMsg);
 
     // sends the place of query planner node to the user-client
     Handle<Ack> sendGetPlaceOfQueryPlanner(string& hostName,
-                                           int masterNodePort,
+                                           int managerNodePort,
                                            Handle<PlaceOfQueryPlanner> m_PlaceOfQueryPlanner,
                                            bool& wasError,
                                            string& errMsg);

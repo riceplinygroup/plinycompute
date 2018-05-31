@@ -42,13 +42,13 @@ extern "C" {
 
 // ss107: Newer functions for updating TCAP:
 struct KeyValueList *makeEmptyKeyValueList () {
-	KeyValueList *returnVal = new KeyValueList ();
+	auto *returnVal = new KeyValueList ();
 	return returnVal;
 }
 
 struct KeyValueList *makeKeyValueList (char *keyName, char *valueName) {
-	KeyValueList *returnVal = new KeyValueList ();
-	returnVal->appendkeyValuePair (keyName, valueName);
+	auto * returnVal = new KeyValueList ();
+	returnVal->appendkeyValuePair (std::string(keyName), std::string(valueName));
 	free (keyName);
 	free (valueName);
 	return returnVal;
@@ -67,16 +67,18 @@ struct AtomicComputation *makeFilterWithList (struct TupleSpec *output, struct T
 	delete output;
 	delete input;
 	delete projection;
+  delete useMe;
 	free (nodeName);
 	return returnVal.get ();
 }
 
 struct AtomicComputation *makeApplyWithList (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName, struct KeyValueList *useMe) {
-	AtomicComputationPtr returnVal = std :: make_shared <ApplyLambda> (*input, *output, *projection, std :: string (nodeName), std :: string (opName), *useMe);
-	returnVal->setShared (returnVal);
+  AtomicComputationPtr returnVal = std::make_shared<ApplyLambda>(*input, *output, *projection, std::string(nodeName), std::string(opName), *useMe);
+  returnVal->setShared (returnVal);
 	delete output;
 	delete input;
 	delete projection;
+  delete useMe;
 	free (nodeName);
 	free (opName);
 	return returnVal.get ();
@@ -87,9 +89,21 @@ struct AtomicComputation *makeAggWithList (struct TupleSpec *output, struct Tupl
 	returnVal->setShared (returnVal);
 	delete output;
 	delete input;
+  delete useMe;
 	free (nodeName);
 	return returnVal.get ();
 }
+
+struct AtomicComputation *makePartitionWithList (struct TupleSpec *output, struct TupleSpec *input, char *nodeName, struct KeyValueList *useMe) {
+        AtomicComputationPtr returnVal = std :: make_shared <ApplyPartition> (*input, *output, *input, std :: string (nodeName), *useMe);
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+  delete useMe;
+        free (nodeName);
+        return returnVal.get ();
+}
+
 
 struct AtomicComputation *makeJoinWithList (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
 		struct TupleSpec *rInput, struct TupleSpec *rProjection, char *opName, struct KeyValueList *useMe) {
@@ -100,6 +114,7 @@ struct AtomicComputation *makeJoinWithList (struct TupleSpec *output, struct Tup
 	delete output;
 	delete lInput;
 	delete rInput;
+  delete useMe;
 	delete lProjection;
 	delete rProjection;
 	return returnVal.get ();
@@ -111,6 +126,7 @@ struct AtomicComputation *makeHashLeftWithList (struct TupleSpec *output, struct
         delete output;
         delete input;
         delete projection;
+        delete useMe;
         free (nodeName);
         free (opName);
         return returnVal.get ();
@@ -122,6 +138,7 @@ struct AtomicComputation *makeHashRightWithList (struct TupleSpec *output, struc
         delete output;
         delete input;
         delete projection;
+        delete useMe;
         free (nodeName);
         free (opName);
         return returnVal.get ();
@@ -135,6 +152,7 @@ struct AtomicComputation *makeHashOneWithList (struct TupleSpec *output, struct 
         delete output;
         delete input;
         delete projection;
+        delete useMe;
         free (nodeName);
         return returnVal.get ();
 }
@@ -145,6 +163,7 @@ struct AtomicComputation *makeFlattenWithList (struct TupleSpec *output, struct 
         delete output;
         delete input;
         delete projection;
+        delete useMe;
         free (nodeName);
         return returnVal.get ();
 }
@@ -157,6 +176,7 @@ struct AtomicComputation *makeScanWithList (struct TupleSpec *output, char *dbNa
 	free (dbName);
 	free (setName);
 	free (nodeName);
+  delete useMe;
 	delete output;
 	return returnVal.get ();
 }
@@ -169,6 +189,7 @@ struct AtomicComputation *makeOutputWithList (struct TupleSpec *output, struct T
 	free (dbName);
 	free (setName);
 	free (nodeName);
+  delete useMe;
 	delete output;
 	delete input;
 	return returnVal.get ();
@@ -177,7 +198,7 @@ struct AtomicComputation *makeOutputWithList (struct TupleSpec *output, struct T
 
 // Older functions that were here:
 struct AttList* makeAttList(char* fromMe) {
-    AttList* returnVal = new AttList();
+    auto* returnVal = new AttList();
     returnVal->appendAttribute(fromMe);
     free(fromMe);
     return returnVal;
@@ -197,7 +218,7 @@ struct TupleSpec* makeTupleSpec(char* setName, struct AttList* useMe) {
 }
 
 struct AtomicComputationList* makeAtomicComputationList(struct AtomicComputation* fromMe) {
-    struct AtomicComputationList* returnVal = new AtomicComputationList();
+    auto* returnVal = new AtomicComputationList();
     returnVal->addAtomicComputation(fromMe->getShared());
     return returnVal;
 }
@@ -233,8 +254,7 @@ struct AtomicComputation* makeApply(struct TupleSpec* output,
                                     struct TupleSpec* projection,
                                     char* nodeName,
                                     char* opName) {
-    AtomicComputationPtr returnVal = std::make_shared<ApplyLambda>(
-        *input, *output, *projection, std::string(nodeName), std::string(opName));
+    AtomicComputationPtr returnVal = std::make_shared<ApplyLambda>(*input, *output, *projection, std::string(nodeName), std::string(opName));
     returnVal->setShared(returnVal);
     delete output;
     delete input;
@@ -255,6 +275,20 @@ struct AtomicComputation* makeAgg(struct TupleSpec* output,
     free(nodeName);
     return returnVal.get();
 }
+
+struct AtomicComputation* makePartition(struct TupleSpec* output,
+                                  struct TupleSpec* input,
+                                  char* nodeName) {
+    AtomicComputationPtr returnVal =
+        std::make_shared<ApplyPartition>(*input, *output, *input, std::string(nodeName));
+    returnVal->setShared(returnVal);
+    delete output;
+    delete input;
+    free(nodeName);
+    return returnVal.get();
+}
+
+
 
 struct AtomicComputation* makeJoin(struct TupleSpec* output,
                                    struct TupleSpec* lInput,

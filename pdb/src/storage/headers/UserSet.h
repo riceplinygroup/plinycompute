@@ -368,11 +368,28 @@ public:
         this->pageSize = pageSize;
     }
 
+    bool getSorted () {
+        return this->isSorted;
+    }
+
+    void setSorted (bool isSorted) {
+        this->isSorted = isSorted;
+    }
+
+    bool getPartitioned () {
+        return this->isPartitioned;
+    }
+
+    void setPartitioned (bool isPartitioned) {
+        this->isPartitioned = isPartitioned;
+    }
+
+
 protected:
-    PartitionedFilePtr file;
-    PageCachePtr pageCache;
+    PartitionedFilePtr file = nullptr;
+    PageCachePtr pageCache = nullptr;
     SharedMemPtr shm;
-    pdb::PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger = nullptr;
     NodeID nodeId;
     DatabaseID dbId;
     UserTypeID typeId;
@@ -380,14 +397,18 @@ protected:
     string setName;
     PageID lastFlushedPageId;
     PageID latestPageId;
-    PDBPagePtr inputBufferPage;
+    PDBPagePtr inputBufferPage = nullptr;
     SequenceID seqId;
-    unordered_map<PageID, FileSearchKey>* dirtyPagesInPageCache;
+    unordered_map<PageID, FileSearchKey>* dirtyPagesInPageCache = nullptr;
     pthread_mutex_t dirtyPageSetMutex;
-    bool isPinned;
+    bool isPinned = false;
     int numPages;
     pthread_mutex_t addBytesMutex;
     size_t pageSize;
+    bool isSorted = false;
+    bool isPartitioned = false;
+
+
 };
 
 

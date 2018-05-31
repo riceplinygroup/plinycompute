@@ -25,10 +25,10 @@
 #include "ResourceManagerServer.h"
 #include "SimpleRequestHandler.h"
 #include "GenericWork.h"
-#include "IrBuilder.h"
 #include "StorageCollectStats.h"
 #include "StorageCollectStatsResponse.h"
 #include "Profiling.h"
+#include "RegisterReplica.h"
 #include <ctime>
 #include <chrono>
 
@@ -40,6 +40,7 @@ QuerySchedulerServer::~QuerySchedulerServer() {
 
 QuerySchedulerServer::QuerySchedulerServer(PDBLoggerPtr logger,
                                            ConfigurationPtr conf,
+                                           std::shared_ptr<StatisticsDB> statisticsDB,
                                            bool pseudoClusterMode,
                                            double partitionToCoreRatio) {
     pthread_mutex_init(&connection_mutex, nullptr);
@@ -47,6 +48,7 @@ QuerySchedulerServer::QuerySchedulerServer(PDBLoggerPtr logger,
     this->port = 8108;
     this->logger = logger;
     this->conf = conf;
+    this->statisticsDB = statisticsDB;
     this->pseudoClusterMode = pseudoClusterMode;
     this->partitionToCoreRatio = partitionToCoreRatio;
     this->statsForOptimization = nullptr;
@@ -57,6 +59,7 @@ QuerySchedulerServer::QuerySchedulerServer(PDBLoggerPtr logger,
 QuerySchedulerServer::QuerySchedulerServer(int port,
                                            PDBLoggerPtr logger,
                                            ConfigurationPtr conf,
+                                           std::shared_ptr<StatisticsDB> statisticsDB,
                                            bool pseudoClusterMode,
                                            double partitionToCoreRatio) {
     pthread_mutex_init(&connection_mutex, nullptr);
@@ -64,6 +67,7 @@ QuerySchedulerServer::QuerySchedulerServer(int port,
     this->port = port;
     this->logger = logger;
     this->conf = conf;
+    this->statisticsDB = statisticsDB;
     this->pseudoClusterMode = pseudoClusterMode;
     this->partitionToCoreRatio = partitionToCoreRatio;
     this->statsForOptimization = nullptr;
@@ -573,8 +577,56 @@ void QuerySchedulerServer::registerHandlers(PDBServer& forMe) {
                 [&](Handle<ExecuteComputation> request, PDBCommunicatorPtr sendUsingMe) {
                 return executeComputation(request, sendUsingMe);
             }));
+
+    // handler to register a replica
+    forMe.registerHandler(
+        RegisterReplica_TYPEID,
+        make_shared<SimpleRequestHandler<RegisterReplica>>(
+                [&](Handle<RegisterReplica> request, PDBCommunicatorPtr sendUsingMe) {
+                request->print();
+                return registerReplica(request, sendUsingMe);
+              }));
+
+
 }
 
+pair<bool, basic_string<char>> QuerySchedulerServer::registerReplica(Handle<RegisterReplica> &request,
+                                                                     PDBCommunicatorPtr &sendUsingMe) {
+
+        const UseTemporaryAllocationBlock block{256 * 1024 * 1024};
+        long input_data_id = this->statisticsDB->getLatestDataId(std::pair<std::string, std::string> (request->getInputDatabaseName(),
+                                                                                                      request->getInputSetName()));
+        long output_data_id = this->statisticsDB->getLatestDataId(std::pair<std::string, std::string>(request->getOutputDatabaseName(),
+                                                                                                      request->getOutputSetName()));
+        long id = -1;
+
+        Handle<Vector<Handle<Computation>>> computations = makeObject<Vector<Handle<Computation>>>();
+        computations = request->getComputations();
+        std::cout << "there are " << computations->size() << " computations in total" << std::endl;
+        
+        bool success = this->statisticsDB->createDataTransformation(input_data_id, 
+                                                    output_data_id, 
+                                                    request->getNumPartitions(), 
+                                                    request->getNumNodes(), 
+                                                    request->getReplicaType(), 
+                                                    request->getTCAPString(), 
+                                                    computations, 
+                                                    id);
+        std::string errMsg = "";
+        if (success == false) {
+            errMsg = "error in register replica";
+        } else {
+            std::cout << "registered the input-output mapping with statisticsDB for id = " << id << std::endl;
+        }
+        // notify the client that we succeeded
+        PDB_COUT << "About to send back response to client" << std::endl;
+        Handle<SimpleRequestResult> result = makeObject<SimpleRequestResult>(success, errMsg);
+        if (!sendUsingMe->sendObject(result, errMsg)) {
+            errMsg = "error in sending object to client";
+            return std::make_pair(false, errMsg);
+        }
+        return std::make_pair(true, errMsg);
+}
 
 pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<ExecuteComputation> &request,
                                                                         PDBCommunicatorPtr &sendUsingMe) {
@@ -615,10 +667,11 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
 
     // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
     this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,
-                                                      computations,
-                                                      request->getTCAPString(),
-                                                      this->logger,
-                                                      this->conf);
+                                                         this->logger,
+                                                         this->conf,
+                                                         request->getTCAPString(),
+                                                         computations);
+
     int jobStageId = 0;
     while (this->tcapAnalyzerPtr->hasSources()) {
 

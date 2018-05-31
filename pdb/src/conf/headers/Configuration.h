@@ -94,7 +94,7 @@ private:
     NodeID nodeId;
     string serverName;
     string serverAddress;
-    bool isMasterCatalogServer;
+    bool isManagerCatalogServer;
     bool usePangea;
     int port;
     int maxConnections;
@@ -115,12 +115,13 @@ private:
     string backEndIpcFile;
     int batchSize;
     size_t hashPageSize;
-    bool isMaster;
-    string masterNodeHostName;
-    int masterNodePort;
+    bool isManager;
+    string managerNodeHostName;
+    int managerNodePort;
     string queryPlannerPlace;
     LogLevel logLevel;
     string rootDir;
+    string statisticsDB;
 
 public:
     Configuration() {
@@ -129,7 +130,7 @@ public:
         this->logLevel = LogLevel::ERROR;
         serverName = "testServer";
         serverAddress = "localhost";
-        isMasterCatalogServer = false;
+        isManagerCatalogServer = false;
         usePangea = true;
         port = 8108;
         maxConnections = DEFAULT_MAX_CONNECTIONS;
@@ -148,9 +149,10 @@ public:
         ipcFile = "/tmp/ipcFile";
         backEndIpcFile = "/tmp/backEndIpcFile";
         batchSize = DEFAULT_BATCH_SIZE;
-        isMaster = false;
+        isManager = false;
         hashPageSize = DEFAULT_HASH_PAGE_SIZE;
         initDirs();
+        statisticsDB = "statDB";
     }
 
     void initDirs() {
@@ -362,28 +364,28 @@ public:
         }
     }
 
-    bool getIsMaster() const {
-        return isMaster;
+    bool getIsManager() const {
+        return isManager;
     }
 
-    void setIsMaster(bool isMaster) {
-        this->isMaster = isMaster;
+    void setIsManager(bool isManager) {
+        this->isManager = isManager;
     }
 
-    string getMasterNodeHostName() const {
-        return masterNodeHostName;
+    string getManagerNodeHostName() const {
+        return managerNodeHostName;
     }
 
-    void setMasterNodeHostName(string masterNodeHostName) {
-        this->masterNodeHostName = masterNodeHostName;
+    void setManagerNodeHostName(string managerNodeHostName) {
+        this->managerNodeHostName = managerNodeHostName;
     }
 
-    int getMasterNodePort() const {
-        return masterNodePort;
+    int getManagerNodePort() const {
+        return managerNodePort;
     }
 
-    void setMasterNodePort(int masterNodePort) {
-        this->masterNodePort = masterNodePort;
+    void setManagerNodePort(int managerNodePort) {
+        this->managerNodePort = managerNodePort;
     }
 
     const string getQueryPlannerPlace() const {
@@ -402,12 +404,12 @@ public:
         this->logLevel = logLevel;
     }
 
-    void setMasterCatalogServer(bool isMasterCatalogServer) {
-        this->isMasterCatalogServer = isMasterCatalogServer;
+    void setManagerCatalogServer(bool isManagerCatalogServer) {
+        this->isManagerCatalogServer = isManagerCatalogServer;
     }
 
-    bool getMasterCatalogServer() {
-        return this->isMasterCatalogServer;
+    bool getManagerCatalogServer() {
+        return this->isManagerCatalogServer;
     }
 
     void setServerAddress(string serverAddress) {
@@ -434,11 +436,19 @@ public:
         this->batchSize = batchSize;
     }
 
+    std::string getStatisticsDB() {
+        return this->statisticsDB;
+    }
+
+    void setStatisticsDB(std::string statisticsDB) {
+        this->statisticsDB = statisticsDB;
+    }
+
     void printOut() {
         cout << "nodeID: " << nodeId << endl;
         cout << "serverName: " << serverName << endl;
         cout << "serverAddress: " << serverAddress << endl;
-        cout << "isMasterCatalogServer: " << isMasterCatalogServer << endl;
+        cout << "isManagerCatalogServer: " << isManagerCatalogServer << endl;
         cout << "usePangea: " << usePangea << endl;
         cout << "port: " << port << endl;
         cout << "maxConnections: " << maxConnections << endl;
@@ -457,11 +467,12 @@ public:
         cout << "dataTempDirs: " << dataTempDirs << endl;
         cout << "numThreads: " << numThreads << endl;
         cout << "backEndIpcFile: " << backEndIpcFile << endl;
-        cout << "isMaster: " << isMaster << endl;
-        cout << "masterNodeHostName: " << masterNodeHostName << endl;
-        cout << "masterNodePort: " << masterNodePort << endl;
+        cout << "isManager: " << isManager << endl;
+        cout << "managerNodeHostName: " << managerNodeHostName << endl;
+        cout << "managerNodePort: " << managerNodePort << endl;
         cout << "logEnabled: " << logEnabled << endl;
         cout << "batchSize: " << batchSize << endl;
+        cout << "statisticsDB: " << statisticsDB << endl;
     }
 };
 

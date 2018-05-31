@@ -1,18 +1,18 @@
-#  Copyright 2018 Rice University                                           
-#                                                                           
-#  Licensed under the Apache License, Version 2.0 (the "License");          
-#  you may not use this file except in compliance with the License.         
-#  You may obtain a copy of the License at                                  
-#                                                                           
-#      http://www.apache.org/licenses/LICENSE-2.0                           
-#                                                                           
-#  Unless required by applicable law or agreed to in writing, software      
-#  distributed under the License is distributed on an "AS IS" BASIS,        
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-#  See the License for the specific language governing permissions and      
-#  limitations under the License.                                           
-#  ======================================================================== 
-#!python
+#!/usr/bin/env python
+#  Copyright 2018 Rice University
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#  ========================================================================    
 #JiaNote: to run integrated tests on standalone node for storing and querying data
 
 
@@ -40,23 +40,24 @@ sharedMemorySize = "2560"
 
 def startPseudoCluster():
     try:
-        #run bin/pdb-cluster
+        #run bin/pdb-manager
         print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
-        serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
+        serverProcess = subprocess.Popen(['bin/pdb-manager', 'localhost', '8108', 'Y'])
         print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
         time.sleep(9)
 
-        #run bin/pdb-server for worker
+        #run bin/pdb-worker for worker
         num = 0;
-        with open('conf/serverlist.test') as f:
+        with open('conf/serverlist') as f:
             for each_line in f:
-                print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
-                num = num + 1
-                serverProcess = subprocess.Popen(['bin/pdb-server', threadNum, sharedMemorySize, 'localhost:8108', each_line])
-                print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
-                time.sleep(9)
-                each_line = each_line.split(':')
-                port = int(each_line[1])
+                if "#" not in each_line.strip() and len(each_line.strip()) >0:
+                    print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
+                    num = num + 1
+                    serverProcess = subprocess.Popen(['bin/pdb-worker', threadNum, sharedMemorySize, 'localhost:8108', each_line])
+                    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+                    time.sleep(9)
+                    each_line = each_line.split(':')
+                    port = int(each_line[1])
 
     except subprocess.CalledProcessError as e:
         print bcolors.FAIL + "[ERROR] in starting peudo cluster" + bcolors.ENDC

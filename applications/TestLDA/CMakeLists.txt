@@ -2,7 +2,7 @@
 add_pdb_application(TestLDA)
 
 # add a build dependency to build-tests target
-add_dependencies(build-tests TestLDA)
+add_dependencies(build-ml-tests TestLDA)
 
 # compile all the objects
 file(GLOB files "${PROJECT_SOURCE_DIR}/applications/TestLDA/sharedLibraries/source/*.cc")

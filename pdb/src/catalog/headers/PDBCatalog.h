@@ -219,7 +219,7 @@ public:
 
   /**
    * retrieves the bytes of the entire catalog, this could be used
-   * it one wants to ship the catalog from the master node to a different
+   * it one wants to ship the catalog from the manager node to a different
    * machine
    *
    * @param fileName is the name of the catalog file
@@ -512,7 +512,7 @@ private:
 
   /**
    * Container for keeping in memory  all the metadata registered in
-   * the catalog. Used when a remote catalog (i.e. non-master catalog)
+   * the catalog. Used when a remote catalog (i.e. non-manager catalog)
    * requests an update "pull" of newly registered metadata.
    */
   Handle<Map<String, Handle<Vector<Object>>>> catalogContents;

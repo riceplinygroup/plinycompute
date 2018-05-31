@@ -18,6 +18,8 @@
 #ifndef ABSTRACT_JOBSTAGE_H
 #define ABSTRACT_JOBSTAGE_H
 
+#include <DataTypes.h>
+#include <PDBString.h>
 
 namespace pdb {
 

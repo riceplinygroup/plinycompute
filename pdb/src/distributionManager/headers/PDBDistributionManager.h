@@ -39,7 +39,6 @@
 #include "Ack.h"
 #include "PDBString.h"
 #include "PDBVector.h"
-#include "QueryBase.h"
 
 
 namespace pdb {

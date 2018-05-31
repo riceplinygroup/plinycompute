@@ -1,20 +1,3 @@
-/*****************************************************************************
- *                                                                           *
- *  Copyright 2018 Rice University                                           *
- *                                                                           *
- *  Licensed under the Apache License, Version 2.0 (the "License");          *
- *  you may not use this file except in compliance with the License.         *
- *  You may obtain a copy of the License at                                  *
- *                                                                           *
- *      http://www.apache.org/licenses/LICENSE-2.0                           *
- *                                                                           *
- *  Unless required by applicable law or agreed to in writing, software      *
- *  distributed under the License is distributed on an "AS IS" BASIS,        *
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
- *  See the License for the specific language governing permissions and      *
- *  limitations under the License.                                           *
- *                                                                           *
- *****************************************************************************/
 
 #ifndef JOIN_PAIR_ARRAY_CC
 #define JOIN_PAIR_ARRAY_CC
@@ -106,6 +89,8 @@ void JoinPairArray<ValueType>::setUpAndCopyFrom(void* target, void* source) cons
         if (!toMe.valueTypeInfo.descendsFromObject()) {
             memmove(JM_GET_VALUE_PTR(toMe.data, i), JM_GET_VALUE_PTR(fromMe.data, i), objSize);
         } else {
+
+            
             toMe.valueTypeInfo.setUpAndCopyFromConstituentObject(JM_GET_VALUE_PTR(toMe.data, i),
                                                                  JM_GET_VALUE_PTR(fromMe.data, i));
         }
@@ -167,13 +152,11 @@ void JoinPairArray<ValueType>::setUnused(const size_t& me) {
 
     // figure out which slot he goes in
     size_t slot = hashVal % (numSlots - 1);
-
     // in the worst case, we can loop through the entire hash table looking.  :-(
     for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
 
         // if we found an empty slot, then this guy was not here
         if (JM_GET_HASH(data, slot) == JM_UNUSED) {
-
             return;
 
             // found a non-empty slot; check for a match
@@ -281,9 +264,9 @@ ValueType& JoinPairArray<ValueType>::push(const size_t& me) {
             if (JM_GET_NEXT(data, slot) == UINT32_MAX) {
 
                 // add the new list of overflows
-                JM_GET_NEXT(data, slot) = overflows.size();
                 Vector<ValueType> temp;
                 overflows.push_back(temp);
+                JM_GET_NEXT(data, slot) = overflows.size()-1;
             }
 
             // and add our new guy
@@ -451,6 +434,16 @@ size_t JoinRecordList<ValueType>::size() {
     if (JM_GET_HASH(parent.data, whichOne) == JM_UNUSED)
         return 0;
 
+    if (JM_GET_NEXT(parent.data, whichOne) != UINT32_MAX) {
+        if (JM_GET_NEXT(parent.data, whichOne) < parent.overflows.size()) {
+            return parent.overflows[JM_GET_NEXT(parent.data, whichOne)].size() + 1;
+        } else {
+            std::cout << "not invalid slot, return 0" << std::endl;
+            return 0;
+        }
+    } else {
+        return 1;
+    }
     // otherwise, return the correct slot
     return JM_GET_NEXT(parent.data, whichOne) == UINT32_MAX
         ? 1
@@ -469,12 +462,13 @@ JoinMapIterator<ValueType>::JoinMapIterator(Handle<JoinPairArray<ValueType>> ite
     : iterateMe(&(*iterateMeIn)) {
     slot = 0;
     done = false;
-    int objSize = iterateMe->objSize;
+    uint32_t objSize = iterateMe->objSize;
     while (slot != iterateMe->numSlots && JM_GET_HASH(iterateMe->data, slot) == JM_UNUSED)
         slot++;
 
     if (slot == iterateMe->numSlots)
         done = true;
+
 }
 
 template <class ValueType>
