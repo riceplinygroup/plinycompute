@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #  Copyright 2018 Rice University                                           
 #                                                                           
 #  Licensed under the Apache License, Version 2.0 (the "License");          
@@ -18,8 +19,7 @@ from sys import platform as _platform
 import glob
 from os import path
 
-
-#to install prerequisites
+# script that installs dependencies required by PlinyCompute 
 
 #
 #Name	Homepage	Ubutnu Packages
@@ -33,20 +33,21 @@ from os import path
 
 if _platform == 'darwin':
     print ("It is MacOS")
+    os.system("brew install ossp-uuid")
+    os.system("brew install gsl")
+    os.system("brew install snappy")
+    os.system("brew install bison")
+    os.system("brew install flex")
     os.system("brew install eigen")
 elif _platform == 'linux' or _platform == "linux2":
-    print ("It is Linux, try apt-get install")
-    #Eigen
+    print ("It is Linux, try apt-get install") 		
+    os.system("sudo apt-get -y install uuid-dev")
     os.system("sudo apt-get -y install libeigen3-dev")
-    #GSL
     os.system("sudo apt-get -y install libgsl-dev")
-    #Snappy
     os.system("sudo apt-get -y install libsnappy1v5 libsnappy-dev")
-    #Boost
     os.system("sudo apt-get -y install libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev")
-    #Bison/Flex
     os.system("sudo apt-get -y install bison flex")
 else:
-    print ("Platform is not supported right now")
+    print ("Platform " + _platform + " is not supported.")
 
 
