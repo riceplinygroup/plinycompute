@@ -85,17 +85,23 @@ if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
    then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";   
 fi
 
-if [ ! -f ${pem_file} ]; then
-    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
-    exit -1;
+if [ "$cluster_type" = "distributed" ];then
+   if [ -z $2 ];then
+      echo -e "Error: pem file was not provided as the second argument when invoking the script."
+      exit -1;
+   fi
+   if [ ! -f ${pem_file} ]; then
+      echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      exit -1;
+    fi
 fi
-    
+
 if [ -z ${numThreads} ];
-   then numThreads=4;
+   then numThreads=1;
 fi
 
 if [ -z ${sharedMem} ];
-   then sharedMem=4096;
+   then sharedMem=2048;
 fi
 
 # parses conf/serverlist file
@@ -125,7 +131,7 @@ echo ${arr}
 
 length=${#arr[@]}
 echo "There are $length servers defined in $PDB_HOME/$conf_file"
-
+exit -1
 echo ""
 echo "#####################################"
 echo " Launching a manager node."

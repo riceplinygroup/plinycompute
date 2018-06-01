@@ -27,11 +27,13 @@ usage() {
 
     Usage: scripts/$(basename $0) param1 param2
 
-           param1: <pem_file>
-                      Specify the private key to connect to other machines in 
-                      the cluster; the default is conf/pdb-key.pem
-           param2: <cluster_type>
+           param1: <cluster_type>
                       Specify the type of cluster; {'standalone', 'distributed'}
+
+           param2: <pem_file>
+                      Specify the private key to connect to other machines in 
+                      the cluster, only required when running in distributed
+                      mode; the default is conf/pdb-key.pem
 
 EOM
    exit -1;
@@ -39,25 +41,36 @@ EOM
 
 [ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
-pem_file=$1
-cluster_type=$2
+cluster_type=$1
+pem_file=$2
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
 
-if [ ! -f ${pem_file} ]; then
-    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
-    exit -1;
+echo -e "\033[33;31m""This script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
+
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
+   exit -1;
 fi
 
-echo -e "\033[33;31m""This script deletes all PlinyCompute stored data, use with care!""\e[0m"
+if [ "$cluster_type" = "distributed" ];then
+   if [ -z $2 ];then 
+      echo -e "Error: pem file was not provided as the second argument when invoking the script."
+      exit -1;
+   fi
+   if [ ! -f ${pem_file} ]; then
+      echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      exit -1;
+    fi
+fi
 
-read -p "Do you want to delete all PlinyCompute stored data?i [Y/n]" -n 1 -r
-echo ""
+read -p "Do you want to delete all PlinyCompute stored data?i [Y/n] " -n 1 -r
+echo " "
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
-    echo "Cleanup process cancelled"
+    echo "Cleanup process cancelled. Stored data were not deleted."
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
 fi
 
@@ -73,11 +86,6 @@ then
   PDB_SSH_OPTS=$PDB_SSH_OPTS
 else
   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
-fi
-
-if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
-   exit -1;
 fi
 
 # parses conf/serverlist file

@@ -18,7 +18,7 @@ set -o errexit
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use it carefully!"\e[0m"
     cat <<EOM
 
     Description: This script deletes all PlinyCompute storage, catalog metadata,
@@ -94,3 +94,5 @@ fi
 # kill all the processes
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
+
+echo -e "All stored data were deleted, and PlinyCompute processes were killed!."
