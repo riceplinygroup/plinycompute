@@ -60,7 +60,7 @@ do
          sleep 1
          ssh -i $pem_file $ip_addr 'ps aux | grep pdb-worker'
          sleep 1
-         ssh -i $pem_file $ip_addr "cat $PDB_INSTALL/log.out"
+         ssh -i $pem_file $ip_addr "cat $PDB_INSTALL/logs/log.out"
       else
          echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."            
       fi

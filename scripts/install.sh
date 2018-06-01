@@ -19,8 +19,13 @@ set -o errexit
 pem_file=$1
 user=ubuntu
 ip_len_valid=3
-pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
+
+if [[ ! -v PDB_INSTALL ]]; then
+   pdb_dir="/tmp/pdb_install"
+else
+   pdb_dir=$PDB_INSTALL
+fi
 
 usage() {
     echo ""
@@ -52,7 +57,19 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
-scripts/cleanupNode.sh
+echo -e "\033[33;31m""Before installing PlinyCompute, this script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
+echo -e "PlinyCompute default installation path has been set to: ""\033[33;32m""$pdb_dir""\e[0m"
+
+read -p "Do you want to delete all PlinyCompute stored data?i [Y/n] " -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "Installation process cancelled. All previous stored data remained unchanged."
+    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+fi
+
+scripts/cleanupNode.sh force
+
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
@@ -89,7 +106,7 @@ do
          ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
          scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
-         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
       else
          echo "Cannot copy files to server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
       fi

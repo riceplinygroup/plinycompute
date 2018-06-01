@@ -18,7 +18,7 @@ set -o errexit
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use it carefully!"\e[0m"
     cat <<EOM
 
     Description: This script deletes all PlinyCompute storage, catalog metadata,
@@ -29,7 +29,11 @@ EOM
    exit -1;
 }
 
-[ $# -ne 0 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
+[ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
+
+if [[ ! "$1" = force ]]; then
+   exit -1;
+fi
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
@@ -90,3 +94,5 @@ fi
 # kill all the processes
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
+
+echo -e "All stored data were deleted, and PlinyCompute processes were killed!."

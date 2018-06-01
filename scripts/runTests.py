@@ -21,6 +21,7 @@ import os
 import argparse
 import socket
 import os.path
+from os import listdir
 
 # parses the command line arguments
 parser = argparse.ArgumentParser(description='Script for running different PlinyCompute test suites.')
@@ -31,7 +32,7 @@ parser.add_argument('--test-suite', choices=['ml','la','tpch','int','all'], type
 parser.add_argument('--test-name', type=str, 
                     help='name of test to run, executables can be found in the $PDB_HOME/bin folder ')
 parser.add_argument('--pem-file', type=str, default="conf/pdb-key.pem",
-                    help="the pem key file to connect to the cluster nodes (default: conf/pdb-key.pem)")
+                    help="the pem key file to connect to the cluster nodes, required only when running in distributed mode (default: conf/pdb-key.pem)")
 parser.add_argument('--ip', type=str, default="localhost",
                     help="ip address of the manager node (default: localhost)")
 parser.add_argument('--num-threads', type=int, default=1,
@@ -96,7 +97,7 @@ num_passed = 0
 
 # Ensure that the environment is clean
 def prepare_environment():
-    subprocess.call(['bash', './scripts/cleanupNode.sh'])
+    subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
     print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
     time.sleep(5)
 
@@ -154,10 +155,33 @@ def start_pseudo_cluster():
         print(BColor.FAIL + "[ERROR] starting pseudo cluster" + BColor.END_C)
         print(e.returncode)
 
-#download data
-os.system('rm -rf tables_scale_0.2*')
-os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0')
-os.system('tar xvf tables_scale_0.2.tar.bz2?dl=0')
+# downloads TPCH data needed for some tests only if the data have not bee
+# downloaded previously
+def downloadTPCHData():
+
+    tables = ['customer.tbl', 'nation.tbl',
+              'part.tbl', 'region.tbl',
+              'lineitem.tbl', 'orders.tbl',
+              'partsupp.tbl', 'supplier.tbl'
+              ]
+
+    if os.path.isdir('tables_scale_0.2') == False:
+        os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0 -O tables_scale_0.2.tar.bz2')
+        os.system('tar xvf tables_scale_0.2.tar.bz2')
+        os.system('rm -rf tables_scale_0.2.tar.bz2')
+
+    if (set(listdir('tables_scale_0.2')) != set(tables)):
+        os.system('wget https://www.dropbox.com/s/cl67ercyd0cm32p/tables_scale_0.2.tar.bz2?dl=0 -O tables_scale_0.2.tar.bz2')
+        os.system('tar xvf tables_scale_0.2.tar.bz2')
+        os.system('rm -rf tables_scale_0.2.tar.bz2')
+
+    if (set(listdir('./tables_scale_0.2')) != set(tables)):
+        print("The content of the directory './tables_scale_0.2' is incorrect!")
+        sys.exit()
+
+# removes TPCH data after tests
+def removeTPCHData():
+    os.system('rm -rf tables_scale_0.2*')
 
 # runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
 def run_tests(test_list, clear_data):
@@ -174,7 +198,7 @@ def run_tests(test_list, clear_data):
 
     if clear_data == True:
         if (cluster_type=="standalone"):
-            subprocess.call(['bash', './scripts/cleanupNode.sh'])
+            subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
             print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
         else:
             print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
@@ -222,11 +246,15 @@ def run_test(id, test_name, test_command):
     print("#################################")
 
     try:
+        if (id == "Pre-partitionLoadData"):
+            downloadTPCHData()
+
         # stops cluster but keeps stored data for the following tests because they depend on
         # previously generated data
         if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
             print (BColor.OK_BLUE + "stops cluster but keeps stored data and catalog metadata" + BColor.END_C)
             subprocess.call(['bash', './scripts/stopWorker.sh'])            
+
         else:
             # for the rest of the tests, removes data and stops cluster because they need an empty environment
             if cluster_type == "distributed":
@@ -234,7 +262,7 @@ def run_test(id, test_name, test_command):
                 subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
             else:
                 print (BColor.OK_BLUE + "cleans standalone cluster before running test" + BColor.END_C)
-                subprocess.call(['bash', './scripts/cleanupNode.sh'])
+                subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
 
             print ("waits 5 seconds for cluster to be cleaned up...")
             time.sleep(5)
@@ -250,6 +278,9 @@ def run_test(id, test_name, test_command):
         print(BColor.OK_BLUE + "runs the test" + BColor.END_C)
         subprocess.check_call(test_command)
 
+        if (id == "Pre-partitionLoadData"):
+            removeTPCHData()
+        
     except subprocess.CalledProcessError as e:
         print(BColor.FAIL + "[ERROR] in running %s" % test_name + BColor.END_C)
         print(e.returncode)
@@ -364,4 +395,6 @@ else:
     print("At least one test suite has to be selected")
 
 #remove downloaded files
-os.system('rm -rf tables_scale_0.2*')
+if os.path.isdir('./tables_scale_0.2'):
+    os.system('rm -rf tables_scale_0.2*')
+

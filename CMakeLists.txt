@@ -46,6 +46,9 @@ elseif (NOT USE_DEBUG)
    message("PDB_DEBUG is OFF")
 endif (USE_DEBUG)
 
+# installs required third-party packages and libraries
+execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/setupDependencies.py")
+
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/utilities/headers")
