@@ -29,7 +29,11 @@ EOM
    exit -1;
 }
 
-[ $# -ne 0 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
+[ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
+
+if [[ ! "$1" = force ]]; then
+   exit -1;
+fi
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then

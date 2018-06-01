@@ -51,7 +51,17 @@ if [ ! -f ${pem_file} ]; then
     exit -1;
 fi
 
-scripts/cleanupNode.sh
+echo -e "\033[33;31m""This script deletes all PlinyCompute stored data, use with care!""\e[0m"
+
+read -p "Do you want to delete all PlinyCompute stored data?i [Y/n]" -n 1 -r
+echo ""
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "Cleanup process cancelled"
+    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+fi
+
+scripts/cleanupNode.sh force
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -100,9 +110,9 @@ do
       if [ $? -eq 0 ];then
             echo -e "\n+++++++++++ cleanup server: $ip_addr"
          if [[ ${ip_addr} != *":"* ]];then
-            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
          else
-            ./scripts/cleanupNode.sh
+            ./scripts/cleanupNode.sh force
          fi
       else
          echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
