@@ -32,8 +32,9 @@ usage() {
 
            param2: <pem_file>
                       Specify the private key to connect to other machines in 
-                      the cluster, only required when running in distributed
-                      mode; the default is conf/pdb-key.pem
+                      the cluster. This arg is required only when the value of the
+                      cluster_type arg is 'distributed'; the default value is 
+                      conf/pdb-key.pem
 
 EOM
    exit -1;
