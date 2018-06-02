@@ -685,7 +685,7 @@ int main(int argc, char *argv[]) {
     pdbClient.removeSet("gmm_db", "gmm_output_set");
     pdbClient.removeSet("gmm_db", "gmm_initial_model_set");
   }
-  int code = system("scripts/cleanupSoFiles.sh");
+  int code = system("scripts/cleanupSoFiles.sh force");
   if (code < 0) {
     COUT << "Can't cleanup so files" << std::endl;
   }

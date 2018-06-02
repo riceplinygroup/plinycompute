@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     std::string myWriteSetTcapString = myWriteSet->toTCAPString(
         inputTupleSets3, 2, outputTupleSetName, outputColumnNames, addedOutputColumnName);
     std::cout << myScanSetTcapString << myQueryString << myWriteSetTcapString << std::endl;
-    int code = system("scripts/cleanupSoFiles.sh");
+    int code = system("scripts/cleanupSoFiles.sh force");
     if (code < 0) {
         std::cout << "Can't cleanup so files" << std::endl;
     }
