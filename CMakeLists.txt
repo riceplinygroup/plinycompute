@@ -47,7 +47,7 @@ elseif (NOT USE_DEBUG)
 endif (USE_DEBUG)
 
 # installs required third-party packages and libraries
-execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/setupDependencies.py")
+execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/setupDependencies.py")
 
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
