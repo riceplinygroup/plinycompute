@@ -17,7 +17,7 @@
 usage() {
     echo ""
     echo -e "\033[33;31m""    "Warning: This script deletes PlinyCompute catalog metadata in remote""
-    echo -e "    "machines in a cluster, use with care!"\e[0m"
+    echo -e "    "machines in a cluster, use it carefully!"\e[0m"
     echo ""
 
     cat <<EOM
@@ -98,7 +98,8 @@ do
          echo -e "\n+++++++++++ install server: $ip_addr"
          ssh $PDB_SSH_OPTS $user@$ip_addr "rm /var/tmp/*.so; rm $pdb_dir/log.out; rm -rf $pdb_dir/Catalog*; rm $pdb_dir/logs/*"
          scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
-         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/internal/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
+         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
+         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/internal/checkProcess.sh $PDB_HOME/scripts/internal/startWorker.sh $user@$ip_addr:$pdb_dir/scripts/internal
       fi
    fi
 done
