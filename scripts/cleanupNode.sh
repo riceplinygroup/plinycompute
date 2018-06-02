@@ -18,7 +18,9 @@ set -o errexit
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use it carefully!"\e[0m"
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data. Deleted data cannot be"
+             "restored, use it carefully!"\e[0m"
+
     cat <<EOM
 
     Description: This script deletes all PlinyCompute storage, catalog metadata,

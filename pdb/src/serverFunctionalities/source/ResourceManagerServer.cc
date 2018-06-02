@@ -75,7 +75,7 @@ void ResourceManagerServer::initialize(std::string pathToServerList) {
     analyzeNodes(pathToServerList);
     if (pseudoClusterMode == false) {
         // to run a script to obtain all system resources
-        std::string command = std::string("scripts/collect_proc.sh ") + this->pemFile;
+        std::string command = std::string("scripts/internal/collect_proc.sh ") + this->pemFile;
         PDB_COUT << command << std::endl;
         int ret = system(command.c_str());
         if (ret < 0) {

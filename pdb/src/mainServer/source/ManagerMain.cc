@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
         std::string isPseudoStr(argv[3]);
         if (isPseudoStr.compare(std::string("Y")) == 0) {
             pseudoClusterMode = true;
-            std::cout << "Running in pseudo cluster mode" << std::endl;
+            std::cout << "Running in standalone cluster mode" << std::endl;
         }
         if ((argc == 5) || (argc == 6)) {
             pemFile = argv[4];

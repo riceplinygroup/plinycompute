@@ -6,7 +6,7 @@ usage() {
     echo -e "    of the machines in a cluster."
 
     cat <<EOM
-    Usage: scripts/$(basename $0) param1 param2
+    Usage: scripts/internal/$(basename $0) param1 param2
 
            param1: <pem_file>
                       Specify the private key to connect to other machines in
@@ -32,13 +32,13 @@ fi
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
-    echo "Usage: scripts/proc/collect_cluster_info.sh #pem_file #username";
+    echo "Usage: scripts/internal/proc/collect_cluster_info.sh #pem_file #username";
     exit -1;
 fi
 
 if [ -z ${user_name} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
-    echo "Usage: scripts/proc/collect_cluster_info.sh #pem_file #username";
+    echo "Usage: scripts/internal/proc/collect_cluster_info.sh #pem_file #username";
     exit -1;
 fi
 

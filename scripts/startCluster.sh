@@ -22,14 +22,15 @@ usage() {
 
     Usage: scripts/$(basename $0) param1 param2 param3 param4 param5
 
-           param1: <pem_file>
-                      Specify the private key to connect to other machines in 
-                      the cluster; the default is conf/pdb-key.pem
+           param1: <cluster_type>
+                      Specify the type of cluster; {'standalone', 'distributed'}
            param2: <manager_node_ip> 
                       Specify the public IP address of the manager node in a 
                       cluster; the default is localhost
-           param3: <cluster_type>
-                      Specify the type of cluster; {'standalone', 'distributed'}
+           param3: <pem_file>
+                      Specify the private key to connect to other machines in
+                      the cluster, only required when running in distributed
+                      mode; the default is conf/pdb-key.pem
            param4: <num_threads>
                       Specify the number of threads; default 4
            param5: <shared_memory>
@@ -42,9 +43,9 @@ EOM
 
 [ -z $1 ] && [ -z $2 ] && [ -z $3 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
-pem_file=$1
+cluster_type=$1
 managerIp=$2
-cluster_type=$3
+pem_file=$3
 numThreads=$4
 sharedMem=$5
 user=ubuntu
@@ -63,37 +64,30 @@ if [ "$PDB_SSH_OPTS" = "" ]; then
    PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
-if [ -z ${pem_file} ];
-   then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
-   echo "Usage: ./scripts/launchCluster.sh #pem_file #managerIp #threadNum #sharedMemSize #clusterType";
-   exit -1;
-fi
-
-if [ -z ${managerIp} ];
-   then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
-   echo "Usage: ./scripts/launchCluster.sh #pem_file #managerIp #clusterType #threadNum #sharedMemSize";
-   exit -1;
-fi
-
-if [ -z ${cluster_type} ];
-   then echo "ERROR: please provide at least three parameters: 1) pem file, 2) IP address of manager node, and 3) type of cluster {'standalone', 'distributed'}";
-   echo "Usage: ./scripts/launchCluster.sh #pem_file #managerIp #clusterType #threadNum #sharedMemSize";
-   exit -1;
-fi
-
-if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";   
-fi
-
 if [ "$cluster_type" = "distributed" ];then
-   if [ -z $2 ];then
-      echo -e "Error: pem file was not provided as the second argument when invoking the script."
+   # checks if the manager node ip address is reachable
+   nc -zw$testSSHTimeout $managerIp 22
+   if [ $? -ne 0 ]; then
+      echo -e "Error: the IP address ""\033[33;31m""'$managerIp'""\e[0m"" of the manager node is not reachable."     
+      exit -1; 
+   fi
+   if [ -z $3 ];then 
+      echo -e "Error: pem file was not provided as the third argument when invoking the script."
       exit -1;
    fi
    if [ ! -f ${pem_file} ]; then
       echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
+fi
+
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";   
+fi
+
+if [ -z $2 ];then
+   echo -e "Error: IP address for manager node was not provided as second argument to the script"
+   exit -1;
 fi
 
 if [ -z ${numThreads} ];
@@ -131,14 +125,17 @@ echo ${arr}
 
 length=${#arr[@]}
 echo "There are $length servers defined in $PDB_HOME/$conf_file"
-exit -1
 echo ""
 echo "#####################################"
 echo " Launching a manager node."
 echo "#####################################"
 
 # launches manager node
-$PDB_HOME/bin/pdb-manager localhost 8108 N $pem_file 1.5 &
+if [ "$cluster_type" = "standalone" ];then
+   $PDB_HOME/bin/pdb-manager $managerIp 8108 Y &
+else
+   $PDB_HOME/bin/pdb-manager $managerIp 8108 N $pem_file 1.5 &
+fi
 
 sleep $PDB_SLEEP_TIME
 
@@ -175,11 +172,11 @@ do
         if [[ ${ip_addr} != *":"* ]];then
            ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
            sleep $PDB_SSH_SLEEP
-           ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-worker
+           ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
         else
            ./bin/pdb-worker $numThreads $sharedMem $managerIp $ip_addr &
            sleep $PDB_SSH_SLEEP
-           ./scripts/checkProcess.sh pdb-worker
+           ./scripts/internal/checkProcess.sh pdb-worker
         fi
         if [ $? -eq 0 ]
         then

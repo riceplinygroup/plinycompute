@@ -47,7 +47,7 @@ def startPseudoCluster():
 
         #run bin/pdb-worker for worker
         num = 0;
-        with open('conf/serverlist') as f:
+        with open('conf/serverlist.test') as f:
             for each_line in f:
                 if "#" not in each_line.strip() and len(each_line.strip()) >0:
                     print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
@@ -66,7 +66,7 @@ def startPseudoCluster():
 print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
+subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
 print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up..."
 time.sleep(5)
 
@@ -91,7 +91,6 @@ except subprocess.CalledProcessError as e:
 
 else:
     print bcolors.OKBLUE + "[PASSED] distributed test " + sys.argv[1] + bcolors.ENDC
-    #subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
 
 

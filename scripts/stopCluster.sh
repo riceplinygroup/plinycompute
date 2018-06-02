@@ -24,11 +24,14 @@ usage() {
     Description: This script stops a cluster of PlinyCompute, including the
     manager node and all worker nodes (defined in conf/serverlist).
 
-    Usage: scripts/$(basename $0) param1
+    Usage: scripts/$(basename $0) param1 param2
 
-           param1: <pem_file>
+           param1: <cluster_type>
+                      Specify the type of cluster; {'standalone', 'distributed'}
+           param2: <pem_file>
                       Specify the private key to connect to other machines in
-                      the cluster; the default is conf/pdb-key.pem
+                      the cluster, only required when running in distributed
+                      mode; the default is conf/pdb-key.pem
 
 EOM
    exit -1;
@@ -36,16 +39,27 @@ EOM
 
 [ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
-pem_file=$1
+cluster_type=$1
+pem_file=$2
 user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 PDB_SSH_SLEEP=30
 testSSHTimeout=3
 
-if [ ! -f ${pem_file} ]; then
-    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
-    exit -1;
+if [ "$cluster_type" = "distributed" ];then
+   if [ -z $2 ];then
+      echo -e "Error: pem file was not provided as the second argument when invoking the script."
+      exit -1;
+   fi
+   if [ ! -f ${pem_file} ]; then
+      echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      exit -1;
+    fi
+fi
+
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
 fi
 
 pkill -9 pdb-worker
@@ -86,24 +100,33 @@ then
    exit -1
 fi
 
-length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+# stops worker nodes only if running in distributed cluster
+if [ "$cluster_type" = "distributed" ];then
+   length=${#arr[@]}
+   echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
 
-for (( i=0 ; i<=$length ; i++ ))
-do
-   ip_addr=${arr[i]}
-   if [ ${#ip_addr} -gt "$ip_len_valid" ]
-   then
-      # checks that ssh to a node is possible, times out after 3 seconds
-      nc -zw$testSSHTimeout ${ip_addr} 22
-      if [ $? -eq 0 ]
+   pkill -9 pdb-manager
+   echo "PlinyCompute manager node in a distributed cluster has been stopped!"
+
+   for (( i=0 ; i<=$length ; i++ ))
+   do
+      ip_addr=${arr[i]}
+      if [ ${#ip_addr} -gt "$ip_len_valid" ]
       then
-         echo -e "\n+++++++++++ stop server: $ip_addr"
-         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/stopWorker.sh"
-      else
-         echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+         # checks that ssh to a node is possible, times out after 3 seconds
+         nc -zw$testSSHTimeout ${ip_addr} 22
+         if [ $? -eq 0 ]
+         then
+            echo -e "\n+++++++++++ stop server: $ip_addr"
+            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/stopWorker.sh"
+         else
+            echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+         fi
       fi
-   fi
-done
+   done
+else
+   pkill -9 pdb-manager
+   pkill -9 pdb-worker
+   echo "PlinyCompute standalone cluster has been stopped!"
+fi
 
-echo "pdb-worker nodes have been stopped!"

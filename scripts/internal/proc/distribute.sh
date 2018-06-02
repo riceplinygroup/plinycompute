@@ -8,7 +8,7 @@ usage() {
 
     cat <<EOM
 
-    Usage: scripts/$(basename $0) param1
+    Usage: scripts/internal/$(basename $0) param1
 
            param1: <pem_file>
                       Specify the private key to connect to other machines in
@@ -22,7 +22,7 @@ EOM
 
 [ -z $1 ] && [ -z $2 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
-local_c_dir=$PDB_HOME/scripts/proc
+local_c_dir=$PDB_HOME/scripts/internal/proc
 ip_len_valid=3
 pem_file=$1
 user=$2
@@ -30,13 +30,13 @@ testSSHTimeout=3
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
-    echo "Usage: scripts/proc/distribute.sh #pem_file #username";
+    echo "Usage: scripts/internal/proc/distribute.sh #pem_file #username";
     exit -1;
 fi
 
 if [ -z ${user} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
-    echo "Usage: scripts/proc/distribute.sh #pem_file #username";
+    echo "Usage: scripts/internal/proc/distribute.sh #pem_file #username";
     exit -1;
 fi
 

@@ -17,7 +17,8 @@ set -o errexit
 
 usage() {
     echo ""    
-    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use with care!"\e[0m"
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data. Deleted data cannot be"
+             "restored, use it carefully!"\e[0m"
 
     cat <<EOM
 
@@ -25,7 +26,7 @@ usage() {
     and kills both pdb-manager and pdb-worker processes in one machine if 
     cluster-type=standalone or the entire cluster if cluster_type=distributed.
 
-    Usage: scripts/$(basename $0) param1 param2
+    Usage: scripts/$(basename $0) <param1> <param2> [param3]
 
            param1: <cluster_type>
                       Specify the type of cluster; {'standalone', 'distributed'}
@@ -35,6 +36,10 @@ usage() {
                       the cluster. This arg is required only when the value of the
                       cluster_type arg is 'distributed'; the default value is 
                       conf/pdb-key.pem
+           param3: [force]
+                      This argument is optional, if provided it doesn't prompt user
+                      for confirmation when cleaning up stored data in an installation
+                      of PlinyCompute.         
 
 EOM
    exit -1;
@@ -67,12 +72,19 @@ if [ "$cluster_type" = "distributed" ];then
     fi
 fi
 
-read -p "Do you want to delete all PlinyCompute stored data?i [Y/n] " -n 1 -r
-echo " "
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
-    echo "Cleanup process cancelled. Stored data were not deleted."
-    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+if [ -z $3 ];then
+   read -p "Do you want to delete all PlinyCompute stored data?i [Y/n] " -n 1 -r
+   echo " "
+   if [[ ! $REPLY =~ ^[Yy]$ ]]
+   then
+      echo "Cleanup process cancelled. Stored data were not deleted."
+      [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+   fi
+else
+   if [ "$3" != "force" ];then
+      echo -e "\033[33;31m""Error: the value of the third argument should be 'force'""\e[0m"
+      exit -1;
+   fi
 fi
 
 scripts/cleanupNode.sh force
