@@ -27,6 +27,12 @@ usage() {
     and kills both pdb-manager and pdb-worker processes in the machine where it
     is executed.
 
+    Usage: scripts/$(basename $0) <param1>
+
+           param1: <force>
+                      This argument is optional, if provided it doesn't prompt user
+                      for confirmation when cleaning up stored data.
+
 EOM
    exit -1;
 }
@@ -34,6 +40,8 @@ EOM
 [ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
 
 if [[ ! "$1" = force ]]; then
+   echo -e "Error: the argument 'force' was not provided to the script."
+   echo -e "All stored data were kept in storage." 
    exit -1;
 fi
 
@@ -97,4 +105,4 @@ fi
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
 
-echo -e "All stored data were deleted, and PlinyCompute processes were killed!."
+echo -e "All stored data in this node were deleted, and PlinyCompute processes were killed!."

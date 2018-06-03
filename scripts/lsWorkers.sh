@@ -62,7 +62,7 @@ do
          sleep 1
          ssh -i $pem_file $ip_addr "cat $PDB_INSTALL/logs/log.out"
       else
-         echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."            
+         echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed."
       fi
    fi
 done

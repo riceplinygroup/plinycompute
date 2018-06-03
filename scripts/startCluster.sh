@@ -185,7 +185,7 @@ do
            workersFailed=$[$workersFailed + 1]
         fi
      else
-        echo "Cannot start worker node with IP address: ${ip_addr}, connection times out after $testSSHTimeout seconds."
+        echo -e "Worker node at ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed. Connection couldn't be established."
         workersFailed=$[$workersFailed + 1]
      fi      
    fi

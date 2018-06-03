@@ -34,7 +34,8 @@ EOM
 [ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
 
 if [[ ! "$1" = force ]]; then
-   echo -e "Use the argument 'force' when invoking the script"
+   echo -e "Error: the argument 'force' was not provided to the script"
+   echo -e "All shared librares were kept in storage."
    exit -1;
 else
    echo -e "Deleting shared libraries in directory /var/tmp/"

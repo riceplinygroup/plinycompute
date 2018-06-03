@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-set -o errexit 
 
 usage() {
     echo ""    
@@ -53,6 +52,7 @@ user=ubuntu
 ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
+isForced=""
 
 echo -e "\033[33;31m""This script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
 
@@ -62,6 +62,8 @@ if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
 fi
 
 if [ "$cluster_type" = "distributed" ];then
+   isForced=$3
+   argName="third"
    if [ -z $2 ];then 
       echo -e "Error: pem file was not provided as the second argument when invoking the script."
       exit -1;
@@ -70,9 +72,12 @@ if [ "$cluster_type" = "distributed" ];then
       echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
+else
+   isForced=$2
+   argName="second"
 fi
 
-if [ -z $3 ];then
+if [ "x$isForced" = "x" ];then
    read -p "Do you want to delete all PlinyCompute stored data?i [Y/n] " -n 1 -r
    echo " "
    if [[ ! $REPLY =~ ^[Yy]$ ]]
@@ -81,8 +86,9 @@ if [ -z $3 ];then
       [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
    fi
 else
-   if [ "$3" != "force" ];then
-      echo -e "\033[33;31m""Error: the value of the third argument should be 'force'""\e[0m"
+   if [ "$isForced" != "force" ];then
+      echo -e "\033[33;31m""Error: the value of the $argName argument should be 'force'""\e[0m"
+      echo -e "All data were kept in storage."
       exit -1;
    fi
 fi
@@ -136,7 +142,7 @@ do
             ./scripts/cleanupNode.sh force
          fi
       else
-         echo "Cannot clean server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+         echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed."
       fi
     fi
 done

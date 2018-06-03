@@ -103,7 +103,7 @@ do
           sleep $PDB_SSH_SLEEP
           ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
       else
-          echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."            
+          echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed."
       fi
    fi
 done

@@ -14,8 +14,6 @@
 #  limitations under the License.
 #  ========================================================================    
 
-set -o errexit
-
 pem_file=$1
 user=ubuntu
 ip_len_valid=3
@@ -40,7 +38,7 @@ usage() {
     first cleans the contents of an installation of PlinyCompute in folder 
     '$pdb_dir' (if it exists).
 
-    Usage: scripts/$(basename $0) param1
+    Usage: scripts/$(basename $0) <param1>
 
            param1: <pem_file>
                       Specify the private key to connect to other machines in
@@ -99,17 +97,17 @@ do
    if [ ${#ip_addr} -gt "$ip_len_valid" ]
    then
       # checks that ssh to a node is possible, times out after 3 seconds
-      nc -zw$testSSHTimeout ${ip_addr} 22
+      nc -w $testSSHTimeout $ip_addr 22
       if [ $? -eq 0 ]
       then
-         echo -e "\n+++++++++++ install server: $ip_addr"
+         echo -e "\n+++++++++++ install worker node at IP: $ip_addr"
          ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts; mkdir $pdb_dir/scripts/internal"
          scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/internal/checkProcess.sh $PDB_HOME/scripts/internal/startWorker.sh $user@$ip_addr:$pdb_dir/scripts/internal
          ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
       else
-         echo "Cannot copy files to server with IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."
+         echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed. Files were not installed."
       fi
    fi
 done
