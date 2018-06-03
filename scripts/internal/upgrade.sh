@@ -90,7 +90,7 @@ do
       if [ $? -eq 0 ]
       then
          echo -e "\n+++++++++++ install server: $ip_addr"
-         ssh $PDB_SSH_OPTS $user@$ip_addr "rm $pdb_dir/log.out; rm $pdb_dir/logs/*"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "rm $pdb_dir/logs/log.out; rm $pdb_dir/logs/*"
          scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/internal/checkProcess.sh $PDB_HOME/scripts/internal/startWorker.sh $user@$ip_addr:$pdb_dir/scripts/internal
