@@ -346,9 +346,12 @@ int main(int argc, char* argv[]) {
     Handle<Computation> input1 = myDocTopicProb;
     Handle<Computation> input2 = myWordTopicProb;
 
+    auto iter_begin = std::chrono::high_resolution_clock::now();
+    auto iter_end = std::chrono::high_resolution_clock::now();
+    std::ofstream iter_file;
     /* Main training loops */
     for (int n = 0; n < iter; n++) {
-
+	iter_begin = std::chrono::high_resolution_clock::now();
         /* [1] Set up the join that will assign all of the words in the corpus to topics */
         Handle<Computation> myDocWordTopicJoin = makeObject<LDADocWordTopicJoin>(numWord);
         myDocWordTopicJoin->setInput(0, myInitialScanSet);
@@ -428,7 +431,17 @@ int main(int argc, char* argv[]) {
         input2 = makeObject<ScanTopicsPerWord>("LDA_db", myWriterForTopicsPerWordSetName);
         input1 = makeObject<ScanIntDoubleVectorPairSet>("LDA_db", myWriterForTopicsPerDocSetName);
         myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
-    }
+        
+	iter_end = std::chrono::high_resolution_clock::now();
+
+	if (n != 0) {
+        
+    iter_file.open ("iter_" + std::to_string(iter) + "_" + std::to_string(numWord) + "_" + std::to_string(numTopic) + "_" + std::to_string(numDoc) + ".txt", std::ios::out | std::ios::app);
+    iter_file << std::chrono::duration_cast<std::chrono::duration<float>>(iter_end - iter_begin).count()
+           << "\n";
+    iter_file.close();
+	}
+	}
 
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -453,7 +466,7 @@ int main(int argc, char* argv[]) {
          << std::chrono::duration_cast<std::chrono::duration<float>>(end - total_begin).count()
          << " secs." << std::endl;
     std::ofstream myfile;
-    myfile.open (std::to_string(iter) + "_" + std::to_string(numWord) + "_" + std::to_string(numTopic) + "_" + std::to_string(numDoc) + ".txt");
+    myfile.open (std::to_string(iter) + "_" + std::to_string(numWord) + "_" + std::to_string(numTopic) + "_" + std::to_string(numDoc) + ".txt", std::ios::out | std::ios::app);
     myfile << "Time Duration: "
            << std::chrono::duration_cast<std::chrono::duration<float>>(end - total_begin).count()
            << " secs.";
