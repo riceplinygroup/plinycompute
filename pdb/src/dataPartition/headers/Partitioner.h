@@ -25,6 +25,7 @@
 #include "ScanUserSet.h"
 #include "WriteUserSet.h"
 #include "QueryClient.h"
+#include "StatisticsDB.h"
 #include <cstring>
 #include <vector>
 
@@ -71,7 +72,6 @@ private:
 
     /* the output set identifier */
     std::pair<std::string, std::string> outputDatabaseAndSet;
-
 
 
 };

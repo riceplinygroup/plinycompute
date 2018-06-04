@@ -395,7 +395,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
             // uses a dummyObjectFile since this is just making a remote call to
             // the Catalog Manager Server and what matters is the returned bytes.
-            string dummyObjectFile = string("temp.so");
+            string dummyObjectFile = catalogDirectory + "/tmp_so_files/temp.so";
 
             // retrieves from remote catalog the Shared Library bytes in
             // "returnedBytes" and metadata in the "response" object

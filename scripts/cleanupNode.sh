@@ -14,6 +14,27 @@
 #  limitations under the License.
 #  ========================================================================    
 
+set -o errexit
+
+usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use it carefully!"\e[0m"
+    cat <<EOM
+
+    Description: This script deletes all PlinyCompute storage, catalog metadata,
+    and kills both pdb-manager and pdb-worker processes in the machine where it
+    is executed.
+
+EOM
+   exit -1;
+}
+
+[ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
+
+if [[ ! "$1" = force ]]; then
+   exit -1;
+fi
+
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
     rm -rf /var/tmp/*.so
@@ -39,6 +60,7 @@ if [[ -e /tmp/CatalogDir ]]; then
     rm -rf /tmp/CatalogDir
 fi
 
+
 # remove the content from CatalogDir only if they exist
 if [[ -n $(find ./CatalogDir -name "*" 2>/dev/null) ]]; then
     rm -rf CatalogDir/*
@@ -54,13 +76,23 @@ if [[ -n $(find /tmp/CatalogDir -name "*" 2>/dev/null) ]]; then
     rm -rf /tmp/CatalogDir*
 fi
 
+# remove everything from CatalogDir* only if they exist
+if [[ -n $(find CatalogDir* -name "*" 2>/dev/null) ]]; then
+    rm -rf CatalogDir*
+fi
+
 # remove anything from logs only if they exist
 if [[ -n $(find ./logs -name "*" 2>/dev/null) ]]; then
     rm -rf logs/*
 fi
 
+# remove anything from statDB only if they exist
+if [[ -n $(find ./statDB -name "*" 2>/dev/null) ]]; then
+    rm -rf statDB*
+fi
+
 # kill all the processes
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
-pkill -9 test603 || true
-pkill -9 test404 || true
+
+echo -e "All stored data were deleted, and PlinyCompute processes were killed!."

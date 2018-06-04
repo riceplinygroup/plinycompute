@@ -46,6 +46,9 @@ elseif (NOT USE_DEBUG)
    message("PDB_DEBUG is OFF")
 endif (USE_DEBUG)
 
+# installs required third-party packages and libraries
+execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/setupDependencies.py")
+
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/utilities/headers")
@@ -78,6 +81,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers/base")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
@@ -104,7 +108,7 @@ file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.c
 file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/*.cc"
                                "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/**/*.cc"
                                "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
-
+file(GLOB STATISTICS_DB_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/third-party/sqlite/source/sqlite3.c)
 
 # specify the hearder files
@@ -219,6 +223,7 @@ add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
 add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE})
+add_library(statisticsDB OBJECT ${STATISTICS_DB_SOURCE})
 
 # add the dependencies to the object type generationg
 add_dependencies(server-functionalities object-type-ids)
@@ -245,7 +250,8 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:statisticsDB>)
 
 # used to link the shared libraries that the shared librarires use
 add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
@@ -263,7 +269,8 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:statisticsDB>)
 
 # used to link the shared libraries that the test use
 add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
@@ -281,7 +288,8 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
-        $<TARGET_OBJECTS:work>)
+        $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:statisticsDB>)
 
 # link the dependent libraries so that they are made of the public interface
 target_link_libraries(pdb-server-common PRIVATE ${SNAPPY_LIBRARY})

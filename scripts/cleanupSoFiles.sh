@@ -13,6 +13,31 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-# by Jia
 
-rm /var/tmp/*.so
+set -o errexit
+
+usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script deletes shared libraries, use it carefully!"\e[0m"
+    cat <<EOM
+
+    Description: This script deletes shared libraries.
+
+    Usage: scripts/$(basename $0) param1
+
+           param1: force 
+                      Forces the deletion of shared libraries
+EOM
+   exit -1;
+}
+
+[ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
+
+if [[ ! "$1" = force ]]; then
+   echo -e "Use the argument 'force' when invoking the script"
+   exit -1;
+else
+   echo -e "Deleting shared libraries in directory /var/tmp/"
+   rm /var/tmp/*.so
+fi
+

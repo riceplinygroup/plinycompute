@@ -140,7 +140,8 @@ void dataGenerator(std::string scaleFactor,
 
     infile.open(PartFile.c_str());
     if (!infile.is_open()) {
-        cout << "No data directiry for part found, add the data directory " << PartFile << endl;
+        cout << "No data directory for part found, add the data directory " << PartFile << endl;
+        exit(-1);
     }
 
 
@@ -185,7 +186,7 @@ void dataGenerator(std::string scaleFactor,
 
     infile.open(supplierFile.c_str());
     if (!infile.is_open()) {
-        cout << "No data directiry for supplier found, add the data directory " << supplierFile
+        cout << "No data directory for supplier found, add the data directory " << supplierFile
              << endl;
     }
 
@@ -228,7 +229,7 @@ void dataGenerator(std::string scaleFactor,
     infile.open(lineitemFile.c_str());
 
     if (!infile.is_open()) {
-        cout << "No data directiry for lineitem  found, add the data directory " << lineitemFile
+        cout << "No data directory for lineitem  found, add the data directory " << lineitemFile
              << endl;
     }
 
@@ -312,7 +313,7 @@ void dataGenerator(std::string scaleFactor,
     infile.open(orderFile.c_str());
 
     if (!infile.is_open()) {
-        cout << "No data directiry for orderFile  found, add the data directory " << orderFile
+        cout << "No data directory for orderFile  found, add the data directory " << orderFile
              << endl;
     }
 
@@ -378,7 +379,7 @@ void dataGenerator(std::string scaleFactor,
 
         // if file does not exists
         if (!infile.is_open()) {
-            cout << "No data directiry for customer  found, add the data directory " << customerFile
+            cout << "No data directory for customer  found, add the data directory " << customerFile
                  << endl;
         }
 

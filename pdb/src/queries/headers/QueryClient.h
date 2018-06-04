@@ -27,6 +27,7 @@
 #include "CatalogClient.h"
 #include "DeleteSet.h"
 #include "ExecuteQuery.h"
+#include "RegisterReplica.h"
 #include "TupleSetExecuteQuery.h"
 #include "ExecuteComputation.h"
 #include "QueryGraphAnalyzer.h"
@@ -157,6 +158,45 @@ if (typeName != getTypeName <Type> ()) {
         queryAnalyzer.parseComputations(computations);
         return tcapString; 
     }
+
+    //to register a replica with statisticsDB
+    bool registerReplica(std::pair<std::string, std::string> inputDatabaseAndSet,
+                         std::pair<std::string, std::string> outputDatabaseAndSet,
+                         int numPartitions,
+                         int numNodes,
+                         std::string type,
+                         std::string tcap,
+                         std::vector<Handle<Computation>> computations) {
+         std::string errMsg;
+         std::cout << "to register Replica at query cient: " << computations.size() << " computations" << std::endl; 
+         return simpleRequest<RegisterReplica, SimpleRequestResult, bool>(
+            myLogger,
+            port,
+            address,
+            false,
+            4 * 1024 * 1024,
+            [&](Handle<SimpleRequestResult> result) {
+                    if (result != nullptr) {
+                        if (!result->getRes().first) {
+                            errMsg = "Error in query: " + result->getRes().second;
+                            myLogger->error("Error querying data: " + result->getRes().second);
+                            return false;
+                        }
+                        return true;
+                    }
+                    errMsg = "Error getting type name: got nothing back from server";
+                    return false;
+            },
+            inputDatabaseAndSet,
+            outputDatabaseAndSet,
+            numPartitions,
+            numNodes,
+            type,
+            tcap,
+            computations);
+
+    }
+
 
 
     //to execute computations

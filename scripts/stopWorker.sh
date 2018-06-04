@@ -14,8 +14,21 @@
 #  limitations under the License.
 #  ========================================================================    
 
+usage() {
+    echo ""
+    echo -e "\033[33;31m""    "Warning: This script stops a manager and worker processes of PlinyCompute,"
+    "use with care!"\e[0m"
+    cat <<EOM
+
+    Description: This script stops the pdb-manager and pdb-worker processes.
+
+    Usage: scripts/$(basename $0)
+
+EOM
+   exit -1;
+}
+
+[ $# -eq 1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 pkill -9 pdb-worker
-pkill -9 test603
 pkill -9 pdb-manager
-pkill -9 test404

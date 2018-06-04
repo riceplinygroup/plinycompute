@@ -19,6 +19,8 @@ add_dependencies(build-tests build-ml-tests)
 add_dependencies(build-tests build-integration-tests)
 
 
+add_dependencies(build-integration-tests build-standard-tpch-tests)
+
 # adds one pdb integration test to CMAKE
 function(add_pdb_integration_test test-name)
     # get the directory
@@ -37,7 +39,7 @@ function(add_pdb_integration_test test-name)
 
     # add a costum target to run this integration test
     add_custom_target("RunLocal${test-name}"
-                       python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py ${test-name}
+                       python ${PROJECT_SOURCE_DIR}/scripts/runTests.py --test-name ${test-name} --test-suite int
                        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     # add the dependency to the test target
@@ -59,19 +61,19 @@ include(tests/unit/CMakeLists.txt)
 
 # add a custom target to run the integration tests
 add_custom_target(run-integration-tests
-                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py int
+                  python ${PROJECT_SOURCE_DIR}/scripts/runTests.py --test-suite int
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_target(run-tpch-tests
-                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py tpch
+                  python ${PROJECT_SOURCE_DIR}/scripts/runTests.py --test-suite tpch
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_target(run-la-tests
-                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py la
+                  python ${PROJECT_SOURCE_DIR}/scripts/runTests.py --test-suite la
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_custom_target(run-ml-tests
-                  python ${PROJECT_SOURCE_DIR}/scripts/integratedTests.py ml
+                  python ${PROJECT_SOURCE_DIR}/scripts/runTests.py --test-suite ml
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # add a costum target to run the integration tests
