@@ -15,51 +15,31 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNodeFactory.h"
-#include "TCAPAnalyzer.h"
+
+#include "SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h"
+#include "PhysicalOptimizer.h"
+
 
 namespace pdb {
 
-TCAPAnalyzer::TCAPAnalyzer(std::string &jobId,
-                                 PDBLoggerPtr logger,
-                                 ConfigurationPtr &conf,
-                                 std::string TCAPString,
-                                 pdb::Handle<pdb::Vector<pdb::Handle<pdb::Computation>>> computations) {
-  try {
-    // parse the plan and initialize the values we need
-    this->computePlan = makeObject<ComputePlan>(String(TCAPString), *computations);
-    this->logicalPlan = this->computePlan->getPlan();
-    this->computationGraph = this->logicalPlan->getComputations();
-    this->sourcesComputations = this->computationGraph.getAllScanSets();
+PhysicalOptimizer::PhysicalOptimizer(std::vector<AbstractPhysicalNodePtr> &sources, PDBLoggerPtr &logger) {
 
-    // create the analyzer factory
-    AbstractTCAPAnalyzerNodeFactoryPtr analyzerNodeFactory = make_shared<SimpleTCAPAnalyzerNodeFactory>(jobId,
-                                                                                                        computePlan,
-                                                                                                        conf);
-    // generate the graph
-    auto sources = analyzerNodeFactory->generateAnalyzerGraph(this->sourcesComputations);
+  // this is the logger
+  this->logger = logger;
 
-    // form the map of source nodes
-    for(const auto &i : sources) {
-      sourceNodes[i->getSourceSetIdentifier()->toSourceSetName()] = i;
-    }
-
-  } catch (pdb::NotEnoughSpace &n) {
-    PDB_COUT << "FATAL ERROR in TCAPAnalyzer: Not enough memory to allocate the computePlan object";
-    logger->fatal("FATAL ERROR in TCAPAnalyzer: Not enough memory to allocate the computePlan object");
-    this->computePlan = nullptr;
-    this->logicalPlan = nullptr;
-    this->sourcesComputations.clear();
+  // form the map of source nodes
+  for(const auto &i : sources) {
+    sourceNodes[i->getNodeIdentifier()] = i;
   }
 }
 
-bool TCAPAnalyzer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
+bool PhysicalOptimizer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> &physicalPlanToOutput,
                                              vector<Handle<SetIdentifier>> &interGlobalSets,
                                              StatisticsPtr &stats,
                                              int &jobStageId) {
   // grab the best node
   auto source = getBestNode(stats);
-
+  
   // analyze this source node and do physical planning
   auto result = source->analyze(stats, jobStageId);
 
@@ -79,42 +59,47 @@ bool TCAPAnalyzer::getNextStagesOptimized(vector<Handle<AbstractJobStage>> &phys
     // increase the job stage
     jobStageId += result->physicalPlanToOutput.size();
 
-    // did we create a new source set
-    if(result->newSourceComputation != nullptr) {
-      sourceNodes[result->newSourceComputation->getSourceSetIdentifier()->toSourceSetName()] = result->newSourceComputation;
+    // did we create a new source set add them
+    for(auto &it : result->createdSourceComputations) {
+      sourceNodes[it->getNodeIdentifier()] = it;
     }
 
     // does this source have any consumers
     if(!source->hasConsumers()) {
-      sourceNodes.erase(source->getSourceSetIdentifier()->toSourceSetName());
+      sourceNodes.erase(source->getNodeIdentifier());
     }
   }
   // if we did not penalize this set
   else {
-    penalizedSets.insert(source->getSourceSetIdentifier()->toSourceSetName());
+    penalizedSets.insert(source->getNodeIdentifier());
   }
 
   return result->success;
 }
 
-bool TCAPAnalyzer::hasSources() {
+bool PhysicalOptimizer::hasSources() {
   return !sourceNodes.empty();
 }
 
-bool TCAPAnalyzer::hasConsumers(std::string &name) {
+bool PhysicalOptimizer::hasConsumers(Handle<SetIdentifier> &set) {
 
-  // do we even have this node if not return false
-  if(sourceNodes.find(name) == sourceNodes.end()){
-    return false;
+  // go through each consumer
+  for(auto &source: sourceNodes) {
+
+    // check
+    if(source.second->isConsuming(set)) {
+      return true;
+    }
   }
 
-  return sourceNodes[name]->hasConsumers();
+  // ok we do not have it
+  return false;
 }
 
-AbstractTCAPAnalyzerNodePtr TCAPAnalyzer::getBestNode(StatisticsPtr &ptr) {
+AbstractPhysicalNodePtr PhysicalOptimizer::getBestNode(StatisticsPtr &ptr) {
 
   // the default is to just use the first node
-  AbstractTCAPAnalyzerNodePtr ret = sourceNodes.begin()->second;
+  AbstractPhysicalNodePtr ret = sourceNodes.begin()->second;
   double cost = std::numeric_limits<double>::max();
 
   // go through all source nodes
@@ -124,7 +109,7 @@ AbstractTCAPAnalyzerNodePtr TCAPAnalyzer::getBestNode(StatisticsPtr &ptr) {
     double sourceCost = it.second->getCost(ptr);
     
     // is this set in the penalized sets, increase the cost by a factor of 1000
-    if(penalizedSets.find(it.second->getSourceSetIdentifier()->toSourceSetName()) != penalizedSets.end()){
+    if(penalizedSets.find(it.second->getNodeIdentifier()) != penalizedSets.end()){
       sourceCost *= SOURCE_PENALIZE_FACTOR;
     }
 
@@ -136,6 +121,11 @@ AbstractTCAPAnalyzerNodePtr TCAPAnalyzer::getBestNode(StatisticsPtr &ptr) {
   }
 
   return ret;
+}
+
+PhysicalOptimizer::~PhysicalOptimizer() {
+  penalizedSets.clear();
+  sourceNodes.clear();
 }
 
 }

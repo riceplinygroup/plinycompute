@@ -104,6 +104,12 @@ public:
     }
 
     void print() override {
+
+
+        int numNodePartitions;
+
+        size_t totalMemoryOnThisNode;
+        std::cout << "[JOB STAGE] JobStageType" << this->getJobStageType() << std::endl;
         std::cout << "[JOB ID] jobId=" << jobId << std::endl;
         std::cout << "[STAGE ID] id=" << id << std::endl;
         std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()
@@ -113,6 +119,8 @@ public:
         std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std::endl;
         std::cout << "[NUMPARTITIONS] numPartitions=" << numNodePartitions << std::endl;
         std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std::endl;
+        std::cout << "[MATERIALIZE] materialize=" << materializeOrNot << std::endl;
+        std::cout << "[COMPUTATION] outputTupleSetName=" << (*aggComputation).getOutputTupleSetName() << std::endl;
     }
 
     std::string getOutputTypeName() {

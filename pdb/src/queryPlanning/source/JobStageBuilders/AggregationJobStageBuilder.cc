@@ -61,7 +61,7 @@ Handle<AggregationJobStage> AggregationJobStageBuilder::build() {
     aggStage->setOutputTypeName(aggComp->getOutputType());
     aggStage->setJobId(this->jobId);
 
-    PDB_COUT << "TCAPAnalyzer generates AggregationJobStage:" << "\n";
+    PDB_COUT << "PhysicalOptimizer generates AggregationJobStage:" << "\n";
 
     return aggStage;
 }

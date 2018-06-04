@@ -15,50 +15,24 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "AbstractTCAPAnalyzerNode.h"
 
-#include <utility>
+#include "AbstractPhysicalNode.h"
 #include "SelectionComp.h"
 #include "PartitionComp.h"
 #include "MultiSelectionComp.h"
 
 namespace pdb {
 
-AbstractTCAPAnalyzerNode::AbstractTCAPAnalyzerNode(string &jobId,
-                                                   AtomicComputationPtr &node,
-                                                   const Handle<ComputePlan> &computePlan,
-                                                   LogicalPlanPtr &logicalPlan,
-                                                   ConfigurationPtr &conf) : jobId(jobId),
-                                                                             node(node),
-                                                                             computePlan(computePlan),
-                                                                             logicalPlan(logicalPlan),
-                                                                             conf(conf) {
+AbstractPhysicalNode::AbstractPhysicalNode(string &jobId,
+                                           const Handle<ComputePlan> &computePlan,
+                                           LogicalPlanPtr &logicalPlan,
+                                           ConfigurationPtr &conf) : jobId(jobId),
+                                                                     computePlan(computePlan),
+                                                                     logicalPlan(logicalPlan),
+                                                                     conf(conf),
+                                                                     handle(nullptr) {}
 
-  // if this node is a scan set we want to create a set identifier for it
-  if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
-
-    // grab the computation
-    Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
-
-    // create a set identifier from it
-    sourceSetIdentifier = getSetIdentifierFromComputation(comp);
-  }
-}
-
-double AbstractTCAPAnalyzerNode::getCost(const StatisticsPtr &stats) {
-  // return the cost of the source set identifier
-  return getCost(sourceSetIdentifier, stats);
-}
-
-const Handle<SetIdentifier> &AbstractTCAPAnalyzerNode::getSourceSetIdentifier() const {
-  return sourceSetIdentifier;
-}
-
-const AtomicComputationPtr &AbstractTCAPAnalyzerNode::getNode() const {
-  return node;
-}
-
-Handle<SetIdentifier> AbstractTCAPAnalyzerNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
+Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
 
   switch (computation->getComputationTypeID()) {
     case ScanUserSetTypeID :
@@ -81,8 +55,7 @@ Handle<SetIdentifier> AbstractTCAPAnalyzerNode::getSetIdentifierFromComputation(
     case PartitionCompTypeID : {
 
       // this is a PartitionComp cast it
-      Handle<PartitionComp<Object, Object>> partitioner 
-      = unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
+      Handle<PartitionComp<Object, Object>> partitioner = unsafeCast<PartitionComp<Object, Object>, Computation>(computation);
 
       // create the set identifier from it
       return makeObject<SetIdentifier>(partitioner->getDatabaseName(), partitioner->getSetName());
@@ -114,6 +87,45 @@ Handle<SetIdentifier> AbstractTCAPAnalyzerNode::getSetIdentifierFromComputation(
       exit(1); // TODO we are killing the server for a bad query might not be smart!
     }
   }
+}
+
+
+AbstractPhysicalNodePtr AbstractPhysicalNode::getHandle() {
+
+  // if we do not have a handle to this node already
+  if(handle == nullptr) {
+    handle = std::shared_ptr<AbstractPhysicalNode> (this);
+  }
+
+  return handle;
+}
+
+pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getConsumer(int idx) {
+
+  // set the iterator to the idx-th element
+  auto it = consumers.begin();
+  std::advance(it, idx);
+
+  // return the consumer
+  return *it;
+}
+
+size_t AbstractPhysicalNode::getNumConsumers() {
+  return consumers.size();
+}
+
+pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getProducer(int idx) {
+
+  // set the iterator to the idx-th element
+  auto it = producers.begin();
+  std::advance(it, idx);
+
+  // return the consumer
+  return *it;
+}
+
+size_t AbstractPhysicalNode::getNumProducers() {
+  return producers.size();
 }
 
 }

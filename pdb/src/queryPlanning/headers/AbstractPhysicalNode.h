@@ -32,17 +32,18 @@
 
 namespace pdb {
 
-class TCAPAnalyzerResult;
-class AbstractTCAPAnalyzerNode;
+class PhysicalOptimizerResult;
+class AbstractPhysicalNode;
 
-typedef std::shared_ptr<TCAPAnalyzerResult> TCAPAnalyzerResultPtr;
-typedef std::shared_ptr<AbstractTCAPAnalyzerNode> AbstractTCAPAnalyzerNodePtr;
+typedef std::shared_ptr<PhysicalOptimizerResult> PhysicalOptimizerResultPtr;
+typedef std::shared_ptr<AbstractPhysicalNode> AbstractPhysicalNodePtr;
+typedef std::shared_ptr<AbstractPhysicalNode> AbstractPhysicalNodeWeakPtr;
 
 /**
  * This structure is used to give back the result of a TCAPAnalysis.
- * It is always returned by the analyze method of the AbstractTCAPAnalyzerNode
+ * It is always returned by the analyze method of the AbstractPhysicalNode
  */
-struct TCAPAnalyzerResult {
+struct PhysicalOptimizerResult {
 
   /**
    * A sequence of AbstractJobStages that need to be executed
@@ -58,7 +59,7 @@ struct TCAPAnalyzerResult {
   /**
    * The computation associated with the new set
    */
-  AbstractTCAPAnalyzerNodePtr newSourceComputation;
+  list<AbstractPhysicalNodePtr> createdSourceComputations;
 
   /**
    * Is the result we got a good one to execute?
@@ -68,23 +69,22 @@ struct TCAPAnalyzerResult {
 
 
 /**
- * All TCAPAnalyzerNodes inherit from this class. Instances of this abstract class are used to analyze the TCAP graph
+ * All PhysicalNodes inherit from this class. Instances of this abstract class are used to analyze the TCAP graph
  * and generate a physical plan out of it.
  */
-class AbstractTCAPAnalyzerNode {
+class AbstractPhysicalNode {
 public:
 
-  AbstractTCAPAnalyzerNode(string &jobId,
-                           AtomicComputationPtr &node,
-                           const Handle<ComputePlan> &computePlan,
-                           LogicalPlanPtr &logicalPlan,
-                           ConfigurationPtr &conf);
+  AbstractPhysicalNode(string &jobId,
+                       const Handle<ComputePlan> &computePlan,
+                       LogicalPlanPtr &logicalPlan,
+                       ConfigurationPtr &conf);
 
   /**
    * Performs the actual analysis of the TCAP and returns a partial physical plan in the case it succeeds
-   * @return the TCAPAnalyzerResult is the result of the analysis
+   * @return the PhysicalOptimizerResult is the result of the analysis
    */
-  virtual TCAPAnalyzerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) = 0;
+  virtual PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) = 0;
 
   /**
    * Given the source set for this node and the statistics this method returns a cost based on a heuristic
@@ -92,14 +92,7 @@ public:
    * @param stats - the statistics about the sets
    * @return the cost value
    */
-  virtual double getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) = 0;
-
-  /**
-   * Return the cost by calling the @see getCost method with the @see sourceSetIdentifier as a parameter.
-   * @param stats - the statistics about the sets
-   * @return the cost value
-   */
-  virtual double getCost(const StatisticsPtr &stats);
+  virtual double getCost(const StatisticsPtr &stats) = 0;
 
   /**
    * Returns true if this node still has consumers
@@ -108,44 +101,87 @@ public:
   virtual bool hasConsumers() = 0;
 
   /**
-   * Returns the AtomicComputation associated with this AbstractTCAPAnalyzerNode
-   * @return the node
+   * Returns true if the set provided is consumed by some later stage in the planning
+   * @param set - the set identifier of the set we want to check
+   * @return true if it does false otherwise
    */
-  const AtomicComputationPtr &getNode() const;
+  virtual bool isConsuming(Handle<SetIdentifier> &set) = 0;
 
   /**
-   * This method returns the set identifier of the source if this node is a source, returns null otherwise
-   * @return the set identifier
+   * Returns a string that uniquely identifies this node
+   * @return the string
    */
-  const Handle<SetIdentifier> &getSourceSetIdentifier() const;
+  virtual std::string getNodeIdentifier() = 0;
+
+  /**
+   * Returns a shared pointer handle to this node
+   * @return the shared pointer handle
+   */
+  AbstractPhysicalNodePtr getHandle();
 
   /**
    * Removes a consumer of this node
    * @param consumer the consumer we want to remove
    */
-  void removeConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) {
+  virtual void removeConsumer(const AbstractPhysicalNodePtr &consumer) {
     consumers.remove(consumer);
+    consumer->producers.remove(getHandle());
   }
 
   /**
   * Adds a consumer to the node
   * @param consumer the consumer
   */
-  virtual void addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) {
+  virtual void addConsumer(const pdb::AbstractPhysicalNodePtr &consumer) {
     consumers.push_back(consumer);
+    consumer->producers.push_back(getHandle());
   }
 
-protected:
+  /**
+   * Returns the idx-th consumer of this node
+   * @param idx - the index
+   * @return returns the consumer
+   */
+  AbstractPhysicalNodePtr getConsumer(int idx);
+
+  /**
+   * Returns the number of consumers this pipe has
+   * @return the number
+   */
+  size_t getNumConsumers();
+
+  /**
+   * Returns the idx-th producer of this node
+   * @param idx - the index
+   * @return returns the producer
+   */
+  AbstractPhysicalNodePtr getProducer(int idx);
+
+  /**
+   * Returns the number of producers this pipe has
+   * @return the number
+   */
+  size_t getNumProducers();
+
+
+  /**
+   * This method is used to cast the handle to cast the abstract node to different kinds of node based on the
+   * template parameter T
+   * @tparam T - the tipe we want to cast the handle into
+   * @return a shared pointer handle of the provided type
+   */
+  template<typename T>
+  std::shared_ptr<T> to() {
+    return std::dynamic_pointer_cast<T>(getHandle());
+  }
+
+
+ protected:
 
   /**
    * The jobId for this query (can be any string that is can be a database name)
    */
   std::string jobId;
-
-  /**
-   * The AtomicComputation associated with this node
-   */
-  AtomicComputationPtr node;
 
   /**
    * The ComputePlan generated from input computations and the input TCAP string
@@ -165,17 +201,17 @@ protected:
   /**
    * A list of consumers of this node
    */
-  std::list<AbstractTCAPAnalyzerNodePtr> consumers;
+  std::list<AbstractPhysicalNodePtr> consumers;
 
   /**
-   * A list of producers of this node TODO implement this
+   * A list of producers of this node
    */
-  std::list<AbstractTCAPAnalyzerNodePtr> producers;
+  std::list<AbstractPhysicalNodeWeakPtr> producers;
 
   /**
-   * Source set associated with this node.
+   * A shared pointer to an instance of this node
    */
-  Handle<SetIdentifier> sourceSetIdentifier;
+  AbstractPhysicalNodeWeakPtr handle;
 
   /**
    * Extracts a set identifier from a computation

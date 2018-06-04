@@ -15,37 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_SIMPLETCAPANALYZERPROCESSINGNODE_H
-#define PDB_SIMPLETCAPANALYZERPROCESSINGNODE_H
+#ifndef PDB_SIMPLEPHYSICALNODE_H
+#define PDB_SIMPLEPHYSICALNODE_H
 
 #include "BroadcastJoinBuildHTJobStage.h"
 #include "HashPartitionedJoinBuildHTJobStage.h"
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
 #include "AggregationJobStage.h"
 #include "TupleSetJobStage.h"
-#include "AbstractTCAPAnalyzerNode.h"
+#include "AbstractPhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerNode;
-typedef std::shared_ptr<SimpleTCAPAnalyzerNode> SimpleTCAPAnalyzerNodePtr;
+class SimplePhysicalNode;
+typedef std::shared_ptr<SimplePhysicalNode> SimplePhysicalNodePtr;
 
-class SimpleTCAPAnalyzerNode : public AbstractTCAPAnalyzerNode {
+class SimplePhysicalNode : public AbstractPhysicalNode {
 
 public:
 
-  SimpleTCAPAnalyzerNode(string jobId,
-                         AtomicComputationPtr node,
-                         const Handle<ComputePlan> &computePlan,
-                         LogicalPlanPtr logicalPlan,
-                         ConfigurationPtr conf);
+  SimplePhysicalNode(string jobId,
+                     AtomicComputationPtr node,
+                     const Handle<ComputePlan> &computePlan,
+                     LogicalPlanPtr logicalPlan,
+                     ConfigurationPtr conf);
 
   /**
-   * This method starts the analysis for the simple TCAPAnalyzer.
+   * This method starts the analysis for the simple physical optimizer.
    * What it does is it sets up a TupleStageBuilder and then calls recursively the other analyze method
    * @return the resulting partial plan if succeeded
    */
-  TCAPAnalyzerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
+  PhysicalOptimizerResultPtr analyze(const StatisticsPtr &stats, int nextStageID) override;
 
   /**
    * Depending on the number of active consumers this node has it either :
@@ -57,17 +57,23 @@ public:
    * @param shared_ptr
    * @return the resulting partial plan if succeeded
    */
-  TCAPAnalyzerResultPtr analyze(TupleSetJobStageBuilderPtr &shared_ptr,
-                                SimpleTCAPAnalyzerNodePtr &prevNode,
-                                const StatisticsPtr &stats,
-                                int nextStageID);
+  PhysicalOptimizerResultPtr analyze(TupleSetJobStageBuilderPtr &shared_ptr,
+                                     SimplePhysicalNodePtr &prevNode,
+                                     const StatisticsPtr &stats,
+                                     int nextStageID);
+
+  /**
+   * Returns the AtomicComputation associated with this AbstractPhysicalNode
+   * @return the node
+   */
+  const AtomicComputationPtr &getNode() const;
 
   /**
    * Adds a consumer to this node
    * This method calls the base method but also adds the consumer to the list of @see activeConsumers.
    * @param consumer
    */
-  void addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) override;
+  void addConsumer(const AbstractPhysicalNodePtr &consumer) override;
 
   /**
    * Returns true if this node has any unprocessed consumers, false otherwise
@@ -75,20 +81,20 @@ public:
    */
   bool hasConsumers() override;
 
+  bool isConsuming(Handle<SetIdentifier> &set) override;
+
   /**
-   * This method calculates the cost of the provided source. The cost is calculated by the formula :
-   * cost = number_of_bytes / 1000000
-   * @param source
-   * @param stats
-   * @return the const
+   * Return the cost by calling the @see getCost method with the @see sourceSetIdentifier as a parameter.
+   * @param stats - the statistics about the sets
+   * @return the cost value
    */
-  double getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) override;
+  double getCost(const StatisticsPtr &stats) override;
 
   /**
    * Returns the shared_pointer to this node
    * @return the handle
    */
-  SimpleTCAPAnalyzerNodePtr getHandle();
+  SimplePhysicalNodePtr getSimpleNodeHandle();
 
 protected:
 
@@ -104,10 +110,10 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  virtual TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                      SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                      const StatisticsPtr &stats,
-                                                      int nextStageID);
+  virtual PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                           SimplePhysicalNodePtr &prevNode,
+                                                           const StatisticsPtr &stats,
+                                                           int nextStageID);
 
   /**
    * This method is called if we do not have any consumers thus this is an output node
@@ -121,10 +127,10 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  virtual TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
-                                              const StatisticsPtr &stats,
-                                              int nextStageID);
+  virtual PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                   SimplePhysicalNodePtr &prevNode,
+                                                   const StatisticsPtr &stats,
+                                                   int nextStageID);
 
   /**
    * This method is called if we have multiple consumers thus this node needs to materialized
@@ -139,22 +145,51 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  virtual TCAPAnalyzerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
-                                                         SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                         const StatisticsPtr &stats,
-                                                         int nextStageID);
+  virtual PhysicalOptimizerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
+                                                              SimplePhysicalNodePtr &prevNode,
+                                                              const StatisticsPtr &stats,
+                                                              int nextStageID);
+
+  /**
+   * Returns the identifier of this node in this case in the form of <databaseName>:<setName>
+   * @return the identifier
+   */
+  std::string getNodeIdentifier() override;
+
+ protected:
+
+  /**
+   * This method calculates the cost of the provided source. The cost is calculated by the formula :
+   * cost = number_of_bytes / 1000000
+   * @param source
+   * @param stats
+   * @return the const
+   */
+  double getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats);
+
+  /**
+   * This method returns the set identifier of the source if this node is a source, returns null otherwise
+   * @return the set identifier
+   */
+  const Handle<SetIdentifier> &getSourceSetIdentifier() const;
+
   /**
    * A list of consumers of this node
    */
-  std::list<SimpleTCAPAnalyzerNodePtr> activeConsumers;
+  std::list<SimplePhysicalNodePtr> activeConsumers;
 
   /**
-   * A shared pointer to an instance of this node
+   * Source set associated with this node.
    */
-  SimpleTCAPAnalyzerNodePtr handle;
+  Handle<SetIdentifier> sourceSetIdentifier;
+
+  /**
+   * The AtomicComputation associated with this node
+   */
+  AtomicComputationPtr node;
 
 };
 
 }
 
-#endif //PDB_SIMPLETCAPANALYZERPROCESSINGNODE_H
+#endif //PDB_SIMPLEPHYSICALNODE_H
