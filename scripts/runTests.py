@@ -254,7 +254,10 @@ def run_test(id, test_name, test_command):
         # previously generated data
         if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
             print (BColor.OK_BLUE + "stops cluster but keeps stored data and catalog metadata" + BColor.END_C)
-            subprocess.call(['bash', './scripts/stopWorker.sh'])            
+            if cluster_type == "distributed":
+               subprocess.call(['bash', './scripts/stopCluster.sh', cluster_type, pem_file, 'force'])
+            else
+               subprocess.call(['bash', './scripts/stopCluster.sh', cluster_type, 'force'])            
 
         else:
             # for the rest of the tests, removes data and stops cluster because they need an empty environment

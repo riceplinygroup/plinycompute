@@ -48,7 +48,7 @@ testSSHTimeout=3
 isForced=$2
 
 if [ "x$isForced" = "x" ];then
-   read -p "Do you want to delete and upgrade all PlinyCompute stored data?i [Y/n] " -n 1 -r
+   read -p "Do you want to delete and upgrade all PlinyCompute stored data? [Y/n] " -n 1 -r
    echo " "
    if [[ ! $REPLY =~ ^[Yy]$ ]]
    then
