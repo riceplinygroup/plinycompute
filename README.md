@@ -3,7 +3,16 @@
 </p>
 <hr/>
 
-**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++.
+**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++. It can be deployed in two different modes: **standalone** cluster or **distributed** cluster.
+
+# Learn more about PlinyCompute
+
+* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
+* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
+* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
+* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
+* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
+* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
 
 # Requirements and dependencies
 PlinyCompute has been compiled, built, and tested in Ubuntu 16.04.4 LTS. For the system to work properly, make sure the following requirements are satisfied.
@@ -24,7 +33,7 @@ $ export PDB_INSTALL=/tmp/pdb_install
 ### <a name="req"></a>Third-party libraries and packages required:
 The table below lists the libraries and packages required by PlinyCompute. If any of them is missing in your system, run the following script to install them `$PDB_HOME/scripts/internal/setupDependencies.py`.
 
-| Library          | Packages             |
+| Library/Software          | Packages             |
 | ------------- | ---------------------------:|
 | [Cmake](https://cmake.org/download/)        | cmake 3.5.1 |
 | [Clang](https://clang.llvm.org/)        | clang version 3.8.0-2ubuntu4 |
@@ -40,13 +49,13 @@ The table below lists the libraries and packages required by PlinyCompute. If an
 ```bash 
 $ git clone https://github.com/riceplinygroup/plinycompute.git
 ```
-This command will download PlinyCompute in a folder named plinycompute. Make sure you are in that directory by typing:
+This command will download PlinyCompute in a directory named plinycompute. Make sure you are in that directory by typing:
 ```
 $ cd plinycompute
 ``` 
 In a Linux machine the prompt should look something similar to:
 ```bash 
-ubuntu@master:~/plinycompute$
+ubuntu@manager:~/plinycompute$
 ```
 Invoke cmake, by default PlinyCompute is built without debug messages with the following command:
 ```bash 
@@ -110,6 +119,7 @@ $ make test
 # Deploying and Launching PlinyCompute
 PlinyCompute can be launched in two modes:
 1. **standalone**: this mode is ideal for testing the functionality of PlinyCompute in a single machine (e.g. a personal computer or a laptop). The cluster is simulated by launching the manager node and one or more worker nodes as separate processes listening on different ports in one physical machine.
+
 2. **distributed**: best suited for processing large datasets. In this mode, the manager node and one ore more worker nodes are launched in different machines.
 
 ### <a name="pseudo"></a>Running PlinyCompute on a local machine (standalone mode)
@@ -140,10 +150,10 @@ $ git clone https://github.com/riceplinygroup/plinycompute.git
 ```
 This command downloads PlinyCompute in a folder named plinycompute. Make sure you are in that directory. In a Linux machine the prompt should look something similar to:
 ```bash 
-ubuntu@master:~/plinycompute$
+ubuntu@manager:~/plinycompute$
 ```
 
-3. Edit the $PDB_HOME/conf/serverlist file with the IP addresses of the worker nodes (machines) in the cluster; one IP address per line. This is a partial listing of such file (replace the IP's with your own, the ones shown here are ficticious):
+3. Edit the $PDB_HOME/conf/serverlist file, and add the public IP addresses of the worker nodes (machines) in the cluster; one IP address per line. Below is a partial listing of such file (replace the IP's with your own, the ones shown here are ficticious):
 ```bash
 .
 .
@@ -153,7 +163,7 @@ ubuntu@master:~/plinycompute$
 192.168.1.3
 ```
 
-In the above example, the cluster will include one manager node (where PlinyCompute was cloned), and three worker nodes, whose IP'addresses can be found in the conf/serverlist file.
+In the above example, the cluster will include one manager node (where PlinyCompute was cloned), and three worker nodes.
 
 4. Invoke cmake with the following command:
 ```bash 
@@ -165,77 +175,90 @@ $ cmake -DUSE_DEBUG:BOOL=OFF .
 $ make -j 4 pdb-manager
 $ make -j 4 pdb-worker
 ```
-This will generate two executables in the folder `$PDB_HOME/bin`:
+This will generate two executables in the directory `$PDB_HOME/bin`:
 ```bash 
 pdb-manager
 pdb-worker
 ```
 
-6. Run the following script. This script will connect to each of the worker nodes and install the required executables and scripts on the folder given by the $PDB_INSTALL variable. Note: the script's argument is the pem file required to connect to the machines in the cluster. 
+6. Install the required executables and scripts on the worker nodes by running the following script, which will be installed on the path given by the $PDB_INSTALL envrionment variable. Note: the script's argument is the pem file required to connect to the machines in the cluster. 
 ```bash 
 $ $PDB_HOME/scripts/install.sh conf/pdb-key.pem
 ```
-This generates an output similar to this, for all nodes in the cluster (partial display shown here for clarity purposes):
+
+After completion, the output should look similar to the one below, (partial display shown here for clarity purposes):
 ```bash 
-+++++++++++ install server: 192.168.1.1
-pdb-worker                100%   55MB  55.1MB/s   00:01
-cleanupNode.sh            100% 2072     2.0KB/s   00:00
-startWorker.sh            100% 1247     1.2KB/s   00:00
-stopWorker.sh             100%  766     0.8KB/s   00:00
-checkProcess.sh           100% 1007     1.0KB/s   00:00
-
-+++++++++++ install server: 192.168.1.2
-pdb-worker                100%   55MB  27.5MB/s   00:02
 .
 .
 .
+---------------------------------
+Results of script install.sh:
+*** Failed results (0/3) ***
 
-At this point, executables and scripts are installed on all machines in the clusert.
-
+*** Successful results (3/3) ***
+Worker node with IP: 192.168.1.1 successfully installed.
+Worker node with IP: 192.168.1.2 successfully installed.
+Worker node with IP: 192.168.1.3 successfully installed.
+---------------------------------
 ```
-7. Launch the cluster
-```bash  
-$ $PDB_HOME/scripts/startCluster.sh <cluster_type> <manager_node_ip> <pem_file> [num_threads] [shared_memory] &
+
+At this point all executable programs and scripts are properly installed on the worker nodes!
+
+7. Launching the cluster
+Run the following script, replacing the second argument with the public IP address of the manager node, and the third agrument with the pem file that allows to connect to the machines in the cluster. In this example, the first argument `distributed` indicates that this is a real cluster, the manager node IP address is `192.168.1.0`, and the pem file `conf/pdb-key.pem`. By default the cluster is launched with `1` thread and `2Gb` of memory. 
+```bash
+$ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
-Where, `<cluster_type>` is the type of cluster, either 'distributed' or 'standalone', `<manager_node_ip>` should have the manager node IP address; `<pem_file>` is the pem file with the private key to connect to the worker nodes; `[num_threads` the number of threads (this is optional, the default is set to 1); and `<shared_memory>`, specifies the amount of memory in Megabytes (the default is 2048).
-
-For example, the following command launches a cluster using a private key file named `private_key.pem` located in the `conf` folder, whose manager IP address is `192.168.1.1`, using `4 cores` and `4Gb` of memory.
-```bash  
-$ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.1 conf/private_key.pem 2 2048 &
+If you want to launch the cluster with more threads and memory, provide the fourth and fifth arguments, in the following example, a cluster is launched with 4 threads and 4096 and 4GB of memory.
+```bash
+$ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem 4 4096
 ```
-Once, the worker nodes are launched, the message `"servers are started!"` will be displayed. At this point there is a running distributed version of PlinyCompute!
 
-# Stop Cluster
+After completion, the output should look similar to the one below, (partial display shown here for clarity purposes):
+```bash 
+.
+.
+.
+---------------------------------
+Results of script startCluster.sh:
+*** Failed results (0/3) ***
+
+*** Successful results (3/3) ***
+Worker node with IP: 192.168.1.1 successfully started.
+Worker node with IP: 192.168.1.2 successfully started.
+Worker node with IP: 192.168.1.3 successfully started.
+
+---------------------------------
+```
+
+## Stop Cluster
 To stop a running instance of PlinyCompute, issue the following command:
 ```bash  
 $ ./scripts/stopCluster.sh distributed conf/private_key.pem
 ```
 
-## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
-To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
+## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata
+To remove data in a PlinyCompute cluster, execute the following script. Note that the value of the first argument is `distributed`, meaning this will clean data in a real cluster. **Warning:** this script removes all PlinyCompute stored data and catalog metadata from the entire cluster.
 ```
-$ $PDB_HOME/scripts/cleanupNode.sh
+$ $PDB_HOME/scripts/cleanup.sh distributed conf/pdb-key.pem
 ```
+
+If you are running in a standalone cluster, run the following script
+```
+$ $PDB_HOME/scripts/cleanup.sh standalone
+```
+
 ## Upgrade Cluster (for developers and testers upgrade binaries and restart cluster with all data kept)
 ```bash
-scripts/stopWorkers.sh $pem_file/private_key
-scripts/upgrade.sh $pem_file/private_key
-scripts/startManager.sh $pem_file/private_key
-scripts/startWorkers.sh $pem_file/private_key $ManagerIPAddress $ThreadNum $SharedMemoryPoolSize
+$ ./scripts/stopCluster.sh distributed conf/pdb-key.pem
+$ ./scripts/internal/upgrade.sh conf/pdb-key.pem
+$ ./scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
 ## Cleanup Catalog and Storage data
 You can cleanup all catalog and storage data by running the following command in the manager node:
 
 ```bash  
-$ ./scripts/cleanup.sh conf/private_key.pem
+$ ./scripts/cleanup.sh distributed conf/pdb-key.pem
 ```
-# Learn more about PlinyCompute
-
-* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
-* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
-* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
-* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
-* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
-* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
