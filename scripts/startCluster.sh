@@ -31,11 +31,11 @@ usage() {
                       Specify the private key to connect to other machines in
                       the cluster, only required when running in distributed
                       mode; the default is conf/pdb-key.pem
-           param4: <num_threads>
-                      Specify the number of threads; default 4
-           param5: <shared_memory>
+           param4: [num_threads]
+                      Specify the number of threads; default 1
+           param5: [shared_memory]
                       Specify the amount of shared memory in Mbytes; default 
-                      is 4096
+                      is 2048
 
 EOM
    exit -1;

@@ -256,7 +256,7 @@ def run_test(id, test_name, test_command):
             print (BColor.OK_BLUE + "stops cluster but keeps stored data and catalog metadata" + BColor.END_C)
             if cluster_type == "distributed":
                subprocess.call(['bash', './scripts/stopCluster.sh', cluster_type, pem_file, 'force'])
-            else
+            else:
                subprocess.call(['bash', './scripts/stopCluster.sh', cluster_type, 'force'])            
 
         else:
