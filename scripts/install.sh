@@ -80,7 +80,14 @@ else
   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
 
-echo $PDB_HOME/conf/serverlist
+echo "Reading cluster IP addresses from file: $PDB_HOME/conf/serverlist"
+
+if [ ! -f $PDB_HOME/conf/serverlist ];then
+   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
+   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "and contains the IP addresses of the worker nodes."
+   exit -1
+fi
 
 while read line
 do
@@ -97,7 +104,7 @@ do
    if [ ${#ip_addr} -gt "$ip_len_valid" ]
    then
       # checks that ssh to a node is possible, times out after 3 seconds
-      nc -w $testSSHTimeout $ip_addr 22
+      nc -w $testSSHTimeout $ip_addr 22 > /dev/null 2>&1
       if [ $? -eq 0 ]
       then
          echo -e "\n+++++++++++ install worker node at IP: $ip_addr"

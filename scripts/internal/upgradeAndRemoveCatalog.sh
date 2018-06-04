@@ -68,20 +68,19 @@ echo "Removes local catalog and temp shared libraries"
 rm -rf $PDB_HOME/CatalogDir
 rm /var/tmp/*.so
 
+if [ ! -f $PDB_HOME/conf/serverlist ];then
+   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
+   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "and contains the IP addresses of the worker nodes."
+   exit -1
+fi
+
 echo "Reading cluster IP addresses from file: $PDB_HOME/conf/serverlist"
 while read line
 do
    [[ $line == *#* ]] && continue # skips commented lines
    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/conf/serverlist
-
-if [ $? -ne 0 ]
-then
-   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
-   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
-   echo -e "and contains the IP addresses of the worker nodes."
-   exit -1
-fi
 
 length=${#arr[@]}
 echo "There are $length servers defined in $PDB_HOME/conf/serverlist"

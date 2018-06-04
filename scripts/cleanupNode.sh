@@ -14,8 +14,6 @@
 #  limitations under the License.
 #  ========================================================================    
 
-set -o errexit
-
 usage() {
     echo ""
     echo -e "\033[33;31m""    "Warning: This script deletes stored data. Deleted data cannot be"
