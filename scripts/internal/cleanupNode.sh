@@ -35,13 +35,7 @@ EOM
    exit -1;
 }
 
-[ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
-
-if [[ ! "$1" = force ]]; then
-   echo -e "Error: the argument 'force' was not provided to the script."
-   echo -e "All stored data were kept in storage." 
-   exit -1;
-fi
+[[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; } || [[ ! "$1" = force ]] && { usage; }
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then

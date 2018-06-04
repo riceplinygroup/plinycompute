@@ -97,7 +97,7 @@ num_passed = 0
 
 # Ensure that the environment is clean
 def prepare_environment():
-    subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+    subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
     print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
     time.sleep(5)
 
@@ -199,7 +199,7 @@ def run_tests(test_list, clear_data):
 
     if clear_data == True:
         if (cluster_type=="standalone"):
-            subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+            subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
             print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
         else:
             print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
@@ -266,7 +266,7 @@ def run_test(id, test_name, test_command):
                 subprocess.call(['bash', './scripts/cleanup.sh', cluster_type, pem_file, 'force'])
             else:
                 print (BColor.OK_BLUE + "cleans standalone cluster before running test" + BColor.END_C)
-                subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+                subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
 
             print ("waits 5 seconds for cluster to be cleaned up...")
             time.sleep(5)

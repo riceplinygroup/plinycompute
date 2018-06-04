@@ -67,7 +67,7 @@ def startPseudoCluster():
 print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
+subprocess.call(['bash', './scripts/internal/cleanupNode.sh'])
 print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up..."
 time.sleep(5)
 
@@ -90,7 +90,7 @@ except subprocess.CalledProcessError as e:
 
 else:
     print bcolors.OKBLUE + "[PASSED] distributed test " + sys.argv[1] + bcolors.ENDC
-    #subprocess.call(['bash', './scripts/cleanupNode.sh'])
+    #subprocess.call(['bash', './scripts/internal/cleanupNode.sh'])
 
 
 

@@ -66,7 +66,7 @@ then
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
 fi
 
-scripts/cleanupNode.sh force
+scripts/internal/cleanupNode.sh force
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -115,9 +115,9 @@ do
          echo -e "\n+++++++++++ install worker node at IP: $ip_addr"
          ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts; mkdir $pdb_dir/scripts/internal"
          scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-worker $user@$ip_addr:$pdb_dir/bin/ 
-         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/internal/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
+         scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/internal/cleanupNode.sh $PDB_HOME/scripts/internal/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/internal/checkProcess.sh $PDB_HOME/scripts/internal/startWorker.sh $user@$ip_addr:$pdb_dir/scripts/internal
-         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
+         ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/internal/cleanupNode.sh force"
          resultOk+="Worker node with IP: $ip_addr successfully installed.\n"
          totalOk=`expr $totalOk + 1`
       else

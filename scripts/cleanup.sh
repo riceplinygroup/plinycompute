@@ -94,7 +94,7 @@ else
    fi
 fi
 
-scripts/cleanupNode.sh force
+scripts/internal/cleanupNode.sh force
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -143,11 +143,11 @@ do
       if [ $? -eq 0 ];then
             echo -e "\n+++++++++++ cleanup server: $ip_addr"
          if [[ ${ip_addr} != *":"* ]];then
-            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
+            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/internal/cleanupNode.sh force"
             resultOk+="Worker node with IP: $only_ip successfully cleanned.\n"
             totalOk=`expr $totalOk + 1`
          else
-            ./scripts/cleanupNode.sh force
+            ./scripts/internal/cleanupNode.sh force
             resultOk+="Worker node with IP: $ip_addr successfully cleanned.\n"
             totalOk=`expr $totalOk + 1`
          fi

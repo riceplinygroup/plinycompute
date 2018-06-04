@@ -66,7 +66,7 @@ def startPseudoCluster():
 print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
-subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
 print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up..."
 time.sleep(5)
 
