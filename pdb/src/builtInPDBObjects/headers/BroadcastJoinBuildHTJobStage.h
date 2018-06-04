@@ -110,8 +110,15 @@ public:
 
     void print() override {
         std::cout << "[JOB ID] jobId = " << jobId << std::endl;
+        std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()
+                  << ", setName=" << sourceContext->getSetName() << std::endl;
         std::cout << "[STAGE ID] id = " << id << std::endl;
         std::cout << "[HASH SET] name = " << sharedHashSetName << std::endl;
+        std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std::endl;
+        std::cout << "[NUM PAGES] numPages=" << numPages << std::endl;
+        std::cout << "[SRCTUPLESET] sourceTupleSetSpecifier=" << sourceTupleSetSpecifier << std::endl;
+        std::cout << "[TARTUPLESET] targetTupleSetSpecifier=" << targetTupleSetSpecifier << std::endl;
+        std::cout << "[TACCOMP] targetComputationSpecifier=" << targetComputationSpecifier << std::endl;
     }
 
     void setNumPages(int numPages) {

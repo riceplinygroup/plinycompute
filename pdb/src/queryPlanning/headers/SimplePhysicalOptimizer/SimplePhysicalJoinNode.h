@@ -15,18 +15,18 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_SIMPLETCAPANALYZERJOINNODE_H
-#define PDB_SIMPLETCAPANALYZERJOINNODE_H
+#ifndef PDB_SIMPLEPHYSICALJOINNODE_H
+#define PDB_SIMPLEPHYSICALJOINNODE_H
 
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerJoinNode : public SimpleTCAPAnalyzerNode {
+class SimplePhysicalJoinNode : public SimplePhysicalNode {
 public:
 
-  SimpleTCAPAnalyzerJoinNode(string jobId,
+  SimplePhysicalJoinNode(string jobId,
                              AtomicComputationPtr node,
                              const Handle<ComputePlan> &computePlan,
                              LogicalPlanPtr logicalPlan,
@@ -44,8 +44,8 @@ public:
    *
    * @return - non existent
    */
-  TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &ptr,
-                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &ptr,
+                                      SimplePhysicalNodePtr &prevNode,
                                       const StatisticsPtr &stats,
                                       int nextStageID) override;
 
@@ -66,8 +66,8 @@ public:
    *
    * @return the result of the analysis
    */
-  TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
+  PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                              SimplePhysicalNodePtr &prevNode,
                                               const StatisticsPtr &stats,
                                               int nextStageID) override;
 
@@ -87,9 +87,15 @@ private:
    * Name of the hash this join has produced
    */
   string hashSetName;
+
+  /**
+   * Did we rollback the planning for this join or not...
+   */
+  bool rollbacked;
+
 };
 
 }
 
 
-#endif //PDB_SIMPLETCAPANALYZERJOINNODE_H
+#endif //PDB_SIMPLEPHYSICALJOINNODE_H

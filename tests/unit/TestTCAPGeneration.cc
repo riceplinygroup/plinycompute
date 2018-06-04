@@ -58,15 +58,18 @@ int main(int argc, char* argv[]) {
     std::vector<InputTupleSetSpecifier> inputTupleSets1;
     inputTupleSets1.push_back(inputTupleSet1);
 
-
-    std::string myScanSetTcapString = myScanSet->toTCAPString(
-        inputTupleSets1, 0, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+    std::string myScanSetTcapString = myScanSet->toTCAPString(inputTupleSets1,
+                                                              0,
+                                                              outputTupleSetName,
+                                                              outputColumnNames,
+                                                              addedOutputColumnName);
 
     inputTupleSetName = outputTupleSetName;
     inputColumnNames.clear();
-    for (int i = 0; i < outputColumnNames.size(); i++) {
-        inputColumnNames.push_back(outputColumnNames[i]);
+    for (const auto &outputColumnName : outputColumnNames) {
+        inputColumnNames.push_back(outputColumnName);
     }
+
     inputColumnsToApply.clear();
     inputColumnsToApply.push_back(addedOutputColumnName);
     outputTupleSetName = "";
@@ -74,26 +77,31 @@ int main(int argc, char* argv[]) {
     addedOutputColumnName = "";
 
     PDB_COUT << "INPUT COLUMN NAMES:" << std::endl;
-    for (int i = 0; i < inputColumnNames.size(); i++) {
-        PDB_COUT << inputColumnNames[i] << std::endl;
+    for (const auto &inputColumnName : inputColumnNames) {
+        PDB_COUT << inputColumnName << std::endl;
     }
+
     PDB_COUT << "INPUT COLUMNS TO APPLY:" << std::endl;
-    for (int i = 0; i < inputColumnsToApply.size(); i++) {
-        PDB_COUT << inputColumnsToApply[i] << std::endl;
+    for (const auto &i : inputColumnsToApply) {
+        PDB_COUT << i << std::endl;
     }
 
     InputTupleSetSpecifier inputTupleSet2(inputTupleSetName, inputColumnNames, inputColumnsToApply);
     std::vector<InputTupleSetSpecifier> inputTupleSets2;
     inputTupleSets2.push_back(inputTupleSet2);
 
-    std::string myQueryString = myQuery->toTCAPString(
-        inputTupleSets2, 1, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+    std::string myQueryString = myQuery->toTCAPString(inputTupleSets2,
+                                                      1,
+                                                      outputTupleSetName,
+                                                      outputColumnNames,
+                                                      addedOutputColumnName);
 
     inputTupleSetName = outputTupleSetName;
     inputColumnNames.clear();
-    for (int i = 0; i < outputColumnNames.size(); i++) {
-        inputColumnNames.push_back(outputColumnNames[i]);
+    for (const auto &outputColumnName : outputColumnNames) {
+        inputColumnNames.push_back(outputColumnName);
     }
+
     inputColumnsToApply.clear();
     inputColumnsToApply.push_back(addedOutputColumnName);
     outputTupleSetName = "";
@@ -104,8 +112,12 @@ int main(int argc, char* argv[]) {
     std::vector<InputTupleSetSpecifier> inputTupleSets3;
     inputTupleSets3.push_back(inputTupleSet3);
 
-    std::string myWriteSetTcapString = myWriteSet->toTCAPString(
-        inputTupleSets3, 2, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+    std::string myWriteSetTcapString = myWriteSet->toTCAPString(inputTupleSets3,
+                                                                2,
+                                                                outputTupleSetName,
+                                                                outputColumnNames,
+                                                                addedOutputColumnName);
+
     std::cout << myScanSetTcapString << myQueryString << myWriteSetTcapString << std::endl;
     int code = system("scripts/cleanupSoFiles.sh");
     if (code < 0) {

@@ -31,6 +31,8 @@
 #include "RegisterReplica.h"
 #include <ctime>
 #include <chrono>
+#include <SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h>
+#include <AdvancedPhysicalOptimizer/AdvancedPhysicalNodeFactory.h>
 
 namespace pdb {
 
@@ -657,23 +659,41 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
 
 
     // create the shuffle info (just combine the standard resources with the partition to core ration) TODO ask Jia if this is really necessary
-    this->shuffleInfo = std::make_shared<ShuffleInfo>(this->standardResources,
-                                                      this->partitionToCoreRatio);
+    this->shuffleInfo = std::make_shared<ShuffleInfo>(this->standardResources, this->partitionToCoreRatio);
 
     // if we don't have the information about the sets we ask every node to submit them
     if (this->statsForOptimization == nullptr) {
         this->collectStats();
     }
 
-    // initialize the tcapAnalyzer - used to generate the pipelines and pipeline stages we need to execute
-    this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer>(jobId,
-                                                         this->logger,
-                                                         this->conf,
-                                                         request->getTCAPString(),
-                                                         computations);
+    try {
+      // parse the plan and initialize the values we need
+      Handle<ComputePlan> computePlan = makeObject<ComputePlan>(String(request->getTCAPString()), *computations);
+      LogicalPlanPtr logicalPlan = computePlan->getPlan();
+      AtomicComputationList computationGraph = logicalPlan->getComputations();
+      auto sourcesComputations = computationGraph.getAllScanSets();
+
+      // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
+      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
+                                                                                                    computePlan,
+                                                                                                    conf);
+
+      // generate the analysis graph (it is a list of source nodes for that graph)
+      auto graph = analyzerNodeFactory->generateAnalyzerGraph(sourcesComputations);
+
+      // initialize the physicalAnalyzer - used to generate the pipelines and pipeline stages we need to execute
+      this->physicalOptimizerPtr = make_shared<PhysicalOptimizer>(graph, this->logger);
+    }
+    catch (pdb::NotEnoughSpace &n) {
+
+      // cleanup since we failed to parse the plan
+      PDB_COUT << "Could not parse the compute plan. About to cleanup" << std::endl;
+      getFunctionality<QuerySchedulerServer>().cleanup();
+      return std::make_pair(false, "Could not parse the compute plan. About to cleanup");
+    }
 
     int jobStageId = 0;
-    while (this->tcapAnalyzerPtr->hasSources()) {
+    while (this->physicalOptimizerPtr->hasSources()) {
 
         std::vector<Handle<AbstractJobStage>> jobStages;
         std::vector<Handle<SetIdentifier>> intermediateSets;
@@ -727,11 +747,10 @@ void QuerySchedulerServer::removeUnusedIntermediateSets(DistributedStorageManage
                                                         vector<Handle<SetIdentifier>> &intermediateSets) {
 
     // to remove the intermediate sets:
-    for (const auto &intermediateSet : intermediateSets) {
+    for (auto &intermediateSet : intermediateSets) {
 
         // check whether intermediateSet is a source set and has consumers
-        string setName = intermediateSet->toSourceSetName();
-        if (this->tcapAnalyzerPtr->hasConsumers(setName)) {
+        if (this->physicalOptimizerPtr->hasConsumers(intermediateSet)) {
 
             // if it does then we need to remember this set and not remove it, because it will be used later
             this->interGlobalSets.push_back(intermediateSet);
@@ -807,19 +826,22 @@ void QuerySchedulerServer::createIntermediateSets(DistributedStorageManagerClien
     }
 }
 
-void QuerySchedulerServer:: extractPipelineStages(int &jobStageId,
+void QuerySchedulerServer::extractPipelineStages(int &jobStageId,
                                                   vector<Handle<AbstractJobStage>> &jobStages,
                                                   vector<Handle<SetIdentifier>> &intermediateSets) {
 
     // try to get a sequence of stages, if we have any sources left
+    int idx = 0;
     bool success = false;
-    while (this->tcapAnalyzerPtr->hasSources() && !success) {
+    while (this->physicalOptimizerPtr->hasSources() && !success) {
 
         // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
-        success = this->tcapAnalyzerPtr->getNextStagesOptimized(jobStages,
-                                                                intermediateSets,
-                                                                statsForOptimization,
-                                                                jobStageId);
+        success = this->physicalOptimizerPtr->getNextStagesOptimized(jobStages,
+                                                                     intermediateSets,
+                                                                     statsForOptimization,
+                                                                     jobStageId);
+
+        std::cout << idx << std::endl;
     }
 }
 

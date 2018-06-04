@@ -40,7 +40,7 @@ ADD_DEFINITIONS(-DPROFILING)
 # used to enable debug
 if (USE_DEBUG)
    message("PDB_DEBUG is ON")
-   ADD_DEFINITIONS(-DPDB_DEBUG)
+   #ADD_DEFINITIONS(-DPDB_DEBUG)
 elseif (NOT USE_DEBUG)
    REMOVE_DEFINITIONS(-DPDB_DEBUG)
    message("PDB_DEBUG is OFF")
@@ -85,6 +85,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
+include_directories("${PROJECT_SOURCE_DIR}/third-party/qunit/headers")
 include_directories("${PROJECT_SOURCE_DIR}/third-party/sqlite/headers")
 
 
@@ -97,7 +98,6 @@ file(GLOB DATA_PARTITION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/dataPartition/sou
 file(GLOB PDB_SERVER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/pdbServer/source/*.cc")
 file(GLOB OBJECT_MODEL_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/objectModel/source/*.cc")
 file(GLOB QUERY_EXECUTION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/source/*.cc")
-file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/*.cc" "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
 file(GLOB WORK_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/work/source/*.cc")
 file(GLOB MEMORY_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/memory/source/*.cc")
 file(GLOB STORAGE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/storage/source/*.cc")
@@ -105,12 +105,16 @@ file(GLOB DISTRIBUTION_MANAGER_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/distributio
 file(GLOB LAMBDAS_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/lambdas/source/*.cc")
 file(GLOB LOGICAL_PLAN_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/logicalPlan/source/*.cc")
 file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.cc")
+file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/*.cc"
+                               "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/**/*.cc"
+                               "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
 file(GLOB STATISTICS_DB_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/third-party/sqlite/source/sqlite3.c)
 
 # specify the hearder files
 file(GLOB PDB_HEADERS "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/*.h"
-                      "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/**/*.h")
+                      "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/**/*.h"
+                      "${PROJECT_SOURCE_DIR}/pdb/src/*/headers/**/**/*.h")
 
 
 # specify the third party headers

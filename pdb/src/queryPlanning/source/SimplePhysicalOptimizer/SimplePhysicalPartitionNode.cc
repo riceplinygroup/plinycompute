@@ -16,28 +16,28 @@
  *                                                                           *
  *****************************************************************************/
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerPartitionNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalPartitionNode.h"
 
 namespace pdb {
 
-SimpleTCAPAnalyzerPartitionNode::SimpleTCAPAnalyzerPartitionNode(string jobId,
-                                                                     AtomicComputationPtr node,
-                                                                     const Handle<ComputePlan> &computePlan,
-                                                                     LogicalPlanPtr logicalPlan,
-                                                                     ConfigurationPtr conf) : SimpleTCAPAnalyzerNode(std::move(jobId),
-                                                                                                                     std::move(node),
-                                                                                                                     computePlan,
-                                                                                                                     logicalPlan,
-                                                                                                                     std::move(conf)) {}
+SimplePhysicalPartitionNode::SimplePhysicalPartitionNode(string jobId,
+                                                         AtomicComputationPtr node,
+                                                         const Handle<ComputePlan> &computePlan,
+                                                         LogicalPlanPtr logicalPlan,
+                                                         ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
+                                                                                                     std::move(node),
+                                                                                                     computePlan,
+                                                                                                     logicalPlan,
+                                                                                                     std::move(conf)) {}
 
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                       const StatisticsPtr &stats,
-                                                                       int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                      SimplePhysicalNodePtr &prevNode,
+                                                                      const StatisticsPtr &stats,
+                                                                      int nextStageID) {
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this partition
   std::string computationSpecifier = node->getComputationName();
@@ -68,21 +68,18 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeOutput(TupleSetJob
   // to push back the job stage
   result->physicalPlanToOutput.emplace_back(tupleStageBuilder->build());
 
-  // this is the output so we are not creating a new source set
-  result->newSourceComputation = nullptr;
-
   // we succeeded
   result->success = true;
 
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                               SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                               const StatisticsPtr &stats,
-                                                                               int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                              SimplePhysicalNodePtr &prevNode,
+                                                                              const StatisticsPtr &stats,
+                                                                              int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this partition
   std::string computationSpecifier = node->getComputationName();
@@ -119,7 +116,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeSingleConsumer(Tup
 
 
   // update the source sets (if the source node is not being used anymore we just remove it)
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getHandle());
 
   // we succeeded
   result->success = true;
@@ -130,12 +127,12 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeSingleConsumer(Tup
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                                  const StatisticsPtr &stats,
-                                                                                  int nextStageID) {
+PhysicalOptimizerResultPtr SimplePhysicalPartitionNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                                 SimplePhysicalNodePtr &prevNode,
+                                                                                 const StatisticsPtr &stats,
+                                                                                 int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this partition
   std::string computationSpecifier = node->getComputationName();
@@ -178,7 +175,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerPartitionNode::analyzeMultipleConsumers(
 
 
   // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getHandle());
 
   // we succeeded
   result->success = true;

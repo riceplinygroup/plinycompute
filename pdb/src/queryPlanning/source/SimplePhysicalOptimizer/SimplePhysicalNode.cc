@@ -18,25 +18,32 @@
 #include "SetIdentifier.h"
 #include "Statistics.h"
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNode.h"
 
 namespace pdb {
 
-SimpleTCAPAnalyzerNode::SimpleTCAPAnalyzerNode(string jobId,
-                                               AtomicComputationPtr node,
-                                               const Handle<ComputePlan> &computePlan,
-                                               LogicalPlanPtr logicalPlan,
-                                               ConfigurationPtr conf) : AbstractTCAPAnalyzerNode(jobId,
-                                                                                                 node,
-                                                                                                 computePlan,
-                                                                                                 logicalPlan,
-                                                                                                 conf),
-                                                                                                 handle(nullptr) {}
+SimplePhysicalNode::SimplePhysicalNode(string jobId,
+                                       AtomicComputationPtr node,
+                                       const Handle<ComputePlan> &computePlan,
+                                       LogicalPlanPtr logicalPlan,
+                                       ConfigurationPtr conf) : AbstractPhysicalNode(jobId, computePlan, logicalPlan, conf),
+                                                                                     node(node) {
+  // if this node is a scan set we want to create a set identifier for it
+  if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(const StatisticsPtr &stats, int nextStageID) {
+    // grab the computation
+    std::cout << node->getOutputName() << std::endl;
+    Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
+
+    // create a set identifier from it
+    sourceSetIdentifier = getSetIdentifierFromComputation(comp);
+  }
+}
+
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(const pdb::StatisticsPtr &stats, int nextStageID) {
 
   // create a job stage builder
-  TupleSetJobStageBuilderPtr jobStageBuilder = make_shared<TupleSetJobStageBuilder>();
+  pdb::TupleSetJobStageBuilderPtr jobStageBuilder = make_shared<TupleSetJobStageBuilder>();
 
   // the input to the pipeline is the output set of the source node
   jobStageBuilder->setSourceTupleSetName(node->getOutputName());
@@ -54,11 +61,11 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(const StatisticsPtr &stats
   jobStageBuilder->setComputePlan(computePlan);
 
   // this is a source so there is no last node
-  SimpleTCAPAnalyzerNodePtr prevNode = nullptr;
+  SimplePhysicalNodePtr prevNode = nullptr;
 
   // run the recursive analysis it will essentially grab the first consumer of the source node
   // and analyze it as if the source had just one consumer
-  auto result = SimpleTCAPAnalyzerNode::analyzeSingleConsumer(jobStageBuilder, prevNode, stats, nextStageID);
+  auto result = SimplePhysicalNode::analyzeSingleConsumer(jobStageBuilder, prevNode, stats, nextStageID);
 
   // if we failed we want to avoid processing the same consumer twice therefore we are moving it to the back
   if(!result->success) {
@@ -76,8 +83,8 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(const StatisticsPtr &stats
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(TupleSetJobStageBuilderPtr &jobStageBuilder,
-                                                      SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyze(TupleSetJobStageBuilderPtr &jobStageBuilder,
+                                                      SimplePhysicalNodePtr &prevNode,
                                                       const StatisticsPtr &stats,
                                                       int nextStageID) {
 
@@ -94,39 +101,47 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyze(TupleSetJobStageBuilderPtr
   }
 }
 
-bool SimpleTCAPAnalyzerNode::hasConsumers() {
+const AtomicComputationPtr &SimplePhysicalNode::getNode() const {
+  return node;
+}
+
+bool SimplePhysicalNode::hasConsumers() {
   return !activeConsumers.empty();
 }
 
-void SimpleTCAPAnalyzerNode::addConsumer(const AbstractTCAPAnalyzerNodePtr &consumer) {
-  // call the consumer
-  AbstractTCAPAnalyzerNode::addConsumer(consumer);
-
-  // add the consumer to the active consumers
-  activeConsumers.push_back(std::dynamic_pointer_cast<SimpleTCAPAnalyzerNode>(consumer));
+bool SimplePhysicalNode::isConsuming(Handle<SetIdentifier> &set) {
+  return *sourceSetIdentifier == *set;
 }
 
-double SimpleTCAPAnalyzerNode::getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) {
+void SimplePhysicalNode::addConsumer(const pdb::AbstractPhysicalNodePtr &consumer) {
+  // call the consumer
+  AbstractPhysicalNode::addConsumer(consumer);
 
-  // do we have statistics, if not just return 0
-  if(stats == nullptr) {
-    std::cout << "Ninja" << std::endl;
-    return 0;
-  }
+  // add the consumer to the active consumers
+  activeConsumers.push_back(std::dynamic_pointer_cast<SimplePhysicalNode>(consumer));
+}
+
+double SimplePhysicalNode::getCost(Handle<SetIdentifier> source, const StatisticsPtr &stats) {
 
   // if the set identifier does not exist log that
   if (source == nullptr) {
-    PDB_COUT << "WARNING: there is no source set for key=" << source->toSourceSetName() << "\n";
+    PDB_COUT << "WARNING: the set provided to the get cost is a nullptr\n";
+    return 0;
+  }
+
+  // do we have statistics, if not just return 0
+  if(stats == nullptr) {
+    PDB_COUT << "WARNING: there are not stats when looking for the set=" << source->toSourceSetName() << "\n";
     return 0;
   }
 
   // calculate the cost based on the formula cost = number_of_bytes / 1000000
   double cost = stats->getNumBytes(source->getDatabase(), source->getSetName());
-  return double((size_t) cost / 1000000);
+  return cost / 1000000.0;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                    SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                    SimplePhysicalNodePtr &prevNode,
                                                                     const StatisticsPtr &stats,
                                                                     int nextStageID) {
 
@@ -137,13 +152,11 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobS
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
 
-
-
-  // this is a source so there is no last node
-  SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
+  // set this node as the previous node
+  SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
   // go to the next node
-  TCAPAnalyzerResultPtr result = activeConsumers.front()->analyze(tupleStageBuilder,
+  PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(tupleStageBuilder,
                                                                   newPrevNode,
                                                                   stats,
                                                                   nextStageID);
@@ -156,8 +169,8 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeSingleConsumer(TupleSetJobS
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                            SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                            SimplePhysicalNodePtr &prevNode,
                                                             const StatisticsPtr &stats,
                                                             int nextStageID) {
 
@@ -175,32 +188,32 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeOutput(TupleSetJobStageBuil
   tupleStageBuilder->setSinkContext(sink);
   tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
 
-
-
   // create the job stage
   Handle<TupleSetJobStage> jobStage = tupleStageBuilder->build();
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
-  result->newSourceComputation = nullptr;
 
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleSetJobStageBuilder,
-                                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleSetJobStageBuilder,
+                                                                       SimplePhysicalNodePtr &prevNode,
                                                                        const StatisticsPtr &stats,
                                                                        int nextStageID) {
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // grab the output of the current node
   std::string outputName = node->getOutputName();
+
+  // add this node to the pipeline
+  tupleSetJobStageBuilder->addTupleSetToBuildPipeline(outputName);
 
   // grab the computation associated with this node
   Handle<Computation> curComp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
@@ -228,7 +241,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeMultipleConsumers(TupleSetJ
 
   // set the parameters
   tupleSetJobStageBuilder->setJobStageId(nextStageID);
-  tupleSetJobStageBuilder->setTargetTupleSetName(node->getInputName());
+  tupleSetJobStageBuilder->setTargetTupleSetName(outputName);
   tupleSetJobStageBuilder->setTargetComputationName(node->getComputationName());
   tupleSetJobStageBuilder->setOutputTypeName(curComp->getOutputType());
   tupleSetJobStageBuilder->setSinkContext(sink);
@@ -240,7 +253,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeMultipleConsumers(TupleSetJ
   // add the job stage to the result
   result->physicalPlanToOutput.emplace_back(jobStage);
   result->success = true;
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getSimpleNodeHandle());
 
   // the new source is now the sink
   sourceSetIdentifier = sink;
@@ -248,15 +261,23 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerNode::analyzeMultipleConsumers(TupleSetJ
   return result;
 }
 
-SimpleTCAPAnalyzerNodePtr SimpleTCAPAnalyzerNode::getHandle() {
+double SimplePhysicalNode::getCost(const StatisticsPtr &stats) {
 
-  // if we do not have a handle to this node already
-  if(handle == nullptr) {
-    handle = std::shared_ptr<SimpleTCAPAnalyzerNode> (this);
-  }
+    // return the cost of the source set identifier
+    return getCost(sourceSetIdentifier, stats);
+}
 
+string SimplePhysicalNode::getNodeIdentifier() {
+  return node->getOutputName();
+}
+
+const Handle<SetIdentifier> &SimplePhysicalNode::getSourceSetIdentifier() const {
+  return sourceSetIdentifier;
+}
+
+SimplePhysicalNodePtr SimplePhysicalNode::getSimpleNodeHandle() {
   // return the handle to this node
-  return handle;
+  return std::dynamic_pointer_cast<SimplePhysicalNode>(getHandle());
 }
 
 }

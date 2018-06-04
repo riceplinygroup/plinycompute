@@ -15,30 +15,29 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
-#define PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
+#ifndef SIMPLE_TCAP_ANALYZER_PARTITION_NODE_H
+#define SIMPLE_TCAP_ANALYZER_PARTITION_NODE_H
 
 #include <JobStageBuilders/TupleSetJobStageBuilder.h>
-#include "SimpleTCAPAnalyzerNode.h"
+#include "SimplePhysicalNode.h"
 
 namespace pdb {
 
-class SimpleTCAPAnalyzerAggregationNode : public SimpleTCAPAnalyzerNode {
+class SimplePhysicalPartitionNode : public SimplePhysicalNode {
 
 public:
 
-  SimpleTCAPAnalyzerAggregationNode(string jobId,
-                                    AtomicComputationPtr node,
-                                    const Handle<ComputePlan> &computePlan,
-                                    LogicalPlanPtr logicalPlan,
-                                    ConfigurationPtr conf);
+  SimplePhysicalPartitionNode(string jobId,
+                              AtomicComputationPtr node,
+                              const Handle<ComputePlan> &computePlan,
+                              LogicalPlanPtr logicalPlan,
+                              ConfigurationPtr conf);
 
 
 protected:
-
   /**
-   * In the case that this aggregation has only one consumer this method is called.
-   * It essentially builds the @see pdb::TupleSetJobStage and @see pdb::AggregationJobStage
+   * In the case that this partition has only one consumer.
+   * It essentially builds the pdb::TupleSetJobStage.
    *
    * @param tupleStageBuilder - the builder for the tuple set job stage, that contains all the computations in our
    * pipeline so far.
@@ -48,14 +47,14 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                              SimpleTCAPAnalyzerNodePtr &prevNode,
-                                              const StatisticsPtr &stats,
-                                              int nextStageID) override;
+  PhysicalOptimizerResultPtr analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                   SimplePhysicalNodePtr &prevNode,
+                                                   const StatisticsPtr &stats,
+                                                   int nextStageID) override;
 
   /**
-   * In the case that this aggregation is the output this method is called.
-   * It essentially builds the @see pdb::TupleSetJobStage and @see pdb::AggregationJobStage with the right parameters.
+   * In the case that this partition is the output.
+   * It essentially builds the pdb::TupleSetJobStage.
    *
    * @param tupleStageBuilder - the builder for the tuple set job stage, that contains all the computations in our
    * pipeline so far.
@@ -65,14 +64,14 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                      SimpleTCAPAnalyzerNodePtr &prevNode,
-                                      const StatisticsPtr &stats,
-                                      int nextStageID) override;
+  PhysicalOptimizerResultPtr analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                           SimplePhysicalNodePtr &prevNode,
+                                           const StatisticsPtr &stats,
+                                           int nextStageID) override;
 
   /**
-   * In the case that this aggregation has only one consumer this method is called.
-   * It essentially builds the @see pdb::TupleSetJobStage and @see pdb::AggregationJobStage with the right parameters.
+   * In the case that this partition has only one consumer.
+   * It essentially builds the @see pdb::TupleSetJobStage.
    *
    * @param tupleStageBuilder - the builder for the tuple set job stage, that contains all the computations in our
    * pipeline so far.
@@ -82,14 +81,14 @@ protected:
    *
    * @return the result will contain a partial physical plan
    */
-  TCAPAnalyzerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                 SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                 const StatisticsPtr &stats,
-                                                 int nextStageID) override;
+  PhysicalOptimizerResultPtr analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &ptr,
+                                                      SimplePhysicalNodePtr &prevNode,
+                                                      const StatisticsPtr &stats,
+                                                      int nextStageID) override;
 
 };
 }
 
 
 
-#endif //PDB_SIMPLETCAPANALYZERAGGREGATIONNODE_H
+#endif //SIMPLE_TCAP_ANALYZER_PARTITION_NODE_H

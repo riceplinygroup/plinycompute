@@ -19,38 +19,38 @@
 #include "JobStageBuilders/HashPartitionedJoinBuildHTJobStageBuilder.h"
 #include "JobStageBuilders/BroadcastJoinBuildHTJobStageBuilder.h"
 #include "Handle.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerJoinNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalJoinNode.h"
 #include "JoinComp.h"
 
-pdb::SimpleTCAPAnalyzerJoinNode::SimpleTCAPAnalyzerJoinNode(string jobId,
-                                                            AtomicComputationPtr node,
-                                                            const Handle<ComputePlan> &computePlan,
-                                                            LogicalPlanPtr logicalPlan,
-                                                            ConfigurationPtr conf) : SimpleTCAPAnalyzerNode(std::move(jobId),
-                                                                                                            std::move(node),
-                                                                                                            computePlan,
-                                                                                                            logicalPlan,
-                                                                                                            std::move(conf)),
-                                                                                                            transversed(false) {}
+pdb::SimplePhysicalJoinNode::SimplePhysicalJoinNode(string jobId,
+                                                    AtomicComputationPtr node,
+                                                    const Handle<ComputePlan> &computePlan,
+                                                    LogicalPlanPtr logicalPlan,
+                                                    ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
+                                                                                                std::move(node),
+                                                                                                computePlan,
+                                                                                                logicalPlan,
+                                                                                                std::move(conf)),
+                                                                             transversed(false), rollbacked(false) {}
 
-pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
-                                                                          SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                          const StatisticsPtr &stats,
-                                                                          int nextStageID) {
+pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeOutput(pdb::TupleSetJobStageBuilderPtr &ptr,
+                                                                           SimplePhysicalNodePtr &prevNode,
+                                                                           const StatisticsPtr &stats,
+                                                                           int nextStageID) {
 
   // grab the computation associated with this node
   Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
-  // TODO exit since this is what has been done in previous TCAPAnalyzer, maybe do something smarter
+  // TODO exit since this is what has been done in previous PhysicalOptimizer, maybe do something smarter
   PDB_COUT << "Sink Computation Type: " << comp->getComputationType() << " are not supported as sink node right now\n";
   exit(1);
 }
 
-pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimpleTCAPAnalyzerNodePtr &prevNode,
-                                                                                  const StatisticsPtr &stats,
-                                                                                  int nextStageID) {
+pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsumer(pdb::TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                                   SimplePhysicalNodePtr &prevNode,
+                                                                                   const StatisticsPtr &stats,
+                                                                                   int nextStageID) {
 
   // TODO Jia : have no clue why this exists? why use the input name of the current node
   string targetTupleSetName = prevNode == nullptr ? node->getInputName() : prevNode->getNode()->getOutputName();
@@ -74,23 +74,25 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
   // and then broadcasted or partitioned, therefore we can not probe it
   // 2. This is the second time we are processing this join therefore the one side of the join is hashed and then
   // broadcasted or partitioned, we can therefore probe it!
-  if(!transversed) {
+  if (!transversed) {
 
     // create a analyzer result
-    TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+    PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
     // get the cost of the source set
     double sourceCost = getCost(tupleStageBuilder->getSourceSetIdentifier(), stats);
 
     // are we already probing a set in the pipeline, and is the cost of the current source smaller than the join
     // threshold? if so might be better to go back and process the other side of the join first
-    if (tupleStageBuilder->isPipelineProbing() && (sourceCost <= BROADCAST_JOIN_COST_THRESHOLD)) {
+    if (tupleStageBuilder->isPipelineProbing() && (sourceCost <= BROADCAST_JOIN_COST_THRESHOLD) && !rollbacked) {
+
+      // of we tried to rollback the planning for this join if this happens again we will not do it
+      rollbacked = true;
 
       // we should go back therefore this analysis is not successful
       result->success = false;
       result->physicalPlanToOutput.clear();
       result->interGlobalSets.clear();
-      result->newSourceComputation = nullptr;
 
       //PDB_COUT << "WARNING: met a join sink with probing, to return and put cost " << sourceCost << " " << tupleStageBuilder->getSourceSetIdentifier()->toSourceSetName() << " to penalized list \n";
 
@@ -100,13 +102,14 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
 
     // does the cost of the current source exceed the join threshold, if so we need to do a hash partition join
     // therefore we definitely need to hash the current table this is definitely a pipeline breaker
-    if (sourceCost > BROADCAST_JOIN_COST_THRESHOLD) {
+    else if (sourceCost > BROADCAST_JOIN_COST_THRESHOLD) {
 
       // set the partitioning flag so we can know that when probing
       joinNode->setPartitioningLHS(true);
 
       // cast the computation to a JoinComp
-      Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation>(curComp);
+      Handle<JoinComp<Object, Object, Object>>
+          join = unsafeCast<JoinComp<Object, Object, Object>, Computation>(curComp);
 
       // mark it as a hash partition join
       join->setJoinType(HashPartitionedJoin);
@@ -120,7 +123,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
       tupleStageBuilder->setJobStageId(nextStageID++);
       tupleStageBuilder->setTargetTupleSetName(targetTupleSetName);
       tupleStageBuilder->setTargetComputationName(computationSpecifier);
-      tupleStageBuilder->setOutputTypeName(node->getOutputName());
+      tupleStageBuilder->setOutputTypeName("IntermediateData");
       tupleStageBuilder->setSinkContext(sink);
       tupleStageBuilder->setRepartition(true);
       tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
@@ -139,7 +142,8 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
       hashSetName = sink->toSourceSetName();
 
       // initialize the build hash partition set builder stage
-      HashPartitionedJoinBuildHTJobStageBuilderPtr hashBuilder = make_shared<HashPartitionedJoinBuildHTJobStageBuilder>();
+      HashPartitionedJoinBuildHTJobStageBuilderPtr
+          hashBuilder = make_shared<HashPartitionedJoinBuildHTJobStageBuilder>();
 
       // set the parameters
       hashBuilder->setJobId(jobId);
@@ -215,12 +219,10 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
 
     // set the remaining parameters of the result
     result->success = true;
-    result->newSourceComputation = nullptr;
 
     // return to indicate the we succeeded
     return result;
-  }
-  else {
+  } else {
 
     // at this point we know that the other side of the join has been processed now we need to figure out how?
     // There are two options :
@@ -231,7 +233,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
     if (joinNode->isPartitioningLHS()) {
 
       // we have only one consumer node so we know what the next node in line is
-      SimpleTCAPAnalyzerNodePtr nextNode = activeConsumers.front();
+      SimplePhysicalNodePtr nextNode = activeConsumers.front();
 
       // fist we need to shuffle our data from the other side and put it in this sink set
       sink = makeObject<SetIdentifier>(jobId, outputName + "_repartitionData");
@@ -241,7 +243,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
       tupleStageBuilder->setJobStageId(nextStageID++);
       tupleStageBuilder->setTargetTupleSetName(targetTupleSetName);
       tupleStageBuilder->setTargetComputationName(computationSpecifier);
-      tupleStageBuilder->setOutputTypeName(node->getOutputName());
+      tupleStageBuilder->setOutputTypeName("IntermediateData");
       tupleStageBuilder->setSinkContext(sink);
       tupleStageBuilder->setRepartition(true);
       tupleStageBuilder->setAllocatorPolicy(curComp->getAllocatorPolicy());
@@ -254,6 +256,9 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
       // ok we have added a tuple stage to shuffle the data now we need one to probe the hash set
       // therefore we create a job stage builder
       TupleSetJobStageBuilderPtr probingStageBuilder = make_shared<TupleSetJobStageBuilder>();
+
+      // set the job id
+      probingStageBuilder->setJobId(joinPrepStage->getJobId());
 
       // the join source becomes the original source
       probingStageBuilder->setSourceTupleSetName(tupleStageBuilder->getSourceTupleSetName());
@@ -269,16 +274,26 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
       probingStageBuilder->addHashSetToProbe(outputName, hashSetName);
       probingStageBuilder->setProbing(true);
       probingStageBuilder->setSourceContext(sink);
-      probingStageBuilder->setSourceTupleSetName(node->getOutputName());
+      probingStageBuilder->setSourceTupleSetName(tupleStageBuilder->getSourceTupleSetName());
+      probingStageBuilder->setComputePlan(computePlan);
 
       // I am the previous node
-      SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
+      SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
+
+      // temporary alias the source set with the sink set because the are essentially the same and we need the stats
+      stats->addSetAlias(tupleStageBuilder->getSourceSetIdentifier()->getDatabase(),
+                         tupleStageBuilder->getSourceSetIdentifier()->getSetName(),
+                         sink->getDatabase(),
+                         sink->getSetName());
 
       // we then create a pipeline stage to probe the partitioned hash table
-      TCAPAnalyzerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
-                                                                      newPrevNode,
-                                                                      stats,
-                                                                      nextStageID);
+      PhysicalOptimizerResultPtr result = activeConsumers.front()->analyze(probingStageBuilder,
+                                                                           newPrevNode,
+                                                                           stats,
+                                                                           nextStageID);
+
+      // remove the temporary alias
+      stats->removeSet(sink->getDatabase(), sink->getSetName());
 
       // add the stage to the list of stages to be executed
       result->physicalPlanToOutput.emplace_front(joinPrepStage);
@@ -298,7 +313,7 @@ pdb::TCAPAnalyzerResultPtr pdb::SimpleTCAPAnalyzerJoinNode::analyzeSingleConsume
       tupleStageBuilder->setProbing(true);
 
       // I am the previous node
-      SimpleTCAPAnalyzerNodePtr newPrevNode = getHandle();
+      SimplePhysicalNodePtr newPrevNode = getSimpleNodeHandle();
 
       // go and analyze further
       return activeConsumers.front()->analyze(tupleStageBuilder, newPrevNode, stats, nextStageID);

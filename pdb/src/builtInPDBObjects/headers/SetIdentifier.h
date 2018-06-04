@@ -19,7 +19,6 @@
 #ifndef SET_IDENTIFIER_H
 #define SET_IDENTIFIER_H
 
-
 #include "Object.h"
 #include "Handle.h"
 #include "PDBString.h"
@@ -32,99 +31,115 @@ namespace pdb {
 // encapsulates a request to add a set in storage
 class SetIdentifier : public Object {
 
-public:
-    ENABLE_DEEP_COPY
+ public:
+  ENABLE_DEEP_COPY
 
-    SetIdentifier() {}
-    ~SetIdentifier() {}
+  SetIdentifier() {}
+  ~SetIdentifier() {}
 
-    SetIdentifier(std::string dataBase, std::string setName)
-        : dataBase(dataBase), setName(setName) {
-        setType = UserSetType;
-        isAggregationResultOrNot = false;
-    }
+  SetIdentifier(std::string dataBase, std::string setName)
+      : dataBase(dataBase), setName(setName) {
+    setType = UserSetType;
+    isAggregationResultOrNot = false;
+  }
 
-    SetIdentifier(std::string dataBase,
-                  std::string setName,
-                  SetType setType,
-                  bool isProbingAggregationResult)
-        : dataBase(dataBase),
-          setName(setName),
-          setType(setType),
-          isAggregationResultOrNot(isProbingAggregationResult) {}
+  SetIdentifier(std::string dataBase,
+                std::string setName,
+                SetType setType,
+                bool isProbingAggregationResult)
+      : dataBase(dataBase),
+        setName(setName),
+        setType(setType),
+        isAggregationResultOrNot(isProbingAggregationResult) {}
 
+  std::string getDatabase() {
+    return dataBase;
+  }
 
-    std::string getDatabase() {
-        return dataBase;
-    }
+  std::string getSetName() {
+    return setName;
+  }
 
-    std::string getSetName() {
-        return setName;
-    }
+  void setDatabaseId(DatabaseID dbId) {
+    this->dbId = dbId;
+  }
 
-    void setDatabaseId(DatabaseID dbId) {
-        this->dbId = dbId;
-    }
+  void setTypeId(UserTypeID typeId) {
+    this->typeId = typeId;
+  }
 
-    void setTypeId(UserTypeID typeId) {
-        this->typeId = typeId;
-    }
+  void setSetId(SetID setId) {
+    this->setId = setId;
+  }
 
-    void setSetId(SetID setId) {
-        this->setId = setId;
-    }
+  DatabaseID getDatabaseId() {
+    return dbId;
+  }
 
-    DatabaseID getDatabaseId() {
-        return dbId;
-    }
+  UserTypeID getTypeId() {
+    return typeId;
+  }
 
-    UserTypeID getTypeId() {
-        return typeId;
-    }
+  SetID getSetId() {
+    return setId;
+  }
 
-    SetID getSetId() {
-        return setId;
-    }
+  SetType getSetType() {
+    return setType;
+  }
 
-    SetType getSetType() {
-        return setType;
-    }
+  bool isAggregationResult() {
+    return this->isAggregationResultOrNot;
+  }
 
+  void setNumPages(size_t numPages) {
+    this->numPages = numPages;
+  }
 
-    bool isAggregationResult() {
-        return this->isAggregationResultOrNot;
-    }
+  size_t getNumPages() {
+    return this->numPages;
+  }
 
-    void setNumPages(size_t numPages) {
-        this->numPages = numPages;
-    }
+  void setPageSize(size_t pageSize) {
+    this->pageSize = pageSize;
+  }
 
-    size_t getNumPages() {
-        return this->numPages;
-    }
+  size_t getPageSize() {
+    return this->pageSize;
+  }
 
-    void setPageSize(size_t pageSize) {
-        this->pageSize = pageSize;
-    }
+  std::string toSourceSetName() {
+    return getDatabase() + ":" + getSetName();
+  }
 
-    size_t getPageSize() {
-        return this->pageSize;
-    }
+  /**
+   * Returns true if the @see setName and @see dataBase name match
+   * @param rhs the other set identifier we are comparing it to
+   * @return true if they match false otherwise
+   */
+  bool operator==(SetIdentifier &rhs) {
+    return dataBase == rhs.dataBase && setName == rhs.setName;
+  }
 
-    std::string toSourceSetName() {
-        return getDatabase() + ":" + getSetName();
-    }
+  /**
+   * Returns true if the @see setName and @see dataBase name do not match
+   * @param rhs the other set identifier we are comparing it to
+   * @return false if they match true otherwise
+   */
+  bool operator!=(SetIdentifier &rhs) {
+    return !(rhs == *this);
+  }
 
-private:
-    String dataBase;
-    String setName;
-    DatabaseID dbId;
-    UserTypeID typeId;
-    SetID setId;
-    SetType setType;
-    bool isAggregationResultOrNot;
-    size_t numPages;
-    size_t pageSize;
+ private:
+  String dataBase;
+  String setName;
+  DatabaseID dbId;
+  UserTypeID typeId;
+  SetID setId;
+  SetType setType;
+  bool isAggregationResultOrNot;
+  size_t numPages;
+  size_t pageSize;
 };
 }
 

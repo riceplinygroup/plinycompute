@@ -15,72 +15,75 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_ABSTRACTPHYSICALNODEFACTORY_H
-#define PDB_ABSTRACTPHYSICALNODEFACTORY_H
+#include "AbstractPhysicalNodeFactory.h"
 
-#include <memory>
-#include "AtomicComputation.h"
-#include "AbstractTCAPAnalyzerNode.h"
+#ifndef PDB_SIMPLEPHYSICALNODE_FACTORY_H
+#define PDB_SIMPLEPHYSICALNODE_FACTORY_H
 
 namespace pdb {
 
-class AbstractTCAPAnalyzerNodeFactory;
-typedef std::shared_ptr<AbstractTCAPAnalyzerNodeFactory> AbstractTCAPAnalyzerNodeFactoryPtr;
+class SimplePhysicalNodeFactory;
+typedef std::shared_ptr<SimplePhysicalNodeFactory> SimplePhysicalNodeFactoryPtr;
 
-class AbstractTCAPAnalyzerNodeFactory {
+/**
+ * This class is a factory for the nodes of a SimplePhysicalNode graph
+ */
+class SimplePhysicalNodeFactory : public AbstractPhysicalNodeFactory {
 public:
 
-  /**
-   * This can only be called from the constructor of a class the inherits the AbstractTCAPAnalyzerNodeFactory
-   * @param computePlan the compute plan the nodes belong to
-   */
-  explicit AbstractTCAPAnalyzerNodeFactory(const Handle<ComputePlan> &computePlan);
+  SimplePhysicalNodeFactory(const string &jobId,
+                            const Handle<ComputePlan> &computePlan,
+                            const ConfigurationPtr &conf);
 
   /**
-   * Takes in an AtomicComputation and creates a TCAPAnalyzerNode out of it.
-   * @param tcapNode the AtomicComputation
-   * @return the TCAPAnalyzerNode that corresponds to the AtomicComputation
+   * Depending on the type of the tcapNode we are dealing with create the appropriate SimplePhysicalNode
+   * Currently we are differentiating between three types of nodes :
+   * 1. ApplyAggTypeID -> SimplePhysicalAggregationNode
+   * 2. ApplyJoinTypeID -> SimplePhysicalJoinNode
+   * 3. Any other node -> SimplePhysicalNode
+   *
+   * @param tcapNode the TCAP node we are analyzing
+   * @return the created node
    */
-  virtual AbstractTCAPAnalyzerNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode) = 0;
+  AbstractPhysicalNodePtr createAnalyzerNode(AtomicComputationPtr tcapNode);
+
+
+private:
 
   /**
    * This method is used to generate a TCAP analyzer graph, it is recursing
    * @param sources
    * @return
    */
-  std::vector<AbstractTCAPAnalyzerNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources);
-
- protected:
+  std::vector<AbstractPhysicalNodePtr> generateAnalyzerGraph(std::vector<AtomicComputationPtr> sources) override;
 
   /**
    * This method generates the node that is consuming this source and adds it to the list of its consumers
-   * @param source - the source AbstractTCAPAnalyzerNode we are coming from
+   * @param source - the source AbstractPhysicalNode we are coming from
    * @param node - the AtomicComputation from which we are going to create the consumer node
    */
-  void generateConsumerNode(AbstractTCAPAnalyzerNodePtr source, AtomicComputationPtr node);
+  void generateConsumerNode(AbstractPhysicalNodePtr source, AtomicComputationPtr node);
 
   /**
    * This map is used to store nodes we created to avoid creating duplicates.
    * The key is the outputName of the AtomicComputation the value is the created node.
    */
-  std::map<std::string, AbstractTCAPAnalyzerNodePtr> nodes;
+  std::map<std::string, AbstractPhysicalNodePtr> nodes;
+
 
   /**
-   * The compute plan we are using
+   * The id of the job we are trying to generate a physical plan for
    */
-  Handle<ComputePlan> computePlan;
+  std::string jobId;
 
   /**
-   * Logical plan generated from the compute plan
+   * A configuration object for this cluster node
    */
-  LogicalPlanPtr logicalPlan;
+  ConfigurationPtr conf;
 
-  /**
-   * The computation graph generated from the logical plan
-   */
-  AtomicComputationList computationGraph;
 };
 
 }
 
-#endif //PDB_ABSTRACTPHYSICALNODEFACTORY_H
+
+#endif //PDB_SIMPLEPHYSICALNODE_FACTORY_H

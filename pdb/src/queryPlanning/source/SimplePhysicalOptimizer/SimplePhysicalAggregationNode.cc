@@ -17,28 +17,28 @@
  *****************************************************************************/
 #include "JobStageBuilders/AggregationJobStageBuilder.h"
 #include "JobStageBuilders/TupleSetJobStageBuilder.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerNode.h"
-#include "SimpleTCAPAnalyzer/SimpleTCAPAnalyzerAggregationNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalNode.h"
+#include "SimplePhysicalOptimizer/SimplePhysicalAggregationNode.h"
 
 namespace pdb {
 
-SimpleTCAPAnalyzerAggregationNode::SimpleTCAPAnalyzerAggregationNode(string jobId,
+SimplePhysicalAggregationNode::SimplePhysicalAggregationNode(string jobId,
                                                                      AtomicComputationPtr node,
                                                                      const Handle<ComputePlan> &computePlan,
                                                                      LogicalPlanPtr logicalPlan,
-                                                                     ConfigurationPtr conf) : SimpleTCAPAnalyzerNode(std::move(jobId),
+                                                                     ConfigurationPtr conf) : SimplePhysicalNode(std::move(jobId),
                                                                                                                      std::move(node),
                                                                                                                      computePlan,
                                                                                                                      logicalPlan,
                                                                                                                      std::move(conf)) {}
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                       SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeOutput(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                       SimplePhysicalNodePtr &prevNode,
                                                                        const StatisticsPtr &stats,
                                                                        int nextStageID) {
 
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this aggregation
   std::string computationSpecifier = node->getComputationName();
@@ -101,21 +101,18 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeOutput(TupleSetJ
   // to push back the aggregation stage;
   result->physicalPlanToOutput.emplace_back(aggregationBuilder->build());
 
-  // this is the output so we are not creating a new source set
-  result->newSourceComputation = nullptr;
-
   // we succeeded
   result->success = true;
 
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                               SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeSingleConsumer(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                               SimplePhysicalNodePtr &prevNode,
                                                                                const StatisticsPtr &stats,
                                                                                int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this aggregation
   std::string computationSpecifier = node->getComputationName();
@@ -186,7 +183,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeSingleConsumer(T
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets (if the source node is not being used anymore we just remove it)
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getSimpleNodeHandle());
 
   // we succeeded
   result->success = true;
@@ -197,12 +194,12 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeSingleConsumer(T
   return result;
 }
 
-TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
-                                                                                  SimpleTCAPAnalyzerNodePtr &prevNode,
+PhysicalOptimizerResultPtr SimplePhysicalAggregationNode::analyzeMultipleConsumers(TupleSetJobStageBuilderPtr &tupleStageBuilder,
+                                                                                  SimplePhysicalNodePtr &prevNode,
                                                                                   const StatisticsPtr &stats,
                                                                                   int nextStageID) {
   // create a analyzer result
-  TCAPAnalyzerResultPtr result = make_shared<TCAPAnalyzerResult>();
+  PhysicalOptimizerResultPtr result = make_shared<PhysicalOptimizerResult>();
 
   // the computation specifier of this aggregation
   std::string computationSpecifier = node->getComputationName();
@@ -282,7 +279,7 @@ TCAPAnalyzerResultPtr SimpleTCAPAnalyzerAggregationNode::analyzeMultipleConsumer
   result->interGlobalSets.push_back(aggregator);
 
   // update the source sets to reflect the state after executing the job stages
-  result->newSourceComputation = getHandle();
+  result->createdSourceComputations.push_back(getSimpleNodeHandle());
 
   // we succeeded
   result->success = true;

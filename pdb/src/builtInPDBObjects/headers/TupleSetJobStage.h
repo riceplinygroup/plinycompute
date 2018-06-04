@@ -305,6 +305,16 @@ public:
                 std::cout << "Port on node-" << i << " is " << port << std::endl;
             }
         }
+
+        // do we have hash sets to probe
+        if(hashSetsToProbe != nullptr) {
+
+          // go through each entry in the map and print it
+          std::cout << "Hash sets to probe" << std::endl;
+          for(auto it = hashSetsToProbe->begin(); it != hashSetsToProbe->end(); ++it) {
+            std::cout << "Atomic computation : \"" << (*it).key << "\" : Hash set \"" << (*it).value << "\"" << std::endl;
+          }
+        }
     }
 
     std::string getOutputTypeName() {
