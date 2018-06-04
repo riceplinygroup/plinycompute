@@ -5,6 +5,15 @@
 
 **PlinyCompute** is a platform for high-performance distributed tool and library development written in C++. It can be deployed in two different modes: **standalone** cluster or **distributed** cluster.
 
+# Learn more about PlinyCompute
+
+* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
+* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
+* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
+* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
+* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
+* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
+
 # Requirements and dependencies
 PlinyCompute has been compiled, built, and tested in Ubuntu 16.04.4 LTS. For the system to work properly, make sure the following requirements are satisfied.
 
@@ -198,12 +207,12 @@ At this point all executable programs and scripts are properly installed on the 
 7. Launching the cluster
 Run the following script, replacing the second argument with the public IP address of the manager node, and the third agrument with the pem file that allows to connect to the machines in the cluster. In this example, the first argument `distributed` indicates that this is a real cluster, the manager node IP address is `192.168.1.0`, and the pem file `conf/pdb-key.pem`. By default the cluster is launched with `1` thread and `2Gb` of memory. 
 ```bash
-$PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
+$ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
 If you want to launch the cluster with more threads and memory, provide the fourth and fifth arguments, in the following example, a cluster is launched with 4 threads and 4096 and 4GB of memory.
 ```bash
-$PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem 4 4096
+$ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem 4 4096
 ```
 
 After completion, the output should look similar to the one below, (partial display shown here for clarity purposes):
@@ -223,36 +232,33 @@ Worker node with IP: 192.168.1.3 successfully started.
 ---------------------------------
 ```
 
-# Stop Cluster
+## Stop Cluster
 To stop a running instance of PlinyCompute, issue the following command:
 ```bash  
 $ ./scripts/stopCluster.sh distributed conf/private_key.pem
 ```
 
-## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata on the pseudo cluster
-To clean all data in a PlinyCompute instance, execute the following script. **Warning:** this script removes all data and catalog metadata from your instance.
+## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata
+To remove data in a PlinyCompute cluster, execute the following script. Note that the value of the first argument is `distributed`, meaning this will clean data in a real cluster. **Warning:** this script removes all PlinyCompute stored data and catalog metadata from the entire cluster.
 ```
-$ $PDB_HOME/scripts/cleanupNode.sh
+$ $PDB_HOME/scripts/cleanup.sh distributed conf/pdb-key.pem
 ```
+
+If you are running in a standalone cluster, run the following script
+```
+$ $PDB_HOME/scripts/cleanup.sh standalone
+```
+
 ## Upgrade Cluster (for developers and testers upgrade binaries and restart cluster with all data kept)
 ```bash
-scripts/stopWorkers.sh $pem_file/private_key
-scripts/upgrade.sh $pem_file/private_key
-scripts/startManager.sh $pem_file/private_key
-scripts/startWorkers.sh $pem_file/private_key $ManagerIPAddress $ThreadNum $SharedMemoryPoolSize
+$ ./scripts/stopCluster.sh distributed conf/pdb-key.pem
+$ ./scripts/internal/upgrade.sh conf/pdb-key.pem
+$ ./scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
 ## Cleanup Catalog and Storage data
 You can cleanup all catalog and storage data by running the following command in the manager node:
 
 ```bash  
-$ ./scripts/cleanup.sh conf/private_key.pem
+$ ./scripts/cleanup.sh distributed conf/pdb-key.pem
 ```
-# Learn more about PlinyCompute
-
-* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
-* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
-* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
-* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
-* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
-* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
