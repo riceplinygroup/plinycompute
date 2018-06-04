@@ -32,9 +32,10 @@ usage() {
 
            param2: <pem_file>
                       Specify the private key to connect to other machines in 
-                      the cluster. This arg is required only when the value of the
-                      cluster_type arg is 'distributed'; the default value is 
+                      the cluster. This arg is required only when the value of
+                      cluster_type is 'distributed'; the default value is 
                       conf/pdb-key.pem
+
            param3: [force]
                       This argument is optional, if provided it doesn't prompt user
                       for confirmation when cleaning up stored data in an installation
@@ -121,7 +122,12 @@ do
 done < $PDB_HOME/$conf_file
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/$conf_file"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -138,13 +144,23 @@ do
             echo -e "\n+++++++++++ cleanup server: $ip_addr"
          if [[ ${ip_addr} != *":"* ]];then
             ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
+            resultOk+="Worker node with IP: $only_ip successfully cleanned.\n"
+            totalOk=`expr $totalOk + 1`
          else
             ./scripts/cleanupNode.sh force
+            resultOk+="Worker node with IP: $ip_addr successfully cleanned.\n"
+            totalOk=`expr $totalOk + 1`
          fi
       else
-         echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed."
+         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not cleanned.\n"
+         totalFailed=`expr $totalFailed + 1`
       fi
     fi
 done
 
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 

@@ -58,7 +58,12 @@ do
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -71,10 +76,19 @@ do
       then
         echo -e "\n+++++++++++ collect system info for server: $ip_addr"
         ssh -i $pem_file $user_name@$ip_addr '~/pdb_temp/local_sys_collect.sh'
+        resultOk+="Worker node with IP $ip_addr successfully collected system info.\n"
+        totalOk=`expr $totalOk + 1`
       else
-         echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed. Cannot collect system info."
+        resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. System info was not collected.\n"
+        totalFailed=`expr $totalFailed + 1`
+        echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed."
       fi
    fi
 done
 
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 

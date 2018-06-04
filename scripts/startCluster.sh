@@ -124,7 +124,13 @@ done < $PDB_HOME/$conf_file
 echo ${arr}
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/$conf_file"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
+
 echo ""
 echo "#####################################"
 echo " Launching a manager node."
@@ -181,11 +187,14 @@ do
         if [ $? -eq 0 ]
         then
            workersOk=$[$workersOk + 1]
+           resultOk+="Worker node with IP: $ip_addr successfully started.\n"
         else
+           resultFailed+="Worker node with IP: ""\033[33;31m""${ip_addr}""\e[0m"", failed to start.\n"
            workersFailed=$[$workersFailed + 1]
         fi
      else
-        echo -e "Worker node at ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed. Connection couldn't be established."
+        resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start.\n"
+        echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start.\n"
         workersFailed=$[$workersFailed + 1]
      fi      
    fi
@@ -196,9 +205,10 @@ then
    echo -e "\033[33;31m""PlinyCompute cluster failed to start, because $workersFailed worker nodes failed to launch!""\033[33;31m"
 else
    echo "PlinyCompute cluster has been successfuly started with $workersOk worker nodes!"
-   if [ $workersFailed -gt 0 ]
-   then 
-      echo "There were $workersFailed workers nodes that failed to launch!"
-   fi
 fi
 
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$workersFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"

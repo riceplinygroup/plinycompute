@@ -103,7 +103,13 @@ done < $PDB_HOME/conf/serverlist
 # stops worker nodes only if running in distributed cluster
 if [ "$cluster_type" = "distributed" ];then
    length=${#arr[@]}
-   echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+
+   echo "There are $length worker nodes defined in conf/serverlist"
+
+   resultOkHeader="*** Successful results ("
+   resultFailedHeader="*** Failed results ("
+   totalOk=0
+   totalFailed=0
 
    pkill -9 pdb-manager
    echo "PlinyCompute manager node in a distributed cluster has been stopped!"
@@ -119,11 +125,20 @@ if [ "$cluster_type" = "distributed" ];then
          then
             echo -e "\n+++++++++++ stop server: $ip_addr"
             ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/stopWorker.sh"
+            resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
+            totalOk=`expr $totalOk + 1`
          else
-            echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed."
+            resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped.\n"
+            totalFailed=`expr $totalFailed + 1`
+            echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped."
          fi
       fi
    done
+   echo -e "\033[33;35m""---------------------------------"
+   echo -e "Results of script $(basename $0):""\e[0m"
+   echo -e "$resultFailedHeader$workersFailed/$length) ***\n$resultFailed"
+   echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
+   echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 else
    pkill -9 pdb-manager
    pkill -9 pdb-worker

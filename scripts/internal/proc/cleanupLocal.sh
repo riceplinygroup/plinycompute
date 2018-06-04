@@ -49,7 +49,12 @@ do
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -60,13 +65,21 @@ do
       nc -zw$testSSHTimeout ${ip_addr} 22
       if [ $? -eq 0 ]
       then
-         echo -e "\n+++++++++++ clear PDB temp directory for server: $ip_addr +++++++++++"
+         echo -e "\n+++++++++++ clear PDB temp directory for worker node: $ip_addr +++++++++++"
          ssh -i $pem_file $user@$ip_addr 'rm -r -f ~/pdb_temp'
+         resultOk+="Temp directory in worker node with IP $ip_addr successfully cleanned.\n"
+         totalOk=`expr $totalOk + 1`
       else
-         echo "Connection clear PDB temp directory for IP address:  ${ip_addr} on port 22 timeout after $testSSHTimeout seconds."
+         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Temp directory was not cleanned.\n"
+         totalFailed=`expr $totalFailed + 1`
+         echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed."
       fi
    fi
 done
 
 
-
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"

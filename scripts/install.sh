@@ -96,7 +96,12 @@ do
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -113,10 +118,18 @@ do
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
          scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/internal/checkProcess.sh $PDB_HOME/scripts/internal/startWorker.sh $user@$ip_addr:$pdb_dir/scripts/internal
          ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh force"
+         resultOk+="Worker node with IP: $ip_addr successfully installed.\n"
+         totalOk=`expr $totalOk + 1`
       else
-         echo -e "Connection to ""\033[33;31m""IP: ${ip_addr}""\e[0m"", failed. Files were not installed."
+         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Files were not installed.\n"
+         totalFailed=`expr $totalFailed + 1`
+         echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Files were not installed."
       fi
    fi
 done
 
-
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"
