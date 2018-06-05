@@ -97,7 +97,7 @@ num_passed = 0
 
 # Ensure that the environment is clean
 def prepare_environment():
-    subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+    subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
     print(BColor.OK_BLUE + "waiting for 5 seconds for server to be fully cleaned up..." + BColor.END_C)
     time.sleep(5)
 
@@ -181,6 +181,7 @@ def downloadTPCHData():
 
 # removes TPCH data after tests
 def removeTPCHData():
+    print("Removing folder tables_scale_0.2")
     os.system('rm -rf tables_scale_0.2*')
 
 # runs a list of tests given by test_list, if clear_data == True, cleans storage and catalog
@@ -198,11 +199,11 @@ def run_tests(test_list, clear_data):
 
     if clear_data == True:
         if (cluster_type=="standalone"):
-            subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+            subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
             print(BColor.OK_BLUE + "cleaning up pseudo cluster..." + BColor.END_C)
         else:
             print(BColor.OK_BLUE + "cleaning up cluster..." + BColor.END_C)
-            subprocess.call(['bash', './scripts/cleanup.sh', pem_file , cluster_type])
+            subprocess.call(['bash', './scripts/cleanup.sh', cluster_type, pem_file, 'force'])
 
         print("waiting 5 seconds for server to be fully cleaned up...")
         time.sleep(5)
@@ -253,16 +254,19 @@ def run_test(id, test_name, test_command):
         # previously generated data
         if (id == "Pre-partitionPartitionData" or (id in list_of_tests("tpch"))):
             print (BColor.OK_BLUE + "stops cluster but keeps stored data and catalog metadata" + BColor.END_C)
-            subprocess.call(['bash', './scripts/stopWorker.sh'])            
+            if cluster_type == "distributed":
+               subprocess.call(['bash', './scripts/stopCluster.sh', cluster_type, pem_file, 'force'])
+            else:
+               subprocess.call(['bash', './scripts/stopCluster.sh', cluster_type, 'force'])            
 
         else:
             # for the rest of the tests, removes data and stops cluster because they need an empty environment
             if cluster_type == "distributed":
                 print (BColor.OK_BLUE + "cleans cluster before running test" + BColor.END_C)
-                subprocess.call(['bash', './scripts/cleanup.sh', pem_file, cluster_type])
+                subprocess.call(['bash', './scripts/cleanup.sh', cluster_type, pem_file, 'force'])
             else:
                 print (BColor.OK_BLUE + "cleans standalone cluster before running test" + BColor.END_C)
-                subprocess.call(['bash', './scripts/cleanupNode.sh', 'force'])
+                subprocess.call(['bash', './scripts/internal/cleanupNode.sh', 'force'])
 
             print ("waits 5 seconds for cluster to be cleaned up...")
             time.sleep(5)
@@ -271,7 +275,11 @@ def run_test(id, test_name, test_command):
             start_pseudo_cluster()
         else:
             print "launches a distributed cluster"
-            subprocess.call(['bash', './scripts/startCluster.sh', pem_file, manager_ip, cluster_type, thread_num, shared_memory_size])
+            exit_code = subprocess.call(['bash', './scripts/startCluster.sh', cluster_type, manager_ip, pem_file, thread_num, shared_memory_size])
+            if (exit_code != 0):
+               print("Error starting cluster: " + str(exit_code))
+               sys.exit()
+
             print ("waits 10 seconds to launch cluster...")
             time.sleep(5)
             

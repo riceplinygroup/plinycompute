@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
     } else {
         pdbClient.removeSet("LA13_db", "LA_duplicateCol_set");
     }
-    int code = system("scripts/cleanupSoFiles.sh");
+    int code = system("scripts/cleanupSoFiles.sh force");
     if (code < 0) {
         std::cout << "Can't cleanup so files" << std::endl;
     }

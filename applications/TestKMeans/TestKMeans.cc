@@ -480,7 +480,7 @@ int main(int argc, char *argv[]) {
     pdbClient.removeSet("kmeans_db", "kmeans_data_count_set");
     pdbClient.removeSet("kmeans_db", "kmeans_norm_vector_set");
   }
-  int code = system("scripts/cleanupSoFiles.sh");
+  int code = system("scripts/cleanupSoFiles.sh force");
   if (code < 0) {
     std::cout << "Can't cleanup so files" << std::endl;
   }

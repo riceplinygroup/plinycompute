@@ -3,7 +3,7 @@
 
 usage() {
     cat <<EOM
-    Usage: scripts/$(basename $0) param1
+    Usage: scripts/internal/$(basename $0) param1
 
            param1: <pem_file> (e.g. conf/pdb-key.pem)
            param2: <username> (username)
@@ -32,5 +32,5 @@ fi
 if [ ! -d "$PDB_HOME/conf/cluster" ]
    then mkdir $PDB_HOME/conf/cluster
 fi
-$PDB_HOME/scripts/proc/collect_cluster_info.sh $pem_file $username > $PDB_HOME/conf/cluster/cluster_info.txt
+$PDB_HOME/scripts/internal/proc/collect_cluster_info.sh $pem_file $username > $PDB_HOME/conf/cluster/cluster_info.txt
 echo "Done! The info of cluster are written to $PDB_HOME/conf/cluster/cluster_info.txt"

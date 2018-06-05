@@ -69,10 +69,10 @@ if [ ! -f "$PDB_HOME/conf/serverlist" ]
 fi
 
 #distribute the collection scripts
-$PDB_HOME/scripts/proc/distribute.sh $pem_file $USERNAME
+$PDB_HOME/scripts/internal/proc/distribute.sh $pem_file $USERNAME
 
 #collect the information of the distributed cluster
-$PDB_HOME/scripts/proc/collect.sh $pem_file $USERNAME
+$PDB_HOME/scripts/internal/proc/collect.sh $pem_file $USERNAME
 
 #cleanup the collection scripts
-$PDB_HOME/scripts/proc/cleanupLocal.sh $pem_file $USERNAME
+$PDB_HOME/scripts/internal/proc/cleanupLocal.sh $pem_file $USERNAME

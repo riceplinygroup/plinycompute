@@ -16,15 +16,14 @@
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script stops a cluster of PlinyCompute,""
+    echo -e "\033[33;31m""    "Warning: This script stops worker nodes in a cluster of PlinyCompute,""
     echo -e "    "use with care!"\e[0m"
     echo ""
     cat <<EOM
 
-    Description: This script stops a cluster of PlinyCompute, including the
-    manager node and all worker nodes (defined in conf/serverlist).
+    Description: This script stops all worker nodes in a PlinyCompute cluster (defined in conf/serverlist).
 
-    Usage: scripts/$(basename $0) <param1> <param2> [param3]
+    Usage: scripts/$(basename $0) param1 param2
 
            param1: <cluster_type>
                       Specify the type of cluster; {'standalone', 'distributed'}
@@ -33,10 +32,6 @@ usage() {
                       Specify the private key to connect to other machines in
                       the cluster, only required when running in distributed
                       mode; the default is conf/pdb-key.pem
-
-           param3: [force]
-                      This argument is optional, if provided it doesn't prompt user
-                      for confirmation when stopping a cluster of PlinyCompute.
 
 EOM
    exit -1;
@@ -51,18 +46,8 @@ ip_len_valid=3
 pdb_dir=$PDB_INSTALL
 PDB_SSH_SLEEP=30
 testSSHTimeout=3
-isForced=""
-
-echo -e "\033[33;31m""This script stops a cluster of PlinyCompute, use it carefully!""\e[0m"
-
-if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
-   exit -1;
-fi
 
 if [ "$cluster_type" = "distributed" ];then
-   isForced=$3
-   argName="third"
    if [ -z $2 ];then
       echo -e "Error: pem file was not provided as the second argument when invoking the script."
       exit -1;
@@ -71,29 +56,13 @@ if [ "$cluster_type" = "distributed" ];then
       echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
-else
-   isForced=$2
-   argName="second"
 fi
 
-if [ "x$isForced" = "x" ];then
-   read -p "Do you want to stop this PlinyCompute cluster? [Y/n] " -n 1 -r
-   echo " "
-   if [[ ! $REPLY =~ ^[Yy]$ ]]
-   then
-      echo "Stop cluster request was cancelled. PlinyCompute cluster is still running."
-      [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
-   fi
-else
-   if [ "$isForced" != "force" ];then
-      echo -e "\033[33;31m""Error: the value of the $argName argument should be 'force'""\e[0m"
-      echo -e "PlinyCompute cluster is running."
-      exit -1;
-   fi
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
 fi
 
 pkill -9 pdb-worker
-pkill -9 pdb-manager
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -141,9 +110,6 @@ if [ "$cluster_type" = "distributed" ];then
    totalOk=0
    totalFailed=0
 
-   pkill -9 pdb-manager
-   echo "PlinyCompute manager node in a distributed cluster has been stopped!"
-
    for (( i=0 ; i<=$length ; i++ ))
    do
       ip_addr=${arr[i]}
@@ -170,7 +136,6 @@ if [ "$cluster_type" = "distributed" ];then
    echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
    echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 else
-   pkill -9 pdb-manager
    pkill -9 pdb-worker
    echo "PlinyCompute standalone cluster has been stopped!"
 fi

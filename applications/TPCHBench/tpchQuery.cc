@@ -204,7 +204,7 @@ int main() {
     pdbClient.removeSet("TPCH_db", "t_output_set_1");
 
     // Clean up the SO files.
-    int code = system("scripts/cleanupSoFiles.sh");
+    int code = system("scripts/cleanupSoFiles.sh force");
     if (code < 0) {
 
         std::cout << "Can't cleanup so files" << std::endl;

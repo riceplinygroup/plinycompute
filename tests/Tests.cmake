@@ -89,5 +89,5 @@ add_dependencies(run-ml-tests build-ml-tests shared-libraries pdb-worker pdb-man
 
 # clean integration tests target
 add_custom_target(clean-integration-tests
-                  scripts/cleanupNode.sh
+                  scripts/internal/cleanupNode.sh
                   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

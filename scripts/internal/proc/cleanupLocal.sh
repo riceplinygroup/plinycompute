@@ -33,7 +33,14 @@ fi
 
 echo "-------------step2: clean PDB temp directory"
 
-echo "Reading cluster IP addresses from file: $conf_file"
+echo "Reading cluster IP addresses from file: $PDB_HOME/conf/serverlist"
+
+if [ ! -f $PDB_HOME/conf/serverlist ];then
+   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
+   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "and contains the IP addresses of the worker nodes."
+   exit -1
+fi
 
 while read line
 do
@@ -41,17 +48,13 @@ do
    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/conf/serverlist
 
-if [ $? -ne 0 ]
-then
-   echo -e "Either ""\033[33;31m""conf/serverlist""\e[0m" or "\033[33;31m""conf/serverlist.test""\e[0m"" files were not found."
-   echo -e "If running in standalone mode, make sure ""\033[33;31m""conf/serverlist.test""\e[0m"" exists."
-   echo -e "If running in distributed mode, make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
-   echo -e "with the IP addresses of the worker nodes."
-   exit -1
-fi
-
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -62,13 +65,21 @@ do
       nc -zw$testSSHTimeout ${ip_addr} 22
       if [ $? -eq 0 ]
       then
-         echo -e "\n+++++++++++ clear PDB temp directory for server: $ip_addr +++++++++++"
+         echo -e "\n+++++++++++ clear PDB temp directory for worker node: $ip_addr +++++++++++"
          ssh -i $pem_file $user@$ip_addr 'rm -r -f ~/pdb_temp'
+         resultOk+="Temp directory in worker node with IP $ip_addr successfully cleanned.\n"
+         totalOk=`expr $totalOk + 1`
       else
-         echo "Connection clear PDB temp directory for IP address:  ${ip_addr} on port 22 timeout after $testSSHTimeout seconds."
+         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Temp directory was not cleanned.\n"
+         totalFailed=`expr $totalFailed + 1`
+         echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed."
       fi
    fi
 done
 
 
-
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"

@@ -14,26 +14,28 @@
 #  limitations under the License.
 #  ========================================================================    
 
-set -o errexit
-
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script deletes stored data, use it carefully!"\e[0m"
+    echo -e "\033[33;31m""    "Warning: This script deletes stored data. Deleted data cannot be"
+             "restored, use it carefully!"\e[0m"
+
     cat <<EOM
 
     Description: This script deletes all PlinyCompute storage, catalog metadata,
     and kills both pdb-manager and pdb-worker processes in the machine where it
     is executed.
 
+    Usage: scripts/$(basename $0) <param1>
+
+           param1: <force>
+                      This argument is optional, if provided it doesn't prompt user
+                      for confirmation when cleaning up stored data.
+
 EOM
    exit -1;
 }
 
-[ $# -ne 1 ] && { usage; }  || [[ "$@" = *-h ]] && { usage; }
-
-if [[ ! "$1" = force ]]; then
-   exit -1;
-fi
+[[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; } || [[ ! "$1" = force ]] && { usage; }
 
 # remove shared libraries from the tmp folder only if they exist
 if [[ -n $(find /var/tmp/ -name "*.so" 2>/dev/null) ]]; then
@@ -95,4 +97,4 @@ fi
 pkill -9 pdb-worker || true
 pkill -9 pdb-manager || true
 
-echo -e "All stored data were deleted, and PlinyCompute processes were killed!."
+echo -e "All stored data in this node were deleted, and PlinyCompute processes were killed!."

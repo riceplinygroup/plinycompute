@@ -6,7 +6,7 @@ usage() {
     echo -e "    of the machines in a cluster."
 
     cat <<EOM
-    Usage: scripts/$(basename $0) param1 param2
+    Usage: scripts/internal/$(basename $0) param1 param2
 
            param1: <pem_file>
                       Specify the private key to connect to other machines in
@@ -32,34 +32,38 @@ fi
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
-    echo "Usage: scripts/proc/collect_cluster_info.sh #pem_file #username";
+    echo "Usage: scripts/internal/proc/collect_cluster_info.sh #pem_file #username";
     exit -1;
 fi
 
 if [ -z ${user_name} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the username to connect.";
-    echo "Usage: scripts/proc/collect_cluster_info.sh #pem_file #username";
+    echo "Usage: scripts/internal/proc/collect_cluster_info.sh #pem_file #username";
     exit -1;
 fi
 
-echo "Reading cluster IP addresses from file: $conf_file"
+echo "Reading cluster IP addresses from file: $PDB_HOME/conf/serverlist"
+
+if [ ! -f $PDB_HOME/conf/serverlist ];then
+   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
+   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "and contains the IP addresses of the worker nodes."
+   exit -1
+fi
+
 while read line
 do
    [[ $line == *#* ]] && continue # skips commented lines
    [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
 done < $PDB_HOME/conf/serverlist
 
-if [ $? -ne 0 ]
-then
-   echo -e "Either ""\033[33;31m""conf/serverlist""\e[0m" or "\033[33;31m""conf/serverlist.test""\e[0m"" files were not found."
-   echo -e "If running in standalone mode, make sure ""\033[33;31m""conf/serverlist.test""\e[0m"" exists."
-   echo -e "If running in distributed mode, make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
-   echo -e "with the IP addresses of the worker nodes."
-   exit -1
-fi
-
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -72,10 +76,19 @@ do
       then
         echo -e "\n+++++++++++ collect system info for server: $ip_addr"
         ssh -i $pem_file $user_name@$ip_addr '~/pdb_temp/local_sys_collect.sh'
+        resultOk+="Worker node with IP $ip_addr successfully collected system info.\n"
+        totalOk=`expr $totalOk + 1`
       else
-         echo "Cannot collect system info for server with IP address: ${ip_addr} on port 22, times out after $testSSHTimeout seconds."
+        resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. System info was not collected.\n"
+        totalFailed=`expr $totalFailed + 1`
+        echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed."
       fi
    fi
 done
 
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 

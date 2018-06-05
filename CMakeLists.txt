@@ -47,7 +47,7 @@ elseif (NOT USE_DEBUG)
 endif (USE_DEBUG)
 
 # installs required third-party packages and libraries
-execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/setupDependencies.py")
+execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/setupDependencies.py")
 
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
@@ -189,8 +189,8 @@ SET_SOURCE_FILES_PROPERTIES(${BUILT_IN_OBJECT_TYPE_ID} PROPERTIES GENERATED TRUE
 add_custom_command (
         OUTPUT  object-type-ids-command
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
-        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltInObjectTypeIDs ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
-        COMMAND "${CMAKE_SOURCE_DIR}/scripts/generateTypeCodes.py" BuiltinPDBObjects ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
+        COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/generateTypeCodes.py" BuiltInObjectTypeIDs ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
+        COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/generateTypeCodes.py" BuiltinPDBObjects ${CMAKE_CURRENT_BINARY_DIR}/type-id-data
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/pdb"
         COMMENT "Generating type codes!"
 )
