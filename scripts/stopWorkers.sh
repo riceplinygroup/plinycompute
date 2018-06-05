@@ -120,7 +120,7 @@ if [ "$cluster_type" = "distributed" ];then
          if [ $? -eq 0 ]
          then
             echo -e "\n+++++++++++ stop server: $ip_addr"
-            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/internal/stopWorker.sh"
+            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  $pdb_dir/scripts/internal/stopWorker.sh"
             resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
             totalOk=`expr $totalOk + 1`
          else
