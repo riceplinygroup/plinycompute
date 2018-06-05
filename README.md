@@ -12,6 +12,7 @@
 * [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
 * [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
 * [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
+* [System configuration](http://plinycompute.blogs.rice.edu/faq/system-configuration/)
 * [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
 
 # Requirements and dependencies
