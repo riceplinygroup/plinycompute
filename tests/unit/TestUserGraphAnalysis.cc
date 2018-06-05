@@ -169,11 +169,6 @@ int main(int argc, char *argv[]) {
     computationsToSend->push_back(computation);
   }
 
-<<<<<<< HEAD
-    int code = system("scripts/cleanupSoFiles.sh force");
-    if (code < 0) {
-        std::cout << "Can't cleanup so files" << std::endl;
-=======
   AbstractPhysicalNodeFactoryPtr analyzerNodeFactory;
 
   std::vector<AtomicComputationPtr> sourcesComputations;
@@ -242,13 +237,12 @@ int main(int argc, char *argv[]) {
 
       // remove them all
       queryPlan.clear();
->>>>>>> master
     }
   }
 
-  int code = system("scripts/cleanupSoFiles.sh");
+  int code = system("scripts/cleanupSoFiles.sh force");
   if (code < 0) {
-    std::cout << "Can't cleanup so files" << std::endl;
+      std::cout << "Can't cleanup so files" << std::endl;
   }
 
   graph.clear();
