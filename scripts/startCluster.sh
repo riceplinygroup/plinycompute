@@ -26,7 +26,8 @@ usage() {
                       Specify the type of cluster; {'standalone', 'distributed'}
            param2: <manager_node_ip> 
                       Specify the public IP address of the manager node in a 
-                      cluster; the default is localhost
+                      cluster; if running in distributed node, use the IP address
+                      instead of 'localhost'
            param3: <pem_file>
                       Specify the private key to connect to other machines in
                       the cluster, only required when running in distributed
@@ -64,30 +65,35 @@ if [ "$PDB_SSH_OPTS" = "" ]; then
    PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
+fi
+
+if [ -z $2 ];then
+   echo -e "Error: IP address for manager node was not provided as second argument to the script"
+   exit -1;
+fi
+
 if [ "$cluster_type" = "distributed" ];then
+   if [ "$managerIp" = "localhost" ];then
+      echo -e "\033[33;31m""[Error] When running the cluster in 'distributed' mode, use the public IP"
+      echo -e "address of the manager node, instead of 'localhost'""\e[0m"
+      exit -1;
+   fi
    # checks if the manager node ip address is reachable
-   nc -zw$testSSHTimeout $managerIp 22
+   nc -zw$testSSHTimeout $managerIp 22 > /dev/null 2>&1
    if [ $? -ne 0 ]; then
-      echo -e "Error: the IP address ""\033[33;31m""'$managerIp'""\e[0m"" of the manager node is not reachable."     
+      echo -e "[Error] The IP address of the manager node provided: ""\033[33;31m""'$managerIp'""\e[0m"" is not reachable."     
       exit -1; 
    fi
    if [ -z $3 ];then 
-      echo -e "Error: pem file was not provided as the third argument when invoking the script."
+      echo -e "[Error] pem file was not provided as the third argument when invoking the script."
       exit -1;
    fi
    if [ ! -f ${pem_file} ]; then
       echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
-fi
-
-if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";   
-fi
-
-if [ -z $2 ];then
-   echo -e "Error: IP address for manager node was not provided as second argument to the script"
-   exit -1;
 fi
 
 if [ -z ${numThreads} ];
