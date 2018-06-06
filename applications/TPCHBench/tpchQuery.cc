@@ -34,6 +34,9 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include <sstream>
+#include <iostream>
+#include <fstream>
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -155,6 +158,10 @@ int main() {
         (float)1000000000;
 
     std::cout << "#TimeDuration: " << timeDifference << " Second " << std::endl;
+    std::ofstream iter_file;
+    iter_file.open ("master_.txt", std::ios::out | std::ios::app);
+    iter_file << timeDifference << "\n";
+    iter_file.close();
 
 
     // Printing results to double check
