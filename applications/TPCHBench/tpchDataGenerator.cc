@@ -444,12 +444,11 @@ void dataGenerator(std::string scaleFactor,
 
                 // First send the existing data over
                 if (storeMeCustomerList->size() > 0) {
-                    Record<Vector<Handle<Object>>>* myRecord =
-                        (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-                    pdbClient.sendBytes<Customer>(
+                    //Record<Vector<Handle<Object>>>* myRecord =
+                      //  (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
+                    pdbClient.sendData<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
-                            (char*)myRecord,
-                            myRecord->numBytes());
+                            storeMeCustomerList);
                     sendingObjectSize += storeMeCustomerList->size();
 
                     std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
@@ -493,12 +492,11 @@ void dataGenerator(std::string scaleFactor,
         infile.clear();
     }
     // send the rest of data at the end, it can happen that the exception never happens.
-    Record<Vector<Handle<Object>>>* myRecord =
-        (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-    pdbClient.sendBytes<Customer>(
+    //Record<Vector<Handle<Object>>>* myRecord =
+      //  (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
+    pdbClient.sendData<Customer>(
             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
-            (char*)myRecord,
-            myRecord->numBytes());
+            storeMeCustomerList);
     sendingObjectSize += storeMeCustomerList->size();
 
     std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
