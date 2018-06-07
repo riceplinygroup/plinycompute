@@ -56,17 +56,13 @@ testSSHTimeout=3
 PDB_SSH_SLEEP=3
 PDB_SLEEP_TIME=3
 
-# kills running processes
-pkill -9  pdb-manager
-pkill -9  pdb-worker
-
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
    PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
 fi
 
 if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
+   then echo "[Error] the value of cluster_type can only be either: 'standalone' or 'distributed'";
 fi
 
 if [ -z $2 ];then
@@ -75,6 +71,20 @@ if [ -z $2 ];then
 fi
 
 if [ "$cluster_type" = "distributed" ];then
+   # first checks if a manager node is already running
+   if pgrep -x pdb-manager > /dev/null
+   then
+      echo -e "[Warning] A PlinyCompute cluster seems to be running. Stop it first by running"
+      echo -e "the following script '""\033[33;34m""./scripts/stopCluster.sh distributed ""\e[0m""""\033[33;31m""key-file.pem""\e[0m""'."
+      echo -e "Replacing the ""\033[33;31m""key-file.pem""\e[0m"" argument with your own pem file."
+      exit -1;
+   fi
+   conf_file="conf/serverlist"
+   if [ ! -f $PDB_HOME/$conf_file ];then
+      echo -e "[Error] Cluster cannot be started because the file ""\033[33;31m""$conf_file""\e[0m"" was not found."
+      echo -e "Make sure ""\033[33;31m""$conf_file""\e[0m"" exists."
+      exit -1
+   fi   
    if [ "$managerIp" = "localhost" ];then
       echo -e "\033[33;31m""[Error] When running the cluster in 'distributed' mode, use the public IP"
       echo -e "address of the manager node, instead of 'localhost'""\e[0m"
@@ -91,9 +101,22 @@ if [ "$cluster_type" = "distributed" ];then
       exit -1;
    fi
    if [ ! -f ${pem_file} ]; then
-      echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      echo -e "[Error] Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
+else
+   if pgrep -x pdb-manager > /dev/null
+   then
+      echo -e "[Warning] A PlinyCompute cluster seems to be running. Stop it first by running"
+      echo -e "the script '""\033[33;34m""./scripts/stopCluster.sh standalone""\e[0m""'."
+      exit -1;
+   fi
+   conf_file="conf/serverlist.test"
+   if [ ! -f $PDB_HOME/$conf_file ];then
+      echo -e "[Error] Cluster cannot be started because the file ""\033[33;31m""$conf_file""\e[0m"" was not found."
+      echo -e "Make sure ""\033[33;31m""$conf_file""\e[0m"" exists."
+      exit -1
+   fi      
 fi
 
 if [ -z ${numThreads} ];
@@ -105,21 +128,7 @@ if [ -z ${sharedMem} ];
 fi
 
 # parses conf/serverlist file
-if [ "$cluster_type" = "standalone" ];then
-   conf_file="conf/serverlist.test"
-else
-   conf_file="conf/serverlist"
-fi
-
 echo "Reading cluster IP addresses from file: $conf_file" 
-
-if [ ! -f $PDB_HOME/$conf_file ];then
-   echo -e "Either ""\033[33;31m""conf/serverlist""\e[0m" or "\033[33;31m""conf/serverlist.test""\e[0m"" files were not found."
-   echo -e "If running in standalone mode, make sure ""\033[33;31m""conf/serverlist.test""\e[0m"" exists."
-   echo -e "If running in distributed mode, make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
-   echo -e "with the IP addresses of the worker nodes."
-   exit -1
-fi
 
 while read line
 do
@@ -178,25 +187,30 @@ do
         nc -zw$testSSHTimeout ${only_ip} 22
      fi
      # launches worker nodes only if connection is established
-     if [ $? -eq 0 ] 
-     then
-        echo -e "\n+++++++++++ starting worker node at IP address: $ip_addr"
+     if [ $? -eq 0 ];then 
+        echo -e "\n+++++++++++ starting worker node at IP address $ip_addr"
         if [[ ${ip_addr} != *":"* ]];then
-           ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/internal/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
-           sleep $PDB_SSH_SLEEP
-           ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
+           ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;"
+           if [ $? -ne 0 ];then
+              resultFailed+="Directory $pdb_dir not found in worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"". Failed to start.\n"
+              workersFailed=$[$workersFailed + 1]
+           else
+              ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/internal/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+              sleep $PDB_SSH_SLEEP
+              ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
+              if [ $? -eq 0 ];then
+                 resultOk+="Worker node with IP: $ip_addr successfully started.\n"
+                 workersOk=$[$workersOk + 1]
+              fi
+           fi
         else
            ./bin/pdb-worker $numThreads $sharedMem $managerIp $ip_addr &
            sleep $PDB_SSH_SLEEP
            ./scripts/internal/checkProcess.sh pdb-worker
-        fi
-        if [ $? -eq 0 ]
-        then
-           workersOk=$[$workersOk + 1]
-           resultOk+="Worker node with IP: $ip_addr successfully started.\n"
-        else
-           resultFailed+="Worker node with IP: ""\033[33;31m""${ip_addr}""\e[0m"", failed to start.\n"
-           workersFailed=$[$workersFailed + 1]
+           if [ $? -eq 0 ];then
+              resultOk+="Worker node with IP: $ip_addr successfully started.\n"
+              workersOk=$[$workersOk + 1]
+           fi
         fi
      else
         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start.\n"
@@ -206,15 +220,15 @@ do
    fi
 done
 
-if [ $workersOk -eq 0 ]
-then
-   echo -e "\033[33;31m""PlinyCompute cluster failed to start, because $workersFailed worker nodes failed to launch!""\033[33;31m"
-else
-   echo "PlinyCompute cluster has been successfuly started with $workersOk worker nodes!"
-fi
-
 echo -e "\033[33;35m""---------------------------------"
 echo -e "Results of script $(basename $0):""\e[0m"
 echo -e "$resultFailedHeader$workersFailed/$length) ***\n$resultFailed"
 echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
 echo -e "\033[33;35m""---------------------------------\n""\e[0m"
+
+if [ $workersFailed -ne 0 ];then
+   echo -e "\033[33;31m""PlinyCompute cluster failed to start, because $workersFailed worker nodes failed to launch!""\033[33;31m"
+else
+   echo "PlinyCompute cluster has been successfuly started with $workersOk worker nodes!"
+fi
+

@@ -92,9 +92,6 @@ else
    fi
 fi
 
-pkill -9 pdb-worker
-pkill -9 pdb-manager
-
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
    PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
@@ -139,7 +136,7 @@ if [ "$cluster_type" = "distributed" ];then
    resultOkHeader="*** Successful results ("
    resultFailedHeader="*** Failed results ("
    totalOk=0
-   totalFailed=0
+   workersFailed=0
 
    pkill -9 pdb-manager
    echo "PlinyCompute manager node in a distributed cluster has been stopped!"
@@ -147,19 +144,30 @@ if [ "$cluster_type" = "distributed" ];then
    for (( i=0 ; i<=$length ; i++ ))
    do
       ip_addr=${arr[i]}
-      if [ ${#ip_addr} -gt "$ip_len_valid" ]
-      then
+      if [ ${#ip_addr} -gt "$ip_len_valid" ];then
          # checks that ssh to a node is possible, times out after 3 seconds
          nc -zw$testSSHTimeout ${ip_addr} 22
-         if [ $? -eq 0 ]
-         then
-            echo -e "\n+++++++++++ stop server: $ip_addr"
-            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  $pdb_dir/scripts/internal/stopWorker.sh"
-            resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
-            totalOk=`expr $totalOk + 1`
+         if [ $? -eq 0 ];then
+            echo -e "\n+++++++++++ stop worker node at IP address: $ip_addr"
+            ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;"
+            if [ $? -ne 0 ];then
+               resultFailed+="Directory $pdb_dir not found in worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"". Failed to stop.\n"
+               workersFailed=$[$workersFailed + 1]
+            else
+               # checks if a worker is running on that machine
+               ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
+               if [ $? -eq 0 ];then
+                  ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  $pdb_dir/scripts/internal/stopWorker.sh"
+                  resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
+                  totalOk=`expr $totalOk + 1`
+               else
+                  resultFailed+="Nothing to stop on worker node with IP ""\033[33;31m""${ip_addr}""\e[0m""\n"
+                  workersFailed=$[$workersFailed + 1]
+               fi
+            fi
          else
             resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped.\n"
-            totalFailed=`expr $totalFailed + 1`
+            workersFailed=$[$workersFailed + 1]
             echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped."
          fi
       fi
@@ -167,7 +175,7 @@ if [ "$cluster_type" = "distributed" ];then
    echo -e "\033[33;35m""---------------------------------"
    echo -e "Results of script $(basename $0):""\e[0m"
    echo -e "$resultFailedHeader$workersFailed/$length) ***\n$resultFailed"
-   echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
+   echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
    echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 else
    pkill -9 pdb-manager

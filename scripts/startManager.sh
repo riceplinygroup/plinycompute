@@ -19,11 +19,18 @@ usage() {
 
     Description: This script launches a PlinyCompute manager node.
 
-    Usage: scripts/$(basename $0) param1
+    Usage: scripts/$(basename $0) param1 param2 param3 
 
-           param1: <pem_file>
+           param1: <cluster_type>
+                      Specify the type of cluster; {'standalone', 'distributed'}
+           param2: <manager_node_ip>
+                      Specify the public IP address of the manager node in a
+                      cluster; if running in distributed node, use the IP address
+                      instead of 'localhost'
+           param3: <pem_file>
                       Specify the private key to connect to other machines in
-                      the cluster; the default is conf/pdb-key.pem
+                      the cluster, only required when running in distributed
+                      mode; the default is conf/pdb-key.pem
 
 EOM
    exit -1;
@@ -31,18 +38,64 @@ EOM
 
 [ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
-pem_file=$1
+cluster_type=$1
+managerIp=$2
+pem_file=$3
 PDB_SLEEP_TIME=10
+testSSHTimeout=3
 
-if [ ! -f ${pem_file} ]; then
-    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
-    exit -1;
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "[Error] the value of cluster_type can only be either: 'standalone' or 'distributed'";
+   exit -1;
 fi
 
-pkill -9  pdb-manager
-pkill -9  pdb-worker
+if [ "$cluster_type" = "distributed" ];then
+   if [ -z $2 ];then
+      echo -e "Error: IP address for manager node was not provided as second argument to the script"
+      exit -1;
+   fi
+   # first checks if a manager node is already running
+   if pgrep -x pdb-manager > /dev/null
+   then
+      echo -e "[Warning] A PlinyCompute cluster seems to be running. Stop it first by running"
+      echo -e "the following script '""\033[33;34m""./scripts/stopManager.sh.""\033[33;31m"
+      exit -1;
+   fi
+   if [ "$managerIp" = "localhost" ];then
+      echo -e "\033[33;31m""[Error] When running the cluster in 'distributed' mode, use the public IP"
+      echo -e "address of the manager node, instead of 'localhost'""\e[0m"
+      exit -1;
+   fi
+   # checks if the manager node ip address is reachable
+   nc -zw$testSSHTimeout $managerIp 22 > /dev/null 2>&1
+   if [ $? -ne 0 ]; then
+      echo -e "[Error] The IP address of the manager node provided: ""\033[33;31m""'$managerIp'""\e[0m"" is not reachable."
+      exit -1;
+   fi
+   if [ -z $3 ];then
+      echo -e "[Error] pem file was not provided as the third argument when invoking the script."
+      exit -1;
+   fi
+   if [ ! -f ${pem_file} ]; then
+      echo -e "[Error] Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      exit -1;
+    fi
+else
+   if pgrep -x pdb-manager > /dev/null
+   then
+      echo -e "[Warning] A PlinyCompute manager node seems to be running. Stop it first by running"
+      echo -e "the script '""\033[33;34m""./scripts/stopManager.sh""\e[0m""'."
+      exit -1;
+   fi
+fi
 
-$PDB_HOME/bin/pdb-manager localhost 8108 N $pem_file 1.5 &
+# launches manager node
+if [ "$cluster_type" = "standalone" ];then
+echo -e "Launching $PDB_HOME/bin/pdb-manager $managerIp 8108 Y &"
+   $PDB_HOME/bin/pdb-manager $managerIp 8108 Y &
+else
+   $PDB_HOME/bin/pdb-manager $managerIp 8108 N $pem_file 1.5 &
+fi
 
 echo "#####################################"
 echo "To sleep for 100 seconds in total for"

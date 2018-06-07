@@ -91,34 +91,54 @@ echo "There are $length worker nodes defined in conf/serverlist"
 
 resultOkHeader="*** Successful results ("
 resultFailedHeader="*** Failed results ("
-totalOk=0
-totalFailed=0
+workersOk=0
+workersFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
    ip_addr=${arr[i]}
-   if [ ${#ip_addr} -gt "$ip_len_valid" ]
-   then
+   if [ ${#ip_addr} -gt "$ip_len_valid" ];then
       # checks that ssh to a node is possible, times out after 3 seconds
       nc -zw$testSSHTimeout ${ip_addr} 22
-      if [ $? -eq 0 ]
-      then
-          echo -e "\n+++++++++++ start server: $ip_addr"
-          ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/internal/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
-          sleep $PDB_SSH_SLEEP
-          ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
-          resultOk+="Worker node with IP: $ip_addr successfully started..\n"
-          totalOk=`expr $totalOk + 1`
+      if [ $? -eq 0 ];then
+          echo -e "\n+++++++++++ starting worker node at IP address $ip_addr"
+          ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;"
+          if [ $? -ne 0 ];then
+             resultFailed+="Directory $pdb_dir not found in worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"". Failed to start.\n"
+             workersFailed=$[$workersFailed + 1]
+          else
+             # checks if a worker is already running on that machine
+             ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
+             if [ $? -eq 0 ];then
+                resultFailed+="There's a worker already running on machine with IP ""\033[33;31m""${ip_addr}""\e[0m""\n"
+                echo -e "There's a worker already running on machine with IP ""\033[33;31m""${ip_addr}""\e[0m""\n"
+                workersFailed=$[$workersFailed + 1]
+             else
+                ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/internal/startWorker.sh $numThreads $sharedMem $managerIp $ip_addr &" &
+                sleep $PDB_SSH_SLEEP
+                ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
+                if [ $? -eq 0 ];then
+                   resultOk+="Worker node with IP $ip_addr successfully started.\n"
+                   workersOk=$[$workersOk + 1]
+                fi
+             fi
+          fi
       else
-          resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start.\n"
-          totalFailed=`expr $totalFailed + 1`
-          echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start."
+         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start.\n"
+         echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node failed to start.\n"
+         workersFailed=$[$workersFailed + 1]
       fi
    fi
 done
 
 echo -e "\033[33;35m""---------------------------------"
 echo -e "Results of script $(basename $0):""\e[0m"
-echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
-echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "$resultFailedHeader$workersFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
 echo -e "\033[33;35m""---------------------------------\n""\e[0m"
+
+if [ $workersFailed -ne 0 ];then
+   echo -e "\033[33;31m""PlinyCompute workers failed to start, because $workersFailed worker nodes failed to launch!""\033[33;31m"
+else
+   echo "All $workersOk registered PlinyCompute worker nodes have been successfuly started!"
+fi

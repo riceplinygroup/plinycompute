@@ -39,7 +39,6 @@ then
    echo "$processName has been successfully started!"
    numProcesses=1
 fi
-sleep 15
 
 if [ "$numProcesses" -eq 0 ]; then
    echo "$processName hasn't started!"

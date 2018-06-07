@@ -107,8 +107,8 @@ if [ "$cluster_type" = "distributed" ];then
 
    resultOkHeader="*** Successful results ("
    resultFailedHeader="*** Failed results ("
-   totalOk=0
-   totalFailed=0
+   workersOk=0
+   workersFailed=0
 
    for (( i=0 ; i<=$length ; i++ ))
    do
@@ -119,13 +119,26 @@ if [ "$cluster_type" = "distributed" ];then
          nc -zw$testSSHTimeout ${ip_addr} 22
          if [ $? -eq 0 ]
          then
-            echo -e "\n+++++++++++ stop server: $ip_addr"
-            ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  $pdb_dir/scripts/internal/stopWorker.sh"
-            resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
-            totalOk=`expr $totalOk + 1`
+            echo -e "\n+++++++++++ stop worker node at IP address: $ip_addr"
+            ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;"
+            if [ $? -ne 0 ];then
+               resultFailed+="Directory $pdb_dir not found in worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"". Failed to stop worker.\n"
+               workersFailed=$[$workersFailed + 1]
+            else
+               # checks if a worker is already running on that machine
+               ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/internal/checkProcess.sh pdb-worker
+               if [ $? -eq 0 ];then
+                  ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  $pdb_dir/scripts/internal/stopWorker.sh"
+                  resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
+                  workersOk=`expr $workersOk + 1`
+               else
+                  resultFailed+="Nothing to stop on worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"".\n"
+                  workersFailed=$[$workersFailed + 1]
+               fi
+            fi
          else
             resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped.\n"
-            totalFailed=`expr $totalFailed + 1`
+            workersFailed=$[$workersFailed + 1]
             echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped."
          fi
       fi
