@@ -1,25 +1,5 @@
-/*****************************************************************************
- *                                                                           *
- *  Copyright 2018 Rice University                                           *
- *                                                                           *
- *  Licensed under the Apache License, Version 2.0 (the "License");          *
- *  you may not use this file except in compliance with the License.         *
- *  You may obtain a copy of the License at                                  *
- *                                                                           *
- *      http://www.apache.org/licenses/LICENSE-2.0                           *
- *                                                                           *
- *  Unless required by applicable law or agreed to in writing, software      *
- *  distributed under the License is distributed on an "AS IS" BASIS,        *
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
- *  See the License for the specific language governing permissions and      *
- *  limitations under the License.                                           *
- *                                                                           *
- *****************************************************************************/
-#ifndef TPCH_DATA_GENERATOR_NEW_CC
-#define TPCH_DATA_GENERATOR_NEW_CC
-
-// JiaNote: this version of data generator cleanup allocation blocks manually to resolve the memory
-// leak issue brought by cross-block allocation.
+#ifndef TPCH_DATA_GENERATOR_CC
+#define TPCH_DATA_GENERATOR_CC
 
 #include "CatalogClient.h"
 
@@ -88,9 +68,9 @@
 using namespace std;
 
 // Run a Cluster on Localhost
-// ./bin/pdb-manager localhost 8108 Y
-// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8109
-// ./bin/pdb-worker 4 4000 localhost:8108 localhost:8110
+// ./bin/pdb-cluster localhost 8108 Y
+// ./bin/pdb-server 4 4000 localhost:8108 localhost:8109
+// ./bin/pdb-server 4 4000 localhost:8108 localhost:8110
 
 // TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
 // Just unzip the file and put the folder in main directory of PDB
@@ -99,9 +79,7 @@ using namespace std;
 #define MB (1024 * KB)
 #define GB (1024 * MB)
 
-//#define BLOCKSIZE (256*MB)
-#define BLOCKSIZE DEFAULT_NET_PAGE_SIZE
-
+#define BLOCKSIZE (256 * MB)
 
 // A function to parse a Line
 std::vector<std::string> parseLine(std::string line) {
@@ -115,7 +93,7 @@ std::vector<std::string> parseLine(std::string line) {
 }
 
 void dataGenerator(std::string scaleFactor,
-                   pdb::PDBClient &pdbClient,
+                   pdb::PDBClient dispatcherClient,
                    int noOfCopies) {
 
     // All files to parse:
@@ -140,8 +118,7 @@ void dataGenerator(std::string scaleFactor,
 
     infile.open(PartFile.c_str());
     if (!infile.is_open()) {
-        cout << "No data directory for part found, add the data directory " << PartFile << endl;
-        exit(-1);
+        cout << "No data directiry for part found, add the data directory " << PartFile << endl;
     }
 
 
@@ -186,7 +163,7 @@ void dataGenerator(std::string scaleFactor,
 
     infile.open(supplierFile.c_str());
     if (!infile.is_open()) {
-        cout << "No data directory for supplier found, add the data directory " << supplierFile
+        cout << "No data directiry for supplier found, add the data directory " << supplierFile
              << endl;
     }
 
@@ -229,7 +206,7 @@ void dataGenerator(std::string scaleFactor,
     infile.open(lineitemFile.c_str());
 
     if (!infile.is_open()) {
-        cout << "No data directory for lineitem  found, add the data directory " << lineitemFile
+        cout << "No data directiry for lineitem  found, add the data directory " << lineitemFile
              << endl;
     }
 
@@ -313,7 +290,7 @@ void dataGenerator(std::string scaleFactor,
     infile.open(orderFile.c_str());
 
     if (!infile.is_open()) {
-        cout << "No data directory for orderFile  found, add the data directory " << orderFile
+        cout << "No data directiry for orderFile  found, add the data directory " << orderFile
              << endl;
     }
 
@@ -369,8 +346,7 @@ void dataGenerator(std::string scaleFactor,
     pdb::makeObjectAllocatorBlock((size_t)BLOCKSIZE, true);
     pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList =
         pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-    map<int, pdb::Handle<Part>>* myPartMap = new map<int, pdb::Handle<Part>>();
-    map<int, pdb::Handle<Supplier>>* mySupplierMap = new map<int, pdb::Handle<Supplier>>();
+
     // Copy the same data multiple times to make it bigger.
     for (int i = 0; i < noOfCopies; ++i) {
 
@@ -379,10 +355,11 @@ void dataGenerator(std::string scaleFactor,
 
         // if file does not exists
         if (!infile.is_open()) {
-            cout << "No data directory for customer  found, add the data directory " << customerFile
+            cout << "No data directiry for customer  found, add the data directory " << customerFile
                  << endl;
         }
 
+        cout << "Storing copy number " << i << endl;
         pdb::Handle<Customer> objectToAdd = nullptr;
 
         while (getline(infile, line)) {
@@ -390,46 +367,8 @@ void dataGenerator(std::string scaleFactor,
             int customerKey = atoi(tokens.at(0).c_str());
 
             try {
-                pdb::Vector<Order> myOrders = orderMap[customerKey];
-                pdb::Vector<Order> newOrders;
-                size_t myOrderSize = myOrders.size();
-                for (size_t orderId = 0; orderId < myOrderSize; orderId++) {
-                    Order myOrder = myOrders[orderId];
-                    pdb::Vector<LineItem> myLineItems = myOrder.getLineItems();
-                    size_t myLineItemSize = myLineItems.size();
-                    pdb::Vector<LineItem> newLineItems(myLineItemSize);
-                    for (size_t lineItemId = 0; lineItemId < myLineItemSize; lineItemId++) {
-                        LineItem myLineItem = myLineItems[lineItemId];
-                        pdb::Handle<Supplier> mySupplier = myLineItem.getSupplier();
-                        // now check whether we have this Supplier already
-                        int mySupplierId = mySupplier->getSupplierKey();
-                        pdb::Handle<Supplier> newSupplier = nullptr;
-                        if (mySupplierMap->count(mySupplierId) == 0) {
-                            newSupplier = deepCopyToCurrentAllocationBlock(mySupplier);
-                            (*mySupplierMap)[mySupplierId] = newSupplier;
-                        } else {
-                            newSupplier = (*mySupplierMap)[mySupplierId];
-                        }
-                        pdb::Handle<Part> myPart = myLineItem.getPart();
-                        // now check whether we have this Part already
-                        int myPartId = myPart->getPartKey();
-                        pdb::Handle<Part> newPart = nullptr;
-                        if (myPartMap->count(myPartId) == 0) {
-                            newPart = deepCopyToCurrentAllocationBlock(myPart);
-                            (*myPartMap)[myPartId] = newPart;
-                        } else {
-                            newPart = (*myPartMap)[myPartId];
-                        }
-                        LineItem newLineItem = myLineItem;
-                        newLineItem.setSupplier(newSupplier);
-                        newLineItem.setPart(newPart);
-                        newLineItems.push_back(newLineItem);
-                    }
-                    Order newOrder = myOrder;
-                    newOrder.setLineItems(newLineItems);
-                    newOrders.push_back(newOrder);
-                }
-                objectToAdd = pdb::makeObject<Customer>(newOrders,
+
+                objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey],
                                                         customerKey,
                                                         tokens.at(1),
                                                         tokens.at(2),
@@ -442,32 +381,26 @@ void dataGenerator(std::string scaleFactor,
 
             } catch (NotEnoughSpace& e) {
 
+
                 // First send the existing data over
                 if (storeMeCustomerList->size() > 0) {
-                    //Record<Vector<Handle<Object>>>* myRecord =
-                      //  (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-                    pdbClient.sendData<Customer>(
+                    if (!dispatcherClient.sendData<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
-                            storeMeCustomerList);
+                            storeMeCustomerList)) {
+                        std::cout << "Failed to send data to dispatcher server" << std::endl;
+                    }
                     sendingObjectSize += storeMeCustomerList->size();
 
-                    std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
+                    std::cout << "Copy Number: " << i
+                              << "  Sending data! Count: " << sendingObjectSize << std::endl;
                 } else {
                     std::cout << "Vector is zero." << sendingObjectSize << std::endl;
                 }
 
-                storeMeCustomerList->clear();
                 // make a allocation Block and a new vector.
-                pdb::makeObjectAllocatorBlock((size_t)BLOCKSIZE, true);
-                if (myPartMap != nullptr) {
-                    delete myPartMap;
-                }
-                myPartMap = new map<int, pdb::Handle<Part>>();
-                if (mySupplierMap != nullptr) {
-                    delete mySupplierMap;
-                }
-                mySupplierMap = new map<int, pdb::Handle<Supplier>>();
-                storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+                // pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+                storeMeCustomerList->clear();
+
                 // retry to make the object and add it to the vector
                 try {
                     objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey],
@@ -488,40 +421,71 @@ void dataGenerator(std::string scaleFactor,
                 }
             }
         }
+
+        // send the rest of data at the end, it can happen that the exception never happens.
+        if (!dispatcherClient.sendData<Customer>(
+                std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
+                storeMeCustomerList)) {
+            std::cout << "Failed to send data to dispatcher server" << std::endl;
+        }
+        sendingObjectSize += storeMeCustomerList->size();
+
+        std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
+
+        // make a allocation Block and a new vector.
+        //		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+        //		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
+        storeMeCustomerList->clear();
+
         infile.close();
         infile.clear();
     }
-    // send the rest of data at the end, it can happen that the exception never happens.
-    //Record<Vector<Handle<Object>>>* myRecord =
-      //  (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
-    pdbClient.sendData<Customer>(
-            std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
-            storeMeCustomerList);
-    sendingObjectSize += storeMeCustomerList->size();
-
-    std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
-    storeMeCustomerList->clear();
-
-    // make a allocation Block and a new vector.
-    pdb::makeObjectAllocatorBlock((size_t)BLOCKSIZE, true);
-    storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-    if (myPartMap != nullptr) {
-        delete myPartMap;
-    }
-    myPartMap = new map<int, pdb::Handle<Part>>();
-    if (mySupplierMap != nullptr) {
-        delete mySupplierMap;
-    }
-    mySupplierMap = new map<int, pdb::Handle<Supplier>>();
-
-    storeMeCustomerList = nullptr;
-    if (myPartMap != nullptr) {
-        delete myPartMap;
-    }
-    if (mySupplierMap != nullptr) {
-        delete mySupplierMap;
-    }
 }
+
+// pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
+//
+//	int maxPartsInEachLineItem = 4;
+//	int maxLineItemsInEachOrder = 4;
+//	int maxOrderssInEachCostomer = 4;
+//
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers =
+//pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+//
+//	//4. Make Customers
+//	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
+//		pdb::Handle<pdb::Vector<Order>> orders = pdb::makeObject<pdb::Vector<Order>> ();
+//		//3. Make Order
+//		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
+//			pdb::Handle<pdb::Vector<LineItem>> lineItems = pdb::makeObject<pdb::Vector<LineItem>>
+//();
+//			//2.  Make LineItems
+//			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
+//				pdb::Handle<Part> part = pdb::makeObject<Part>(i, "Part-" + to_string(i), "mfgr",
+//"Brand1", "type1", i, "Container1", 12.1, "Part Comment1");
+//				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(i, "Supplier-" + to_string(i),
+//"address", i, "Phone1", 12.1, "Supplier Comment1");
+//				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i,
+//*supplier, *part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate",
+//"commitDate", "receiptDate",
+//						"sgipingStruct", "shipMode1", "Comment1");
+//				lineItems->push_back(*lineItem);
+//			}
+//
+//			pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, orderID, 1, "orderStatus", 1,
+//"orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
+//			orders->push_back(*order);
+//		}
+//
+//		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID, "CustomerName
+//" + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+
+//to_string(customerID));
+//		customers->push_back(customer);
+//	}
+//
+//	return customers;
+//
+//}
 
 int main(int argc, char* argv[]) {
 
@@ -538,53 +502,31 @@ int main(int argc, char* argv[]) {
     }
 
     // Connection info
-    string managerHostname = "localhost";
-    int managerPort = 8108;
+    string masterHostname = "localhost";
+    int masterPort = 8108;
 
-    // Create connection to PlinyCompute manager node
-    pdb::PDBClient pdbClient(managerPort, managerHostname);
+    // register the shared employee class
+    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
+
+    PDBClient pdbClient(
+            masterPort, masterHostname);
+
+    CatalogClient catalogClient(
+            masterPort,
+            masterHostname,
+            clientLogger);
 
     string errMsg;
 
-    int noOfCopiesEachRound = 16;
-    std::cout << "#######################################" << std::endl;
-    if (noOfCopiesEachRound >= 8)
-        std::cout << "MEMORY REQUIREMENT: " << (noOfCopiesEachRound / 8) * 10 << " GB" << std::endl;
-    std::cout << "#######################################" << std::endl;
-    int numFullRounds = noOfCopies / noOfCopiesEachRound;
-    int noOfCopiesPartialRound = noOfCopies - (numFullRounds * noOfCopiesEachRound);
-    for (int i = 0; i < numFullRounds; i++) {
-        {
-            pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
-            // Generate the data
-            dataGenerator(scaleFactor, pdbClient, noOfCopiesEachRound);
-            // flush to disk
-            pdbClient.flushData();
-            cout << errMsg << endl;
-        }
+    pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
 
-        std::cout << getAllocator().printInactiveBlocks() << std::endl;
-        std::cout << getAllocator().printCurrentBlock() << std::endl;
-        getAllocator().cleanInactiveBlocks();
-        std::cout << getAllocator().printInactiveBlocks() << std::endl;
-        std::cout << getAllocator().printCurrentBlock() << std::endl;
-    }
-    if (noOfCopiesPartialRound > 0) {
-        {
-            pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
-            // Generate the data
-            dataGenerator(scaleFactor, pdbClient, noOfCopiesPartialRound);
-            // flush to disk
-            pdbClient.flushData();
-            cout << errMsg << endl;
-        }
+    // Generate the data
+    dataGenerator(scaleFactor, pdbClient, noOfCopies);
 
-        std::cout << getAllocator().printInactiveBlocks() << std::endl;
-        std::cout << getAllocator().printCurrentBlock() << std::endl;
-        getAllocator().cleanInactiveBlocks();
-        std::cout << getAllocator().printInactiveBlocks() << std::endl;
-        std::cout << getAllocator().printCurrentBlock() << std::endl;
-    }
+    // flush to disk
+    pdbClient.flushData();
+    cout << errMsg << endl;
 }
 
 #endif
+
