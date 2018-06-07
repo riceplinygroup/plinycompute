@@ -7,13 +7,13 @@
 
 # Learn more about PlinyCompute
 
-* [Creating user-defined data types](http://plinycompute.blogs.rice.edu/tutorials/user-defined-types/)
-* [Creating user-defined computations](http://plinycompute.blogs.rice.edu/creating-computations/)
-* [Storing data](http://plinycompute.blogs.rice.edu/tutorials/how-to-store-data/)
-* [Writting and running Machine Learning code](http://plinycompute.blogs.rice.edu/tutorials/machine-learning/)
-* [SQL-like queries](http://plinycompute.blogs.rice.edu/tutorials/sql-like-queries/)
-* [System configuration](http://plinycompute.blogs.rice.edu/faq/system-configuration/)
-* [FAQ's](http://plinycompute.blogs.rice.edu/faq/)
+* [Creating user-defined data types](http://plinycompute.rice.edu/tutorials/user-defined-types/)
+* [Creating user-defined computations](http://plinycompute.rice.edu/creating-computations/)
+* [Storing data](http://plinycompute.rice.edu/tutorials/how-to-store-data/)
+* [Writting and running Machine Learning code](http://plinycompute.rice.edu/tutorials/machine-learning/)
+* [SQL-like queries](http://plinycompute.rice.edu/tutorials/sql-like-queries/)
+* [System configuration](http://plinycompute.rice.edu/faq/system-configuration/)
+* [FAQ's](http://plinycompute.rice.edu/faq/)
 
 # Requirements and dependencies
 PlinyCompute has been compiled, built, and tested in Ubuntu 16.04.4 LTS. For the system to work properly, make sure the following requirements are satisfied.
