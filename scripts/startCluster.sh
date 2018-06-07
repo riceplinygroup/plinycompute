@@ -72,9 +72,9 @@ fi
 
 if [ "$cluster_type" = "distributed" ];then
    # first checks if a manager node is already running
-   if pgrep -x pdb-manager > /dev/null
-   then
-      echo -e "[Warning] A PlinyCompute cluster seems to be running. Stop it first by running"
+   pgrep -ax pdb-manager | grep -v localhost > /dev/null
+   if [ $? -eq 0 ];then
+      echo -e "[Warning] A PlinyCompute cluster seems to be running in distributed mode. Stop it first by running"
       echo -e "the following script '""\033[33;34m""./scripts/stopCluster.sh distributed ""\e[0m""""\033[33;31m""key-file.pem""\e[0m""'."
       echo -e "Replacing the ""\033[33;31m""key-file.pem""\e[0m"" argument with your own pem file."
       exit -1;
@@ -105,9 +105,9 @@ if [ "$cluster_type" = "distributed" ];then
       exit -1;
     fi
 else
-   if pgrep -x pdb-manager > /dev/null
-   then
-      echo -e "[Warning] A PlinyCompute cluster seems to be running. Stop it first by running"
+   pgrep -ax pdb-manager | grep localhost > /dev/null
+   if [ $? -eq 0 ];then
+      echo -e "[Warning] A PlinyCompute cluster seems to be running in standalone mode. Stop it first by running"
       echo -e "the script '""\033[33;34m""./scripts/stopCluster.sh standalone""\e[0m""'."
       exit -1;
    fi

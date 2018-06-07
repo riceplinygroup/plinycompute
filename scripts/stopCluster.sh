@@ -178,8 +178,19 @@ if [ "$cluster_type" = "distributed" ];then
    echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
    echo -e "\033[33;35m""---------------------------------\n""\e[0m"
 else
-   pkill -9 pdb-manager
-   pkill -9 pdb-worker
-   echo "PlinyCompute standalone cluster has been stopped!"
+   pgrep -ax pdb-manager | grep localhost > /dev/null
+   if [ $? -eq 0 ];then
+      pkill -9 pdb-manager
+      echo -e "PlinyCompute manager node has been terminated!"
+   else
+      echo -e "No manager process to terminate."
+   fi
+   pgrep -ax pdb-worker | grep localhost > /dev/null
+   if [ $? -eq 0 ];then
+      pkill -9 pdb-worker
+      echo "PlinyCompute standalone workers have been stopped!"
+   else
+      echo "No worker processes to terminate."
+   fi
 fi
 
