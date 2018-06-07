@@ -16,7 +16,7 @@
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script stops worker nodes in a cluster of PlinyCompute,""
+    echo -e "\e[31m""    "Warning: This script stops worker nodes in a cluster of PlinyCompute,""
     echo -e "    "use with care!"\e[0m"
     echo ""
     cat <<EOM
@@ -47,22 +47,33 @@ pdb_dir=$PDB_INSTALL
 PDB_SSH_SLEEP=30
 testSSHTimeout=3
 
+if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
+   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
+fi
+
 if [ "$cluster_type" = "distributed" ];then
    if [ -z $2 ];then
       echo -e "Error: pem file was not provided as the second argument when invoking the script."
       exit -1;
    fi
    if [ ! -f ${pem_file} ]; then
-      echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      echo -e "Pem file ""\e[31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
+   conf_file="$PDB_HOME/conf/serverlist"
+   if [ ! -f $conf_file ];then
+      echo -e "[Error] Cluster cannot be started because the file ""\e[31m""$conf_file""\e[0m"" was not found."
+      echo -e "Make sure ""\e[31m""$conf_file""\e[0m"" exists."
+      exit -1;
+   fi
+else
+   conf_file="$PDB_HOME/conf/serverlist.test"
+   if [ ! -f $conf_file ];then
+      echo -e "[Error] Cluster cannot be started because the file ""\e[31m""$conf_file""\e[0m"" was not found."
+      echo -e "Make sure ""\e[31m""$conf_file""\e[0m"" exists."
+      exit -1;
+   fi
 fi
-
-if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
-   then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
-fi
-
-pkill -9 pdb-worker
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
@@ -77,27 +88,13 @@ else
 fi
 
 # parses conf/serverlist file
-if [ "$cluster_type" = "standalone" ];then
-   conf_file="conf/serverlist.test"
-else
-   conf_file="conf/serverlist"
-fi
-
 echo "Reading cluster IP addresses from file: $conf_file"
-
-if [ ! -f $PDB_HOME/$conf_file ];then
-   echo -e "Either ""\033[33;31m""conf/serverlist""\e[0m" or "\033[33;31m""conf/serverlist.test""\e[0m"" files were not found."
-   echo -e "If running in standalone mode, make sure ""\033[33;31m""conf/serverlist.test""\e[0m"" exists."
-   echo -e "If running in distributed mode, make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
-   echo -e "with the IP addresses of the worker nodes."
-   exit -1
-fi
 
 while read line
 do
     [[ $line == *#* ]] && continue # skips commented lines
     [[ ! -z "${line// }" ]] && arr[i++]=$line # include only non-empty lines
-done < $PDB_HOME/conf/serverlist
+done < $conf_file
 
 # stops worker nodes only if running in distributed cluster
 if [ "$cluster_type" = "distributed" ];then
@@ -122,7 +119,7 @@ if [ "$cluster_type" = "distributed" ];then
             echo -e "\n+++++++++++ stop worker node at IP address: $ip_addr"
             ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;"
             if [ $? -ne 0 ];then
-               resultFailed+="Directory $pdb_dir not found in worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"". Failed to stop worker.\n"
+               resultFailed+="Directory $pdb_dir not found in worker node with IP ""\e[31m""${ip_addr}""\e[0m"". Failed to stop worker.\n"
                workersFailed=$[$workersFailed + 1]
             else
                # checks if a worker is already running on that machine
@@ -132,24 +129,24 @@ if [ "$cluster_type" = "distributed" ];then
                   resultOk+="Worker node with IP: $ip_addr successfully stopped.\n"
                   workersOk=`expr $workersOk + 1`
                else
-                  resultFailed+="Nothing to stop on worker node with IP ""\033[33;31m""${ip_addr}""\e[0m"".\n"
+                  resultFailed+="Nothing to stop on worker node with IP ""\e[31m""${ip_addr}""\e[0m"".\n"
                   workersFailed=$[$workersFailed + 1]
                fi
             fi
          else
-            resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped.\n"
+            resultFailed+="Connection to ""\e[31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped.\n"
             workersFailed=$[$workersFailed + 1]
-            echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped."
+            echo -e "Connection to ""\e[31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not stopped."
          fi
       fi
    done
-   echo -e "\033[33;35m""---------------------------------"
+   echo -e "\e[35m""---------------------------------"
    echo -e "Results of script $(basename $0):""\e[0m"
    echo -e "$resultFailedHeader$workersFailed/$length) ***\n$resultFailed"
    echo -e "$resultOkHeader$workersOk/$length) ***\n$resultOk"
-   echo -e "\033[33;35m""---------------------------------\n""\e[0m"
+   echo -e "\e[35m""---------------------------------\n""\e[0m"
 else
    pkill -9 pdb-worker
-   echo "PlinyCompute standalone cluster has been stopped!"
+   echo "PlinyCompute standalone cluster worker nodes have been stopped!"
 fi
 

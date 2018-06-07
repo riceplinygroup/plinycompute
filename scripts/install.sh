@@ -27,7 +27,7 @@ fi
 
 usage() {
     echo ""
-    echo -e "\033[33;31m""    "Warning: This script deletes PlinyCompute stored data in remote""
+    echo -e "\e[;31m""    "Warning: This script deletes PlinyCompute stored data in remote""
     echo -e "    "machines in a cluster, use with care!"\e[0m"
     echo ""
 
@@ -51,12 +51,12 @@ EOM
 [ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 if [ ! -f ${pem_file} ]; then
-    echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+    echo -e "Pem file ""\e[;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
     exit -1;
 fi
 
-echo -e "\033[33;31m""Before installing PlinyCompute, this script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
-echo -e "PlinyCompute default installation path has been set to: ""\033[33;32m""$pdb_dir""\e[0m"
+echo -e "\e[;31m""Before installing PlinyCompute, this script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
+echo -e "PlinyCompute default installation path has been set to: ""\e[;32m""$pdb_dir""\e[0m"
 
 read -p "Do you want to delete all PlinyCompute stored data?i [Y/n] " -n 1 -r
 echo ""
@@ -83,8 +83,8 @@ fi
 echo "Reading cluster IP addresses from file: $PDB_HOME/conf/serverlist"
 
 if [ ! -f $PDB_HOME/conf/serverlist ];then
-   echo -e "The file ""\033[33;31m""conf/serverlist""\e[0m"" was not found."
-   echo -e "Make sure ""\033[33;31m""conf/serverlist""\e[0m"" exists"
+   echo -e "The file ""\e[;31m""conf/serverlist""\e[0m"" was not found."
+   echo -e "Make sure ""\e[;31m""conf/serverlist""\e[0m"" exists"
    echo -e "and contains the IP addresses of the worker nodes."
    exit -1
 fi
@@ -121,15 +121,15 @@ do
          resultOk+="Worker node with IP: $ip_addr successfully installed.\n"
          totalOk=`expr $totalOk + 1`
       else
-         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Files were not installed.\n"
+         resultFailed+="Connection to ""\e[;31m""IP ${ip_addr}""\e[0m"", failed. Files were not installed.\n"
          totalFailed=`expr $totalFailed + 1`
-         echo -e "Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Files were not installed."
+         echo -e "Connection to ""\e[;31m""IP ${ip_addr}""\e[0m"", failed. Files were not installed."
       fi
    fi
 done
 
-echo -e "\033[33;35m""---------------------------------"
+echo -e "\e[;35m""---------------------------------"
 echo -e "Results of script $(basename $0):""\e[0m"
 echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
 echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
-echo -e "\033[33;35m""---------------------------------\n""\e[0m"
+echo -e "\e[;35m""---------------------------------\n""\e[0m"

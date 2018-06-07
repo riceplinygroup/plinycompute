@@ -42,7 +42,7 @@ if [ "x$isForced" = "x" ];then
    fi
 else
    if [ "$isForced" != "force" ];then
-      echo -e "\033[33;31m""Error: the value of the $argName argument should be 'force'""\e[0m"
+      echo -e "\e[31m""Error: the value of the $argName argument should be 'force'""\e[0m"
       echo -e "The manager node is still running."
       exit -1;
    fi

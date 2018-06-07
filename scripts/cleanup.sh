@@ -16,7 +16,7 @@
 
 usage() {
     echo ""    
-    echo -e "\033[33;31m""    "Warning: This script deletes stored data. Deleted data cannot be"
+    echo -e "\e[31m""    "Warning: This script deletes stored data. Deleted data cannot be"
              "restored, use it carefully!"\e[0m"
 
     cat <<EOM
@@ -55,7 +55,7 @@ pdb_dir=$PDB_INSTALL
 testSSHTimeout=3
 isForced=""
 
-echo -e "\033[33;31m""This script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
+echo -e "\e[31m""This script deletes all PlinyCompute stored data, use it carefully!""\e[0m"
 
 if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
    then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
@@ -70,7 +70,7 @@ if [ "$cluster_type" = "distributed" ];then
       exit -1;
    fi
    if [ ! -f ${pem_file} ]; then
-      echo -e "Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      echo -e "Pem file ""\e[31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
 else
@@ -88,7 +88,7 @@ if [ "x$isForced" = "x" ];then
    fi
 else
    if [ "$isForced" != "force" ];then
-      echo -e "\033[33;31m""Error: the value of the $argName argument should be 'force'""\e[0m"
+      echo -e "\e[31m""Error: the value of the $argName argument should be 'force'""\e[0m"
       echo -e "All data were kept in storage."
       exit -1;
    fi
@@ -152,15 +152,15 @@ do
             totalOk=`expr $totalOk + 1`
          fi
       else
-         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not cleanned.\n"
+         resultFailed+="Connection to ""\e[31m""IP ${ip_addr}""\e[0m"", failed. Worker node was not cleanned.\n"
          totalFailed=`expr $totalFailed + 1`
       fi
     fi
 done
 
-echo -e "\033[33;35m""---------------------------------"
+echo -e "\e[35m""---------------------------------"
 echo -e "Results of script $(basename $0):""\e[0m"
 echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
 echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
-echo -e "\033[33;35m""---------------------------------\n""\e[0m"
+echo -e "\e[35m""---------------------------------\n""\e[0m"
 

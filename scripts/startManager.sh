@@ -58,18 +58,18 @@ if [ "$cluster_type" = "distributed" ];then
    if pgrep -x pdb-manager > /dev/null
    then
       echo -e "[Warning] A PlinyCompute cluster seems to be running. Stop it first by running"
-      echo -e "the following script '""\033[33;34m""./scripts/stopManager.sh.""\033[33;31m"
+      echo -e "the following script '""\e[34m""./scripts/stopManager.sh.""\e[31m"
       exit -1;
    fi
    if [ "$managerIp" = "localhost" ];then
-      echo -e "\033[33;31m""[Error] When running the cluster in 'distributed' mode, use the public IP"
+      echo -e "\e[31m""[Error] When running the cluster in 'distributed' mode, use the public IP"
       echo -e "address of the manager node, instead of 'localhost'""\e[0m"
       exit -1;
    fi
    # checks if the manager node ip address is reachable
    nc -zw$testSSHTimeout $managerIp 22 > /dev/null 2>&1
    if [ $? -ne 0 ]; then
-      echo -e "[Error] The IP address of the manager node provided: ""\033[33;31m""'$managerIp'""\e[0m"" is not reachable."
+      echo -e "[Error] The IP address of the manager node provided: ""\e[31m""'$managerIp'""\e[0m"" is not reachable."
       exit -1;
    fi
    if [ -z $3 ];then
@@ -77,14 +77,14 @@ if [ "$cluster_type" = "distributed" ];then
       exit -1;
    fi
    if [ ! -f ${pem_file} ]; then
-      echo -e "[Error] Pem file ""\033[33;31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
+      echo -e "[Error] Pem file ""\e[31m""'$pem_file'""\e[0m"" not found, make sure the path and file name are correct!"
       exit -1;
     fi
 else
    if pgrep -x pdb-manager > /dev/null
    then
       echo -e "[Warning] A PlinyCompute manager node seems to be running. Stop it first by running"
-      echo -e "the script '""\033[33;34m""./scripts/stopManager.sh""\e[0m""'."
+      echo -e "the script '""\e[34m""./scripts/stopManager.sh""\e[0m""'."
       exit -1;
    fi
 fi
@@ -114,4 +114,4 @@ do
    sleep 10
 done
 
-echo -e "\033[33;31m""PlinyCompute manager node didn't started! It could be that ssh takes too long. Please retry!""\033[33;31m"
+echo -e "\e[31m""PlinyCompute manager node didn't started! It could be that ssh takes too long. Please retry!""\e[31m"

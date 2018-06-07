@@ -30,18 +30,16 @@ EOM
 [ -z $1 ] && { usage; } || [[ "$@" = *--help ]] && { usage; } || [[ "$@" = *-h ]] && { usage; }
 
 processName=$1
-echo "checking if $processName is running"
-
 numProcesses=0
 
 if pgrep -x $processName > /dev/null
 then
-   echo "$processName has been successfully started!"
+   echo "$processName is up and running!"
    numProcesses=1
 fi
 
 if [ "$numProcesses" -eq 0 ]; then
-   echo "$processName hasn't started!"
+   echo "$processName is not running!"
    exit 1
 fi
 exit 0
