@@ -3,6 +3,10 @@ get_filename_component(unit-test-path ${CMAKE_CURRENT_LIST_FILE} DIRECTORY)
 
 # compile all the objects
 file(GLOB files "${unit-test-path}/*.cc")
+
+# sorts files alphabetically because some tests require
+# files created in previous tests
+list(SORT files)
 add_custom_target(unit-tests)
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)

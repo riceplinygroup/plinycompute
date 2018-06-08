@@ -3,7 +3,7 @@
 </p>
 <hr/>
 
-**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++. It can be deployed in two different modes: **standalone** cluster or **distributed** cluster. Visit the official website [here](http://plinycompute.rice.edu).
+**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++. It can be deployed in two different modes: **standalone** cluster or **distributed** cluster. Visit the official web site [http://plinycompute.rice.edu](http://plinycompute.rice.edu).
 
 # Learn more about PlinyCompute
 
