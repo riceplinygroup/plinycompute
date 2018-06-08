@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     } else {
         pdbClient.removeSet("LA14_db", "LA_Inverse_set");
     }
-    int code = system("scripts/cleanupSoFiles.sh");
+    int code = system("scripts/cleanupSoFiles.sh force");
     if (code < 0) {
         std::cout << "Can't cleanup so files" << std::endl;
     }

@@ -63,6 +63,27 @@ public:
     }
   }
 
+  void addSet(std::string databaseName, std::string setName, DataStatistics &stats) {
+    std::string key = databaseName + ":" + setName;
+    dataStatistics[key] = stats;
+  }
+
+  /**
+   * Adds an alias to the specified set
+   * @param databaseName - the database the orignal set belongs to
+   * @param setName - the original set
+   * @param aliasDatabase - the new sets database name
+   * @param aliasSetName - the new set name
+   */
+  void addSetAlias(std::string databaseName,
+                   std::string setName,
+                   std::string aliasDatabase,
+                   std::string aliasSetName){
+    std::string key = databaseName + ":" + setName;
+    std::string aliasKey = aliasDatabase + ":" + aliasSetName;
+    dataStatistics[aliasKey] = dataStatistics[key];
+  }
+
   // to return number of pages of a set
   int getNumPages(std::string databaseName, std::string setName) {
     std::string key = databaseName + ":" + setName;
@@ -205,6 +226,21 @@ public:
     pthread_mutex_lock(&mutex);
     lambdaSelectivity[lambdaType] = selectivity;
     pthread_mutex_unlock(&mutex);
+  }
+
+  /**
+   * This method prints out all the sets in the statistics object
+   */
+  void printSets(){
+
+    // print the header
+    std::cout << "----------- STATS ------------" << std::endl;
+
+    // go through the data statistics and print out the sets
+    for(auto &it : dataStatistics) {
+      std::cout << it.first << std::endl;
+      std::cout << "------------------------------" << std::endl;
+    }
   }
 };
 }

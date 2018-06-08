@@ -45,7 +45,12 @@ do
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
-echo "There are $length servers defined in $PDB_HOME/conf/serverlist"
+echo "There are $length worker nodes defined in conf/serverlist"
+
+resultOkHeader="*** Successful results ("
+resultFailedHeader="*** Failed results ("
+totalOk=0
+totalFailed=0
 
 for (( i=0 ; i<=$length ; i++ ))
 do
@@ -60,10 +65,18 @@ do
          sleep 1
          ssh -i $pem_file $ip_addr 'ps aux | grep pdb-worker'
          sleep 1
-         ssh -i $pem_file $ip_addr "cat $PDB_INSTALL/log.out"
+         ssh -i $pem_file $ip_addr "cat $PDB_INSTALL/logs/log.out"
+         resultOk+="Worker node with IP: $ip_addr successfully listed.\n"
+         totalOk=`expr $totalOk + 1`
       else
-         echo "Cannot connect to IP address: ${ip_addr}, connection timed out on port 22 after $testSSHTimeout seconds."            
+         resultFailed+="Connection to ""\033[33;31m""IP ${ip_addr}""\e[0m"", failed.\n"
+         totalFailed=`expr $totalFailed + 1`
       fi
    fi
 done
 
+echo -e "\033[33;35m""---------------------------------"
+echo -e "Results of script $(basename $0):""\e[0m"
+echo -e "$resultFailedHeader$totalFailed/$length) ***\n$resultFailed"
+echo -e "$resultOkHeader$totalOk/$length) ***\n$resultOk"
+echo -e "\033[33;35m""---------------------------------\n""\e[0m"

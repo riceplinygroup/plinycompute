@@ -123,6 +123,10 @@ public:
         std::cout << "[HASH SET] name = " << partitionedHashSetName << std::endl;
         std::cout << "[NUMPARTITIONS] numPartitions=" << numNodePartitions << std::endl;
         std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std::endl;
+        std::cout << "[NUM PAGES] numPages=" << numPages << std::endl;
+        std::cout << "[SRCTUPLESET] sourceTupleSetSpecifier=" << sourceTupleSetSpecifier << std::endl;
+        std::cout << "[TARTUPLESET] targetTupleSetSpecifier=" << targetTupleSetSpecifier << std::endl;
+        std::cout << "[TACCOMP] targetComputationSpecifier=" << targetComputationSpecifier << std::endl;
     }
 
     void setNumPages(int numPages) {

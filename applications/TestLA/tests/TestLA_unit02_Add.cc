@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
     } else {
         pdbClient.removeSet("LA02_db", "LA_sum_set");
     }
-    int code = system("scripts/cleanupSoFiles.sh");
+    int code = system("scripts/cleanupSoFiles.sh force");
     if (code < 0) {
         std::cout << "Can't cleanup so files" << std::endl;
     }

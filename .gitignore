@@ -1,3 +1,4 @@
+conf/cluster
 conf/pdb-key.pem
 .cproject
 .idea
