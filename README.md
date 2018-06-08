@@ -3,7 +3,7 @@
 </p>
 <hr/>
 
-**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++. It can be deployed in two different modes: **standalone** cluster or **distributed** cluster. Visit the official web site [http://plinycompute.rice.edu](http://plinycompute.rice.edu).
+**PlinyCompute** is a platform for high-performance distributed tool and library development written in C++. It can be deployed in two different cluster modes: **standalone** or **distributed**. Visit the official web site for more details [http://plinycompute.rice.edu](http://plinycompute.rice.edu).
 
 # Learn more about PlinyCompute
 
@@ -25,7 +25,7 @@ The following environment variables have to be set:
 
 2. **PDB_INSTALL**: this is the root directory on the worker nodes where executables and scripts will be installed. Required only when running in **distributed** mode; by default is set to `/tmp/pdb_install`.
 
-**Note:** the value of these variables is arbitrary (and they do not have to match), but make sure that you have proper permissions on the remote machines to create folders and write to files. In this example, PlinyCompute is installed on `/home/ubuntu/plinycompute` on the manager node, and on `/tmp/pdb_install` in the worker nodes.
+**Note:** the value of these variables is arbitrary (and they do not have to match), but make sure that you have proper permissions on the remote machines to create folders and write to files. In this example, PlinyCompute is installed in `/home/ubuntu/plinycompute` on the manager node, and in `/tmp/pdb_install` in the worker nodes.
 ```bash 
 $ export PDB_HOME=/home/ubuntu/plinycompute
 $ export PDB_INSTALL=/tmp/pdb_install
@@ -50,7 +50,7 @@ The table below lists the libraries and packages required by PlinyCompute. If an
 ```bash 
 $ git clone https://github.com/riceplinygroup/plinycompute.git
 ```
-This command will download PlinyCompute in a directory named plinycompute. Make sure you are in that directory by typing:
+This command will download PlinyCompute in a directory named `plinycompute`. Make sure you are in that directory by typing:
 ```
 $ cd plinycompute
 ``` 
@@ -58,7 +58,7 @@ In a Linux machine the prompt should look something similar to:
 ```bash 
 ubuntu@manager:~/plinycompute$
 ```
-Invoke cmake, by default PlinyCompute is built without debug messages with the following command:
+2. Invoke cmake, by default PlinyCompute is built without debug messages with the following command:
 ```bash 
 $ cmake .
 ```
@@ -70,51 +70,49 @@ Conversely, to turn debugging messages off, issue the following command:
 ```bash 
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
+3. Compile and build. This make target builds two executables `pdb-manager` and `pdb-worker` in the `bin` folder; which are invoked by the different scripts described below.
+```bash 
+$ make pdb-main
+```
 
-<a name="targets"></a>This table lists the different make targets that can be built along its description:
+If you want to explore and test different applications and libraries that use PlinyCompute as compute engine, build one target from the table below.
+**Notes:**
+  - the target `shared-libraries`, builds common shared libraries that are used by the different applications (build this first)
+  - these targets are independent from each other and are not required for the PlinyCompute engine to work.
+  
+<a name="targets"></a>Make targets for different applications:
 
-| Target                  | Description                                                      |
-| ----------------------- | ---------------------------------------------------------------- |
-| pdb-manager             | Builds the executable that runs on the manager node.           |
-| pdb-worker              | Builds the executable that runs on the worker nodes.          |
-| shared-libraries        | Builds all the shared libraries.                                 |
-| build-ml-tests          | Builds the machine learning executables and their dependencies.  |
-| build-la-tests          | Builds the linear algebra executables and their dependencies.    |
-| build-integration-tests | Builds the integration executables and their dependencies.       |
-| build-tpch-tests        | Builds the tpch executables and their dependencies.              |
-| build-tests             | Builds the unit tests executables and their dependencies.        |
+| Target                  | Description                                                      | Source Code |
+| ----------------------- | ---------------------------------------------------------------- | ----- |
+| shared-libraries        | Common shared libraries used by these applications      | [Shared Libraries](https://github.com/riceplinygroup/plinycompute/tree/master/pdb/src/sharedLibraries) |
+| build-ml-tests          | Machine learning executables and their dependencies  | [Gaussian Mixture Model](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TestGMM), [Latent Dirichlet Allocation](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TestLDA), [K-Means](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TestKMeans) |
+| build-la-tests          | Linear algebra executables and their dependencies    | [Linear Algebra](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TestLA) |
+| build-tpch-tests        | TPCH executables and their dependencies              | [TPCH Benchmark](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TPCHBench) |
+| build-tests             | Unit tests executables        | [Unit Tests](https://github.com/riceplinygroup/plinycompute/tree/master/tests/unit) |
+| build-integration-tests | Integration tests executables       | [Integration Tests](https://github.com/riceplinygroup/plinycompute/tree/master/tests/integration) |
 
-Depending on what target you want to build, issue the following command, replacing <number-of-jobs> with a number (this allows to execute multiple recipes in parallel); and replacing <target> with one target from the table above.
+Depending on what target you want to build, issue the following command:
 ```bash 
 $ make -j <number-of-jobs> <target>
 ```
-  
-For example, the following command compiles and builds the executable pdb-manager (by default created in the folder `bin`).
+replacing:
+  - `<number-of-jobs>` with a number (this allows to execute multiple recipes in parallel);
+  -  `<target>` with one target from the table above
+   
+For example, the following command compiles and builds the executables and shared libraries for the machine learning application in the `bin` folder.
 ```bash 
-$ make -j 4 pdb-manager
+$ make -j 4 build-ml-tests
 ```
 
-### <a name="building"></a>Compiling, building targets, and running tests:
-
-This table lists the different make targets for running different test suites:
-
-| Target                  | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| unit-tests              | Builds all unit tests and their possible dependencies.           |
-| run-integration-tests   | Builds all integration tests and their dependencies, then proceeds on running them one by one.  |
-| run-la-tests   | Builds the **linear algebra** tests and their dependencies, then proceeds on running them one by one.  |
-| run-ml-tests   | Builds the **machine learning**  tests and their dependencies, then proceeds on running them one by one.  |
-| run-tpch-tests   | Builds the **tpch** tests and their dependencies, then proceeds on running them one by one.  |
-| clean-integration-tests | If there happens to be a situation where an integration test would fail, this target will remove them. |
-| &lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies. For example running **make TestAllSelection** will build the TestAllSelection test. |
-| RunLocal&lt;TestName&gt;              | This target builds the test named &lt;TestName&gt; and all of the dependencies, then proceeds on running it. For example running **make RunLocalTestAllSelection** will build the TestAllSelection test and run it in the pseudo cluster mode. |
-| &lt;LibraryName&gt;           | This target builds a particular shared library named &lt;LibraryName&gt;. For example running **make SharedEmployee** will build the SharedEmployee library. |
-
-### <a name="tests"></a>Example of building and running Unit Tests
-To run the unit tests, issue the following commands:
+### <a name="tests"></a>Compiling, building, and running Unit and Integration Tests
+For developers who want to add functionality to the PlinyCompute, here are examples on how to build and run unit and integration tests.
+  - unit tests
 ```bash 
-$ make unit-tests
-$ make test
+$ make unit-tests && make test
+```
+  - integration tests
+```bash 
+$ make run-integration-tests
 ```
 
 # Deploying and Launching PlinyCompute
@@ -171,10 +169,9 @@ In the above example, the cluster will include one manager node (where PlinyComp
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
 
-5. Build the following executables replacing the value of the -j argument with an integer to execute multiple recipes in parallel:
+5. Build the following target, replacing the value of the -j argument with an integer to execute multiple recipes in parallel:
 ```bash 
-$ make -j 4 pdb-manager
-$ make -j 4 pdb-worker
+$ make -j 4 pdb-main
 ```
 This will generate two executables in the directory `$PDB_HOME/bin`:
 ```bash 
@@ -182,7 +179,7 @@ pdb-manager
 pdb-worker
 ```
 
-6. Install the required executables and scripts on the worker nodes by running the following script, which will be installed on the path given by the $PDB_INSTALL envrionment variable. Note: the script's argument is the pem file required to connect to the machines in the cluster. 
+6. Install the required executables and scripts on the worker nodes by running the following script, which will be installed on the path given by the $PDB_INSTALL envrionment variable. **Note:** the script's argument is the pem file required to connect to the machines in the cluster. 
 ```bash 
 $ $PDB_HOME/scripts/install.sh conf/pdb-key.pem
 ```
@@ -206,12 +203,27 @@ Worker node with IP: 192.168.1.3 successfully installed.
 At this point all executable programs and scripts are properly installed on the worker nodes!
 
 7. Launching the cluster
-Run the following script, replacing the second argument with the public IP address of the manager node, and the third agrument with the pem file that allows to connect to the machines in the cluster. In this example, the first argument `distributed` indicates that this is a real cluster, the manager node IP address is `192.168.1.0`, and the pem file `conf/pdb-key.pem`. By default the cluster is launched with `1` thread and `2Gb` of memory. 
+To start a cluster of PlinyCompute run the script: 
+```bash
+startCluster.sh <cluster_type> <manager_node_ip> <pem_file> [num_threads] [shared_memory]
+```
+
+Where the following arguments are required:
+  - `<cluster_type>` should be **distributed**
+  - `<manager_node_ip>` the public IP address of the manager node
+  - `<pem_file>` the pem file that allows to connect to the machines in the cluster
+  
+ The last two arguments are optional:
+  - `<num_threads>` number of CPU cores on each worker node that PlinyCompute will use
+  - `<shared_memory>` amount of RAM to be used by the worker node in Megabytes 
+
+In the following example, the public IP address of the manager node is `192.168.1.0`; the pem file is `conf/pdb-key.pem`; by default the cluster is launched with `1` thread and `2Gb` of memory.
+
 ```bash
 $ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
-If you want to launch the cluster with more threads and memory, provide the fourth and fifth arguments, in the following example, a cluster is launched with 4 threads and 4096 and 4GB of memory.
+If you want to launch the cluster with more threads and memory in Megabytes, provide the fourth and fifth arguments. In the following example, a cluster is launched with 4 threads and 4GB of memory (4096). For more information about tunning PlinyCompute visit the [System configuration page](http://plinycompute.rice.edu/faq/system-configuration/).
 ```bash
 $ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem 4 4096
 ```
@@ -233,14 +245,19 @@ Worker node with IP: 192.168.1.3 successfully started.
 ---------------------------------
 ```
 
-## Stop Cluster
-To stop a running instance of PlinyCompute, issue the following command:
+## Stopping a Cluster
+To stop a running cluster of PlinyCompute, issue the following command if you are running in a distributed cluster:
 ```bash  
-$ ./scripts/stopCluster.sh distributed conf/private_key.pem
+$ $PDB_HOME/scripts/stopCluster.sh distributed conf/private_key.pem
 ```
 
-## <a name="cleanup"></a>Cleanup PlinyCompute data and catalog metadata
-To remove data in a PlinyCompute cluster, execute the following script. Note that the value of the first argument is `distributed`, meaning this will clean data in a real cluster. **Warning:** this script removes all PlinyCompute stored data and catalog metadata from the entire cluster.
+Instead, use this one if you are running a standalone cluster.
+```bash  
+$ $PDB_HOME/scripts/stopCluster.sh standalone
+```
+
+## <a name="cleanup"></a>Cleanup PlinyCompute storage data and catalog metadata
+To remove data in a PlinyCompute cluster, execute the following script. Note that the value of the first argument is `distributed`, meaning this will clean data in a real cluster. **Warning:** this script removes all PlinyCompute stored data and catalog metadata from the entire cluster, use it carefully.
 ```
 $ $PDB_HOME/scripts/cleanup.sh distributed conf/pdb-key.pem
 ```
@@ -250,16 +267,10 @@ If you are running in a standalone cluster, run the following script
 $ $PDB_HOME/scripts/cleanup.sh standalone
 ```
 
-## Upgrade Cluster (for developers and testers upgrade binaries and restart cluster with all data kept)
+## Upgrade Cluster (for developers and testers who want to upgrade binaries and restart cluster with all data kept)
 ```bash
-$ ./scripts/stopCluster.sh distributed conf/pdb-key.pem
-$ ./scripts/internal/upgrade.sh conf/pdb-key.pem
-$ ./scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
+$ $PDB_HOME/scripts/stopCluster.sh distributed conf/pdb-key.pem
+$ $PDB_HOME/scripts/internal/upgrade.sh conf/pdb-key.pem
+$ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
-## Cleanup Catalog and Storage data
-You can cleanup all catalog and storage data by running the following command in the manager node:
-
-```bash  
-$ ./scripts/cleanup.sh distributed conf/pdb-key.pem
-```
