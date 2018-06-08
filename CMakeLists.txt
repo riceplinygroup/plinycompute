@@ -307,6 +307,11 @@ target_link_libraries(pdb-tests-common PRIVATE ${Boost_LIBRARIES})
 # form the parsers for the logical plan
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})
 
+# set dependencies for pdb-main
+add_custom_target(pdb-main)
+add_dependencies(pdb-main pdb-worker)
+add_dependencies(pdb-main pdb-manager)
+
 # set the pdb-manager build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/ManagerMain.cc)
 add_executable(pdb-manager ${SOURCE_FILES_PDB_CLUSTER} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
