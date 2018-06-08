@@ -87,7 +87,13 @@ do
 done < $PDB_HOME/conf/serverlist
 
 length=${#arr[@]}
-echo "There are $length worker nodes defined in conf/serverlist"
+if [ $length -eq 0 ]; then
+   echo -e "[Error] There are no IP addresses in file  ""\e[31m""conf/serverlist""\e[0m""."
+   echo -e "Make sure it contains at least one entry."
+   exit -1;
+else
+   echo "There are $length worker nodes defined in conf/serverlist"
+fi
 
 resultOkHeader="*** Successful results ("
 resultFailedHeader="*** Failed results ("
