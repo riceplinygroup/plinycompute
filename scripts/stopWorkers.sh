@@ -49,6 +49,7 @@ testSSHTimeout=3
 
 if [ "$cluster_type" != "standalone" ] && [ "$cluster_type" != "distributed" ];
    then echo "ERROR: the value of cluster_type can only be either: 'standalone' or 'distributed'";
+   exit -1;
 fi
 
 if [ "$cluster_type" = "distributed" ];then
@@ -99,8 +100,13 @@ done < $conf_file
 # stops worker nodes only if running in distributed cluster
 if [ "$cluster_type" = "distributed" ];then
    length=${#arr[@]}
-
-   echo "There are $length worker nodes defined in conf/serverlist"
+   if [ $length -eq 0 ]; then
+      echo -e "[Error] There are no IP addresses in file  ""\e[31m""$conf_file""\e[0m""."
+      echo -e "Make sure it contains at least one entry."
+      exit -1;
+   else
+      echo "There are $length worker nodes defined in $conf_file"
+   fi
 
    resultOkHeader="*** Successful results ("
    resultFailedHeader="*** Failed results ("
