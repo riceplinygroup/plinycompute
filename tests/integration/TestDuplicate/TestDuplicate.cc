@@ -78,10 +78,10 @@ int main() {
     (*supers)[i] = super;
   } // Duplicate copying should happen here.
 
-  std::cout << "First address is " << (*supers)[0].getOffset() + ((char *) &((*supers)[0])) << std::endl;
-  std::cout << "Ref assignment address is " << (*supers)[25].getOffset() + ((char *) &((*supers)[25])) << std::endl;
+  std::cout << "First address is " << (void *) ((*supers)[0].getOffset() + ((char *) &((*supers)[0]))) << std::endl;
+  std::cout << "Ref assignment address is " << (void*) ((*supers)[25].getOffset() + ((char *) &((*supers)[25]))) << std::endl;
 
-  std::cout << "Handle assignment address is " << (*supers)[75].getOffset()  + ((char *) &((*supers)[75])) << std::endl;
+  std::cout << "Handle assignment address is " << (void *) ((*supers)[75].getOffset()  + ((char *) &((*supers)[75]))) << std::endl;
 
 
 //    // load up the allocator with RAM
