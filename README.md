@@ -19,9 +19,9 @@
 PlinyCompute has been compiled, built, and tested in Ubuntu 16.04.4 LTS. For the system to work properly, make sure the following requirements are satisfied.
 
 ### Environment Variables:
-The following environment variables have to be set:
+These environment variables have to be set:
 
-1. **PDB_HOME**: this is the root path directory where PlinyCompute source code is installed when the project is cloned from github; by default is set to `~/plinycompute`
+1. **PDB_HOME**: this is the root path directory where PlinyCompute source code is installed when the project is cloned from GitHub; by default is set to `~/plinycompute`
 
 2. **PDB_INSTALL**: this is the root directory on the worker nodes where executables and scripts will be installed. Required only when running in **distributed** mode; by default is set to `/tmp/pdb_install`.
 
@@ -31,8 +31,11 @@ $ export PDB_HOME=/home/ubuntu/plinycompute
 $ export PDB_INSTALL=/tmp/pdb_install
 ```
 
+### Key-based authentication (PEM file)
+PlinyCompute running in a distributed cluster uses key-based authentication. Thus, a private key has to be generated and placed on `$PDB_HOME/conf`. The file name of the key is arbitrary, by default it is `pdb-key.pem`, make sure it has the following permissions `$ chmod 400 $PDB_HOME/conf/pdb-key.pem`.
+
 ### <a name="req"></a>Third-party libraries and packages required:
-The table below lists the libraries and packages required by PlinyCompute. If any of them is missing in your system, run the following script to install them `$PDB_HOME/scripts/internal/setupDependencies.py`.
+In addition to Python (version 2.7.12 or greater), the table below lists the libraries and packages required by PlinyCompute. If any of them is missing in your system, run the following script to install them `$PDB_HOME/scripts/internal/setupDependencies.py`.
 
 | Library/Software          | Packages             |
 | ------------- | ---------------------------:|
@@ -58,6 +61,7 @@ In a Linux machine the prompt should look something similar to:
 ```bash 
 ubuntu@manager:~/plinycompute$
 ```
+
 2. Invoke cmake, by default PlinyCompute is built without debug messages with the following command:
 ```bash 
 $ cmake .
@@ -70,15 +74,22 @@ Conversely, to turn debugging messages off, issue the following command:
 ```bash 
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
-3. Compile and build. This make target builds two executables `pdb-manager` and `pdb-worker` in the `bin` folder; which are invoked by the different scripts described below.
+
+3. Compile and build. This make target, builds two executables `pdb-manager` and `pdb-worker` in the `bin` folder; which are invoked by different scripts as described in the sections below.
 ```bash 
 $ make pdb-main
 ```
 
-If you want to explore and test different applications and libraries that use PlinyCompute as compute engine, build one target from the table below.
+4. As an example, compile and build a machine learning application [KMeans](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TestKMeans), which creates this executable `./bin/TestKMeans`. This example will be used in step 3 in the next section, once the cluster is launched.
+```bash 
+$ make TestKMeans
+```
+
+5. If you want to explore and test different applications and libraries that use PlinyCompute as compute engine, build one target from the table below.
+
 **Notes:**
   - the target `shared-libraries`, builds common shared libraries that are used by the different applications (build this first)
-  - these targets are independent from each other and are not required for the PlinyCompute engine to work.
+  - these targets are independent from each other and are not required for the PlinyCompute engine to work
   
 <a name="targets"></a>Make targets for different applications:
 
@@ -91,13 +102,13 @@ If you want to explore and test different applications and libraries that use Pl
 | build-tests             | Unit tests executables        | [Unit Tests](https://github.com/riceplinygroup/plinycompute/tree/master/tests/unit) |
 | build-integration-tests | Integration tests executables       | [Integration Tests](https://github.com/riceplinygroup/plinycompute/tree/master/tests/integration) |
 
-Depending on what target you want to build, issue the following command:
+Depending on the target you want to build, issue the following command:
 ```bash 
 $ make -j <number-of-jobs> <target>
 ```
 replacing:
-  - `<number-of-jobs>` with a number (this allows to execute multiple recipes in parallel);
-  -  `<target>` with one target from the table above
+  - `<number-of-jobs>` with a number (this allows to execute multiple recipes in parallel)
+  - `<target>` with one target from the table above
    
 For example, the following command compiles and builds the executables and shared libraries for the machine learning application in the `bin` folder.
 ```bash 
@@ -105,7 +116,7 @@ $ make -j 4 build-ml-tests
 ```
 
 ### <a name="tests"></a>Compiling, building, and running Unit and Integration Tests
-For developers who want to add functionality to the PlinyCompute, here are examples on how to build and run unit and integration tests.
+For developers who want to add new functionality to PlinyCompute, here are examples on how to build and run unit and integration tests.
   - unit tests
 ```bash 
 $ make unit-tests && make test
@@ -117,16 +128,17 @@ $ make run-integration-tests
 
 # Deploying and Launching PlinyCompute
 PlinyCompute can be launched in two modes:
-1. **standalone**: this mode is ideal for testing the functionality of PlinyCompute in a single machine (e.g. a personal computer or a laptop). The cluster is simulated by launching the manager node and one or more worker nodes as separate processes listening on different ports in one physical machine.
+  - **standalone**: this mode is ideal for testing the functionality of PlinyCompute in a single machine (e.g. a personal computer or a laptop). The cluster is simulated by launching the manager node and one or more worker nodes as separate processes listening on different ports in one physical machine.
 
-2. **distributed**: best suited for processing large datasets. In this mode, the manager node and one ore more worker nodes are launched in different machines.
+  - **distributed**: best suited for processing large datasets. In this mode, the manager node and one ore more worker nodes are launched in different machines.
 
 ### <a name="pseudo"></a>Running PlinyCompute on a local machine (standalone mode)
-The following script launches an instance of PlinyCompute:
+1. Launch PlinyCompute in standalone mode:
 ```bash 
 $ $PDB_HOME/scripts/startCluster.sh standalone localhost
 ```
-To verify that the pseudo cluster is up and running, issue the following command:
+
+2. Verify that the pseudo cluster is up and running, issue the following command:
 ```bash 
 $ ps aux | grep pdb
 ```
@@ -136,7 +148,13 @@ bin/pdb-manager localhost 8108 Y
 bin/pdb-worker 1 2048 localhost:8108 localhost:8109
 bin/pdb-worker 1 2048 localhost:8108 localhost:8109
 ```
-In the above output, `pdb-manager` is the manager process running on localhost and listening on port 8108. The two `pdb-worker` processes correspond to one worker node (each worker node runs a front-end and back-end process), which listen on port 8109 and connected to the manager process on port 8108.
+In the above output, `pdb-manager` is the manager process running on localhost and listening on port 8108. The two `pdb-worker` processes correspond to one worker node (each worker node runs a front-end and back-end process), listening on port 8109 and connected to the manager process on port 8108.
+
+3. Run the `TestKMeans` example built in step 4 in the previous section (see [KMeans](https://github.com/riceplinygroup/plinycompute/tree/master/applications/TestKMeans) for more details).  
+```bash 
+$ ./bin/TestKMeans Y Y localhost Y 3 3 0.00001 applications/TestKMeans/kmeans_data
+```
+As the program is executed, the output will be displayed on the screen. Congratulations you have successfuly installed, deployed, and tested PlinyCompute.
 
 ### <a name="cluster"></a>Deploying PlinyCompute on a real distributed cluster
 Although running PlinyCompute in one machine (e.g. a laptop) is ideal for becoming familiar with the system and testing some of its functionality, PlinyCompute's high-performance properties are best suited for processing large data loads in a real distributed cluster such as Amazon AWS, on-premise, or other cloud provider. To accomplish this, follow these steps:
@@ -147,12 +165,12 @@ Although running PlinyCompute in one machine (e.g. a laptop) is ideal for becomi
 ```bash 
 $ git clone https://github.com/riceplinygroup/plinycompute.git
 ```
-This command downloads PlinyCompute in a folder named plinycompute. Make sure you are in that directory. In a Linux machine the prompt should look something similar to:
+This command downloads PlinyCompute in a folder named `plinycompute.` Make sure you are in that directory. In a Linux machine the prompt should look something similar to:
 ```bash 
 ubuntu@manager:~/plinycompute$
 ```
 
-3. Edit the $PDB_HOME/conf/serverlist file, and add the public IP addresses of the worker nodes (machines) in the cluster; one IP address per line. Below is a partial listing of such file (replace the IP's with your own, the ones shown here are ficticious):
+3. Edit the `$PDB_HOME/conf/serverlist` file, and add the public IP addresses of the worker nodes (machines) in the cluster; one IP address per line. Below is a partial listing of such file (replace the IP's with your own, the ones shown here are ficticious):
 ```bash
 .
 .
@@ -169,7 +187,7 @@ In the above example, the cluster will include one manager node (where PlinyComp
 $ cmake -DUSE_DEBUG:BOOL=OFF .
 ```
 
-5. Build the following target, replacing the value of the -j argument with an integer to execute multiple recipes in parallel:
+5. Build the following target, replacing the value of the -j argument with an integer to execute multiple recipes in parallel (if you already built this target, skip this step):
 ```bash 
 $ make -j 4 pdb-main
 ```
@@ -179,7 +197,7 @@ pdb-manager
 pdb-worker
 ```
 
-6. Install the required executables and scripts on the worker nodes by running the following script, which will be installed on the path given by the $PDB_INSTALL envrionment variable. **Note:** the script's argument is the pem file required to connect to the machines in the cluster. 
+6. Install the required executables and scripts on the worker nodes by running the following script. They will be installed on the path given by the `$PDB_INSTALL` envrionment variable. **Note:** the script's argument is the pem file required to connect to the machines in the cluster. 
 ```bash 
 $ $PDB_HOME/scripts/install.sh conf/pdb-key.pem
 ```
@@ -202,10 +220,10 @@ Worker node with IP: 192.168.1.3 successfully installed.
 
 At this point all executable programs and scripts are properly installed on the worker nodes!
 
-7. Launching the cluster
+7. Launching the cluster.
 To start a cluster of PlinyCompute run the script: 
 ```bash
-startCluster.sh <cluster_type> <manager_node_ip> <pem_file> [num_threads] [shared_memory]
+$ $PDB_HOME/scripts/startCluster.sh <cluster_type> <manager_node_ip> <pem_file> [num_threads] [shared_memory]
 ```
 
 Where the following arguments are required:
@@ -215,7 +233,7 @@ Where the following arguments are required:
   
  The last two arguments are optional:
   - `<num_threads>` number of CPU cores on each worker node that PlinyCompute will use
-  - `<shared_memory>` amount of RAM to be used by the worker node in Megabytes 
+  - `<shared_memory>` amount of RAM on each worker node (in Megabytes) that PlinyCompute will use
 
 In the following example, the public IP address of the manager node is `192.168.1.0`; the pem file is `conf/pdb-key.pem`; by default the cluster is launched with `1` thread and `2Gb` of memory.
 
@@ -223,7 +241,7 @@ In the following example, the public IP address of the manager node is `192.168.
 $ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem
 ```
 
-If you want to launch the cluster with more threads and memory in Megabytes, provide the fourth and fifth arguments. In the following example, a cluster is launched with 4 threads and 4GB of memory (4096). For more information about tunning PlinyCompute visit the [System configuration page](http://plinycompute.rice.edu/faq/system-configuration/).
+If you want to launch the cluster with more threads and memory, provide the fourth and fifth arguments. In the following example, a cluster is launched with 4 threads and 4GB of memory. For more information about tunning PlinyCompute visit the [system configuration page](http://plinycompute.rice.edu/faq/system-configuration/).
 ```bash
 $ $PDB_HOME/scripts/startCluster.sh distributed 192.168.1.0 conf/pdb-key.pem 4 4096
 ```
@@ -245,24 +263,29 @@ Worker node with IP: 192.168.1.3 successfully started.
 ---------------------------------
 ```
 
+8. To run the `TestKMeans` example in this cluster, issue the following command. Note that although the executable and arguments are the same as the ones in the previous section, because it is sent to a distributed PlinyCompute deployment, the computations are distributed to the three worker nodes for execution.
+```bash 
+$ ./bin/TestKMeans Y Y localhost Y 3 3 0.00001 applications/TestKMeans/kmeans_data
+```
+
 ## Stopping a Cluster
 To stop a running cluster of PlinyCompute, issue the following command if you are running in a distributed cluster:
 ```bash  
 $ $PDB_HOME/scripts/stopCluster.sh distributed conf/private_key.pem
 ```
 
-Instead, use this one if you are running a standalone cluster.
+Conversely, use this one if you are running a standalone cluster:
 ```bash  
 $ $PDB_HOME/scripts/stopCluster.sh standalone
 ```
 
 ## <a name="cleanup"></a>Cleanup PlinyCompute storage data and catalog metadata
-To remove data in a PlinyCompute cluster, execute the following script. Note that the value of the first argument is `distributed`, meaning this will clean data in a real cluster. **Warning:** this script removes all PlinyCompute stored data and catalog metadata from the entire cluster, use it carefully.
+To remove data in a PlinyCompute cluster, execute the following script. Note that the value of the first argument is `distributed`, meaning this will clean data in a real cluster. **Warning:** this will remove all PlinyCompute stored data and catalog metadata from the entire cluster, use it carefully.
 ```
 $ $PDB_HOME/scripts/cleanup.sh distributed conf/pdb-key.pem
 ```
 
-If you are running in a standalone cluster, run the following script
+If you are running in a standalone cluster, run the following script:
 ```
 $ $PDB_HOME/scripts/cleanup.sh standalone
 ```
