@@ -79,7 +79,7 @@ using namespace std;
 #define MB (1024 * KB)
 #define GB (1024 * MB)
 
-#define BLOCKSIZE (256 * MB)
+#define BLOCKSIZE DEFAULT_NET_PAGE_SIZE
 
 // A function to parse a Line
 std::vector<std::string> parseLine(std::string line) {
@@ -378,9 +378,10 @@ void dataGenerator(std::string scaleFactor,
                                                         tokens.at(6),
                                                         tokens.at(7));
                 storeMeCustomerList->push_back(objectToAdd);
+                //std::cout << "pushed onto the list";
 
             } catch (NotEnoughSpace& e) {
-
+                std::cout << "Jessica Not enought space:";
 
                 // First send the existing data over
                 if (storeMeCustomerList->size() > 0) {
@@ -389,6 +390,8 @@ void dataGenerator(std::string scaleFactor,
                             storeMeCustomerList)) {
                         std::cout << "Failed to send data to dispatcher server" << std::endl;
                     }
+                    std::cout << "Jessica sent:";
+                    std::cout << storeMeCustomerList->size() << std::endl;
                     sendingObjectSize += storeMeCustomerList->size();
 
                     std::cout << "Copy Number: " << i
@@ -400,7 +403,7 @@ void dataGenerator(std::string scaleFactor,
                 // make a allocation Block and a new vector.
                 // pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
                 storeMeCustomerList->clear();
-
+                pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
                 // retry to make the object and add it to the vector
                 try {
                     objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey],

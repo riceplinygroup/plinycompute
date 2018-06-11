@@ -479,12 +479,14 @@ Handle<ObjType>::Handle(const Handle<ObjTypeTwo>& fromMe) {
 
 template <class ObjType>
 void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
-    std::uintptr_t middle12 = get_middle_12_bits(on_block);
+    //std::uintptr_t middle12 = get_middle_12_bits(on_block);
     //std::cout << "the middle 12 is " << middle12 << std::endl;
-    if (getAllocator().reverse_copied_map[middle12] == nullptr) {
-      getAllocator().reverse_copied_map[middle12] = (char*) off_block;
-      getAllocator().copied_map[off_block] = on_block;
-    }
+    //if (getAllocator().reverse_copied_map[middle12] == nullptr) {
+    //  getAllocator().reverse_copied_map[middle12] = (char*) off_block;
+    //  getAllocator().copied_map[off_block] = on_block;
+    //}
+    //getAllocator().copied_map[off_block] = on_block;
+    //getAllocator().reverse_copied_map[on_block] = off_block;
 }
 
 template <class ObjType>
@@ -520,7 +522,9 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjType>* fro
 
         // Check whether this object is already copied to the active block
         if (fromMe->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
-          if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+        // std::cout << "A" << std::endl;  
+	if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+            // std::cout << "B" << std::endl;
             void* target_ad = getAllocator().copied_map[(void *) fromMe];
             offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
             getTarget()->incRefCount();
@@ -631,7 +635,9 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjTypeTwo>* 
     if (!getAllocator().contains((void*)fromMe) && getAllocator().contains(this)) {
         // Check whether this object is already copied to the active block
         if (fromMe->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
+            // std::cout << "A" << std::endl;
             if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+                // std::cout << "B" << std::endl;
                 void* target_ad = getAllocator().copied_map[(void *) fromMe];
                 offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
                 getTarget()->incRefCount();
@@ -729,7 +735,9 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
     if (!getAllocator().contains(fromMe.getTarget()) && getAllocator().contains(this)) {
         RefCountedObject<ObjType>* refCountedObject = fromMe.getTarget();
         if (refCountedObject->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
-            if (getAllocator().copied_map.find((void *) refCountedObject) != getAllocator().copied_map.end()) {
+           // std::cout << "A" << std::endl; 
+           if (getAllocator().copied_map.find((void *) refCountedObject) != getAllocator().copied_map.end()) {
+                // std::cout << "B" << std::endl;
                 void* target_ad = getAllocator().copied_map[(void *) refCountedObject];
                 offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
                 getTarget()->incRefCount();
@@ -844,7 +852,9 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
     // we need to copy it over using a deep copy
     if (!getAllocator().contains(fromMe.getTarget()) && getAllocator().contains(this)) {
         if (fromMe.getTarget()->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
+            // std::cout << "A" << std::endl;
             if (getAllocator().copied_map.find((void *) fromMe.getTarget()) != getAllocator().copied_map.end()) {
+                // std::cout << "B" << std::endl;
                 void* target_ad = getAllocator().copied_map[(void *) fromMe.getTarget()];
                 offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
                 getTarget()->incRefCount();
@@ -857,7 +867,7 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
 #ifdef DEBUG_OBJECT_MODEL
         void* space = getAllocator().getRAM(
             REF_COUNT_PREAMBLE_SIZE +
-                typeInfo.getSizeOfConstituentObject(fromMe.getTarget()->getObject()),
+                  typeInfo.getSizeOfConstituentObject(fromMe.getTarget()->getObject()),
             typeInfo.getTypeCode());
 #else
         void* space = getAllocator().getRAM(
