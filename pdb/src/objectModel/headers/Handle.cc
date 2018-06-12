@@ -484,13 +484,15 @@ void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
     if (getAllocator().reverse_copied_map[middle12] == nullptr) {
       getAllocator().reverse_copied_map[middle12] = (char*) off_block;
       getAllocator().copied_map[off_block] = on_block;
-    }
+      //std::cout << "yes" <<std::endl;
+    } 
+    //getAllocator().copied_map[off_block] = on_block;
 }
 
 template <class ObjType>
 std::uintptr_t Handle<ObjType>::get_middle_12_bits(void* on_block) {
   std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
-  return ((i >> 5) & ((1 << 12) - 1));
+  return ((i >> 0) & ((1 << 12) - 1));
 }
 
 /****************************************************************/

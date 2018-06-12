@@ -384,6 +384,7 @@ void dataGenerator(std::string scaleFactor,
 
                 // First send the existing data over
                 if (storeMeCustomerList->size() > 0) {
+                    std::cout << "Jessica size: " << storeMeCustomerList->size() << std::endl;
                     if (!dispatcherClient.sendData<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
                             storeMeCustomerList)) {

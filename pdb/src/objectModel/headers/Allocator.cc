@@ -560,7 +560,7 @@ inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getAllocato
 template <typename FirstPolicy, typename... OtherPolicies>
 inline std::uintptr_t MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::get_middle_12_bits(void* on_block) {
   std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
-  return ((i >> 5) & ((1 << 12) - 1));
+  return ((i >> 0) & ((1 << 12) - 1));
 }
 
 template <typename FirstPolicy, typename... OtherPolicies>
