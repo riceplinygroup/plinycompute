@@ -485,8 +485,8 @@ void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
     //  getAllocator().reverse_copied_map[middle12] = (char*) off_block;
     //  getAllocator().copied_map[off_block] = on_block;
     //}
-    //getAllocator().copied_map[off_block] = on_block;
-    //getAllocator().reverse_copied_map[on_block] = off_block;
+    getAllocator().copied_map[off_block] = on_block;
+    getAllocator().reverse_copied_map[on_block] = off_block;
 }
 
 template <class ObjType>

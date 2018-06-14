@@ -79,7 +79,7 @@ using namespace std;
 #define MB (1024 * KB)
 #define GB (1024 * MB)
 
-#define BLOCKSIZE DEFAULT_NET_PAGE_SIZE
+#define BLOCKSIZE (256 * MB)
 
 // A function to parse a Line
 std::vector<std::string> parseLine(std::string line) {
@@ -404,6 +404,8 @@ void dataGenerator(std::string scaleFactor,
                 // pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
                 storeMeCustomerList->clear();
                 pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+                storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+                //pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
                 // retry to make the object and add it to the vector
                 try {
                     objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey],
@@ -439,8 +441,8 @@ void dataGenerator(std::string scaleFactor,
         //		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
         //		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
-        storeMeCustomerList->clear();
-
+        pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+        storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
         infile.close();
         infile.clear();
     }

@@ -46,8 +46,6 @@ elseif (NOT USE_DEBUG)
    message("PDB_DEBUG is OFF")
 endif (USE_DEBUG)
 
-ADD_DEFINITIONS(-DPDB_DEBUG)
-
 # installs required third-party packages and libraries
 execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/setupDependencies.py")
 
