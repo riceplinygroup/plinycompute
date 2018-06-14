@@ -15,6 +15,11 @@
 * [System configuration](http://plinycompute.rice.edu/faq/system-configuration/)
 * [FAQ's](http://plinycompute.rice.edu/faq/)
 
+## Acknowledgement
+This research was developed with funding from the Defense Advanced Research Projects Agency (DARPA) MUSE award #FA8750-14-2-0270.
+
+**Disclaimer:** The views, opinions, and/or findings contained in this research are those of the authors and should not be interpreted as representing the official views or policies of the Department of Defense or the U.S. Government.
+
 # Requirements and dependencies
 PlinyCompute has been compiled, built, and tested in Ubuntu 16.04.4 LTS. For the system to work properly, make sure the following requirements are satisfied.
 
