@@ -401,7 +401,8 @@ void dataGenerator(std::string scaleFactor,
                 // make a allocation Block and a new vector.
                 // pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
                 storeMeCustomerList->clear();
-
+                pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+                storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
                 // retry to make the object and add it to the vector
                 try {
                     objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey],
@@ -438,7 +439,8 @@ void dataGenerator(std::string scaleFactor,
         //		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
         storeMeCustomerList->clear();
-
+        pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+        storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
         infile.close();
         infile.clear();
     }
