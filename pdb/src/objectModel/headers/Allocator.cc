@@ -566,13 +566,7 @@ inline std::uintptr_t MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::get_m
 template <typename FirstPolicy, typename... OtherPolicies>
 inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(void* refPtr) {
     //std::cout << "In remove" << std::endl; 
-    auto it = reverse_copied_map.find(refPtr);
-    if (it != reverse_copied_map.end()) {
-	void * off_block = it->second;
-	auto it2 = copied_map.find(off_block);
-        copied_map.erase(it2);
-        reverse_copied_map.erase(it);
-	}   
+    copied_map.right.erase(refPtr); 
 
 
 //auto it = copied_map.begin();
@@ -801,7 +795,6 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::setupBlock(
     // Clear the copied map and update current allocator stamp
     copied_map.clear();
     //std::fill(reverse_copied_map, reverse_copied_map + (1 << 12), nullptr);
-    reverse_copied_map.clear();
     allocatorStamp = (allocatorStamp + 1) % ((1 << 4) - 1);
 }
 

@@ -31,7 +31,7 @@
 #include "TypeName.h"
 #include "Handle.h"
 #include "RefCountedObject.h"
-
+#include <boost/bimap.hpp>
 namespace pdb {
 
 #define CHAR_PTR(c) ((char*)c)
@@ -485,8 +485,7 @@ void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
     //  getAllocator().reverse_copied_map[middle12] = (char*) off_block;
     //  getAllocator().copied_map[off_block] = on_block;
     //}
-    getAllocator().copied_map[off_block] = on_block;
-    getAllocator().reverse_copied_map[on_block] = off_block;
+    getAllocator().copied_map.insert( boost::bimap<void*, void*>::value_type(off_block, on_block));
 }
 
 template <class ObjType>
@@ -523,9 +522,10 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjType>* fro
         // Check whether this object is already copied to the active block
         if (fromMe->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
         // std::cout << "A" << std::endl;  
-	if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+        auto iter = getAllocator().copied_map.left.find((void *) fromMe);
+	if (iter != getAllocator().copied_map.left.end()) {
             // std::cout << "B" << std::endl;
-            void* target_ad = getAllocator().copied_map[(void *) fromMe];
+            void* target_ad = iter->second;
             offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
             getTarget()->incRefCount();
             DEC_OLD_REF_COUNT;
@@ -636,9 +636,10 @@ Handle<ObjType>& Handle<ObjType>::operator=(const RefCountedObject<ObjTypeTwo>* 
         // Check whether this object is already copied to the active block
         if (fromMe->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
             // std::cout << "A" << std::endl;
-            if (getAllocator().copied_map.find((void *) fromMe) != getAllocator().copied_map.end()) {
+            auto iter = getAllocator().copied_map.left.find((void *) fromMe);
+            if (iter != getAllocator().copied_map.left.end()) {
                 // std::cout << "B" << std::endl;
-                void* target_ad = getAllocator().copied_map[(void *) fromMe];
+                void* target_ad = iter->second;
                 offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
                 getTarget()->incRefCount();
                 DEC_OLD_REF_COUNT;
@@ -736,9 +737,10 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjType>& fromMe) {
         RefCountedObject<ObjType>* refCountedObject = fromMe.getTarget();
         if (refCountedObject->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
            // std::cout << "A" << std::endl; 
-           if (getAllocator().copied_map.find((void *) refCountedObject) != getAllocator().copied_map.end()) {
+           auto iter = getAllocator().copied_map.left.find((void *) fromMe.getTarget());
+           if (iter != getAllocator().copied_map.left.end()) {
                 // std::cout << "B" << std::endl;
-                void* target_ad = getAllocator().copied_map[(void *) refCountedObject];
+                void* target_ad = iter->second;
                 offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
                 getTarget()->incRefCount();
                 DEC_OLD_REF_COUNT;
@@ -853,9 +855,10 @@ Handle<ObjType>& Handle<ObjType>::operator=(const Handle<ObjTypeTwo>& fromMe) {
     if (!getAllocator().contains(fromMe.getTarget()) && getAllocator().contains(this)) {
         if (fromMe.getTarget()->getAllocatorStamp() == getAllocator().getAllocatorStamp()) {
             // std::cout << "A" << std::endl;
-            if (getAllocator().copied_map.find((void *) fromMe.getTarget()) != getAllocator().copied_map.end()) {
+            auto iter = getAllocator().copied_map.left.find((void *) fromMe.getTarget());
+            if (iter  != getAllocator().copied_map.left.end()) {
                 // std::cout << "B" << std::endl;
-                void* target_ad = getAllocator().copied_map[(void *) fromMe.getTarget()];
+                void* target_ad = iter->second;
                 offset = CHAR_PTR(target_ad) - CHAR_PTR(this);
                 getTarget()->incRefCount();
                 DEC_OLD_REF_COUNT;
