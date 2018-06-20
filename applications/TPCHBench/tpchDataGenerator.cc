@@ -79,7 +79,7 @@ using namespace std;
 #define MB (1024 * KB)
 #define GB (1024 * MB)
 
-#define BLOCKSIZE (256 * MB)
+#define BLOCKSIZE DEFAULT_NET_PAGE_SIZE
 
 // A function to parse a Line
 std::vector<std::string> parseLine(std::string line) {
@@ -385,11 +385,12 @@ void dataGenerator(std::string scaleFactor,
 
                 // First send the existing data over
                 if (storeMeCustomerList->size() > 0) {
-                    if (!dispatcherClient.sendData<Customer>(
+                    Record<Vector<Handle<Object>>>* myRecord =
+                        (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
+                    dispatcherClient.sendBytes<Customer>(
                             std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
-                            storeMeCustomerList)) {
-                        std::cout << "Failed to send data to dispatcher server" << std::endl;
-                    }
+                            (char*)myRecord,
+                            myRecord->numBytes());
                     std::cout << "Jessica sent:";
                     std::cout << storeMeCustomerList->size() << std::endl;
                     sendingObjectSize += storeMeCustomerList->size();
@@ -428,11 +429,12 @@ void dataGenerator(std::string scaleFactor,
         }
 
         // send the rest of data at the end, it can happen that the exception never happens.
-        if (!dispatcherClient.sendData<Customer>(
-                std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
-                storeMeCustomerList)) {
-            std::cout << "Failed to send data to dispatcher server" << std::endl;
-        }
+        Record<Vector<Handle<Object>>>* myRecord =
+                        (Record<Vector<Handle<Object>>>*)getRecord(storeMeCustomerList);
+                    dispatcherClient.sendBytes<Customer>(
+                            std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"),
+                            (char*)myRecord,
+                            myRecord->numBytes());
         sendingObjectSize += storeMeCustomerList->size();
 
         std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
