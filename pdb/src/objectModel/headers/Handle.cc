@@ -479,7 +479,9 @@ Handle<ObjType>::Handle(const Handle<ObjTypeTwo>& fromMe) {
 
 template <class ObjType>
 void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
-    std::uintptr_t middle12 = get_middle_12_bits(on_block);
+    int64_t offset =((char*) on_block) - ((char*)getAllocator().getStart());
+ 
+    std::uintptr_t middle12 = get_middle_12_bits(offset);
     //std::cout << "the middle 12 is " << middle12 << std::endl;
     if (getAllocator().reverse_copied_map[middle12] == nullptr) {
       getAllocator().reverse_copied_map[middle12] = (char*) off_block;
@@ -490,9 +492,9 @@ void Handle<ObjType>:: set_copied_map(void* on_block, void* off_block) {
 }
 
 template <class ObjType>
-std::uintptr_t Handle<ObjType>::get_middle_12_bits(void* on_block) {
-  std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
-  return ((i >> 0) & ((1 << 12) - 1));
+std::uintptr_t Handle<ObjType>::get_middle_12_bits(int64_t on_block) {
+  //std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
+  return ((on_block >> 5) & ((1 << 12) - 1));
 }
 
 /****************************************************************/

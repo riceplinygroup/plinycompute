@@ -427,8 +427,10 @@ public:
     unsigned getAllocatorStamp();
 
     void removeCopyMap(void* refPtr);
+   
+    void* getStart();
 
-    std::uintptr_t get_middle_12_bits(void* on_block);
+    std::uintptr_t get_middle_12_bits(int64_t on_block);
 
     // Returns the address this allocator
     void* getAddress();

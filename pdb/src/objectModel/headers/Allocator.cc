@@ -558,14 +558,20 @@ inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getAllocato
 };
 
 template <typename FirstPolicy, typename... OtherPolicies>
-inline std::uintptr_t MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::get_middle_12_bits(void* on_block) {
-  std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
-  return ((i >> 0) & ((1 << 12) - 1));
+inline void*  MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::getStart() {
+  return (myState.activeRAM);
+}
+
+template <typename FirstPolicy, typename... OtherPolicies>
+inline std::uintptr_t MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::get_middle_12_bits(int64_t on_block) {
+  //std::uintptr_t i = reinterpret_cast<std::uintptr_t>(on_block);
+  return ((on_block >> 5) & ((1 << 12) - 1));
 }
 
 template <typename FirstPolicy, typename... OtherPolicies>
 inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...>::removeCopyMap(void* refPtr) {
-    std::uintptr_t middle12 = get_middle_12_bits(refPtr);
+    int64_t offset =((char*) refPtr) - ((char*)getAllocator().getStart());
+    std::uintptr_t middle12 = get_middle_12_bits(offset);
     if (reverse_copied_map[middle12]!= nullptr) {
       void* off_block = (void *) reverse_copied_map[middle12];
 
