@@ -422,6 +422,8 @@ public:
     boost::bimap<void*, void*> copied_map;
     
     //std::unordered_map<void*, void*> reverse_copied_map;
+    
+    bool avoidDuplicate = false;
 
     unsigned allocatorStamp = 2;
 

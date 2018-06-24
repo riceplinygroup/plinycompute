@@ -57,6 +57,7 @@ void DispatcherServer::registerHandlers(PDBServer& forMe) {
         make_shared<SimpleRequestHandler<DispatcherAddData>>([&](Handle<DispatcherAddData> request,
                                                                  PDBCommunicatorPtr sendUsingMe) {
             pthread_mutex_lock(&mutex);
+            getAllocator().avoidDuplicate = true;
             while (numRequestsInProcessing > MAX_CONCURRENT_REQUESTS) {
                 pthread_mutex_unlock(&mutex);
                 sleep(1);

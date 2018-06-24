@@ -934,6 +934,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
         StorageAddData_TYPEID,
         make_shared<SimpleRequestHandler<StorageAddData>>([&](Handle<StorageAddData> request,
                                                               PDBCommunicatorPtr sendUsingMe) {
+            getAllocator().avoidDuplicate = true;
             std::string errMsg;
             bool everythingOK = true;
             bool typeCheckOrNot = request->isTypeCheck();

@@ -493,7 +493,7 @@ void dataGenerator(std::string scaleFactor,
 //}
 
 int main(int argc, char* argv[]) {
-
+    getAllocator().avoidDuplicate = true;
     // TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
     string scaleFactor = "0.1";
     int noOfCopies = 1;
