@@ -51,30 +51,25 @@ public:
 private:
     LADimension targetDim;
 
-    Vector<Handle<MatrixBlock>> duplicateRow(Handle<MatrixBlock> checkMe) {
-        int rowNums = targetDim.blockRowSize;
-        int colNums = checkMe->getColNums();
-        int blockColIndex = checkMe->getBlockColIndex();
-        int totalRows = targetDim.blockRowNum * targetDim.blockRowSize;
-        int totalCols = checkMe->getTotalColNums();
-        pdb::Handle<pdb::Vector<double>> rawData =
-            pdb::makeObject<pdb::Vector<double>>(rowNums * colNums, rowNums * colNums);
-        for (int ii = 0; ii < rowNums; ii++) {
-            for (int jj = 0; jj < colNums; jj++) {
-                (*(rawData))[ii * colNums + jj] = (*(checkMe->getRawDataHandle()))[jj];
-            }
-        }
-        Vector<Handle<MatrixBlock>> result;
-        for (int i = 0; i < targetDim.blockRowNum; i++) {
+            Vector<Handle <MatrixBlock>> duplicateRow(Handle <MatrixBlock> checkMe){
+                Vector<Handle <MatrixBlock> > result;
+                for(int i = 0; i < targetDim.blockRowNum; i++){
+                        int rowNums = targetDim.blockRowSize;
+            int colNums = checkMe->getColNums();
             int blockRowIndex = i;
-            Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(
-                blockRowIndex, blockColIndex, rowNums, colNums, totalRows, totalCols, rawData);
-            std::cout << "duplicateRow: blockRowIndex=" << blockRowIndex
-                      << ", blockColIndex=" << blockColIndex << std::endl;
-            result.push_back(resultMatrixBlock);
+            int blockColIndex = checkMe->getBlockColIndex();
+            int totalRows = targetDim.blockRowNum * targetDim.blockRowSize;
+            int totalCols = checkMe->getTotalColNums();
+                        Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockRowIndex,blockColIndex,rowNums,colNums,totalRows,totalCols);
+                        for(int ii = 0; ii < rowNums; ii++){
+                                for(int jj = 0; jj < colNums; jj++){
+                                        (*(resultMatrixBlock->getRawDataHandle()))[ii*colNums+jj] = (*(checkMe->getRawDataHandle()))[jj];
+                                }
+                        }
+                        result.push_back(resultMatrixBlock);
+                }
+                return result;
         }
-        return result;
-    }
 };
 
 
