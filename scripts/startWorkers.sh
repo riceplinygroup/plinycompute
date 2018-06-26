@@ -107,6 +107,9 @@ do
       # checks that ssh to a node is possible, times out after 3 seconds
       nc -zw$testSSHTimeout ${ip_addr} 22
       if [ $? -eq 0 ];then
+          ssh -i $pem_file $user@$ip_addr "sudo apt-get update"
+          ssh -i $pem_file $user@$ip_addr "sudo apt-get install libsnappy1v5 libsnappy-dev libeigen3-dev libgsl-dev libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev"
+
           echo -e "\n+++++++++++ starting worker node at IP address $ip_addr"
           ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;"
           if [ $? -ne 0 ];then
