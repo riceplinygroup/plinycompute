@@ -1,6 +1,6 @@
 
-#ifndef TEST_36_CC
-#define TEST_36_CC
+#ifndef TEST_MAP_CC
+#define TEST_MAP_CC
 
 #include "PDBString.h"
 #include "PDBMap.h"
