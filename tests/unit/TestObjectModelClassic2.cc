@@ -74,7 +74,17 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    //parse the parameters
+    //parameter 1: number of objects
+
+    if (argc <= 1) {
+        std::cout << "Usage: #numObjects" << std::endl;
+    }
+
+
+    int numObjects = atoi(argv[1]);
 
     // for timing
     auto begin = std::chrono::high_resolution_clock::now();
@@ -83,13 +93,13 @@ int main() {
     std::string name = "Steve Stevens";
 
     // put a lot of copies of it into a vector
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 0; i < numObjects; i++) {
 
         // create the supervisor
-        Supervisor *mySup = new Supervisor("Joe Johnson", 23);
+        Supervisor *mySup = new Supervisor("Joe Johnson"+std::to_string(i), 23);
 
         for (int j = 0; j < 10; j++) {
-            auto *temp = new Employee(name, 57);
+            auto *temp = new Employee(name+std::to_string(i)+std::to_string(j), 57);
             mySup->addEmp(temp);
         }
 

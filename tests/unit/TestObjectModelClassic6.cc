@@ -31,12 +31,21 @@
 #include <ctime>
 #include <string>
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    //parse the parameters
+    //parameter 1: number of objects
+
+    if (argc <= 1) {
+        std::cout << "Usage: #numObjects" << std::endl;
+    }
+
+    int numObjects = atoi(argv[1]);
 
     // for timing
     auto begin = std::chrono::high_resolution_clock::now();
 
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < numObjects; i++) {
         std::string* str = new std::string(
             "This is an object big enough to force flushing soon. This is an object big enough to "
             "force flushing soon. This is an object big enough to force flushing soon. This is an "
