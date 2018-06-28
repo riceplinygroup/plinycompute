@@ -24,55 +24,78 @@
 
 using namespace pdb;
 
-int main() {
+int main(int argc, char* argv[]) {
 
-    makeObjectAllocatorBlock(124 * 1024 * 1024, true);
+    //parse the parameters
+    //parameter 1: size of allocation block in MB
+    //parameter 2: size of each map
+    //parameter 3: benchmark mode or not
+
+    if (argc <= 3) {
+        std::cout << "Usage: #sizeOfAllocationBlock(MB) #numEntriesPerMap #benchmarkMode(Y/N)" << std::endl;
+    }
+
+    size_t allocationBlockSize = (size_t)(atol(argv[1])) * (size_t)1024 * (size_t)1024;
+    int numEntriesInMap = atoi(argv[2]);
+    bool benchmarkMode = true;
+    if (strcmp(argv[3], "N") == 0) {
+       benchmarkMode = false;
+    }
+
+    auto begin = std::chrono::high_resolution_clock::now();
+    makeObjectAllocatorBlock(allocationBlockSize, true);
     Handle<int> temp = makeObject<int>();
 
     Handle<Map<int, int>> myMap = makeObject<Map<int, int>>();
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < numEntriesInMap; i++) {
         (*myMap)[i] = i + 120;
     }
 
-    for (int i = 0; i < 100; i++) {
-        std::cout << (*myMap)[i] << " ";
+
+    if (!benchmarkMode) {
+        for (int i = 0; i < numEntriesInMap; i++) {
+            std::cout << (*myMap)[i] << " ";
+        }
+        std::cout << "\n";
     }
-    std::cout << "\n";
     myMap = nullptr;
 
     Handle<Map<String, int>> myOtherMap = makeObject<Map<String, int>>();
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < numEntriesInMap; i++) {
         String temp(std::to_string(i) + std::string(" is my number"));
         (*myOtherMap)[temp] = i;
     }
-
-    for (int i = 0; i < 100; i++) {
-        String temp(std::to_string(i) + std::string(" is my number"));
-        std::cout << (*myOtherMap)[temp] << " ";
+  
+    if (!benchmarkMode) {
+        for (int i = 0; i < numEntriesInMap; i++) {
+            String temp(std::to_string(i) + std::string(" is my number"));
+            std::cout << (*myOtherMap)[temp] << " ";
+        }
+        std::cout << "\n";
     }
-    std::cout << "\n";
     myOtherMap = nullptr;
 
     Handle<Map<Handle<String>, Handle<Employee>>> anotherMap =
         makeObject<Map<Handle<String>, Handle<Employee>>>();
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < numEntriesInMap; i++) {
         Handle<String> empName =
             makeObject<String>(std::to_string(i) + std::string(" is my number"));
         Handle<Employee> myEmp = makeObject<Employee>("Joe Johnston " + std::to_string(i), i);
         (*anotherMap)[empName] = myEmp;
     }
 
-    for (int i = 0; i < 100; i++) {
-        Handle<String> empName =
-            makeObject<String>(std::to_string(i) + std::string(" is my number"));
-        (*anotherMap)[empName]->print();
-        std::cout << " ";
+    if (!benchmarkMode) {
+        for (int i = 0; i < numEntriesInMap; i++) {
+            Handle<String> empName =
+                makeObject<String>(std::to_string(i) + std::string(" is my number"));
+            (*anotherMap)[empName]->print();
+            std::cout << " ";
+        }
+        std::cout << "\n";
     }
-    std::cout << "\n";
-
 
     int filedesc = open("testfile", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     Record<Map<Handle<String>, Handle<Employee>>>* myBytes =
@@ -90,16 +113,17 @@ int main() {
     anotherMap = myBytes->getRootObject();
     std::cout << "Type code is " << anotherMap.getTypeCode() << "\n";
 
-    for (int i = 0; i < 100; i++) {
-        Handle<String> empName =
-            makeObject<String>(std::to_string(i) + std::string(" is my number"));
-        (*anotherMap)[empName]->print();
-        std::cout << " ";
+    if (!benchmarkMode) {
+        for (int i = 0; i < numEntriesInMap; i++) {
+            Handle<String> empName =
+                makeObject<String>(std::to_string(i) + std::string(" is my number"));
+            (*anotherMap)[empName]->print();
+            std::cout << " ";
+        }
+        std::cout << "\n";
     }
-    std::cout << "\n";
-
     // now, do a deep copy
-    makeObjectAllocatorBlock(124 * 1024 * 1024, true);
+    makeObjectAllocatorBlock(allocationBlockSize, true);
     std::cout << "Allocation.\n";
     Handle<Map<Handle<String>, Handle<Employee>>> aFinalMap =
         makeObject<Map<Handle<String>, Handle<Employee>>>();
@@ -111,12 +135,20 @@ int main() {
     bzero(myBytes, fileLen);
     free(myBytes);
 
-    for (auto& a : *aFinalMap) {
-        a.value->print();
-        std::cout << " ";
+    if (!benchmarkMode) {
+        for (auto& a : *aFinalMap) {
+            a.value->print();
+            std::cout << " ";
+        }
+        std::cout << "\n";
     }
-    std::cout << "\n";
     aFinalMap = nullptr;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Duration to write the objects to a file: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
+
 }
 
 #endif
