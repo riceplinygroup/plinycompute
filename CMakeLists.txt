@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/tools/cmake")
 set(CTEST_BINARY_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 # set the standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # check the operating system and add the appropriate flags
 if (APPLE)
@@ -81,6 +81,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers/base")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/reflection/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/headers")
 
 # add the third party libraries as includes
@@ -108,6 +109,7 @@ file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/mainClient/source/*.c
 file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/*.cc"
                                "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/**/*.cc"
                                "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
+file(GLOB REFLECTION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/reflection/source/*.cc")
 file(GLOB STATISTICS_DB_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/third-party/sqlite/source/sqlite3.c)
 
@@ -224,6 +226,7 @@ add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE})
 add_library(statisticsDB OBJECT ${STATISTICS_DB_SOURCE})
+add_library(reflection OBJECT ${REFLECTION_SOURCE})
 
 # add the dependencies to the object type generationg
 add_dependencies(server-functionalities object-type-ids)
