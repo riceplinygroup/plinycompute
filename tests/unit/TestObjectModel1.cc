@@ -16,7 +16,6 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_OBJECTS 12000
 
 #include <cstddef>
 #include <iostream>
@@ -41,13 +40,30 @@
 
 using namespace pdb;
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    //parse the parameters
+    //parameter 1: size of allocation block in MB
+    //parameter 2: number of objects
+    //parameter 3: benchmark mode or not
+
+    if (argc <= 3) {
+        std::cout << "Usage: #sizeOfAllocationBlock(MB) #numObjects #benchmarkMode(Y/N)" << std::endl;
+    }
+
+
+    size_t allocationBlockSize = (size_t)(atol(argv[1])) * (size_t)1024 * (size_t)1024;
+    int numObjects = atoi(argv[2]);
+    bool benchmarkMode = true;
+    if (strcmp(argv[3], "N") == 0) {
+       benchmarkMode = false;
+    }
 
     // for timing
     auto begin = std::chrono::high_resolution_clock::now();
 
     // load up the allocator with RAM
-    makeObjectAllocatorBlock(1024 * 1024 * 24, true);
+    makeObjectAllocatorBlock(allocationBlockSize, true);
 
     Handle<String> temp = makeObject<String>("this is soooooo cool");
     Handle<String> temp2 = makeObject<String>("this");
@@ -67,12 +83,13 @@ int main() {
                 Handle<Employee> temp = makeObject<Employee>("Steve Stevens", 20 + ((i + j) % 29));
                 (*supers)[supers->size() - 1]->addEmp(temp);
             }
-            if (i > NUM_OBJECTS) {
+            if (i > numObjects) {
                 break;
             }
         }
 
     } catch (NotEnoughSpace& e) {
+        numObjects = i;
         std::cout << "Finally, after " << i << " inserts, ran out of RAM for the objects.\n";
     }
 
@@ -80,11 +97,12 @@ int main() {
     std::cout << "Duration to create all of the objects: "
               << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
               << std::endl;
-
-    for (int i = 0; i < NUM_OBJECTS; i += 1000) {
-        (*supers)[i]->print();
+    if (!benchmarkMode) {
+        for (int i = 0; i < numObjects; i += 1000) {
+            if (i < numObjects)
+                (*supers)[i]->print();
+        }
     }
-
     begin = std::chrono::high_resolution_clock::now();
 
     Record<Vector<Handle<Supervisor>>>* myBytes = getRecord<Vector<Handle<Supervisor>>>(supers);
