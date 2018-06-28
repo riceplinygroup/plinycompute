@@ -16,7 +16,6 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_OBJECTS 1000000
 
 #include <cstddef>
 #include <iostream>
@@ -38,20 +37,38 @@
 
 using namespace pdb;
 
-int main() {
+int main(int argc, char* argv[]) {
 
+    //parse the parameters
+    //parameter 1: size of allocation block in MB
+    //parameter 2: number of objects
+    //parameter 3: benchmark mode or not
+
+    if (argc <= 3) {
+        std::cout << "Usage: #sizeOfAllocationBlock(MB) #numObjects #benchmarkMode(Y/N)" << std::endl;
+    }
+
+
+    size_t allocationBlockSize = (size_t)(atol(argv[1])) * (size_t)1024 * (size_t)1024;
+    int numObjects = atoi(argv[2]);
+    bool benchmarkMode = true;
+    if (strcmp(argv[3], "N") == 0) {
+       benchmarkMode = false;
+    }
     // for timing
     auto begin = std::chrono::high_resolution_clock::now();
 
     // create one million allocators and one million objects
     try {
-        for (int i = 0; i < NUM_OBJECTS; i++) {
-            if (i % 1000 == 0)
-                std::cout << i << "\n";
-            makeObjectAllocatorBlock(1024 * 24, true);
-            Handle<Supervisor> super = makeObject<Supervisor>("Joe Johnson", 57);
+        for (int i = 0; i < numObjects; i++) {
+            if (!benchmarkMode) {
+                if (i % 1000 == 0)
+                    std::cout << i << "\n";
+            }
+            makeObjectAllocatorBlock(allocationBlockSize, true);
+            Handle<Supervisor> super = makeObject<Supervisor>("Joe Johnson"+std::to_string(i), 57);
             for (int j = 0; j < 10; j++) {
-                Handle<Employee> temp = makeObject<Employee>("Steve Stevens", 57);
+                Handle<Employee> temp = makeObject<Employee>("Steve Stevens"+std::to_string(i) + std::to_string(j), 57);
                 super->addEmp(temp);
             }
         }

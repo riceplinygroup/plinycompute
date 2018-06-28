@@ -36,16 +36,31 @@
 
 using namespace pdb;
 
-int main() {
+int main(int argc, char* argv[]) {
+    //parse the parameters
+    //parameter 1: size of allocation block in MB
+    //parameter 2: number of objects
+    //parameter 3: benchmark mode or not
 
+    if (argc <= 3) {
+        std::cout << "Usage: #sizeOfAllocationBlock(MB) #numObjects #benchmarkMode(Y/N)" << std::endl;
+    }
+
+
+    size_t allocationBlockSize = (size_t)(atol(argv[1])) * (size_t)1024 * (size_t)1024;
+    int numObjects = atoi(argv[2]);
+    bool benchmarkMode = true;
+    if (strcmp(argv[3], "N") == 0) {
+       benchmarkMode = false;
+    }
     // for timing
     auto begin = std::chrono::high_resolution_clock::now();
 
     // load up the allocator with RAM
-    makeObjectAllocatorBlock(1024 * 1024 * 24, false);
+    makeObjectAllocatorBlock(allocationBlockSize, false);
 
     int i = 0;
-    for (i = 0; i < 10000; i++) {
+    for (i = 0; i < numObjects; i++) {
         Handle<String> str = makeObject<String>(
             "This is an object big enough to force flushing soon. This is an object big enough to "
             "force flushing soon. This is an object big enough to force flushing soon. This is an "
@@ -56,7 +71,7 @@ int main() {
             "bytes to test. This is an object big enough to force flushing soon. This is an object "
             "big enough to force flushing soon. This is an object big enough to force flushing "
             "soon. This is an object big enough to force flushing soon. This is an object big "
-            "enough to force flushing..");
+            "enough to force flushing.."+std::to_string(i));
     }
 
     auto end = std::chrono::high_resolution_clock::now();

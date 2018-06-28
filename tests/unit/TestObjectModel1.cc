@@ -78,9 +78,9 @@ int main(int argc, char* argv[]) {
         // put a lot of copies of it into a vector
         for (; true; i++) {
 
-            supers->push_back(makeObject<Supervisor>("Joe Johnson", 20 + (i % 29)));
+            supers->push_back(makeObject<Supervisor>("Joe Johnson"+std::to_string(i), 20 + (i % 29)));
             for (int j = 0; j < 10; j++) {
-                Handle<Employee> temp = makeObject<Employee>("Steve Stevens", 20 + ((i + j) % 29));
+                Handle<Employee> temp = makeObject<Employee>("Steve Stevens"+std::to_string(i) + std::to_string(j), 20 + ((i + j) % 29));
                 (*supers)[supers->size() - 1]->addEmp(temp);
             }
             if (i > numObjects) {
