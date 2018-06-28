@@ -43,7 +43,7 @@ public:
 
     Employee() = default;
 
-    Employee(std::string &nameIn, int ageIn) {
+    Employee(std::string nameIn, int ageIn) {
         name = new std::string(nameIn);
         age = ageIn;
     }
