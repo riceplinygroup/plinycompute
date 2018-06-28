@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
 
     if (argc <= 3) {
         std::cout << "Usage: #sizeOfAllocationBlock(MB) #numObjects #benchmarkMode(Y/N)" << std::endl;
+        exit(1);
     }
 
 
