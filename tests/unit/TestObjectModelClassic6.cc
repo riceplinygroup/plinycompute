@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
 
     if (argc <= 1) {
         std::cout << "Usage: #numObjects" << std::endl;
+        exit(1);
     }
 
     int numObjects = atoi(argv[1]);
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
             "bytes to test. This is an object big enough to force flushing soon. This is an object "
             "big enough to force flushing soon. This is an object big enough to force flushing "
             "soon. This is an object big enough to force flushing soon. This is an object big "
-            "enough to force flushing..");
+            "enough to force flushing.." + std::to_string(i));
         delete str;
     }
 
