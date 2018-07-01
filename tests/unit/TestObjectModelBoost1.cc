@@ -50,6 +50,7 @@ class XString {
     }
 
 public:
+    XString() {}
     XString(std::string str) {
      s = str;
    }
@@ -63,6 +64,8 @@ class Employee {
     void serialize(Archive & ar, const unsigned int version) {
         ar & name;
         ar & age;
+        ar & department;
+        ar & salary;
     }
     XString* name;
     int age;
@@ -73,12 +76,20 @@ public:
         delete name;
     }
 
-    Employee() {}
+    Employee() {
+        department = XString ("myDept");
+
+    }
 
     Employee(std::string nameIn, int ageIn) {
         name = new XString(nameIn);
         age = ageIn;
+        department = XString ("myDept");
+        salary = 123.45;
     }
+
+    XString department;
+    double salary;
 };
 
 class Supervisor {

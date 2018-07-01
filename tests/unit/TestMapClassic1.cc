@@ -77,6 +77,8 @@ class Employee {
     void serialize(Archive & ar, const unsigned int version) {
         ar & name;
         ar & age;
+        ar & department;
+        ar & salary;
     }
     XString* name;
     int age;
@@ -92,12 +94,20 @@ public:
     Employee(std::string nameIn, int ageIn) {
         name = new XString(nameIn);
         age = ageIn;
+        department = XString ("myDept");
+        salary = 123.45;
     }
 
     Employee(const Employee& emp) {
         name = emp.name;
         age = emp.age;
+        department = XString ("myDept");
+        salary = 123.45;
     }
+
+    XString department;
+    double salary;    
+
 
     void print() {
         std::cout << "name is " << name->getString() << ", age is " << age << std::endl;
