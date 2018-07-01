@@ -77,7 +77,7 @@ public:
     Employee(std::string nameIn, int ageIn) {
         name = new XString(nameIn);
         age = ageIn;
-        department = XString("myDept");
+        department = XString(nameIn+ std::to_string(1));
         salary = 123.45;
     }
 };

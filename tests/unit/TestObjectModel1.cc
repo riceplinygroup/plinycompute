@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 
     // for timing
     auto begin = std::chrono::high_resolution_clock::now();
-
+    //getAllocator().setPolicy(noReuseAllocator);
     // load up the allocator with RAM
     makeObjectAllocatorBlock(allocationBlockSize, true);
 

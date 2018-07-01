@@ -71,9 +71,9 @@ public:
     }
 
     Employee(std::string nameIn, int ageIn) {
-        name = makeObject<String>(nameIn);
+        name = makeObject<String>(nameIn + std::to_string(1));
         age = ageIn;
-        department = "myDept";
+        department = nameIn;
         salary = 123.45;
     }
 

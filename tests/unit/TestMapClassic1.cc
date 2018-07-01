@@ -94,15 +94,15 @@ public:
     Employee(std::string nameIn, int ageIn) {
         name = new XString(nameIn);
         age = ageIn;
-        department = XString ("myDept");
+        department = XString (nameIn+ std::to_string(1));
         salary = 123.45;
     }
 
     Employee(const Employee& emp) {
         name = emp.name;
         age = emp.age;
-        department = XString ("myDept");
-        salary = 123.45;
+        department = emp.department;
+        salary = emp.salary;
     }
 
     XString department;
