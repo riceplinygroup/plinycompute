@@ -50,6 +50,11 @@
 
 namespace pdb {
 
+/**
+ * Define the getObjectTypeName function
+ */
+typedef char *getObjectTypeNameFunc();
+
 class CatalogServer : public ServerFunctionality {
 
 public:
@@ -246,6 +251,24 @@ private:
 
   /* Logger to capture debug information for the Catalog Server */
   PDBLoggerPtr catServerLogger;
+
+  /**
+   * Writes out the shared library to disk
+   * @param soFile - the soFile we want to write out it is stored
+   * as a std::string, tempFile.c_str() contains the content of the file
+   * @param tempFile - the location where we want to write it out
+   */
+  void writeLibraryToDisk(string &soFile, const string &tempFile) const;
+
+  /**
+   * Load the shared library from a file
+   * @param fileName - the name of the file we are loading
+   * @return null if we fail otherwise the return value of dlopen
+   */
+  void *loadLibrary(string &fileName);
+
+
+  getObjectTypeNameFunc* loadGetObjectTypeNameFunction(void *so_handle);
 };
 }
 

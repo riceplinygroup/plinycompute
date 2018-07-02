@@ -909,37 +909,27 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
   // read the bytes from the temporary extracted file and copy to output
   // parameter
   string tempFile = catalogDirectory + "/tmp_so_files/temp.so";
-  int filedesc = open(tempFile.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-  size_t sizeWritten = write(filedesc, soFile.data(), soFile.size());
-  PDB_COUT << "addObjectType: sizeWritten=" << sizeWritten << std::endl;
-  close(filedesc);
+  writeLibraryToDisk(soFile, tempFile);
 
   // check to make sure it is valid Shared Library
-  void *so_handle = nullptr;
-  so_handle = dlopen(tempFile.c_str(), RTLD_LOCAL | RTLD_LAZY);
-  if (!so_handle) {
-    const char *dlsym_error = dlerror();
-    errMsg = "Cannot process shared library. " + string(dlsym_error) + '\n';
-    std::cout << "CatalogServer: " << errMsg << std::endl;
-    dlclose(so_handle);
+  void *so_handle = loadLibrary(tempFile);
+
+  // if we fail return -1
+  if(so_handle == nullptr) {
     return -1;
   }
 
   // makes a call to the "getObjectTypeName" function defined in the shared
   // library
-  const char *dlsym_error;
-  std::string getName = "getObjectTypeName";
-  typedef char *getObjectTypeNameFunc();
-  getObjectTypeNameFunc *myFunc =
-      (getObjectTypeNameFunc *)dlsym(so_handle, getName.c_str());
+  const char *error;
 
-  PDB_COUT << "open function: " << getName << endl;
+  auto *myFunc = (getObjectTypeNameFunc *)dlsym(so_handle, "getObjectTypeName");
+
+  PDB_COUT << "open function: getObjectTypeName" << endl;
 
   // if the function is not defined or there was an error return
-  if ((dlsym_error = dlerror())) {
-    errMsg =
-        "Error, can't load function getObjectTypeName in the shared library. " +
-        string(dlsym_error) + '\n';
+  if ((error = dlerror())) {
+    errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(error) + "\n";
     PDB_COUT << errMsg << endl;
     return -1;
   }
@@ -1007,6 +997,42 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
     return typeCode;
   } else
     return allTypeNames[typeName];
+}
+void CatalogServer::writeLibraryToDisk(string &soFile, const string &tempFile) const {
+
+  // open the file for writing
+  int fileDesc = open(tempFile.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+
+  // write it out
+  auto sizeWritten = write(fileDesc, soFile.data(), soFile.size());
+
+  // log stuff
+  PDB_COUT << "addObjectType: sizeWritten=" << sizeWritten << endl;
+
+  // close the file
+  close(fileDesc);
+}
+
+void *CatalogServer::loadLibrary(string &fileName) {
+
+  // load the shared library
+  void *so_handle = dlopen(fileName.c_str(), RTLD_LOCAL | RTLD_LAZY);
+
+  // did we fail?
+  if (!so_handle) {
+    const char *error = dlerror();
+
+    // log the error
+    std::string errMsg = "Cannot process shared library. " + string(error) + "\n";
+    PDB_COUT << "CatalogServer: " << errMsg << "\n";
+    dlclose(so_handle);
+
+    // return null
+    return nullptr;
+  }
+
+  // return the so handle
+  return so_handle;
 }
 
 // deletes metadata about a Set in the Catalog
@@ -2111,6 +2137,10 @@ bool CatalogServer::getIsManagerCatalogServer() {
 // sets this as a Manager (true) or Worker (false) Catalog
 void CatalogServer::setIsManagerCatalogServer(bool isManagerCatalogServerIn) {
   isManagerCatalogServer = isManagerCatalogServerIn;
+}
+
+getObjectTypeNameFunc *CatalogServer::loadGetObjectTypeNameFunction(void *so_handle) {
+  return nullptr;
 }
 
 /* Explicit instantiation to broadcast Catalog Updates for a Node */
