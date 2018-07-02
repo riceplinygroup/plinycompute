@@ -72,7 +72,7 @@ class Tests {
   /**
    * This test tests a simple aggregation
    */
-  void test1() {
+  void testClassAttributes() {
 
     const pdb::UseTemporaryAllocationBlock myBlock{36 * 1024 * 1024};
 
@@ -1452,7 +1452,7 @@ public:
   int run() {
 
     // run tests
-    test1();
+    testClassAttributes();
     test2();
     test3();
     test4();

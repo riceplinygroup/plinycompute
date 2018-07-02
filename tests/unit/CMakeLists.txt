@@ -20,3 +20,5 @@ foreach(file ${files})
     add_test("Unit${fileName}" ${PROJECT_SOURCE_DIR}/bin/${fileName})
     add_dependencies(unit-tests ${fileName})
 endforeach()
+
+add_dependencies(unit-tests SharedEmployee)

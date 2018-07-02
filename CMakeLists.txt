@@ -135,7 +135,7 @@ SET(LogicalPlanFlexOutput ${CMAKE_SOURCE_DIR}/pdb/src/logicalPlan/source/Lexer.c
 FIND_PACKAGE(UUID REQUIRED)
 
 # find the boost package
-FIND_PACKAGE(Boost COMPONENTS program_options filesystem system REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS program_options filesystem system regex REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 # setup the commands
@@ -176,6 +176,10 @@ include_directories(${GSL_INCLUDE_DIRS} ${GSLCBLAS_INCLUDE_DIRS})
 
 #find snappy
 FIND_PACKAGE(Snappy REQUIRED)
+
+# find libelf and lib dwarf
+find_package(LibElf REQUIRED)
+find_package(LibDwarf REQUIRED)
 
 # the files generated from the type codes
 SET(BUILT_IN_OBJECT_TYPE_ID        ${CMAKE_SOURCE_DIR}/pdb/src/objectModel/headers/BuiltInObjectTypeIDs.h)
@@ -254,6 +258,7 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:reflection>
         $<TARGET_OBJECTS:statisticsDB>)
 
 # used to link the shared libraries that the shared librarires use
@@ -273,6 +278,7 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:reflection>
         $<TARGET_OBJECTS:statisticsDB>)
 
 # used to link the shared libraries that the test use
@@ -292,6 +298,7 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:server-functionalities>
         $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:work>
+        $<TARGET_OBJECTS:reflection>
         $<TARGET_OBJECTS:statisticsDB>)
 
 # link the dependent libraries so that they are made of the public interface
@@ -300,12 +307,14 @@ target_link_libraries(pdb-server-common PUBLIC ${UUID_LIBRARY})
 target_link_libraries(pdb-server-common PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pdb-server-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pdb-server-common PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(pdb-server-common PRIVATE ${LIBELF_LIBRARIES} ${LIBDWARF_LIBRARIES})
 
 target_link_libraries(pdb-tests-common PRIVATE ${SNAPPY_LIBRARY})
 target_link_libraries(pdb-tests-common PUBLIC ${UUID_LIBRARY})
 target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_DL_LIBS})
 target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(pdb-tests-common PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(pdb-tests-common PRIVATE ${LIBELF_LIBRARIES} ${LIBDWARF_LIBRARIES})
 
 # form the parsers for the logical plan
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})

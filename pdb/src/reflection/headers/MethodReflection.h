@@ -30,7 +30,7 @@ class MethodReflection {
 
 public:
 
-  MethodReflection(std::string methodName, const std::vector<methodInfo> &possibleMethods, void *sharedLibrary);
+  MethodReflection(std::string methodName, const std::vector<MethodInfo> &possibleMethods, void *sharedLibrary);
 
   /**
    * Put a pointer of a particular type
@@ -58,7 +58,7 @@ public:
   /**
    * The possible methods
    */
-  std::vector<methodInfo> possibleMethods;
+  std::vector<MethodInfo> possibleMethods;
 
   /**
    * The shared library we loaded

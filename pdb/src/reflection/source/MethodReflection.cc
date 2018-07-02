@@ -22,7 +22,7 @@
 namespace pdb {
 
 MethodReflection::MethodReflection(std::string methodName,
-                                   const std::vector<methodInfo> &possibleMethods,
+                                   const std::vector<MethodInfo> &possibleMethods,
                                    void *sharedLibrary) : possibleMethods(possibleMethods),
                                                           sharedLibrary(sharedLibrary),
                                                           methodName(methodName){}

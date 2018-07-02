@@ -26,19 +26,20 @@
 #include <libdwarf/libdwarf.h>
 #include <vector>
 #include <memory>
+#include <functional>
 
 namespace pdb {
 
-struct attributeType {
+struct AttributeType {
 
-  attributeType() = default;
+  AttributeType() = default;
 
   /**
    * Constructor with parameters
    * @param name - the name of the type
    * @param size - the size of the type in bytes
    */
-  attributeType(const std::string &name, size_t size) : name(name), size(size) {}
+  AttributeType(const std::string &name, size_t size) : name(name), size(size) {}
 
   /**
    * The name of the type
@@ -52,7 +53,7 @@ struct attributeType {
 
 };
 
-struct attributeInfo {
+struct AttributeInfo {
 
   /**
    * The name of the attribute
@@ -75,7 +76,7 @@ struct attributeInfo {
   std::string type;
 };
 
-struct methodInfo {
+struct MethodInfo {
 
   /**
    * The name of the method
@@ -90,24 +91,24 @@ struct methodInfo {
   /**
    * The return type of the method
    */
-  attributeType returnType;
+  AttributeType returnType;
 
 
   /**
    * The parameters of the method
    */
-  std::vector<attributeType> parameters;
+  std::vector<AttributeType> parameters;
 
 };
 
-struct classInfo {
+struct ClassInfo {
 
   /**
    * Define the default constructor
    */
-  classInfo() {
-    attributes = std::make_shared<std::vector<attributeInfo>>();
-    methods = std::make_shared<std::vector<methodInfo>>();
+  ClassInfo() {
+    attributes = std::make_shared<std::vector<AttributeInfo>>();
+    methods = std::make_shared<std::vector<MethodInfo>>();
   }
 
   /**
@@ -118,12 +119,12 @@ struct classInfo {
   /**
    * The attributes of the class
    */
-  std::shared_ptr<std::vector<attributeInfo>> attributes;
+  std::shared_ptr<std::vector<AttributeInfo>> attributes;
 
   /**
    * The methods of the class
    */
-  std::shared_ptr<std::vector<methodInfo>> methods;
+  std::shared_ptr<std::vector<MethodInfo>> methods;
 
 };
 
@@ -145,21 +146,21 @@ class SymbolReader {
    * Loads the file returns false if it fails or true if it can be loaded
    * @return true if it succeed false otherwise
    */
-  bool load(std::string &fileName);
+  bool load(std::string fileName);
 
   /**
    *
    * @param typeInfo
    * @return
    */
-  classInfo getClassInformation(const std::type_info &typeInfo);
+  ClassInfo getClassInformation(const std::type_info &typeInfo);
 
   /**
    *
    * @param typeSpec
    * @return
    */
-  classInfo getClassInformation(const std::string &typeSpec);
+  ClassInfo getClassInformation(const std::string &typeSpec);
 
  private:
 
@@ -183,6 +184,9 @@ class SymbolReader {
    */
   int dwarfRes = DW_DLV_ERROR;
 
+  /**
+   * Lib dwarf variables
+   */
   Dwarf_Debug dbg = nullptr;
   Dwarf_Error error;
   Dwarf_Handler errhand = nullptr;
@@ -190,25 +194,105 @@ class SymbolReader {
 
   bool realTypeName(const std::type_info& typeInfo, std::string &typeName);
 
-  classInfo analyzeFile(std::vector<std::string> &realName);
+  ClassInfo analyzeFile(std::vector<std::string> &hierarchy,
+                        std::function<void(Dwarf_Debug,
+                                           Dwarf_Die,
+                                           int,
+                                           std::vector<std::string> &,
+                                           ClassInfo &)> cuProcessor);
 
-  void getDieAndSiblings(Dwarf_Debug dbg, Dwarf_Die in_die, int in_level, std::vector<std::string> &hierarchy, classInfo &ret);
+  void searchForHierarchyInCu(Dwarf_Debug dbg,
+                              Dwarf_Die in_die,
+                              int in_level,
+                              std::vector<std::string> &hierarchy,
+                              ClassInfo &ret);
 
+  bool searchForTypeInCu(Dwarf_Debug dbg,
+                         Dwarf_Die in_die,
+                         int in_level,
+                         std::vector<std::string> &hierarchy,
+                         Dwarf_Die nameDie);
+
+  /**
+   *
+   * @param dbg
+   * @param print_me
+   * @return
+   */
+  std::string getNamespaceOrClassName(Dwarf_Debug dbg, Dwarf_Die print_me);
+
+  /**
+   *
+   * @param dbg
+   * @param print_me
+   * @param realName
+   * @return
+   */
   bool isClassSymbol(Dwarf_Debug dbg, Dwarf_Die print_me, std::string &realName);
 
+  /**
+   *
+   * @param dbg
+   * @param print_me
+   * @param realName
+   * @return
+   */
   bool isNamespaceOrClass(Dwarf_Debug dbg, Dwarf_Die print_me, std::string &realName);
 
+  /**
+   *
+   * @param print_me
+   * @return
+   */
   bool isAttributeSymbol(Dwarf_Die print_me);
 
+  /**
+   *
+   * @param print_me
+   * @return
+   */
   bool isMethodSymbol(Dwarf_Die print_me);
 
-  void parseAttribute(Dwarf_Die cur_die, classInfo &ret);
+  /**
+   *
+   * @param cur_die
+   * @param ret
+   */
+  void parseAttribute(Dwarf_Die cur_die, ClassInfo &ret);
 
-  attributeType getType(Dwarf_Die cur_die, std::string &previousName, unsigned int isPointer);
+  /**
+   * Returns the type for a debugging entry
+   * @param curDie - the debugging entry of the type
+   * @param nameDie - the debugging entry of the type that was referring to this one
+   * @param previousName - the name of one of the types that was referring to this one
+   * @param isPointer - the number of times a type that referred to this one is a pointer
+   * @return the parsed type
+   */
+  AttributeType getType(Dwarf_Die curDie, Dwarf_Die nameDie, std::string &previousName, unsigned int isPointer);
 
-  void extractClassInfo(Dwarf_Debug dbg, Dwarf_Die in_die, std::vector<std::string> &hierarchy, classInfo &ret);
+  /**
+   * Parses the class info from the debugging entry
+   * @param in_die - the debug entry for this class
+   * @param hierarchy - the hierarchy ex. namespace1::namespace2::className
+   * @param ret - the output info of the class
+   */
+  void extractClassInfo(Dwarf_Die in_die, std::vector<std::string> &hierarchy, ClassInfo &ret);
 
-  void parseMethod(Dwarf_Die curDie, classInfo &info);
+  /**
+   * Parses the method from the debugging entry
+   * @param curDie - the debugging entry
+   * @param info - the class info of the method the class belongs to
+   */
+  void parseMethod(Dwarf_Die curDie, ClassInfo &info);
+
+  /**
+   * For a given die it returns the full qualified name ex. namespace1::namespace2::class
+   * //TODO this does not work with private types only with public types
+   * @param typeDie - the type die
+   * @param outTypeName - the output type name
+   * @return true if we got a type false if we failed to have one
+   */
+  bool getFullTypeName(Dwarf_Die typeDie, std::string &outTypeName);
 };
 
 }

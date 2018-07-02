@@ -20,14 +20,14 @@
 
 namespace pdb {
 
-ClassReflection::ClassReflection(const classInfo &clsInfo, void *sharedLibrary) : sharedLibrary(sharedLibrary),
+ClassReflection::ClassReflection(const ClassInfo &clsInfo, void *sharedLibrary) : sharedLibrary(sharedLibrary),
                                                                                   className(clsInfo.className),
                                                                                   attributes(clsInfo.attributes) {
   // go through each method
   for(auto &method : *clsInfo.methods) {
 
     // if we don't have the vector add it
-    this->methods.try_emplace(method.name, std::vector<methodInfo>());
+    this->methods.try_emplace(method.name, std::vector<MethodInfo>());
 
     // add the methods
     this->methods[method.name].push_back(method);

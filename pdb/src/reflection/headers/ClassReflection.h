@@ -38,7 +38,7 @@ class ClassReflection {
    * @param clsInfo
    * @param sharedLibrary
    */
-  ClassReflection(const classInfo &clsInfo, void *sharedLibrary);
+  ClassReflection(const ClassInfo &clsInfo, void *sharedLibrary);
 
   /**
    * Grab the method with the name
@@ -57,12 +57,12 @@ class ClassReflection {
   /**
    * The attributes of the class
    */
-  std::shared_ptr<std::vector<attributeInfo>> attributes;
+  std::shared_ptr<std::vector<AttributeInfo>> attributes;
 
   /**
    * Maps the name of the method to the
    */
-  std::map<std::string, std::vector<methodInfo>> methods;
+  std::map<std::string, std::vector<MethodInfo>> methods;
 
   /**
    * The shared library we loaded

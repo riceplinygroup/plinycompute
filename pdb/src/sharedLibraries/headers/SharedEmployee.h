@@ -27,11 +27,10 @@
 #include <vector>
 
 class SharedEmployee : public ExportableObject {
+public:
 
     int age;
     double salary;
-
-public:
     pdb::Handle<pdb::String> name;
 
     ENABLE_DEEP_COPY

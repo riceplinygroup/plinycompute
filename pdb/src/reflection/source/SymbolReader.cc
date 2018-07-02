@@ -33,6 +33,7 @@
 #include <iterator>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/regex.hpp>
+#include <PDBDebug.h>
 
 namespace pdb {
 
@@ -51,7 +52,7 @@ SymbolReader::~SymbolReader() {
   }
 }
 
-bool SymbolReader::load(std::string &fileName) {
+bool SymbolReader::load(std::string fileName) {
 
   // set the file name
   this->fileName = fileName;
@@ -81,14 +82,14 @@ bool SymbolReader::load(std::string &fileName) {
   return true;
 }
 
-classInfo SymbolReader::getClassInformation(const std::type_info &typeInfo) {
+ClassInfo SymbolReader::getClassInformation(const std::type_info &typeInfo) {
 
   // grab the real name
   std::string realName;
   if(!realTypeName(typeInfo, realName)) {
 
     // the return
-    classInfo ret;
+    ClassInfo ret;
 
     return ret;
   }
@@ -97,16 +98,34 @@ classInfo SymbolReader::getClassInformation(const std::type_info &typeInfo) {
   std::vector<std::string> hierarchy;
   boost::algorithm::split_regex(hierarchy, realName, boost::regex("::"));
 
-  return analyzeFile(hierarchy);
+  return analyzeFile(hierarchy, [this](Dwarf_Debug dbg,
+                                       Dwarf_Die in_die,
+                                       int in_level,
+                                       std::vector<std::string> &hierarchy,
+                                       ClassInfo &ret) {
+    this->searchForHierarchyInCu(dbg,
+                                 in_die,
+                                 in_level,
+                                 hierarchy,
+                                 ret); });
 }
 
-classInfo SymbolReader::getClassInformation(const std::string &typeSpec) {
+ClassInfo SymbolReader::getClassInformation(const std::string &typeSpec) {
 
   // hierarchy
   std::vector<std::string> hierarchy;
   boost::algorithm::split_regex(hierarchy, typeSpec, boost::regex("::"));
 
-  return analyzeFile(hierarchy);
+  return analyzeFile(hierarchy, [this](Dwarf_Debug dbg,
+                                       Dwarf_Die in_die,
+                                       int in_level,
+                                       std::vector<std::string> &hierarchy,
+                                       ClassInfo &ret) {
+    this->searchForHierarchyInCu(dbg,
+                                 in_die,
+                                 in_level,
+                                 hierarchy,
+                                 ret); });
 }
 
 
@@ -131,10 +150,15 @@ bool SymbolReader::realTypeName(const std::type_info& typeInfo, std::string &typ
   return true;
 }
 
-classInfo SymbolReader::analyzeFile(std::vector<std::string> &hierarchy) {
+ClassInfo SymbolReader::analyzeFile(std::vector<std::string> &hierarchy,
+                                    std::function<void(Dwarf_Debug,
+                                                       Dwarf_Die,
+                                                       int,
+                                                       std::vector<std::string> &,
+                                                       ClassInfo &)> cuProcessor) {
 
   // the return stuff
-  classInfo ret;
+  ClassInfo ret;
 
   Dwarf_Unsigned cu_header_length = 0;
   Dwarf_Half version_stamp = 0;
@@ -179,13 +203,18 @@ classInfo SymbolReader::analyzeFile(std::vector<std::string> &hierarchy) {
       return ret;
     }
 
-    getDieAndSiblings(dbg, cu_die, 0, hierarchy, ret);
+    cuProcessor(dbg, cu_die, 0, hierarchy, ret);
+    //getDieAndSiblings(dbg, cu_die, 0, hierarchy, ret);
 
     dwarf_dealloc(dbg, cu_die, DW_DLA_DIE);
   }
 }
 
-void SymbolReader::getDieAndSiblings(Dwarf_Debug dbg, Dwarf_Die in_die, int in_level, std::vector<std::string> &hierarchy, classInfo &ret) {
+void SymbolReader::searchForHierarchyInCu(Dwarf_Debug dbg,
+                                          Dwarf_Die in_die,
+                                          int in_level,
+                                          std::vector<std::string> &hierarchy,
+                                          ClassInfo &ret) {
 
   int res = DW_DLV_ERROR;
   Dwarf_Die cur_die = in_die;
@@ -208,15 +237,76 @@ void SymbolReader::getDieAndSiblings(Dwarf_Debug dbg, Dwarf_Die in_die, int in_l
 
     // is this the final class symbol
     if(isClassSymbol(dbg, cur_die, hierarchy.back()) && (in_level == hierarchy.size() - 1)) {
-      extractClassInfo(dbg, cur_die, hierarchy, ret);
+      extractClassInfo(cur_die, hierarchy, ret);
     }
       // is this a namespace or a class
     else if(isNamespaceOrClass(dbg, cur_die, hierarchy[in_level])) {
-      getDieAndSiblings(dbg, cur_die, in_level + 1, hierarchy, ret);
+      searchForHierarchyInCu(dbg, cur_die, in_level + 1, hierarchy, ret);
     }
 
     res = dwarf_siblingof(dbg, cur_die, &cur_die, &error);
   };
+}
+
+bool SymbolReader::searchForTypeInCu(Dwarf_Debug dbg,
+                                     Dwarf_Die in_die,
+                                     int in_level,
+                                     std::vector<std::string> &hierarchy,
+                                     Dwarf_Die nameDie) {
+  int res = DW_DLV_ERROR;
+  Dwarf_Die cur_die = in_die;
+  Dwarf_Die child = nullptr;
+  Dwarf_Error error;
+
+  // grab the child
+  res = dwarf_child(cur_die, &child, &error);
+
+  // we are looking at this one
+  cur_die = child;
+
+  // traverse tree depth first
+  while (res == DW_DLV_OK) {
+
+    // is this the final type symbol
+    if(cur_die == nameDie) {
+      return true;
+    }
+
+    if(searchForTypeInCu(dbg, cur_die, in_level + 1, hierarchy, nameDie)) {
+      hierarchy.insert(hierarchy.begin(), getNamespaceOrClassName(dbg, cur_die));
+      return true;
+    }
+
+    res = dwarf_siblingof(dbg, cur_die, &cur_die, &error);
+  };
+
+  return false;
+}
+
+
+std::string SymbolReader::getNamespaceOrClassName(Dwarf_Debug dbg, Dwarf_Die print_me) {
+
+  // the return value
+  std::string ret;
+
+  // check if this entry is the symbol of the class
+  char *name = nullptr;
+  int gotName = !dwarf_diename(print_me, &name, &error);
+
+  // grab the tag
+  Dwarf_Half tag = 0;
+  int gotTagName = !dwarf_tag(print_me, &tag, &error);
+
+  // if it does have a name
+  if(gotName && gotTagName && (tag == DW_TAG_class_type || tag == DW_TAG_namespace)) {
+    ret.assign(name);
+  }
+
+  // deallocate the name
+  dwarf_dealloc(dbg, name, DW_DLA_STRING);
+
+  // return the value
+  return ret;
 }
 
 bool SymbolReader::isClassSymbol(Dwarf_Debug dbg, Dwarf_Die print_me, std::string &realName) {
@@ -300,7 +390,7 @@ bool SymbolReader::isNamespaceOrClass(Dwarf_Debug dbg, Dwarf_Die print_me, std::
 }
 
 /// TODO do better error handling
-void SymbolReader::parseAttribute(Dwarf_Die cur_die, classInfo &ret) {
+void SymbolReader::parseAttribute(Dwarf_Die cur_die, ClassInfo &ret) {
 
   char *name = nullptr;
   Dwarf_Attribute attr;
@@ -335,10 +425,10 @@ void SymbolReader::parseAttribute(Dwarf_Die cur_die, classInfo &ret) {
   assert(gotTypeDie);
 
   std::string tmp;
-  auto type = getType(typeDie, tmp, 0);
+  auto type = getType(typeDie, nullptr, tmp, 0);
 
   // set the extracted information
-  attributeInfo atInfo{};
+  AttributeInfo atInfo{};
   atInfo.name.assign(name);
   atInfo.size = type.size;
   atInfo.type.assign(type.name);
@@ -351,7 +441,10 @@ void SymbolReader::parseAttribute(Dwarf_Die cur_die, classInfo &ret) {
   dwarf_dealloc(dbg, name, DW_DLA_STRING);
 }
 
-attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName, unsigned int isPointer) {
+AttributeType SymbolReader::getType(Dwarf_Die curDie,
+                                    Dwarf_Die nameDie,
+                                    std::string &previousName,
+                                    unsigned int isPointer) {
 
   char *typeName = nullptr;
   Dwarf_Attribute attr;
@@ -361,11 +454,11 @@ attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName
   Dwarf_Half tag = 0;
 
   // grab the tag
-  int gotTagName = !dwarf_tag(cur_die, &tag, &error);
+  int gotTagName = !dwarf_tag(curDie, &tag, &error);
 
   // check if we have a tag if not return an empty result
   if(!gotTagName) {
-    return attributeType("", 0);
+    return AttributeType("", 0);
   }
 
   switch (tag) {
@@ -374,7 +467,7 @@ attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName
     case DW_TAG_typedef: {
 
       // the const type and type defs references the actual type therefore we must follow the reference
-      int gotTypeOffset = !dwarf_attr(cur_die, DW_AT_type, &attr, &error) &&
+      int gotTypeOffset = !dwarf_attr(curDie, DW_AT_type, &attr, &error) &&
           !dwarf_global_formref(attr, &typeOffset, &error) &&
           !dwarf_offdie_b(dbg, typeOffset, 1, &typeDie, &error);
 
@@ -384,17 +477,18 @@ attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName
 
       // check if there is something wrong
       if(!gotTypeOffset) {
-        return attributeType("", 0);
+        return AttributeType("", 0);
       }
 
       // convert the thing to a std string and free the memory
       if(gotTypeName) {
+        nameDie = curDie;
         previousName.assign(typeName);
         dwarf_dealloc(dbg, typeName, DW_DLA_STRING);
       }
 
       // follow the type
-      return getType(typeDie, previousName, isPointer);
+      return getType(typeDie, nameDie, previousName, isPointer);
     }
     case DW_TAG_base_type:
     case DW_TAG_structure_type:
@@ -402,11 +496,11 @@ attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName
     case DW_TAG_union_type: {
 
       // the base type has a name and size so we grab that
-      int gotTypeName = !dwarf_attr(cur_die, DW_AT_name, &attr, &error) &&
-          !dwarf_diename(cur_die, &typeName, &error);
+      int gotTypeName = !dwarf_attr(curDie, DW_AT_name, &attr, &error) &&
+          !dwarf_diename(curDie, &typeName, &error);
 
       // grab the size of the attribute
-      int gotByteSize = !dwarf_attr(cur_die, DW_AT_byte_size, &attr, &error) &&
+      int gotByteSize = !dwarf_attr(curDie, DW_AT_byte_size, &attr, &error) &&
           !dwarf_formudata(attr, &size, &error);
 
 
@@ -419,13 +513,23 @@ attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName
       std::string suffix = isPointer ? std::string(isPointer, '*') : "";
       size = isPointer ? sizeof(int*) : size;
 
+      // get the full name
+      std::string fullName;
+
       // if we don't have the type name but have the size return the thing with the previous name
       if(!gotTypeName) {
-        return attributeType(previousName + suffix, size);
+
+        bool getFullName = getFullTypeName(nameDie, fullName);
+
+        // return the name with the namespace
+        return AttributeType(getFullName ? fullName + suffix : previousName + suffix, size);
       }
 
+      // get the namespace of the type we got the name
+      bool getFullName = getFullTypeName(curDie, fullName);
+
       // create the return value
-      auto ret = attributeType(std::string(typeName) + suffix, size);
+      auto ret = AttributeType(getFullName ? fullName + suffix : std::string(typeName) + suffix, size);
 
       // free the memory
       dwarf_dealloc(dbg, typeName, DW_DLA_STRING);
@@ -435,30 +539,30 @@ attributeType SymbolReader::getType(Dwarf_Die cur_die, std::string &previousName
     case DW_TAG_pointer_type: {
 
       // try to find the root type of the pointer
-      int gotTypeOffset = !dwarf_attr(cur_die, DW_AT_type, &attr, &error) &&
+      int gotTypeOffset = !dwarf_attr(curDie, DW_AT_type, &attr, &error) &&
           !dwarf_global_formref(attr, &typeOffset, &error) &&
           !dwarf_offdie_b(dbg, typeOffset, 1, &typeDie, &error);
 
       // check if there is something wrong
       if(!gotTypeOffset) {
-        return attributeType("", 0);
+        return AttributeType("", 0);
       }
 
       // follow the type
-      return getType(typeDie, previousName, ++isPointer);
+      return getType(typeDie, nameDie, previousName, ++isPointer);
     }
     default: {
 
       // this should not happen
-      return attributeType("", 0);
+      return AttributeType("", 0);
     }
   }
 }
 
-void SymbolReader::parseMethod(Dwarf_Die curDie, classInfo &info) {
+void SymbolReader::parseMethod(Dwarf_Die curDie, ClassInfo &info) {
 
   // the method info
-  methodInfo ret{};
+  MethodInfo ret{};
 
   char *name = nullptr;
   char *symbol = nullptr;
@@ -467,7 +571,7 @@ void SymbolReader::parseMethod(Dwarf_Die curDie, classInfo &info) {
   Dwarf_Die typeDie;
   Dwarf_Die child = nullptr;
   Dwarf_Die sibling = nullptr;
-  std::vector<attributeType> parameters;
+  std::vector<AttributeType> parameters;
 
   // check if this entry is the symbol of the class
   int gotName = !dwarf_attr(curDie, DW_AT_name, &attr, &error) &&
@@ -489,7 +593,7 @@ void SymbolReader::parseMethod(Dwarf_Die curDie, classInfo &info) {
   }
   else {
     std::string emp;
-    auto tmp = getType(typeDie, emp, 0);
+    auto tmp = getType(typeDie, nullptr, emp, 0);
 
     // copy the type
     ret.returnType.name.assign(tmp.name);
@@ -525,7 +629,7 @@ void SymbolReader::parseMethod(Dwarf_Die curDie, classInfo &info) {
 
     // grab the type of the parameters
     std::string emp;
-    auto type = getType(typeDie, emp, 0);
+    auto type = getType(typeDie, nullptr, emp, 0);
 
     // store the parameter
     parameters.emplace_back(type);
@@ -554,7 +658,7 @@ void SymbolReader::parseMethod(Dwarf_Die curDie, classInfo &info) {
   info.methods->emplace_back(ret);
 }
 
-void SymbolReader::extractClassInfo(Dwarf_Debug dbg, Dwarf_Die in_die, std::vector<std::string> &hierarchy, classInfo &ret) {
+void SymbolReader::extractClassInfo(Dwarf_Die in_die, std::vector<std::string> &hierarchy, ClassInfo &ret) {
 
   Dwarf_Die child = nullptr;
   Dwarf_Die sib_die = nullptr;
@@ -590,6 +694,74 @@ void SymbolReader::extractClassInfo(Dwarf_Debug dbg, Dwarf_Die in_die, std::vect
       res = dwarf_siblingof(dbg, cur_die, &sib_die, &error);
     };
   }
+}
+
+bool SymbolReader::getFullTypeName(Dwarf_Die typeDie, std::string &outTypeName) {
+
+  Dwarf_Signed numberOfTypes;
+  Dwarf_Type *types;
+  Dwarf_Error err;
+  Dwarf_Off dieOffset;
+  Dwarf_Off curOffset;
+  int result;
+  char *typeName;
+
+  // grab the offset of the die
+  result = dwarf_dieoffset(typeDie, &dieOffset, &err);
+  if (result != DW_DLV_OK) {
+
+    PDB_COUT << "Could not determine the die offset. \n";
+
+    return false;
+  }
+
+  // grab the types
+  result = dwarf_get_pubtypes(dbg, &types, &numberOfTypes, &err);
+  if (result != DW_DLV_OK) {
+
+    // log the error
+    PDB_COUT << "Could not find the public types. Problem in the debug data \n";
+
+    // return an empty string
+    outTypeName.assign("");
+
+    return false;
+  }
+
+  // iterate over the returned array of descriptors.
+  for (int i = 0; i < numberOfTypes; i++) {
+
+    // grab the offset
+    result = dwarf_pubtype_type_die_offset(types[i], &curOffset, &err);
+
+    // if it is fine and it matches the offset
+    if (result == DW_DLV_OK && dieOffset == curOffset) {
+
+      // grab the full name
+      result = dwarf_pubtypename(types[i], &typeName, &err);
+
+      // if we got it
+      if(result == DW_DLV_OK) {
+        outTypeName.assign(typeName);
+        return true;
+      }
+
+      // log the error
+      PDB_COUT << "Could not find the full type. Problem in the debug data \n";
+
+      // return an empty string
+      outTypeName.assign("");
+    }
+  }
+
+  // deallocate the returned array.
+  dwarf_types_dealloc(dbg, types, numberOfTypes);
+
+  // log the error
+  PDB_COUT << "Could not find the the type, type is private.";
+
+  // return the namespace
+  return false;
 }
 
 }
