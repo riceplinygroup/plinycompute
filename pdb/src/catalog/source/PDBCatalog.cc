@@ -834,10 +834,18 @@ bool PDBCatalog::registerUserDefinedObject(
     storeAttribute(typeName, att, errorMessage, isSuccess);
   }
 
+  for(auto &method : *info.methods) {
+    storeMethod(typeName, method, errorMessage, isSuccess);
+  }
+
   // TODO store methods
 
   pthread_mutex_unlock(&(registerMetadataMutex));
   return isSuccess;
+}
+
+void PDBCatalog::storeMethod(const string &basic_string, MethodInfo info, string &basicString, bool success) {
+
 }
 
 void PDBCatalog::storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess) {

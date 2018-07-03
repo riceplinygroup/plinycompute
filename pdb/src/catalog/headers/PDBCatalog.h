@@ -583,6 +583,7 @@ private:
    * @param attribute - info about the attribute
    */
   void storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess);
+  void storeMethod(const string &basic_string, MethodInfo info, string &basicString, bool success);
 };
 
 #endif /* PDB_CATALOG_H_ */
