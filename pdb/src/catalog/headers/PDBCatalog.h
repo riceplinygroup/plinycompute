@@ -576,6 +576,13 @@ private:
    * Metadata in a container
    */
   map<int, string> mapsPDBArrayObject2SQLiteTable;
+
+  /**
+   * Store the attribute for a particular type in the catalog
+   * @param typeName - the name of the type
+   * @param attribute - info about the attribute
+   */
+  void storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess);
 };
 
 #endif /* PDB_CATALOG_H_ */

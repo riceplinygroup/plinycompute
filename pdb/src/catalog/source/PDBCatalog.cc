@@ -331,7 +331,7 @@ void PDBCatalog::open() {
 
     // this table contains info about the attributes of a particular data type
     catalogSqlQuery(
-        "CREATE TABLE IF NOT EXISTS data_type_attributes (itemID TEXT PRIMARY KEY, className TEXT, name TEXT, "
+        "CREATE TABLE IF NOT EXISTS data_type_attributes (name TEXT PRIMARY KEY, className TEXT, "
         "size INTEGER, offset INTEGER, typeName TEXT, timeStamp INTEGER, "
         "FOREIGN KEY(className) REFERENCES data_types(itemID));");
 
@@ -746,7 +746,6 @@ bool PDBCatalog::registerUserDefinedObject(
   PDB_COUT << "fileName " << fileName << endl;
   PDB_COUT << "tableName " << tableName << endl;
 
-  bool success = false;
   errorMessage = "";
 
   sqlite3_stmt *stmt = nullptr;
@@ -763,7 +762,7 @@ bool PDBCatalog::registerUserDefinedObject(
     errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     PDB_COUT << "errorMessage" << errorMessage << endl;
 
-    success = false;
+    isSuccess = false;
 
   } else {
     PDB_COUT << "Pass else \n";
@@ -807,12 +806,12 @@ bool PDBCatalog::registerUserDefinedObject(
     if (rc != SQLITE_OK) {
       errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
       this->logger->debug(errorMessage);
-      success = false;
+      isSuccess = false;
     } else {
       rc = sqlite3_step(stmt);
       if (rc != SQLITE_DONE) {
         if (sqlite3_errcode(sqliteDBHandler) == SQLITE_CONSTRAINT) {
-          success = false;
+          isSuccess = false;
           errorMessage = fileName + " is already registered in the catalog!" + "\n";
         } else
           errorMessage = "Query execution failed. " +
@@ -821,9 +820,8 @@ bool PDBCatalog::registerUserDefinedObject(
         registeredUserDefinedTypes.insert(
             make_pair(typeName, *objectToRegister));
 
-        success = true;
-        this->logger->writeLn(
-            "Dynamic library successfully stored in catalog!");
+        isSuccess = true;
+        this->logger->writeLn("Dynamic library successfully stored in catalog!");
       }
     }
     sqlite3_finalize(stmt);
@@ -831,8 +829,58 @@ bool PDBCatalog::registerUserDefinedObject(
   }
   PDB_COUT << errorMessage << std::endl;
 
+  // store each attribute
+  for(auto &att : *info.attributes) {
+    storeAttribute(typeName, att, errorMessage, isSuccess);
+  }
+
+  // TODO store methods
+
   pthread_mutex_unlock(&(registerMetadataMutex));
   return isSuccess;
+}
+
+void PDBCatalog::storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess) {
+
+  // create the insert query
+  std::string tableName = mapsPDBObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute];
+  string queryString = "INSERT INTO " + tableName + " (name, className, size, offset, typeName, timeStamp) "
+                       "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
+
+  // prepare the statement
+  sqlite3_stmt *stmt = nullptr;
+  int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, nullptr);
+
+  // did we fail
+  if (rc != SQLITE_OK) {
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    PDB_COUT << "errorMessage" << errorMessage << endl;
+    isSuccess = false;
+    return;
+  }
+
+  rc = sqlite3_bind_text(stmt, 1, attribute.name.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_text(stmt, 2, typeName.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_int(stmt, 3, (int) attribute.size);
+  rc = sqlite3_bind_int(stmt, 4, (int) attribute.offset);
+  rc = sqlite3_bind_text(stmt, 5, attribute.type.c_str(), -1, SQLITE_STATIC);
+
+  // did we manage to bind it
+  if (rc != SQLITE_OK) {
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    this->logger->debug(errorMessage);
+    isSuccess = false;
+    return;
+  }
+
+  // run the thing
+  rc = sqlite3_step(stmt);
+  if (rc != SQLITE_DONE) {
+      errorMessage = "Query execution failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+      isSuccess = false;
+  }
+
+  sqlite3_finalize(stmt);
 }
 
 map<string, CatalogUserTypeMetadata> PDBCatalog::getUserDefinedTypesList() {
