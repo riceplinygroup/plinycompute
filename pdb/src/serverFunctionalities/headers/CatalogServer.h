@@ -267,8 +267,7 @@ private:
    */
   void *loadLibrary(string &fileName);
 
-
-  getObjectTypeNameFunc* loadGetObjectTypeNameFunction(void *so_handle);
+  ClassInfo extractDebuggingInfo(const string &typeName, const string &libPath) const;
 };
 }
 

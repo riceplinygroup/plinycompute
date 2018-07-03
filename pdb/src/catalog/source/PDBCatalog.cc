@@ -166,8 +166,8 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
 
   pdb::UseTemporaryAllocationBlock(1024 * 1024 * 128);
 
-  sqlite3_config(SQLITE_CONFIG_LOG, errorLogCallback, NULL);
-  pthread_mutex_init(&(registerMetadataMutex), NULL);
+  sqlite3_config(SQLITE_CONFIG_LOG, errorLogCallback, nullptr);
+  pthread_mutex_init(&(registerMetadataMutex), nullptr);
   this->logger = logger;
 
   // sets the paths for the location of the catalog files
@@ -179,8 +179,7 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
 
   // Creates the parent folder for the catalog
   // If location exists, only opens it.
-  if (mkdir(catalogRootPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) ==
-      -1) {
+  if (mkdir(catalogRootPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
     PDB_COUT << "Parent catalog folder " << catalogRootPath
              << " was not created, it already exists." << std::endl;
   } else {
@@ -192,64 +191,68 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
   // for this PDB instance.
   // If location exists, only opens it.
   if (mkdir(catalogPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
-    PDB_COUT << "Catalog folder " << catalogPath
-             << " was not created, it already exists." << std::endl;
+    PDB_COUT << "Catalog folder " << catalogPath << " was not created, it already exists." << std::endl;
   } else {
-    PDB_COUT << "Catalog folder " << catalogPath << " was created/opened."
-             << std::endl;
+    PDB_COUT << "Catalog folder " << catalogPath << " was created/opened." << std::endl;
   }
 
   // creates temp folder for extracting so_files (only if folder doesn't exist)
-  const int folder =
-      mkdir(tempPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  const int folder = mkdir(tempPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   if (folder == -1) {
-    PDB_COUT << "Folder " << tempPath << " was not created, it already exists."
-             << std::endl;
+    PDB_COUT << "Folder " << tempPath << " was not created, it already exists." << std::endl;
   } else {
-    PDB_COUT << "Folder " << tempPath
-             << " for temporary shared libraries was created/opened."
-             << std::endl;
+    PDB_COUT << "Folder " << tempPath << " for temporary shared libraries was created/opened." << std::endl;
   }
 
   listUsersInCluster = makeObject<Vector<Handle<CatalogUserTypeMetadata>>>();
   registeredNodesMetadata = makeObject<Vector<CatalogNodeMetadata>>();
   registeredSetsMetadata = makeObject<Vector<CatalogSetMetadata>>();
   registeredDatabasesMetadata = makeObject<Vector<CatalogDatabaseMetadata>>();
-  registeredUserDefinedTypesMetadata =
-      makeObject<Vector<CatalogUserTypeMetadata>>();
+  registeredUserDefinedTypesMetadata = makeObject<Vector<CatalogUserTypeMetadata>>();
 
   catalogContents = makeObject<Map<String, Handle<Vector<Object>>>>();
 
   // Populates a map to convert strings from PDBObject names to SQLite table
   // names in order to create query strings
-  mapsPDBOjbect2SQLiteTable.insert(
+  mapsPDBObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBNode, "pdb_node"));
-  mapsPDBOjbect2SQLiteTable.insert(
+  mapsPDBObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBDatabase, "pdb_database"));
-  mapsPDBOjbect2SQLiteTable.insert(
+  mapsPDBObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBSet, "pdb_set"));
-  mapsPDBOjbect2SQLiteTable.insert(
+  mapsPDBObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBUser, "pdb_user"));
-  mapsPDBOjbect2SQLiteTable.insert(make_pair(
+  mapsPDBObject2SQLiteTable.insert(make_pair(
       PDBCatalogMsgType::CatalogPDBPermissions, "pdb_user_permission"));
-  mapsPDBOjbect2SQLiteTable.insert(
+  mapsPDBObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBRegisteredObject, "data_types"));
+  mapsPDBObject2SQLiteTable.insert(
+      make_pair(PDBCatalogMsgType::CatalogPDBObjectAttribute, "data_type_attributes"));
+  mapsPDBObject2SQLiteTable.insert(
+      make_pair(PDBCatalogMsgType::CatalogPDBObjectMethod, "data_type_methods"));
+  mapsPDBObject2SQLiteTable.insert(
+      make_pair(PDBCatalogMsgType::CatalogPDBMethodParameter, "method_parameters"));
 
   // Populates a map to convert strings from Vector<PDBOjbect> names to SQLite
   // table names in order to create query strings
-  mapsPDBArrayOjbect2SQLiteTable.insert(
+  mapsPDBArrayObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBNode, "pdb_node"));
-  mapsPDBArrayOjbect2SQLiteTable.insert(
+  mapsPDBArrayObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBDatabase, "pdb_database"));
-  mapsPDBArrayOjbect2SQLiteTable.insert(
+  mapsPDBArrayObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBSet, "pdb_set"));
-  mapsPDBArrayOjbect2SQLiteTable.insert(
+  mapsPDBArrayObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBUser, "pdb_user"));
-  mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(
+  mapsPDBArrayObject2SQLiteTable.insert(make_pair(
       PDBCatalogMsgType::CatalogPDBPermissions, "pdb_user_permission"));
-  mapsPDBArrayOjbect2SQLiteTable.insert(
+  mapsPDBArrayObject2SQLiteTable.insert(
       make_pair(PDBCatalogMsgType::CatalogPDBRegisteredObject, "data_types"));
-
+  mapsPDBArrayObject2SQLiteTable.insert(
+      make_pair(PDBCatalogMsgType::CatalogPDBObjectAttribute, "data_type_attributes"));
+  mapsPDBArrayObject2SQLiteTable.insert(
+      make_pair(PDBCatalogMsgType::CatalogPDBObjectMethod, "data_type_methods"));
+  mapsPDBArrayObject2SQLiteTable.insert(
+      make_pair(PDBCatalogMsgType::CatalogPDBMethodParameter, "method_parameters"));
 }
 
 PDBCatalog::~PDBCatalog() {
@@ -307,26 +310,42 @@ bool PDBCatalog::getSerializedCatalog(
 }
 
 void PDBCatalog::open() {
-  sqliteDBHandler = NULL;
+  sqliteDBHandler = nullptr;
   int ret = 0;
   // If database doesn't exist creates database along with tables, otherwise,
   // opens database without creating a database/tables.
   if ((ret = sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler,
-                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE |
-                                 SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
-                             NULL)) == SQLITE_OK) {
+                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
+                             nullptr)) == SQLITE_OK) {
 
     // These two SQLite flags optimize insertions/deletions/updates to the
     // tables by buffering data prior to writing to disk
-    sqlite3_exec(sqliteDBHandler, "PRAGMA synchronous=OFF", NULL, NULL, NULL);
-    sqlite3_exec(sqliteDBHandler, "PRAGMA journal_mode=memory", NULL, NULL,
-                 NULL);
+    sqlite3_exec(sqliteDBHandler, "PRAGMA synchronous=OFF", nullptr, nullptr, nullptr);
+    sqlite3_exec(sqliteDBHandler, "PRAGMA journal_mode=memory", nullptr, nullptr, nullptr);
 
     // Create tables if they don't exist, they are created with primary key to
     // prevent duplicates
     catalogSqlQuery(
         "CREATE TABLE IF NOT EXISTS data_types (itemID TEXT PRIMARY KEY, "
         "itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
+
+    // this table contains info about the attributes of a particular data type
+    catalogSqlQuery(
+        "CREATE TABLE IF NOT EXISTS data_type_attributes (itemID TEXT PRIMARY KEY, className TEXT, name TEXT, "
+        "size INTEGER, offset INTEGER, typeName TEXT, timeStamp INTEGER, "
+        "FOREIGN KEY(className) REFERENCES data_types(itemID));");
+
+    // this table contains the info about methods of a particular type
+    catalogSqlQuery(
+        "CREATE TABLE IF NOT EXISTS data_type_methods (itemID INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "className TEXT, methodName TEXT, symbol TEXT, retTypeName TEXT, retTypeSize INTEGER, "
+        "timeStamp INTEGER, FOREIGN KEY(className) REFERENCES data_types(itemID));");
+
+    // this table contains the info about the parameters of a particular method
+    catalogSqlQuery("CREATE TABLE IF NOT EXISTS method_parameters (itemID INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    "methodID INTEGER,parameterOrder INTEGER,typeName TEXT, typeSize INTEGER, timeStamp INTEGER, "
+                    "FOREIGN KEY(methodID) REFERENCES data_type_methods(itemID));");
+
     catalogSqlQuery(
         "CREATE TABLE IF NOT EXISTS metrics (itemID TEXT PRIMARY KEY, "
         "itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
@@ -646,7 +665,7 @@ bool PDBCatalog::getMetadataFromCatalog(
   sqlite3_stmt *statement = NULL;
 
   string queryString = "SELECT itemID, itemInfo, timeStamp from " +
-                       mapsPDBArrayOjbect2SQLiteTable[metadataCategory];
+                       mapsPDBArrayObject2SQLiteTable[metadataCategory];
 
   // if empty string then retrieves all items in the table, otherwise only the
   // item with the given key
@@ -716,13 +735,13 @@ bool PDBCatalog::registerUserDefinedObject(
   const string &typeName,
   const string &fileName,
   const string &tableName,
+  const ClassInfo &info,
   string &errorMessage) {
 
   bool isSuccess = false;
 
   pthread_mutex_lock(&(registerMetadataMutex));
-  PDB_COUT << "inside registerUserDefinedObject\nobjectBytes "
-           << std::to_string(objectBytes.size()) << endl;
+  PDB_COUT << "inside registerUserDefinedObject\nobjectBytes " << std::to_string(objectBytes.size()) << "\n";
   PDB_COUT << "typeName " << typeName << endl;
   PDB_COUT << "fileName " << fileName << endl;
   PDB_COUT << "tableName " << tableName << endl;
@@ -730,31 +749,28 @@ bool PDBCatalog::registerUserDefinedObject(
   bool success = false;
   errorMessage = "";
 
-  sqlite3_stmt *stmt = NULL;
-  uint8_t *serializedBytes = NULL;
+  sqlite3_stmt *stmt = nullptr;
+  uint8_t *serializedBytes = nullptr;
 
-  string queryString("");
-  queryString = "INSERT INTO " + tableName +
-                " (itemID, itemInfo, soBytes, timeStamp) "
-                "VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
+  string queryString = "INSERT INTO " + tableName +
+                       " (itemID, itemInfo, soBytes, timeStamp) "
+                       "VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
   PDB_COUT << "QueryString = " << queryString << endl;
 
-  int rc =
-      sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
+  int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, nullptr);
   if (rc != SQLITE_OK) {
-    errorMessage = "Prepared statement failed. " +
-                   (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     PDB_COUT << "errorMessage" << errorMessage << endl;
 
     success = false;
-  } else {
-    PDB_COUT << "Pass else" << endl;
-    // Gets the number of registered objects in the catalog
-    int totalRegisteredTypes = (int)registeredUserDefinedTypes.size();
 
-    PDB_COUT << "ASSIGN TYPE_ID-> " << std::to_string(typeCode) << " for Type "
-             << typeName << endl;
+  } else {
+    PDB_COUT << "Pass else \n";
+    // Gets the number of registered objects in the catalog
+    auto totalRegisteredTypes = (int) registeredUserDefinedTypes.size();
+
+    PDB_COUT << "ASSIGN TYPE_ID-> " << std::to_string(typeCode) << " for Type " << typeName << "\n";
 
     string newObjectId = std::to_string(typeCode);
     String newObjectIndex = String(std::to_string(typeCode));
@@ -773,28 +789,23 @@ bool PDBCatalog::registerUserDefinedObject(
     objectToRegister->setLibraryBytes(empty);
 
     // gets the raw bytes of the object
-    Record<CatalogUserTypeMetadata> *metadataBytes =
-        getRecord<CatalogUserTypeMetadata>(objectToRegister);
+    Record<CatalogUserTypeMetadata> *metadataBytes = getRecord<CatalogUserTypeMetadata>(objectToRegister);
 
-    // TODO I might be able to directly save the bytes into sqlite without the
-    // memcpy
+    // TODO I might be able to directly save the bytes into sqlite without the memcpy
     serializedBytes = (uint8_t *)malloc(metadataBytes->numBytes());
     memcpy(serializedBytes, metadataBytes, metadataBytes->numBytes());
     size_t soBytesSize = objectBytes.length();
     this->logger->debug("size soBytesSize  " + std::to_string(soBytesSize));
 
     rc = sqlite3_bind_text(stmt, 1, typeToRegister.c_str(), -1, SQLITE_STATIC);
-    rc = sqlite3_bind_blob(stmt, 2, serializedBytes, metadataBytes->numBytes(),
-                           SQLITE_STATIC);
-    rc = sqlite3_bind_blob(stmt, 3, objectBytes.c_str(), soBytesSize,
-                           SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 2, serializedBytes, metadataBytes->numBytes(), SQLITE_STATIC);
+    rc = sqlite3_bind_blob(stmt, 3, objectBytes.c_str(), soBytesSize, SQLITE_STATIC);
 
     // Inserts newly added object into containers
     addItemToVector(objectToRegister, totalRegisteredTypes);
 
     if (rc != SQLITE_OK) {
-      errorMessage = "Bind operation failed. " +
-                     (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+      errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
       this->logger->debug(errorMessage);
       success = false;
     } else {
@@ -802,8 +813,7 @@ bool PDBCatalog::registerUserDefinedObject(
       if (rc != SQLITE_DONE) {
         if (sqlite3_errcode(sqliteDBHandler) == SQLITE_CONSTRAINT) {
           success = false;
-          errorMessage =
-              fileName + " is already registered in the catalog!" + "\n";
+          errorMessage = fileName + " is already registered in the catalog!" + "\n";
         } else
           errorMessage = "Query execution failed. " +
                          (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
@@ -952,7 +962,7 @@ bool PDBCatalog::addMetadataToCatalog(
   sqlite3_stmt *stmt = NULL;
 
   string sqlStatement = "INSERT INTO " +
-                        mapsPDBOjbect2SQLiteTable[metadataCategory] +
+                        mapsPDBObject2SQLiteTable[metadataCategory] +
                         " (itemID, itemInfo, timeStamp) VALUES (?, ?, "
                         "strftime('%s', 'now', 'localtime'))";
 
@@ -968,28 +978,22 @@ bool PDBCatalog::addMetadataToCatalog(
 
   this->logger->debug(sqlStatement + " with key= " + metadataKey);
   // Prepares statement
-  if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1, &stmt,
-                          NULL)) != SQLITE_OK) {
+  if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1, &stmt, NULL)) != SQLITE_OK) {
 
-    errorMessage =
-        "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
+    errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
     this->logger->writeLn(errorMessage);
     isSuccess = false;
   }
 
   // Binds key for this piece of metadata
-  if ((sqlite3_bind_text(stmt, 1, metadataKey.c_str(), -1, SQLITE_STATIC)) !=
-      SQLITE_OK) {
-    errorMessage = "Bind operation failed. " +
-                   (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+  if ((sqlite3_bind_text(stmt, 1, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK) {
+    errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
     isSuccess = false;
   }
 
   // Binds value for this piece of metadata (as a pdb serialized set of bytes)
-  if ((sqlite3_bind_blob(stmt, 2, metadataBytes, numberOfBytes,
-                         SQLITE_STATIC)) != SQLITE_OK) {
-    errorMessage = "Bind operation failed. " +
-                   (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+  if ((sqlite3_bind_blob(stmt, 2, metadataBytes, numberOfBytes, SQLITE_STATIC)) != SQLITE_OK) {
+    errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
     isSuccess = false;
   }
 
@@ -1033,7 +1037,7 @@ bool PDBCatalog::updateMetadataInCatalog(
   bool isSuccess = false;
   sqlite3_stmt *stmt = NULL;
   string sqlStatement = "UPDATE " +
-                        mapsPDBOjbect2SQLiteTable[metadataCategory] +
+                        mapsPDBObject2SQLiteTable[metadataCategory] +
                         " set itemInfo =  ?, timeStamp = strftime('%s', 'now', "
                         "'localtime') where itemId = ?";
 
@@ -1104,7 +1108,7 @@ bool PDBCatalog::deleteMetadataInCatalog(
   bool isSuccess = false;
   sqlite3_stmt *stmt = NULL;
   string sqlStatement = "DELETE from " +
-                        mapsPDBOjbect2SQLiteTable[metadataCategory] +
+                        mapsPDBObject2SQLiteTable[metadataCategory] +
                         " where itemId = ?";
 
   PDB_COUT << sqlStatement << " id: " << metadataKey.c_str() << endl;
@@ -1151,7 +1155,7 @@ map<string, CatalogNodeMetadata> PDBCatalog::getListOfNodesInCluster() {
 }
 
 string PDBCatalog::getMapsPDBOjbect2SQLiteTable(int typeOfObject) {
-  return mapsPDBOjbect2SQLiteTable[typeOfObject];
+  return mapsPDBObject2SQLiteTable[typeOfObject];
 }
 
 int PDBCatalog::getLastId(int &metadataCategory) {

@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <SymbolReader.h>
 
 #include "BuiltInObjectTypeIDs.h"
 #include "CatAddNodeToDatabaseRequest.h"
@@ -863,8 +864,7 @@ bool CatalogServer::getSharedLibraryByTypeName(
     std::string typeName, Handle<CatalogUserTypeMetadata> &itemMetadata,
     string &returnedBytes, std::string &errMsg) {
 
-  PDB_COUT << " Catalog Server->inside get getSharedLibraryByName id for type "
-           << typeName << endl;
+  PDB_COUT << " Catalog Server->inside get getSharedLibraryByName id for type " << typeName << "\n";
 
   int metadataCategory = (int)PDBCatalogMsgType::CatalogPDBRegisteredObject;
 
@@ -953,21 +953,22 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
 
   // add the new type name, if we don't already have it
   if (allTypeNames.count(typeName) == 0) {
-    PDB_COUT << "Fixing vtable ptr for type " << typeName
-             << " with metadata retrieved from remote Catalog Server." << endl;
 
+    // try to extract the debugging info from the .so library
+    PDB_COUT << "Extracting the class info from the .so library \n";
+    auto typeInfo = extractDebuggingInfo(typeName, newName);
+
+    PDB_COUT << "Fixing vtable ptr for type " << typeName << " with metadata retrieved from remote Catalog Server.\n";
+
+    // if the type received is -1 this is a type not registered and we set the  new typeID increasing by 1,
+    // otherwise we use the typeID received from the Manager Catalog
     int16_t typeCode;
-
-    // if the type received is -1 this is a type not registered and we set the
-    // new typeID increasing by 1, otherwise we use the typeID received from
-    // the Manager Catalog
     if (typeIDFromManagerCatalog == -1)
       typeCode = 8192 + allTypeNames.size();
     else
       typeCode = typeIDFromManagerCatalog;
 
-    PDB_COUT << "Id Assigned to type " << typeName << " was "
-             << std::to_string(typeCode) << endl;
+    PDB_COUT << "Id Assigned to type " << typeName << " was " << std::to_string(typeCode) << "\n";
 
     allTypeNames[typeName] = typeCode;
     allTypeCodes[typeCode] = typeName;
@@ -981,22 +982,43 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
     }
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
-    Handle<CatalogUserTypeMetadata> objectMetadata =
-        makeObject<CatalogUserTypeMetadata>();
+    Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
 
     PDB_COUT << "before calling registerUserDefinedObject with typeCode="
              << typeCode << endl;
 
-    // register the bytes of the shared library along its metadata in the
-    // catalog
-    pdbCatalog->registerUserDefinedObject(
-        typeCode, objectMetadata, std::string(soFile.begin(), soFile.end()),
-        typeName, catalogDirectory + "/tmp_so_files/" + typeName + ".so",
-        "data_types", errMsg);
+    // register the bytes of the shared library along its metadata in the catalog
+    pdbCatalog->registerUserDefinedObject(typeCode,
+                                          objectMetadata,
+                                          soFile,
+                                          typeName,
+                                          catalogDirectory + "/tmp_so_files/" + typeName + ".so",
+                                          "data_types",
+                                          typeInfo,
+                                          errMsg);
 
     return typeCode;
+
   } else
     return allTypeNames[typeName];
+}
+
+ClassInfo CatalogServer::extractDebuggingInfo(const string &typeName, const string &libPath) const {
+  ClassInfo typeInfo;
+  SymbolReader reader;
+  if(reader.load(libPath)) {
+
+      // the info about this type
+      typeInfo = reader.getClassInformation(typeName);
+
+      // extracted the class info
+      PDB_COUT << "Extracted the debugging info \n";
+
+    } else {
+      PDB_COUT << "Failed to load the debugging info \n";
+    }
+
+  return typeInfo;
 }
 void CatalogServer::writeLibraryToDisk(string &soFile, const string &tempFile) const {
 
@@ -2137,10 +2159,6 @@ bool CatalogServer::getIsManagerCatalogServer() {
 // sets this as a Manager (true) or Worker (false) Catalog
 void CatalogServer::setIsManagerCatalogServer(bool isManagerCatalogServerIn) {
   isManagerCatalogServer = isManagerCatalogServerIn;
-}
-
-getObjectTypeNameFunc *CatalogServer::loadGetObjectTypeNameFunction(void *so_handle) {
-  return nullptr;
 }
 
 /* Explicit instantiation to broadcast Catalog Updates for a Node */

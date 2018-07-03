@@ -46,7 +46,13 @@ enum PDBCatalogMsgType {
 
   CatalogPDBPermissions, // 9
 
-  CatalogDataTypeId // 10
+  CatalogDataTypeId, // 10
+
+  CatalogPDBObjectAttribute, // 11
+
+  CatalogPDBObjectMethod, // 12
+
+  CatalogPDBMethodParameter, // 13
 
 };
 

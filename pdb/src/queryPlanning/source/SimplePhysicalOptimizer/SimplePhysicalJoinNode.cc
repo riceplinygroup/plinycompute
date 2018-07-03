@@ -147,7 +147,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
 
       // set the parameters
       hashBuilder->setJobId(jobId);
-      hashBuilder->setJobStageId(nextStageID++);
+      hashBuilder->setJobStageId(nextStageID);
       hashBuilder->setSourceTupleSetName(joinPrepStage->getSourceTupleSetSpecifier());
       hashBuilder->setTargetTupleSetName(targetTupleSetName);
       hashBuilder->setTargetComputationName(computationSpecifier);
@@ -173,7 +173,7 @@ pdb::PhysicalOptimizerResultPtr pdb::SimplePhysicalJoinNode::analyzeSingleConsum
       sink->setPageSize(conf->getBroadcastPageSize());
 
       // set the parameters
-      tupleStageBuilder->setJobStageId(nextStageID);
+      tupleStageBuilder->setJobStageId(nextStageID++);
       tupleStageBuilder->setTargetTupleSetName(targetTupleSetName);
       tupleStageBuilder->setTargetComputationName(computationSpecifier);
       tupleStageBuilder->setOutputTypeName("IntermediateData");

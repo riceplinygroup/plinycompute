@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
+#include <SymbolReader.h>
 
 #include "CatalogDatabaseMetadata.h"
 #include "CatalogNodeMetadata.h"
@@ -124,6 +125,7 @@ public:
       const string &typeName,
       const string &fileName,
       const string &tableName,
+      const ClassInfo &info,
       string &errorMessage);
 
   /**
@@ -435,7 +437,7 @@ private:
   /**
    * Handler for the SQLite instance, which stores all catalog metadata
    */
-  sqlite3 *sqliteDBHandler = NULL;
+  sqlite3 *sqliteDBHandler = nullptr;
 
   /**
    * List unique metadata entries
@@ -552,12 +554,6 @@ private:
   bool catalogSqlStep(sqlite3_stmt *stmt, string &errorMsg);
 
   /**
-   * Creates a temporary folder to place the shared library files, returns 0 if
-   * success
-   */
-  int createsTempPath();
-
-  /**
    * Sets the URI path where the SQLite database is located
    */
   void setUriPath(string thePath) { uriPath = thePath; }
@@ -572,14 +568,14 @@ private:
    * Maps the name of an SQLite table given the type of metadata it contains.
    * Used for composing prepared SQL statements in SQLite, given a type Metadata
    */
-  map<int, string> mapsPDBOjbect2SQLiteTable;
+  map<int, string> mapsPDBObject2SQLiteTable;
 
   /**
    * Maps the name of an SQLite table given the type of metadata it contains.
    * Used for composing prepared SQL statements in SQLite, given a tyep of
    * Metadata in a container
    */
-  map<int, string> mapsPDBArrayOjbect2SQLiteTable;
+  map<int, string> mapsPDBArrayObject2SQLiteTable;
 };
 
 #endif /* PDB_CATALOG_H_ */
