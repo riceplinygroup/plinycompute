@@ -838,14 +838,53 @@ bool PDBCatalog::registerUserDefinedObject(
     storeMethod(typeName, method, errorMessage, isSuccess);
   }
 
-  // TODO store methods
-
   pthread_mutex_unlock(&(registerMetadataMutex));
   return isSuccess;
 }
 
-void PDBCatalog::storeMethod(const string &basic_string, MethodInfo info, string &basicString, bool success) {
+void PDBCatalog::storeMethod(const string &typeName, MethodInfo method, string &errorMessage, bool &isSuccess) {
 
+  // create the insert query
+  std::string tableName = mapsPDBObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectMethod];
+  string queryString = "INSERT INTO " + tableName + " (className, methodName, symbol, retTypeName, retTypeSize, timeStamp) "
+                       "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
+
+  // prepare the statement
+  sqlite3_stmt *stmt = nullptr;
+  int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, nullptr);
+
+  // did we fail
+  if (rc != SQLITE_OK) {
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    PDB_COUT << "errorMessage" << errorMessage << endl;
+    isSuccess = false;
+    return;
+  }
+
+  rc = sqlite3_bind_text(stmt, 1, typeName.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_text(stmt, 2, method.name.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_text(stmt, 3, method.symbol.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_text(stmt, 4, method.returnType.name.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_int (stmt, 5, (int) method.returnType.size);
+
+  // did we manage to bind it
+  if (rc != SQLITE_OK) {
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    this->logger->debug(errorMessage);
+    isSuccess = false;
+    return;
+  }
+
+  // run the thing
+  rc = sqlite3_step(stmt);
+  if (rc != SQLITE_DONE) {
+    errorMessage = "Query execution failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    sqlite3_finalize(stmt);
+    isSuccess = false;
+    return;
+  }
+
+  sqlite3_finalize(stmt);
 }
 
 void PDBCatalog::storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess) {
