@@ -254,17 +254,12 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               // sends the response in case of failure
               res = sendUsingMe->sendObject(response, errMsg);
             } else {
-              PDB_COUT << "On Catalog Server bytes returned " +
-                              std::to_string((*putResultHere).size())
-                       << endl;
+              PDB_COUT << "On Catalog Server bytes returned " + std::to_string((*putResultHere).size()) << "\n";
 
               // allocates memory for the .so library bytes
-              const UseTemporaryAllocationBlock temp{1024 +
-                                                     (*putResultHere).size()};
-              Handle<Vector<char>> response = makeObject<Vector<char>>(
-                  (*putResultHere).size(), (*putResultHere).size());
-              memmove(response->c_ptr(), (*putResultHere).data(),
-                      (*putResultHere).size());
+              const UseTemporaryAllocationBlock temp{1024 + (*putResultHere).size()};
+              Handle<Vector<char>> response = makeObject<Vector<char>>((*putResultHere).size(), (*putResultHere).size());
+              memmove(response->c_ptr(), (*putResultHere).data(), (*putResultHere).size());
 
               // sends result to requester
               res = sendUsingMe->sendObject(response, errMsg);
@@ -288,7 +283,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         int16_t typeId = 0;
         // if typeName is empty we are searching by typeId, hence retrieves the
         // typeId from the request object
-        if (typeName.empty() == true) {
+        if (typeName.empty()) {
           typeId = request->getTypeLibraryId();
         } else {
           // if a typeName is provided, we are searching by that name, so first
@@ -314,7 +309,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
         // if this is the Manager catalog retrieves .so bytes from local catalog
         // copy
-        if (this->isManagerCatalogServer == true) {
+        if (this->isManagerCatalogServer) {
           // Allocates 150Mb for sending .so libraries
           const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
@@ -411,9 +406,8 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // if the library was successfully retrieved, go ahead and resolve
             // vtable fixing in the local catalog, given the library and
             // metadata retrieved from the remote Manager Catalog
-            if (res == true) {
-              res = getFunctionality<CatalogServer>().addObjectType(
-                  typeId, returnedBytes, errMsg);
+            if (res) {
+              res = getFunctionality<CatalogServer>().addObjectType(typeId, returnedBytes, errMsg);
             }
 
             if (!res) {
@@ -984,8 +978,7 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
 
-    PDB_COUT << "before calling registerUserDefinedObject with typeCode="
-             << typeCode << endl;
+    PDB_COUT << "before calling registerUserDefinedObject with typeCode=" << typeCode << endl;
 
     // register the bytes of the shared library along its metadata in the catalog
     pdbCatalog->registerUserDefinedObject(typeCode,
@@ -1066,13 +1059,13 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
   PDB_COUT << "Deleting set " << setUniqueId << endl;
 
   // make sure the Database for this set is registered
-  if (isDatabaseRegistered(databaseName) == false) {
+  if (!isDatabaseRegistered(databaseName)) {
     errMsg = "Database does not exist.\n";
     return false;
   }
 
   // make sure the set is registered
-  if (isSetRegistered(databaseName, setName) == false) {
+  if (!isSetRegistered(databaseName, setName)) {
     errMsg = "Set doesn't exist " + databaseName + "." + setName;
     return false;
   }
@@ -1097,30 +1090,27 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
   pdbCatalog->deleteMetadataInCatalog(metadataObject, catalogType, errMsg);
 
   // prepares Database object to update the set deletion
-  Handle<CatalogDatabaseMetadata> dbMetadataObject =
-      makeObject<CatalogDatabaseMetadata>();
-
-  Handle<Vector<CatalogDatabaseMetadata>> databaseItems =
-      makeObject<Vector<CatalogDatabaseMetadata>>();
+  Handle<CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
+  Handle<Vector<CatalogDatabaseMetadata>> databaseItems = makeObject<Vector<CatalogDatabaseMetadata>>();
 
   catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
   // retrieves the metadata for this Set's Database
-  if (pdbCatalog->getMetadataFromCatalog(false, databaseName, databaseItems,
-                                         errMsg, catalogType) == false)
+  if (!pdbCatalog->getMetadataFromCatalog(false, databaseName, databaseItems, errMsg, catalogType)) {
     PDB_COUT << errMsg << endl;
+  }
 
   for (int i = 0; i < (*databaseItems).size(); i++) {
-    if ((*databaseItems)[i].getItemKey().c_str() == databaseName)
+    if ((*databaseItems)[i].getItemKey().c_str() == databaseName) {
       *dbMetadataObject = (*databaseItems)[i];
+    }
   }
 
   // deletes the Set
   (*dbMetadataObject).deleteSet(setNameCatalog);
 
   // updates the corresponding database metadata
-  if (!pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType,
-                                           errMsg)) {
+  if (!pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)) {
     return false;
   }
 
@@ -1128,11 +1118,10 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
   // manager catalog iterate over all nodes in the cluster and broadcast the
   // update to the distributed copies of the catalog
   if (isManagerCatalogServer) {
+
     // map to capture the results of broadcasting the Set deletion
     map<string, pair<bool, string>> updateResults;
-
-    Handle<CatDeleteSetRequest> setToRemove =
-        makeObject<CatDeleteSetRequest>(databaseName, setName);
+    Handle<CatDeleteSetRequest> setToRemove = makeObject<CatDeleteSetRequest>(databaseName, setName);
 
     // first, broadcasts the metadata of the removed set to all copies of the
     // catalog in the cluster, removing this Set
@@ -1140,9 +1129,7 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
 
     for (auto &item : updateResults) {
       PDB_COUT << "Set Metadata in node IP: " << item.first
-               << ((item.second.first == true)
-                       ? " updated correctly!"
-                       : " couldn't be updated due to error: ")
+               << (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                << item.second.second << endl;
     }
 
@@ -1155,12 +1142,12 @@ bool CatalogServer::deleteSet(std::string databaseName, std::string setName,
 
     for (auto &item : updateSetResults) {
       PDB_COUT << "DB Metadata in node IP: " << item.first
-               << ((item.second.first == true)
-                       ? "updated correctly!"
-                       : "couldn't be updated due to error: ")
+               << (item.second.first ? "updated correctly!" : "couldn't be updated due to error: ")
                << item.second.second << endl;
     }
+
     PDB_COUT << "******************* deleteSet step completed!!!!!!!" << endl;
+
   } else {
     PDB_COUT << "This is not Manager Catalog Node, thus metadata was only "
                 "registered locally!"
@@ -1175,14 +1162,14 @@ bool CatalogServer::addSet(int16_t typeIdentifier, std::string databaseName,
                            std::string setName, std::string &errMsg) {
 
   // make sure we are only adding to an existing database
-  if (isDatabaseRegistered(databaseName) == false) {
+  if (!isDatabaseRegistered(databaseName)) {
     errMsg = "Database does not exist.\n";
     return false;
   }
 
   // make sure that the set does not exist
   string setUniqueId = databaseName + "." + setName;
-  if (isSetRegistered(databaseName, setName) == true) {
+  if (isSetRegistered(databaseName, setName)) {
     errMsg = "Set already exists.\n";
     return false;
   }
@@ -1394,7 +1381,7 @@ bool CatalogServer::deleteDatabase(std::string databaseName,
                                    std::string &errMsg) {
 
   // don't delete a database that doesn't exist
-  if (isDatabaseRegistered(databaseName) == false) {
+  if (!isDatabaseRegistered(databaseName)) {
     errMsg = "Database does not exist.\n";
     return false;
   }
@@ -1405,8 +1392,8 @@ bool CatalogServer::deleteDatabase(std::string databaseName,
   Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems =
       makeObject<Vector<CatalogDatabaseMetadata>>();
 
-  if (pdbCatalog->getMetadataFromCatalog(false, databaseName, vectorResultItems,
-                                         errMsg, catalogType) == false) {
+  if (!pdbCatalog->getMetadataFromCatalog(false, databaseName, vectorResultItems,
+                                          errMsg, catalogType)) {
     errMsg = "Database does not exist.\n";
     return false;
   }
@@ -1499,13 +1486,11 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
   PDB_COUT << "Loading catalog metadata." << endl;
 
   string errMsg;
-  string emptyString("");
+  string emptyString;
 
   // retrieves metadata for user-defined types from SQLite storage and loads
   // them into memory
-  if (pdbCatalog->getMetadataFromCatalog(
-          false, emptyString, _udfsValues, errMsg,
-          PDBCatalogMsgType::CatalogPDBRegisteredObject) == false)
+  if (!pdbCatalog->getMetadataFromCatalog(false, emptyString, _udfsValues, errMsg, PDBCatalogMsgType::CatalogPDBRegisteredObject))
 
     PDB_COUT << errMsg << endl;
 
@@ -1519,11 +1504,9 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
 
   // retrieves metadata for databases from SQLite storage and loads them into
   // memory
-  if (pdbCatalog->getMetadataFromCatalog(
-          false, emptyString, _allDatabases, errMsg,
-          PDBCatalogMsgType::CatalogPDBDatabase) == false)
-
+  if (!pdbCatalog->getMetadataFromCatalog(false, emptyString, _allDatabases, errMsg, PDBCatalogMsgType::CatalogPDBDatabase)) {
     PDB_COUT << errMsg << endl;
+  }
 
   for (int i = 0; i < (*_allDatabases).size(); i++) {
     string _dbName = (*_allDatabases)[i].getItemKey().c_str();
@@ -1550,9 +1533,9 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
 
   // retrieves metadata for nodes in the cluster from SQLite storage and loads
   // them into memory
-  if (pdbCatalog->getMetadataFromCatalog(
-          false, emptyString, _allNodesInCluster, errMsg,
-          PDBCatalogMsgType::CatalogPDBNode) == false)
+  if (!pdbCatalog->getMetadataFromCatalog(
+            false, emptyString, _allNodesInCluster, errMsg,
+            PDBCatalogMsgType::CatalogPDBNode))
 
     PDB_COUT << errMsg << endl;
 
@@ -1886,8 +1869,8 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
   Handle<Vector<CatalogDatabaseMetadata>> databaseItems =
       makeObject<Vector<CatalogDatabaseMetadata>>();
 
-  if (pdbCatalog->getMetadataFromCatalog(false, databaseName, databaseItems,
-                                         errMsg, catalogType) == false)
+  if (!pdbCatalog->getMetadataFromCatalog(false, databaseName, databaseItems,
+                                          errMsg, catalogType))
     PDB_COUT << errMsg << endl;
 
   for (int i = 0; i < (*databaseItems).size(); i++) {
@@ -1903,13 +1886,11 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
   catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
   // if database exists update its metadata
-  if (isDatabaseRegistered(databaseName) == true) {
-    PDB_COUT << ".......... Invoking updateMetadataInCatalog key: " +
-                    databaseName
-             << endl;
-    if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType,
-                                            errMsg) == true)
+  if (isDatabaseRegistered(databaseName)) {
+    PDB_COUT << ".......... Invoking updateMetadataInCatalog key: " + databaseName << "\n";
+    if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)){
       PDB_COUT << "DB Update Set metadata OK" << endl;
+    }
     else {
       PDB_COUT << "DB Update metadata Set Error: " << errMsg << endl;
       return false;
@@ -1938,9 +1919,7 @@ bool CatalogServer::addNodeToDB(std::string nodeIP, std::string databaseName,
     }
     for (auto &item : updateSetResults) {
       PDB_COUT << "Node IP: "
-               << item.first + ((item.second.first == true)
-                                    ? " updated correctly!"
-                                    : " couldn't be updated due to error: ")
+               << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                << item.second.second << endl;
     }
 
@@ -2019,9 +1998,7 @@ bool CatalogServer::removeNodeFromSet(std::string nodeIP,
 
     for (auto &item : updateResults) {
       PDB_COUT << "Node IP: " << item.first
-               << ((item.second.first == true)
-                       ? " updated correctly!"
-                       : " couldn't be updated due to error: ")
+               << (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                << item.second.second << endl;
     }
 
@@ -2034,9 +2011,7 @@ bool CatalogServer::removeNodeFromSet(std::string nodeIP,
 
     for (auto &item : updateSetResults) {
       PDB_COUT << "DB Metadata broadcasted to Node IP: "
-               << item.first + ((item.second.first == true)
-                                    ? " updated correctly!"
-                                    : " couldn't be updated due to error: ")
+               << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                << item.second.second << endl;
     }
   } else {

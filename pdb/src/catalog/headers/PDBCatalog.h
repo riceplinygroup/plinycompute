@@ -248,11 +248,6 @@ public:
   string getCatalogVersion();
 
   /**
-   * gets a version of the content of the catalog as a printable object
-   */
-  void getModifiedMetadata(Handle<CatalogPrintMetadata> &itemMetadata);
-
-  /**
    * retrieves all Metadata from Sqlite for a given category and returns it
    * in a container
    *
@@ -584,8 +579,28 @@ private:
    */
   void storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess);
 
+  /**
+   * Stores the method of a user defined type
+   * @param typeName - the name of the user defined type
+   * @param method - the info about the method
+   * @param errorMessage - the error message if any error occurs
+   * @param isSuccess - if we fail this will be set to false
+   */
   void storeMethod(const string &typeName, MethodInfo method, string &errorMessage, bool &isSuccess);
-  void storeParameter(sqlite3_int64 i1, AttributeType &type, int errorMessage, string &isSuccess, bool &b);
+
+  /**
+   * Stores the parameter of a particular method
+   * @param methodID - the id of the method (primary key)
+   * @param type - the type of the parameter
+   * @param order - the ordinal number of the parameter
+   * @param errorMessage - the error message if any error occurs
+   * @param isSuccess - if we fail this will be set to false
+   */
+  void storeParameter(sqlite3_int64 methodID, AttributeType &type, int order, string &errorMessage, bool &isSuccess);
+
+  void getClassMethods(string &typeName, ClassInfo &classInfo);
+
+  bool getClassAttributes(string &typeName, ClassInfo &classInfo);
 };
 
 #endif /* PDB_CATALOG_H_ */

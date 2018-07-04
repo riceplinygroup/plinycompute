@@ -19,7 +19,7 @@
 
 /* Specialization for adding Database metadata */
 template <>
-bool PDBCatalog::addItemToVector(Handle<CatalogDatabaseMetadata> &item,                                 int &key) {
+bool PDBCatalog::addItemToVector(Handle<CatalogDatabaseMetadata> &item, int &key) {
   registeredDatabasesMetadata->push_back(*item);
   registeredDatabases.insert(make_pair(item->getItemKey().c_str(), *item));
   return true;
@@ -43,15 +43,11 @@ bool PDBCatalog::addItemToVector(Handle<CatalogSetMetadata> &item, int &key) {
 
 /* Specialization for adding User-defined type metadata */
 template <>
-bool PDBCatalog::addItemToVector(Handle<CatalogUserTypeMetadata> &item,
-                                 int &key) {
+bool PDBCatalog::addItemToVector(Handle<CatalogUserTypeMetadata> &item, int &key) {
   registeredUserDefinedTypesMetadata->push_back(*item);
-  registeredUserDefinedTypes.insert(
-      make_pair(item->getItemName().c_str(), *item));
-  mapTypeNameToTypeID.insert(make_pair(item->getItemName().c_str(),
-                                       atoi(item->getObjectID().c_str())));
-  mapTypeIdToTypeName.insert(make_pair(atoi(item->getObjectID().c_str()),
-                                       item->getItemName().c_str()));
+  registeredUserDefinedTypes.insert(make_pair(item->getItemName().c_str(), *item));
+  mapTypeNameToTypeID.insert(make_pair(item->getItemName().c_str(), atoi(item->getObjectID().c_str())));
+  mapTypeIdToTypeName.insert(make_pair(atoi(item->getObjectID().c_str()), item->getItemName().c_str()));
   return true;
 }
 
@@ -379,36 +375,36 @@ void PDBCatalog::loadsMetadataIntoMemory() {
   string errorMessage;
 
   // an empty string lists all entries in a given category
-  string emptyString("");
+  string emptyString;
 
   // retrieves metadata from the SQLite DB and populates containers
-  if (getMetadataFromCatalog(false,
-                             emptyString,
-                             registeredNodesMetadata,
-                             errorMessage,
-                             PDBCatalogMsgType::CatalogPDBNode) == false)
+  if (!getMetadataFromCatalog(false,
+                              emptyString,
+                              registeredNodesMetadata,
+                              errorMessage,
+                              PDBCatalogMsgType::CatalogPDBNode))
 
       this->logger->debug(errorMessage);
 
   (*catalogContents)[String("nodes")] =
       unsafeCast<Vector<Object>>(registeredNodesMetadata);
 
-  if (getMetadataFromCatalog(false,
-                             emptyString,
-                             registeredSetsMetadata,
-                             errorMessage,
-                             PDBCatalogMsgType::CatalogPDBSet) == false)
+  if (!getMetadataFromCatalog(false,
+                              emptyString,
+                              registeredSetsMetadata,
+                              errorMessage,
+                              PDBCatalogMsgType::CatalogPDBSet))
 
       this->logger->debug(errorMessage);
 
   (*catalogContents)[String("sets")] =
       unsafeCast<Vector<Object>>(registeredSetsMetadata);
 
-  if (getMetadataFromCatalog(false,
-                             emptyString,
-                             registeredDatabasesMetadata,
-                             errorMessage,
-                             PDBCatalogMsgType::CatalogPDBDatabase) == false)
+  if (!getMetadataFromCatalog(false,
+                              emptyString,
+                              registeredDatabasesMetadata,
+                              errorMessage,
+                              PDBCatalogMsgType::CatalogPDBDatabase))
 
       this->logger->debug(errorMessage);
 
@@ -419,7 +415,7 @@ void PDBCatalog::loadsMetadataIntoMemory() {
                              emptyString,
                              registeredUserDefinedTypesMetadata,
                              errorMessage,
-                             PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
+                             PDBCatalogMsgType::CatalogPDBRegisteredObject)) {
 
     (*catalogContents)[String("udfs")] =
         unsafeCast<Vector<Object>>(registeredUserDefinedTypesMetadata);
@@ -493,99 +489,6 @@ void PDBCatalog::loadsMetadataIntoMemory() {
   cout << "=========================================" << endl;
 }
 
-void PDBCatalog::getModifiedMetadata(
-    Handle<CatalogPrintMetadata> &itemMetadata) {
-
-  string errorMessage;
-  string dateAsString = itemMetadata->getTimeStamp().c_str();
-
-  Handle<Vector<CatalogNodeMetadata>> _registeredNodesMetadata =
-      makeObject<Vector<CatalogNodeMetadata>>();
-  Handle<Vector<CatalogSetMetadata>> _registeredSetsMetadata =
-      makeObject<Vector<CatalogSetMetadata>>();
-  Handle<Vector<CatalogDatabaseMetadata>> _registeredDatabasesMetadata =
-      makeObject<Vector<CatalogDatabaseMetadata>>();
-  Handle<Vector<CatalogUserTypeMetadata>> _registeredUserDefinedTypesMetadata =
-      makeObject<Vector<CatalogUserTypeMetadata>>();
-
-  // retrieves metadata from the sqlite DB and populates containers
-  if (getMetadataFromCatalog(true, dateAsString, _registeredNodesMetadata,
-                             errorMessage,
-                             PDBCatalogMsgType::CatalogPDBNode) == false)
-    this->logger->debug(errorMessage);
-
-  if (getMetadataFromCatalog(true, dateAsString, _registeredSetsMetadata,
-                             errorMessage,
-                             PDBCatalogMsgType::CatalogPDBSet) == false)
-    this->logger->debug(errorMessage);
-
-  if (getMetadataFromCatalog(true, dateAsString, _registeredDatabasesMetadata,
-                             errorMessage,
-                             PDBCatalogMsgType::CatalogPDBDatabase) == false)
-    this->logger->debug(errorMessage);
-
-  if (getMetadataFromCatalog(
-          true, dateAsString, _registeredUserDefinedTypesMetadata, errorMessage,
-          PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
-
-    for (int i = 0; i < (*_registeredUserDefinedTypesMetadata).size(); i++) {
-      PDB_COUT
-          << "RETRIEVING TYPE "
-          << string((*_registeredUserDefinedTypesMetadata)[i].getItemName())
-          << " | "
-          << string((*_registeredUserDefinedTypesMetadata)[i].getObjectID())
-          << endl;
-
-      registeredUserDefinedTypes.insert(make_pair(
-          (*_registeredUserDefinedTypesMetadata)[i].getItemName().c_str(),
-          (*_registeredUserDefinedTypesMetadata)[i]));
-    }
-
-  } else {
-    PDB_COUT << errorMessage << endl;
-  }
-
-  cout << "=========================================" << endl;
-  cout << "PDB Metadata Registered in the Catalog " << endl;
-
-  cout << "\nNodes in cluster: " +
-              std::to_string((int)(*_registeredNodesMetadata).size())
-       << endl;
-  cout << "----------------------------" << endl;
-
-  for (int i = 0; i < (*_registeredNodesMetadata).size(); i++) {
-    cout << (*_registeredNodesMetadata)[i].printShort() << endl;
-  }
-
-  cout << "\nDatabases: " +
-              std::to_string((int)(*_registeredDatabasesMetadata).size())
-       << endl;
-  cout << "----------------------------" << endl;
-
-  for (int i = 0; i < (*_registeredDatabasesMetadata).size(); i++) {
-    cout << (*_registeredDatabasesMetadata)[i].printShort() << endl;
-  }
-  cout << "\nSets: " + std::to_string((int)(*_registeredSetsMetadata).size())
-       << endl;
-  cout << "----------------------------" << endl;
-
-  for (int i = 0; i < (*_registeredSetsMetadata).size(); i++) {
-    cout << (*_registeredSetsMetadata)[i].printShort() << endl;
-  }
-  cout << "\nUser-defined types: " +
-              std::to_string((int)(*_registeredUserDefinedTypesMetadata).size())
-       << endl;
-  cout << "----------------------------" << endl;
-
-  for (int i = 0; i < (*_registeredUserDefinedTypesMetadata).size(); i++) {
-    cout << (*_registeredUserDefinedTypesMetadata)[i].printShort() << endl;
-  }
-  cout << "\nAll Metadata properly retrieved and\n"
-          "loaded into memory!"
-       << endl;
-  cout << "--------------------------------------" << endl;
-}
-
 void PDBCatalog::printsAllCatalogMetadata(std::string &outputString, std::string &errMsg) {
 
     listNodesInCluster(outputString, errMsg);
@@ -653,32 +556,30 @@ void PDBCatalog::listUserDefinedTypes(std::string &outputString,
 }
 
 template <class CatalogMetadataType>
-bool PDBCatalog::getMetadataFromCatalog(
-    bool onlyModified, string key,
-    Handle<pdb::Vector<CatalogMetadataType>> &returnedItems,
-    string &errorMessage, int metadataCategory) {
-
-  pdb::String emptyString("");
+bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
+                                        string key,
+                                        Handle<pdb::Vector<CatalogMetadataType>> &returnedItems,
+                                        string &errorMessage, int metadataCategory) {
 
   pthread_mutex_lock(&(registerMetadataMutex));
 
-  sqlite3_stmt *statement = NULL;
+  sqlite3_stmt *statement = nullptr;
 
-  string queryString = "SELECT itemID, itemInfo, timeStamp from " +
-                       mapsPDBArrayObject2SQLiteTable[metadataCategory];
+  string queryString = "SELECT itemID, itemInfo, timeStamp from " + mapsPDBArrayObject2SQLiteTable[metadataCategory];
 
   // if empty string then retrieves all items in the table, otherwise only the
   // item with the given key
-  if (onlyModified == true)
+  if (onlyModified) {
     queryString.append(" where timeStamp > ").append(key).append("");
-  else if (key != "")
+  }
+  else if (!key.empty()) {
     queryString.append(" where itemID = '").append(key).append("'");
+  }
 
   PDB_COUT << queryString << endl;
 
   this->logger->debug(queryString);
-  if (sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &statement,
-                         NULL) == SQLITE_OK) {
+  if (sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &statement, nullptr) == SQLITE_OK) {
 
     int res = 0;
     while (1) {
@@ -691,19 +592,29 @@ bool PDBCatalog::getMetadataFromCatalog(
         PDB_COUT << "entry " << sqlite3_column_text(statement, 0)
                  << " timestamp " << sqlite3_column_int(statement, 2) << endl;
 
-        Record<CatalogMetadataType> *recordBytes =
-            (Record<CatalogMetadataType> *)malloc(numBytes);
+        auto *recordBytes = (Record<CatalogMetadataType> *)malloc(numBytes);
 
         memcpy(recordBytes, sqlite3_column_blob(statement, 1), numBytes);
 
         // get the object
-        Handle<CatalogMetadataType> returnedObject =
-            recordBytes->getRootObject();
+        Handle<CatalogMetadataType> returnedObject = recordBytes->getRootObject();
 
         string itemId = returnedObject->getItemKey().c_str();
         this->logger->debug("itemId=" + itemId);
         returnedItems->push_back(*returnedObject);
         free(recordBytes);
+
+        if(metadataCategory == CatalogPDBRegisteredObject) {
+
+          // the class info
+          ClassInfo classInfo;
+
+          // grab the attributes for this class
+          getClassAttributes(itemId, classInfo);
+
+          // grab the methods for this class
+          getClassMethods(itemId, classInfo);
+        }
 
       } else if (res == SQLITE_DONE) {
         break;
@@ -713,7 +624,8 @@ bool PDBCatalog::getMetadataFromCatalog(
     pthread_mutex_unlock(&(registerMetadataMutex));
 
     return true;
-  } else {
+  }
+  else {
 
     string error = sqlite3_errmsg(sqliteDBHandler);
 
@@ -726,6 +638,68 @@ bool PDBCatalog::getMetadataFromCatalog(
     pthread_mutex_unlock(&(registerMetadataMutex));
     return false;
   }
+}
+
+bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
+
+  sqlite3_stmt *statement = nullptr;
+  string queryString = "SELECT name, className, size, offset, typeName, timeStamp from " +
+                       mapsPDBArrayObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute] +
+                       " WHERE className='" + className + "'";
+
+  // prepare the query
+  this->logger->debug(queryString);
+  if (sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &statement, nullptr) == SQLITE_OK) {
+
+    int res = 0;
+    while (true) {
+
+      // run the query
+      res = sqlite3_step(statement);
+
+      if (res == SQLITE_ROW) {
+
+        // grab the values
+        std::string attributeName = (char*) sqlite3_column_text(statement, 0);
+        int size =  sqlite3_column_int(statement, 2);
+        int offset =  sqlite3_column_int(statement, 3);
+        std::string typeName = (char*) sqlite3_column_text(statement, 4);
+
+        // create the attribute
+        AttributeInfo info;
+
+        // init the fields
+        info.name = attributeName;
+        info.size = (size_t) size;
+        info.offset = (size_t) offset;
+        info.type = typeName;
+
+        classInfo.attributes->push_back(info);
+
+      } else if (res == SQLITE_DONE) {
+        break;
+      }
+    }
+    sqlite3_finalize(statement);
+
+    return true;
+  }
+  else {
+
+    string error = sqlite3_errmsg(sqliteDBHandler);
+
+    if (error != "not an error") {
+      this->logger->writeLn((string)queryString + " " + error);
+    }
+
+    sqlite3_finalize(statement);
+
+    return false;
+  }
+}
+
+void PDBCatalog::getClassMethods(string &typeName, ClassInfo &classInfo) {
+
 }
 
 bool PDBCatalog::registerUserDefinedObject(
