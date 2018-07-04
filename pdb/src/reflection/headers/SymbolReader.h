@@ -268,7 +268,7 @@ class SymbolReader {
    * @param isPointer - the number of times a type that referred to this one is a pointer
    * @return the parsed type
    */
-  AttributeType getType(Dwarf_Die curDie, Dwarf_Die nameDie, std::string &previousName, unsigned int isPointer);
+  AttributeType getType(Dwarf_Die curDie, Dwarf_Die nameDie, std::string &previousName, unsigned int isPointer, bool b);
 
   /**
    * Parses the class info from the debugging entry

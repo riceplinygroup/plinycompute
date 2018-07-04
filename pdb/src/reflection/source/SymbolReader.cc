@@ -425,7 +425,7 @@ void SymbolReader::parseAttribute(Dwarf_Die cur_die, ClassInfo &ret) {
   assert(gotTypeDie);
 
   std::string tmp;
-  auto type = getType(typeDie, nullptr, tmp, 0);
+  auto type = getType(typeDie, nullptr, tmp, 0, false);
 
   // set the extracted information
   AttributeInfo atInfo{};
@@ -441,10 +441,7 @@ void SymbolReader::parseAttribute(Dwarf_Die cur_die, ClassInfo &ret) {
   dwarf_dealloc(dbg, name, DW_DLA_STRING);
 }
 
-AttributeType SymbolReader::getType(Dwarf_Die curDie,
-                                    Dwarf_Die nameDie,
-                                    std::string &previousName,
-                                    unsigned int isPointer) {
+AttributeType SymbolReader::getType(Dwarf_Die curDie, Dwarf_Die nameDie, std::string &previousName, unsigned int isPointer, bool isReference) {
 
   char *typeName = nullptr;
   Dwarf_Attribute attr;
@@ -488,7 +485,7 @@ AttributeType SymbolReader::getType(Dwarf_Die curDie,
       }
 
       // follow the type
-      return getType(typeDie, nameDie, previousName, isPointer);
+      return getType(typeDie, nameDie, previousName, isPointer, isReference);
     }
     case DW_TAG_base_type:
     case DW_TAG_structure_type:
@@ -511,6 +508,7 @@ AttributeType SymbolReader::getType(Dwarf_Die curDie,
 
       // do we have a pointer suffix or not
       std::string suffix = isPointer ? std::string(isPointer, '*') : "";
+      suffix += isReference ? "&" : "";
       size = isPointer ? sizeof(int*) : size;
 
       // get the full name
@@ -543,13 +541,30 @@ AttributeType SymbolReader::getType(Dwarf_Die curDie,
           !dwarf_global_formref(attr, &typeOffset, &error) &&
           !dwarf_offdie_b(dbg, typeOffset, 1, &typeDie, &error);
 
-      // check if there is something wrong
+      // if we can not go to any other object but this is a pointer we assume this is a void*
+      if(!gotTypeOffset) {
+        std::string pointerSuffix = isPointer ? std::string(isPointer, '*') : "";
+        std::string referenceSuffix = isReference ? "&" : "";
+        return AttributeType("void*" + pointerSuffix + referenceSuffix, sizeof(void*));
+      }
+
+      // follow the type
+      return getType(typeDie, nameDie, previousName, ++isPointer, isReference);
+    }
+    case DW_TAG_reference_type: {
+
+      // try to find the root type of the reference
+      int gotTypeOffset = !dwarf_attr(curDie, DW_AT_type, &attr, &error) &&
+          !dwarf_global_formref(attr, &typeOffset, &error) &&
+          !dwarf_offdie_b(dbg, typeOffset, 1, &typeDie, &error);
+
+      // something went wrong there
       if(!gotTypeOffset) {
         return AttributeType("", 0);
       }
 
       // follow the type
-      return getType(typeDie, nameDie, previousName, ++isPointer);
+      return getType(typeDie, nameDie, previousName, ++isPointer, true);
     }
     default: {
 
@@ -593,7 +608,7 @@ void SymbolReader::parseMethod(Dwarf_Die curDie, ClassInfo &info) {
   }
   else {
     std::string emp;
-    auto tmp = getType(typeDie, nullptr, emp, 0);
+    auto tmp = getType(typeDie, nullptr, emp, 0, false);
 
     // copy the type
     ret.returnType.name.assign(tmp.name);
@@ -629,7 +644,7 @@ void SymbolReader::parseMethod(Dwarf_Die curDie, ClassInfo &info) {
 
     // grab the type of the parameters
     std::string emp;
-    auto type = getType(typeDie, nullptr, emp, 0);
+    auto type = getType(typeDie, nullptr, emp, 0, false);
 
     // store the parameter
     parameters.emplace_back(type);

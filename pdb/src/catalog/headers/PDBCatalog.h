@@ -585,6 +585,7 @@ private:
   void storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess);
 
   void storeMethod(const string &typeName, MethodInfo method, string &errorMessage, bool &isSuccess);
+  void storeParameter(sqlite3_int64 i1, AttributeType &type, int errorMessage, string &isSuccess, bool &b);
 };
 
 #endif /* PDB_CATALOG_H_ */

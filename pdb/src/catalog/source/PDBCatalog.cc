@@ -331,9 +331,9 @@ void PDBCatalog::open() {
 
     // this table contains info about the attributes of a particular data type
     catalogSqlQuery(
-        "CREATE TABLE IF NOT EXISTS data_type_attributes (name TEXT PRIMARY KEY, className TEXT, "
+        "CREATE TABLE IF NOT EXISTS data_type_attributes (name TEXT, className TEXT, "
         "size INTEGER, offset INTEGER, typeName TEXT, timeStamp INTEGER, "
-        "FOREIGN KEY(className) REFERENCES data_types(itemID));");
+        "FOREIGN KEY(className) REFERENCES data_types(itemID), PRIMARY KEY (name, className));");
 
     // this table contains the info about methods of a particular type
     catalogSqlQuery(
@@ -882,6 +882,61 @@ void PDBCatalog::storeMethod(const string &typeName, MethodInfo method, string &
     sqlite3_finalize(stmt);
     isSuccess = false;
     return;
+  }
+
+  sqlite3_finalize(stmt);
+
+  // grab the id of the inserted column // TODO figure out if this is safe
+  auto methodID = sqlite3_last_insert_rowid(sqliteDBHandler);
+
+  // store all the parameters
+  int i = 0;
+  for(auto &p : method.parameters) {
+    storeParameter(methodID, p, i++, errorMessage, isSuccess);
+  }
+}
+
+void PDBCatalog::storeParameter(sqlite3_int64 methodID,
+                                AttributeType &parameter,
+                                int order,
+                                string &errorMessage,
+                                bool &isSuccess) {
+
+  // create the insert query
+  std::string tableName = mapsPDBObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBMethodParameter];
+  string queryString = "INSERT INTO " + tableName + " (methodID, parameterOrder, typeName, typeSize, timeStamp) "
+                                                    "VALUES(?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
+
+  // prepare the statement
+  sqlite3_stmt *stmt = nullptr;
+  int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, nullptr);
+
+  // did we fail
+  if (rc != SQLITE_OK) {
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    PDB_COUT << "errorMessage" << errorMessage << endl;
+    isSuccess = false;
+    return;
+  }
+
+  rc = sqlite3_bind_int(stmt, 1, (int) methodID);
+  rc = sqlite3_bind_int(stmt, 2, order);
+  rc = sqlite3_bind_text(stmt, 3, parameter.name.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_int(stmt, 4, (int) parameter.size);
+
+  // did we manage to bind it
+  if (rc != SQLITE_OK) {
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    this->logger->debug(errorMessage);
+    isSuccess = false;
+    return;
+  }
+
+  // run the thing
+  rc = sqlite3_step(stmt);
+  if (rc != SQLITE_DONE) {
+    errorMessage = "Query execution failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    isSuccess = false;
   }
 
   sqlite3_finalize(stmt);
