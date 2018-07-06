@@ -273,6 +273,21 @@ public:
       int metadataCategory);
 
   /**
+   *
+   * @param onlyModified, if true will return only entries that were created
+   * after a given timestamp, which is passed with the "key" parameter
+   * @param key if blank returns all items in the category, otherwise, only the
+   * one matching the key (in the case of timestamp the format is
+   * Timestamp in milliseconds, for example January 1, 2014 12:00:00 AM
+   * is passed as: 1388534400000) and will return all entries created after that
+   * given timestamp
+   * @param returnedEntries is a Vector of the Objects
+   * @param errorMessage error message
+   * @return true on success
+   */
+  bool getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetadata>> &returnedItems, string &errorMessage);
+
+  /**
    * gets the number of items in a given Metadata category, so the id
    * can be properly set prior to the addition of a new item.
    *
@@ -361,7 +376,7 @@ public:
   bool retrievesDynamicLibrary(
        string fileName,
        string tableName,
-       Handle<CatalogUserTypeMetadata> &returnedItem,
+       Handle<CatalogUserTypeMetadata> &typeInfo,
        string &returnedSoLibrary,
        string &errorName);
 
@@ -598,9 +613,11 @@ private:
    */
   void storeParameter(sqlite3_int64 methodID, AttributeType &type, int order, string &errorMessage, bool &isSuccess);
 
-  void getClassMethods(string &typeName, ClassInfo &classInfo);
+  bool getClassMethods(string &typeName, ClassInfo &classInfo);
 
   bool getClassAttributes(string &typeName, ClassInfo &classInfo);
+
+  bool getMethodParameters(int methodID, vector<AttributeType> &parameters);
 };
 
 #endif /* PDB_CATALOG_H_ */

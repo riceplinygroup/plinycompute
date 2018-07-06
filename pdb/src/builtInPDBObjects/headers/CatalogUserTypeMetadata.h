@@ -27,6 +27,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <SymbolReader.h>
 #include "PDBString.h"
 
 //  PRELOAD %CatalogUserTypeMetadata%
@@ -49,7 +50,7 @@ class CatalogUserTypeMetadata : public pdb::Object {
 public:
     ENABLE_DEEP_COPY
 
-    CatalogUserTypeMetadata() {}
+    CatalogUserTypeMetadata() : attributes(nullptr), methods(nullptr) {}
 
     CatalogUserTypeMetadata(pdb::String itemIdIn,
                             pdb::String objectIDIn,
@@ -60,9 +61,11 @@ public:
           objectID(objectIDIn),
           objectType(objectTypeIn),
           objectName(objectNameIn),
-          libraryBytes(libraryBytesIn) {}
+          libraryBytes(libraryBytesIn),
+          attributes(nullptr),
+          methods(nullptr) {}
 
-    CatalogUserTypeMetadata(const CatalogUserTypeMetadata& pdbCatalogEntryToCopy) {
+    CatalogUserTypeMetadata(const CatalogUserTypeMetadata& pdbCatalogEntryToCopy) : attributes(nullptr), methods(nullptr) {
         itemId = pdbCatalogEntryToCopy.itemId;
         objectID = pdbCatalogEntryToCopy.objectID;
         objectType = pdbCatalogEntryToCopy.objectType;
@@ -70,7 +73,7 @@ public:
         libraryBytes = pdbCatalogEntryToCopy.libraryBytes;
     }
 
-    CatalogUserTypeMetadata(const Handle<CatalogUserTypeMetadata>& pdbCatalogEntryToCopy) {
+    CatalogUserTypeMetadata(const Handle<CatalogUserTypeMetadata>& pdbCatalogEntryToCopy) : attributes(nullptr), methods(nullptr){
         itemId = pdbCatalogEntryToCopy->itemId;
         objectID = pdbCatalogEntryToCopy->objectID;
         objectType = pdbCatalogEntryToCopy->objectType;
@@ -102,6 +105,22 @@ public:
 
     pdb::String getLibraryBytes() {
         return libraryBytes;
+    }
+
+    const shared_ptr<vector<AttributeInfo>> &getAttributes() const {
+        return attributes;
+    }
+
+    const shared_ptr<vector<MethodInfo>> &getMethods() const {
+        return methods;
+    }
+
+    void setAttributes(const shared_ptr<vector<AttributeInfo>> &attributes) {
+        this->attributes = attributes;
+    }
+
+    void setMethods(const shared_ptr<vector<MethodInfo>> &methods) {
+      this->methods = methods;
     }
 
     void setObjectId(pdb::String& objectIdIn) {
@@ -156,6 +175,17 @@ private:
     pdb::String objectName;
     // the bytes containing the .so library file
     pdb::String libraryBytes;
+
+  /**
+   * The attributes of the class
+  */
+  std::shared_ptr<std::vector<AttributeInfo>> attributes;
+
+  /**
+   * The methods of the class
+   */
+  std::shared_ptr<std::vector<MethodInfo>> methods;
+
 };
 
 } /* namespace pdb */
