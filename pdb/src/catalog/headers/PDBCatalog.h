@@ -220,34 +220,6 @@ public:
   map<string, CatalogNodeMetadata> getListOfNodesInCluster();
 
   /**
-   * retrieves the bytes of the entire catalog, this could be used
-   * it one wants to ship the catalog from the manager node to a different
-   * machine
-   *
-   * @param fileName is the name of the catalog file
-   * @param version is the version to retrieve
-   * @param returnedBytes contains the bytes encapsulated in a string
-   * @param errorMessage the error returned
-   *
-   * @return true on success
-   */
-  bool getSerializedCatalog(string fileName, string version,
-                            string &returnedBytes, string &errorMessage);
-
-  /**
-   * sets the version of the catalog, this is typically called
-   * when updates are made to the catalog
-   *
-   * @param version contains the signature of the version
-   */
-  void setCatalogVersion(string version);
-
-  /**
-   * gets the version of the catalog as a string
-   */
-  string getCatalogVersion();
-
-  /**
    * retrieves all Metadata from Sqlite for a given category and returns it
    * in a container
    *
@@ -273,7 +245,7 @@ public:
       int metadataCategory);
 
   /**
-   *
+   * Return the user types from the catalog
    * @param onlyModified, if true will return only entries that were created
    * after a given timestamp, which is passed with the "key" parameter
    * @param key if blank returns all items in the category, otherwise, only the

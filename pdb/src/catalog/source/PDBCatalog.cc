@@ -272,39 +272,6 @@ void PDBCatalog::closeSQLiteHandler() {
   sqlite3_close_v2(sqliteDBHandler);
 }
 
-void PDBCatalog::setCatalogVersion(string version) {
-  catalogVersion = version;
-}
-
-string PDBCatalog::getCatalogVersion() {
-  return catalogVersion;
-}
-
-bool PDBCatalog::getSerializedCatalog(
-  string fileName,
-  string version,
-  string &returnedBytes,
-  string &errorMessage) {
-
-  errorMessage = "";
-
-  string fullName = catalogRootPath + "plinyCatalog.db";
-
-  fstream file(fullName.c_str(), ios::in | ios::binary);
-  if (!file) {
-    errorMessage = "The file " + fullName + " was not found\n";
-  }
-
-  file.seekp(0, fstream::end);
-  streampos numBytes = file.tellp();
-  file.seekp(0, fstream::beg);
-
-  char *buffer = new char[numBytes];
-  file.read(buffer, numBytes);
-  returnedBytes = string(buffer, numBytes);
-  return true;
-}
-
 void PDBCatalog::open() {
   sqliteDBHandler = nullptr;
   int ret = 0;
@@ -577,7 +544,7 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
   if (sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &statement, nullptr) == SQLITE_OK) {
 
     int res = 0;
-    while (1) {
+    while (true) {
       res = sqlite3_step(statement);
 
       if (res == SQLITE_ROW) {
