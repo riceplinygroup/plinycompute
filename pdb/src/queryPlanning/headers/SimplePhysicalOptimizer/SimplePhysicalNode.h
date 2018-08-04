@@ -41,6 +41,11 @@ public:
                      ConfigurationPtr conf);
 
   /**
+   * Use the default destructor
+   */
+  ~SimplePhysicalNode() override = default;
+
+  /**
    * This method starts the analysis for the simple physical optimizer.
    * What it does is it sets up a TupleStageBuilder and then calls recursively the other analyze method
    * @return the resulting partial plan if succeeded

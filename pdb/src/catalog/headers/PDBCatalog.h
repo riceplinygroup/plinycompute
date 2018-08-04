@@ -372,9 +372,7 @@ public:
    * @param key to search for
    * @return a Vector of items
    */
-  void getListOfDatabases(
-      Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog,
-      const string &key);
+  void getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog, const string &key);
 
   /**
    * returns the metadata for all Sets registered in the catalog.
@@ -383,9 +381,7 @@ public:
    * @param key to search for
    * @return a Vector of items
    */
-  void getListOfSets(
-       Handle<Vector<CatalogSetMetadata>> &setsInCatalog,
-       const string &key);
+  void getListOfSets(Handle<Vector<CatalogSetMetadata>> &setsInCatalog, const string &key);
 
   /**
    * returns the metadata for all Nodes registered in the catalog.
@@ -395,8 +391,7 @@ public:
    * @param key to search for
    * @return a Vector of items
    */
-  void getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog,
-                      const string &key);
+  void getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog, const string &key);
 
   /**
    * closes the SQLite DB handler once is no longer needed

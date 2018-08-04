@@ -1,0 +1,63 @@
+{
+  "name": "@coreui/angularjs",
+  "version": "1.0.10",
+  "description": "Open Source Bootstrap Admin Template",
+  "main": "index.html",
+  "dependencies": {
+    "@uirouter/angularjs": "1.0.14",
+    "angular": "1.6.8",
+    "angular-animate": "1.6.8",
+    "angular-breadcrumb": "^0.5.0",
+    "angular-chart.js": "^1.1.1",
+    "angular-loading-bar": "^0.9.0",
+    "angular-sanitize": "1.6.8",
+    "angular-translate": "2.17.0",
+    "bootstrap": "4.0.0",
+    "chart.js": "2.7.1",
+    "flag-icon-css": "2.9.0",
+    "font-awesome": "^4.7.0",
+    "jquery": "3.2.1",
+    "oclazyload": "^1.1.0",
+    "popper.js": "1.12.9",
+    "simple-line-icons": "^2.4.1",
+    "toastr": "^2.1.4"
+  },
+  "devDependencies": {
+    "browser-sync": "2.23.6",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "4.1.0",
+    "gulp-bower-src": "^0.1.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-contains": "^1.1.0",
+    "gulp-cssmin": "^0.2.0",
+    "gulp-filter": "5.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.6.1",
+    "gulp-sass": "^3.1.0",
+    "gulp-search": "^1.0.0",
+    "gulp-uglify": "^3.0.0",
+    "require-dir": "^0.3.2",
+    "run-sequence": "2.2.1"
+  },
+  "scripts": {
+    "gulp": "gulp",
+    "build": "gulp build:dist",
+    "serve": "gulp serve",
+    "serve-dist": "gulp serve:dist"
+  },
+  "browserslist": [
+    "Chrome >= 45",
+    "Firefox ESR",
+    "Edge >= 12",
+    "Explorer >= 10",
+    "iOS >= 9",
+    "Safari >= 9",
+    "Android >= 4.4",
+    "Opera >= 30"
+  ],
+  "author": "Łukasz Holeczek",
+  "homepage": "http://coreui.io",
+  "copyright": "Copyright 2018 creativeLabs Łukasz Holeczek",
+  "license": "MIT"
+}

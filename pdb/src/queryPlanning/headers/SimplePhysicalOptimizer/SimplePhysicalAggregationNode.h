@@ -33,6 +33,7 @@ public:
                                     LogicalPlanPtr logicalPlan,
                                     ConfigurationPtr conf);
 
+  ~SimplePhysicalAggregationNode() override = default;
 
 protected:
 

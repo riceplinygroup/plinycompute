@@ -33,6 +33,11 @@ public:
                              ConfigurationPtr conf);
 
   /**
+   * Use the default destructor
+   */
+  ~SimplePhysicalJoinNode() override = default;
+
+  /**
    * The join can not be an output node therefore this will cause an error
    *
    * @param tupleStageBuilder - the builder for the tuple set job stage, that contains all the computations in our

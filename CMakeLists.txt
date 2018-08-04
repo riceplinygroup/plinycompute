@@ -47,7 +47,7 @@ elseif (NOT USE_DEBUG)
 endif (USE_DEBUG)
 
 # installs required third-party packages and libraries
-execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/setupDependencies.py")
+# execute_process(COMMAND "${CMAKE_SOURCE_DIR}/scripts/internal/setupDependencies.py")
 
 # set the directories with the common header files
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/memory/headers")
@@ -83,11 +83,13 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers/base")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/reflection/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/webserver/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
 include_directories("${PROJECT_SOURCE_DIR}/third-party/qunit/headers")
 include_directories("${PROJECT_SOURCE_DIR}/third-party/sqlite/headers")
+include_directories("${PROJECT_SOURCE_DIR}/third-party/webserver/headers")
 
 
 # specify the source files
@@ -329,6 +331,26 @@ set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/Man
 add_executable(pdb-manager ${SOURCE_FILES_PDB_CLUSTER} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 target_link_libraries(pdb-manager pdb-server-common)
 target_link_libraries(pdb-manager ${GSL_LIBRARIES})
+
+
+# add the commands to generate the type ids
+add_custom_command (
+        OUTPUT  generate-web-interface
+        COMMAND "${CMAKE_SOURCE_DIR}/scripts/buildWebInterface.py"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/web-interface"
+        COMMENT "Generating Web Interface!"
+)
+
+add_custom_target(generate-web-interface-command ALL DEPENDS generate-web-interface)
+
+if (BUILD_WEB_SERVER)
+    message("PDB_DEBUG is ON")
+    add_definitions(-DBUILD_WEB_SERVER)
+    add_dependencies(pdb-manager generate-web-interface-command)
+elseif (NOT BUILD_WEB_SERVER)
+    remove_definitions(-DBUILD_WEB_SERVER)
+    message("BUILD_WEB_SERVER is OFF")
+endif (BUILD_WEB_SERVER)
 
 # set the pdb-worker build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/pdb/src/mainServer/source/WorkerMain.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)

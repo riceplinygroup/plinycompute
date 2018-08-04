@@ -81,6 +81,11 @@ public:
                        ConfigurationPtr &conf);
 
   /**
+   *
+   */
+  virtual ~AbstractPhysicalNode() = default;
+
+  /**
    * Performs the actual analysis of the TCAP and returns a partial physical plan in the case it succeeds
    * @return the PhysicalOptimizerResult is the result of the analysis
    */

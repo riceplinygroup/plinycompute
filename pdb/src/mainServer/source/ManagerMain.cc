@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+#include <WebInterface.h>
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
@@ -136,11 +137,11 @@ int main(int argc, char* argv[]) {
        numNodes++;
     }
 
+    frontEnd.addFunctionality<pdb::WebInterface>("localhost", 9000, pseudoClusterMode);
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger, statisticsDB);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
 
-    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(
-        port, myLogger, conf, statisticsDB, pseudoClusterMode, partitionToCoreRatio);
+    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(port, myLogger, conf, statisticsDB, pseudoClusterMode, partitionToCoreRatio);
     frontEnd.startServer(nullptr);
 }
 

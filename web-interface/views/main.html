@@ -1,0 +1,126 @@
+<div class="animated fadeIn">
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">Cluster Info</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="callout callout-info" ng-controller="DashboardDataCtrl">
+                                        <small class="text-muted">Number of Nodes</small>
+                                        <br>
+                                        <strong class="h4">{{ clusterInfo["number-of-nodes"] }}</strong>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="callout callout-alert" ng-controller="DashboardDataCtrl">
+                                        <small class="text-muted">Cluster Mode</small>
+                                        <br>
+                                        <strong class="h4" ng-if="clusterInfo['is-pseudo-cluster'] == 'true'">Pseudo Cluster</strong>
+                                        <strong class="h4" ng-if="clusterInfo['is-pseudo-cluster'] != 'true'">Distributed Cluster</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="mt-0">
+
+                            <table class="table table-responsive-sm table-hover table-outline mb-0">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center">
+                                        <i class="icon-mouse"></i>
+                                    </th>
+                                    <th>Node Name</th>
+                                    <th>Number of Cores</th>
+                                    <th>Memory</th>
+                                </tr>
+                                </thead>
+                                <tbody ng-controller="DashboardDataCtrl">
+                                <tr ng-repeat="node in clusterInfo['nodes']">
+                                    <td class="text-center">
+                                        <div class="avatar">
+                                            <img src="img/server-icon.png" class="img-avatar" alt="ip:port">
+                                            <span class="avatar-status badge-success"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>Node {{node['node-id']}}</div>
+                                        <div class="small text-muted">
+                                            <span>Address</span> | {{node['address']}}:{{node['port']}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{node['number-of-cores']}} Cores</strong>
+                                    </td>
+                                    <td>
+                                        <strong>{{node['memory-size'] / 1024}} MB</strong>
+                                    </td>
+                                </tr>
+
+                                </tbody>
+                            </table>
+                            <hr class="mt-2">
+
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="row" ng-controller="DashboardDataCtrl">
+                                <div class="col-sm-6">
+                                    <div class="callout callout-warning">
+                                        <small class="text-muted">Total Cores</small>
+                                        <br>
+                                        <strong class="h4">{{clusterInfo["total-cores"]}}</strong>
+                                        <div class="chart-wrapper">
+                                            <canvas id="sparkline-chart-3" width="100" height="30"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="callout callout-success">
+                                        <small class="text-muted">Total Memory</small>
+                                        <br>
+                                        <strong class="h4">{{clusterInfo["total-memory"] / 1024}} MB</strong>
+                                        <div class="chart-wrapper">
+                                            <canvas id="sparkline-chart-4" width="100" height="30"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <hr class="mt-0">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fa fa-asterisk icon-bg"></i>
+                                    CPU Core Distribution
+                                </div>
+                                <div class="card-body ng-scope" ng-controller="CPUPieCtrl"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
+                                    <canvas id="pie" class="chart chart-pie ng-isolate-scope chartjs-render-monitor" chart-data="data" chart-labels="labels" width="341" height="170" style="display: block; width: 341px; height: 170px;">
+                                    </canvas>
+                                </div>
+                            </div>
+                            <hr class="mt-0">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fa fa-asterisk icon-bg"></i>
+                                    Memory Distribution
+                                </div>
+                                <div class="card-body ng-scope" ng-controller="MemoryPieCtrl"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
+                                    <canvas id="pie" class="chart chart-pie ng-isolate-scope chartjs-render-monitor" chart-data="data" chart-labels="labels" width="341" height="170" style="display: block; width: 341px; height: 170px;">
+                                    </canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
