@@ -870,8 +870,7 @@ bool CatalogServer::getSharedLibraryByTypeName(
   // data_types is used for retrieving User Defined Types
   string typeOfObject = "data_types";
 
-  if (pdbCatalog->retrievesDynamicLibrary(typeName, typeOfObject, itemMetadata,
-                                          returnedBytes, errMsg) == true) {
+  if (pdbCatalog->retrievesDynamicLibrary(typeName, typeOfObject, itemMetadata, returnedBytes, errMsg)) {
 
     PDB_COUT << "Metadata returned at get SharedLibrary Id: "
              << string(itemMetadata->getItemId()) << endl;
@@ -1490,7 +1489,7 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
 
   // retrieves metadata for user-defined types from SQLite storage and loads
   // them into memory
-  if (!pdbCatalog->getMetadataFromCatalog(false, emptyString, _udfsValues, errMsg, PDBCatalogMsgType::CatalogPDBRegisteredObject))
+  if (!pdbCatalog->getUserTypesFromCatalog( _udfsValues, errMsg))
 
     PDB_COUT << errMsg << endl;
 

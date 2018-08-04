@@ -220,34 +220,6 @@ public:
   map<string, CatalogNodeMetadata> getListOfNodesInCluster();
 
   /**
-   * retrieves the bytes of the entire catalog, this could be used
-   * it one wants to ship the catalog from the manager node to a different
-   * machine
-   *
-   * @param fileName is the name of the catalog file
-   * @param version is the version to retrieve
-   * @param returnedBytes contains the bytes encapsulated in a string
-   * @param errorMessage the error returned
-   *
-   * @return true on success
-   */
-  bool getSerializedCatalog(string fileName, string version,
-                            string &returnedBytes, string &errorMessage);
-
-  /**
-   * sets the version of the catalog, this is typically called
-   * when updates are made to the catalog
-   *
-   * @param version contains the signature of the version
-   */
-  void setCatalogVersion(string version);
-
-  /**
-   * gets the version of the catalog as a string
-   */
-  string getCatalogVersion();
-
-  /**
    * retrieves all Metadata from Sqlite for a given category and returns it
    * in a container
    *
@@ -271,6 +243,21 @@ public:
       Handle<pdb::Vector<CatalogMetadataType>> &returnedEntries,
       string &errorMessage,
       int metadataCategory);
+
+  /**
+   * Return the user types from the catalog
+   * @param onlyModified, if true will return only entries that were created
+   * after a given timestamp, which is passed with the "key" parameter
+   * @param key if blank returns all items in the category, otherwise, only the
+   * one matching the key (in the case of timestamp the format is
+   * Timestamp in milliseconds, for example January 1, 2014 12:00:00 AM
+   * is passed as: 1388534400000) and will return all entries created after that
+   * given timestamp
+   * @param returnedEntries is a Vector of the Objects
+   * @param errorMessage error message
+   * @return true on success
+   */
+  bool getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetadata>> &returnedItems, string &errorMessage);
 
   /**
    * gets the number of items in a given Metadata category, so the id
@@ -361,7 +348,7 @@ public:
   bool retrievesDynamicLibrary(
        string fileName,
        string tableName,
-       Handle<CatalogUserTypeMetadata> &returnedItem,
+       Handle<CatalogUserTypeMetadata> &typeInfo,
        string &returnedSoLibrary,
        string &errorName);
 
@@ -593,9 +580,11 @@ private:
    */
   void storeParameter(sqlite3_int64 methodID, AttributeType &type, int order, string &errorMessage, bool &isSuccess);
 
-  void getClassMethods(string &typeName, ClassInfo &classInfo);
+  bool getClassMethods(string &typeName, ClassInfo &classInfo);
 
   bool getClassAttributes(string &typeName, ClassInfo &classInfo);
+
+  bool getMethodParameters(int methodID, vector<AttributeType> &parameters);
 };
 
 #endif /* PDB_CATALOG_H_ */

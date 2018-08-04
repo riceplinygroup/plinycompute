@@ -34,8 +34,9 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
-
-
+#include <mutex>
+#include <condition_variable>
+#include <DispatcherAddData.h>
 
 namespace pdb {
 
@@ -47,14 +48,13 @@ namespace pdb {
 //    and so on.
 
 
+#define MAX_CONCURRENT_REQUESTS 10
+
 class DispatcherServer : public ServerFunctionality {
 
 public:
-    DispatcherServer(PDBLoggerPtr logger, std::shared_ptr<StatisticsDB> statisticsDB);
 
-    ~DispatcherServer();
-
-    void initialize();
+    DispatcherServer(PDBLoggerPtr &logger, shared_ptr<StatisticsDB> &statisticsDB);
 
     /**
      * Inherited function from ServerFunctionality
@@ -89,36 +89,21 @@ public:
     bool dispatchData(std::pair<std::string, std::string> setAndDatabase,
                       std::string type,
                       Handle<Vector<Handle<Object>>> toDispatch);
+
     bool dispatchBytes(std::pair<std::string, std::string> setAndDatabase,
                        std::string type,
                        char* bytes,
                        size_t numBytes);
 
 
-    void waitAllRequestsProcessed() {
-        pthread_mutex_lock(&mutex);
-        while (numRequestsInProcessing > 0) {
-            pthread_mutex_unlock(&mutex);
-            sleep(1);
-            pthread_mutex_lock(&mutex);
-        }
-        pthread_mutex_unlock(&mutex);
-    }
+    void waitAllRequestsProcessed();
 
 private:
+
     PDBLoggerPtr logger;
     std::shared_ptr<StatisticsDB> statisticsDB;
     Handle<Vector<Handle<NodeDispatcherData>>> storageNodes;
     std::map<std::pair<std::string, std::string>, PartitionPolicyPtr> partitionPolicies;
-
-    /**
-     * Validates with the catalog that a request to store data is correct
-     * @return true if the type matches the known set
-     */
-    bool validateTypes(const std::string& databaseName,
-                       const std::string& setName,
-                       const std::string& typeName,
-                       std::string& errMsg);
 
     bool sendData(std::pair<std::string, std::string> setAndDatabase,
                   std::string type,
@@ -131,9 +116,39 @@ private:
                    char* bytes,
                    size_t numBytes);
 
+
     Handle<NodeDispatcherData> findNode(NodeID nodeId);
+
+    /**
+     *
+     * @param request
+     * @param sendUsingMe
+     * @return
+     */
+    pair<bool, string> dispatch(Handle<DispatcherAddData> &request, PDBCommunicatorPtr &sendUsingMe);
+
+    /**
+     *
+     * @param request
+     * @param sendUsingMe
+     * @return
+     */
+    pair<bool, string> dispatchCompressed(Handle<DispatcherAddData> &request, PDBCommunicatorPtr &sendUsingMe);
+
+    /**
+     * The current number requests that we are processing
+     */
     int numRequestsInProcessing = 0;
-    pthread_mutex_t mutex;
+
+    /**
+     * Mutex used to synchronize the dispatching
+     */
+    std::mutex mutex;
+
+    /**
+     * Conditional variable to enforce the maximum number of concurrent requests
+     */
+    std::condition_variable cv;
 };
 }
 
