@@ -19,8 +19,8 @@
                                     <div class="callout callout-alert" ng-controller="DashboardDataCtrl">
                                         <small class="text-muted">Cluster Mode</small>
                                         <br>
-                                        <strong class="h4" ng-if="clusterInfo['is-pseudo-cluster'] == 'true'">Pseudo Cluster</strong>
-                                        <strong class="h4" ng-if="clusterInfo['is-pseudo-cluster'] != 'true'">Distributed Cluster</strong>
+                                        <strong class="h4" ng-if="clusterInfo['is-pseudo-cluster'] == true">Pseudo Cluster</strong>
+                                        <strong class="h4" ng-if="clusterInfo['is-pseudo-cluster'] != true">Distributed Cluster</strong>
                                     </div>
                                 </div>
                             </div>

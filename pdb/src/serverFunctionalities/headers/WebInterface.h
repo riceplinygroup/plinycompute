@@ -36,6 +36,8 @@ private:
 
   mustache::data getClusterInfo();
 
+  mustache::data getSetInfo();
+
   /**
    * The http server
    */

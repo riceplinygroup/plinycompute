@@ -5,6 +5,7 @@
 #include <GenericWork.h>
 #include <WebInterface.h>
 #include <ResourceManagerServer.h>
+#include <CatalogServer.h>
 
 #include "WebInterface.h"
 
@@ -27,6 +28,24 @@ void pdb::WebInterface::registerHandlers(pdb::PDBServer &forMe) {
 
     // output the template
     res.set_content(outputTemplate.render(getClusterInfo()), "text/plain");
+  });
+
+  server.Get(R"(/api/sets)", [&](const httplib::Request& req, httplib::Response& res) {
+
+    // the template for the output
+    mustache::mustache outputTemplate{"[\n"
+                                      " {{#.}} { \n   \"set-name\" : \"{{set-name}}\",\n"
+                                      "   \"set-id\" : \"{{set-id}}\",\n"
+                                      "   \"database-name\" : \"{{database-name}}\",\n"
+                                      "   \"database-id\" : \"{{database-name}}\",\n"
+                                      "   \"type-name\" : \"{{type-name}}\",\n"
+                                      "   \"type-id\" : \"{{type-name}}\",\n"
+                                      "   \"created\" : {{timestamp}}\n"
+                                      "  }{{^is-last}}, {{/is-last}}\n {{/.}}"
+                                      "]"};
+
+    // output the template
+    res.set_content(outputTemplate.render(getSetInfo()), "text/plain");
   });
 
   // grab a we worker
@@ -133,4 +152,40 @@ mustache::data pdb::WebInterface::getClusterInfo() {
   ret.set("is-pseudo-cluster", isPseudoCluster ? "true" : "false");
 
   return ret;
+}
+
+mustache::data pdb::WebInterface::getSetInfo() {
+
+  // all the stuff we create will be stored here
+  const UseTemporaryAllocationBlock block(2 * 1024 * 1024);
+
+  // grab the sets
+  pdb::Handle<Vector<CatalogSetMetadata>> listOfSets = makeObject<Vector<CatalogSetMetadata>>();
+  getFunctionality<pdb::CatalogServer>().getSets(listOfSets);
+
+  // we put all the node data here
+  mustache::data setsData = mustache::data::type::list;
+
+  // go through each set
+  for(int i = 0; i < listOfSets->size(); ++i) {
+
+    // the data of this node
+    mustache::data setData;
+
+    // set the data
+    setData.set("set-name", (std::string)(*listOfSets)[i].getItemName());
+    setData.set("set-id", (std::string)(*listOfSets)[i].getItemId());
+    setData.set("database-name", (std::string)(*listOfSets)[i].getDBName());
+    setData.set("database-id", (std::string)(*listOfSets)[i].getDBId());
+    setData.set("type-name", (std::string)(*listOfSets)[i].getObjectTypeName());
+    setData.set("type-id", (std::string)(*listOfSets)[i].getObjectTypeId());
+    setData.set("is-last", i == listOfSets->size() - 1);
+
+    //TODO there is not timestamp for the set
+    setData.set("timestamp", std::to_string(1533453548));
+
+    setsData.push_back(setData);
+  }
+
+  return setsData;
 }

@@ -13,12 +13,11 @@ angular
 .directive('button', cardCollapseDirective)
 
 function includeReplace() {
-  var directive = {
-    require: 'ngInclude',
-    restrict: 'A',
-    link: link
+  return {
+      require: 'ngInclude',
+      restrict: 'A',
+      link: link
   };
-  return directive;
 
   function link(scope, element, attrs) {
     element.replaceWith(element.children());
@@ -27,11 +26,10 @@ function includeReplace() {
 
 //Prevent click if href="#"
 function preventClickDirective() {
-  var directive = {
-    restrict: 'E',
-    link: link
+  return {
+      restrict: 'E',
+      link: link
   };
-  return directive;
 
   function link(scope, element, attrs) {
     if (attrs.href === '#'){
@@ -44,11 +42,10 @@ function preventClickDirective() {
 
 //Bootstrap Collapse
 function bootstrapCollapseDirective() {
-  var directive = {
-    restrict: 'E',
-    link: link
-  }
-  return directive;
+  return {
+      restrict: 'E',
+      link: link
+  };
 
   function link(scope, element, attrs) {
     if (attrs.toggle=='collapse'){
@@ -62,11 +59,10 @@ function bootstrapCollapseDirective() {
 * @example <li class="nav-item nav-dropdown"></li>
 */
 function navigationDirective() {
-  var directive = {
-    restrict: 'E',
-    link: link
-  }
-  return directive;
+  return {
+      restrict: 'E',
+      link: link
+  };
 
   function link(scope, element, attrs) {
     if(element.hasClass('nav-dropdown-toggle') && angular.element('body').width() > 782) {
@@ -86,11 +82,10 @@ function navigationDirective() {
 //Dynamic resize .sidebar-nav
 sidebarNavDynamicResizeDirective.$inject = ['$window', '$timeout'];
 function sidebarNavDynamicResizeDirective($window, $timeout) {
-  var directive = {
-    restrict: 'E',
-    link: link
+  return {
+      restrict: 'E',
+      link: link
   };
-  return directive;
 
   function link(scope, element, attrs) {
 
@@ -104,7 +99,7 @@ function sidebarNavDynamicResizeDirective($window, $timeout) {
         } else {
           element.css('height', bodyHeight - headerHeight);
         }
-      })
+      });
 
       angular.element($window).bind('resize', function(){
         var bodyHeight = angular.element(window).height();
@@ -125,11 +120,10 @@ function sidebarNavDynamicResizeDirective($window, $timeout) {
 //LayoutToggle
 layoutToggleDirective.$inject = ['$interval'];
 function layoutToggleDirective($interval) {
-  var directive = {
-    restrict: 'E',
-    link: link
-  }
-  return directive;
+  return {
+      restrict: 'E',
+      link: link
+  };
 
   function link(scope, element, attrs) {
     element.on('click', function(){
@@ -145,13 +139,12 @@ function layoutToggleDirective($interval) {
   }
 }
 
-//Collapse menu toggler
+//collapse menu toggler
 function collapseMenuTogglerDirective() {
-  var directive = {
-    restrict: 'E',
-    link: link
-  }
-  return directive;
+  return {
+      restrict: 'E',
+      link: link
+  };
 
   function link(scope, element, attrs) {
     element.on('click', function(){
@@ -162,16 +155,15 @@ function collapseMenuTogglerDirective() {
   }
 }
 
-//Bootstrap Carousel
+//bootstrap carousel
 function bootstrapCarouselDirective() {
-  var directive = {
-    restrict: 'E',
-    link: link
-  }
-  return directive;
+  return {
+      restrict: 'E',
+      link: link
+  };
 
   function link(scope, element, attrs) {
-    if (attrs.ride=='carousel'){
+    if (attrs.ride === 'carousel'){
       element.find('a').each(function(){
         $(this).attr('data-target',$(this).attr('href').replace('index.html','')).attr('href','javascript;;')
       });
@@ -179,19 +171,19 @@ function bootstrapCarouselDirective() {
   }
 }
 
-//Bootstrap Tooltips & Popovers
+//bootstrap tooltips & popovers
 function bootstrapTooltipsPopoversDirective() {
-  var directive = {
-    restrict: 'A',
-    link: link
-  }
-  return directive;
+
+  return {
+      restrict: 'A',
+      link: link
+  };
 
   function link(scope, element, attrs) {
-    if (attrs.toggle=='tooltip'){
+    if (attrs.toggle === 'tooltip'){
       angular.element(element).tooltip();
     }
-    if (attrs.toggle=='popover'){
+    if (attrs.toggle === 'popover'){
       angular.element(element).popover();
     }
   }
@@ -199,11 +191,11 @@ function bootstrapTooltipsPopoversDirective() {
 
 //Bootstrap Tabs
 function bootstrapTabsDirective() {
-  var directive = {
-    restrict: 'A',
-    link: link
-  }
-  return directive;
+
+  return {
+      restrict: 'A',
+      link: link
+  };
 
   function link(scope, element, attrs) {
     element.click(function(e) {
@@ -213,16 +205,16 @@ function bootstrapTabsDirective() {
   }
 }
 
-//Card Collapse
+// card collapse
 function cardCollapseDirective() {
-  var directive = {
-    restrict: 'E',
-    link: link
-  }
-  return directive;
+
+  return {
+      restrict: 'E',
+      link: link
+  };
 
   function link(scope, element, attrs) {
-    if (attrs.toggle=='collapse' && element.parent().hasClass('card-actions')){
+    if (attrs.toggle === 'collapse' && element.parent().hasClass('card-actions')){
 
       if (element.parent().parent().parent().find('.card-body').hasClass('in')) {
         element.find('i').addClass('r180');

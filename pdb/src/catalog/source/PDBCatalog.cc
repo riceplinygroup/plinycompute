@@ -18,7 +18,7 @@
 #include "PDBCatalog.h"
 
 /* Specialization for adding Database metadata */
-template <>
+template<>
 bool PDBCatalog::addItemToVector(Handle<CatalogDatabaseMetadata> &item, int &key) {
   registeredDatabasesMetadata->push_back(*item);
   registeredDatabases.insert(make_pair(item->getItemKey().c_str(), *item));
@@ -26,7 +26,7 @@ bool PDBCatalog::addItemToVector(Handle<CatalogDatabaseMetadata> &item, int &key
 }
 
 /* Specialization for adding Node metadata */
-template <>
+template<>
 bool PDBCatalog::addItemToVector(Handle<CatalogNodeMetadata> &item, int &key) {
   registeredNodesMetadata->push_back(*item);
   registeredNodes.insert(make_pair(item->getItemKey().c_str(), *item));
@@ -34,7 +34,7 @@ bool PDBCatalog::addItemToVector(Handle<CatalogNodeMetadata> &item, int &key) {
 }
 
 /* Specialization for adding Set metadata */
-template <>
+template<>
 bool PDBCatalog::addItemToVector(Handle<CatalogSetMetadata> &item, int &key) {
   registeredSetsMetadata->push_back(*item);
   registeredSets.insert(make_pair(item->getItemKey().c_str(), *item));
@@ -42,7 +42,7 @@ bool PDBCatalog::addItemToVector(Handle<CatalogSetMetadata> &item, int &key) {
 }
 
 /* Specialization for adding User-defined type metadata */
-template <>
+template<>
 bool PDBCatalog::addItemToVector(Handle<CatalogUserTypeMetadata> &item, int &key) {
   registeredUserDefinedTypesMetadata->push_back(*item);
   registeredUserDefinedTypes.insert(make_pair(item->getItemName().c_str(), *item));
@@ -52,7 +52,7 @@ bool PDBCatalog::addItemToVector(Handle<CatalogUserTypeMetadata> &item, int &key
 }
 
 /* Specialization for updating Database metadata */
-template <>
+template<>
 bool PDBCatalog::updateItemInVector(int &index,
                                     Handle<CatalogDatabaseMetadata> &item) {
   (*registeredDatabasesMetadata).assign(index, *item);
@@ -61,7 +61,7 @@ bool PDBCatalog::updateItemInVector(int &index,
 }
 
 /* Specialization for updating Set metadata */
-template <>
+template<>
 bool PDBCatalog::updateItemInVector(int &index,
                                     Handle<CatalogSetMetadata> &item) {
   (*registeredSetsMetadata).assign(index, *item);
@@ -69,7 +69,7 @@ bool PDBCatalog::updateItemInVector(int &index,
 }
 
 /* Specialization for updating Node metadata */
-template <>
+template<>
 bool PDBCatalog::updateItemInVector(int &index,
                                     Handle<CatalogNodeMetadata> &item) {
   (*registeredNodesMetadata).assign(index, *item);
@@ -77,7 +77,7 @@ bool PDBCatalog::updateItemInVector(int &index,
 }
 
 /* Specialization for updating User-defined type metadata */
-template <>
+template<>
 bool PDBCatalog::updateItemInVector(int &index,
                                     Handle<CatalogUserTypeMetadata> &item) {
   (*registeredUserDefinedTypesMetadata).assign(index, *item);
@@ -85,7 +85,7 @@ bool PDBCatalog::updateItemInVector(int &index,
 }
 
 /* Specialization for deleting Set metadata */
-template <>
+template<>
 bool PDBCatalog::deleteItemInVector(int &index,
                                     Handle<CatalogSetMetadata> &item) {
   Handle<Vector<CatalogSetMetadata>> tempContainter =
@@ -102,7 +102,7 @@ bool PDBCatalog::deleteItemInVector(int &index,
 }
 
 /* Specialization for deleting Node metadata */
-template <>
+template<>
 bool PDBCatalog::deleteItemInVector(int &index,
                                     Handle<CatalogNodeMetadata> &item) {
   Handle<Vector<CatalogNodeMetadata>> tempContainter =
@@ -119,7 +119,7 @@ bool PDBCatalog::deleteItemInVector(int &index,
 }
 
 /* Specialization for deleting Database metadata */
-template <>
+template<>
 bool PDBCatalog::deleteItemInVector<CatalogDatabaseMetadata>(
     int &index, Handle<CatalogDatabaseMetadata> &item) {
   Handle<Vector<CatalogDatabaseMetadata>> tempContainter =
@@ -137,7 +137,7 @@ bool PDBCatalog::deleteItemInVector<CatalogDatabaseMetadata>(
 }
 
 /* Specialization for deleting User-defined type metadata */
-template <>
+template<>
 bool PDBCatalog::deleteItemInVector(int &index,
                                     Handle<CatalogUserTypeMetadata> &item) {
   Handle<Vector<CatalogUserTypeMetadata>> tempContainter =
@@ -350,7 +350,7 @@ void PDBCatalog::loadsMetadataIntoMemory() {
                               errorMessage,
                               PDBCatalogMsgType::CatalogPDBNode))
 
-      this->logger->debug(errorMessage);
+    this->logger->debug(errorMessage);
 
   (*catalogContents)[String("nodes")] =
       unsafeCast<Vector<Object>>(registeredNodesMetadata);
@@ -361,7 +361,7 @@ void PDBCatalog::loadsMetadataIntoMemory() {
                               errorMessage,
                               PDBCatalogMsgType::CatalogPDBSet))
 
-      this->logger->debug(errorMessage);
+    this->logger->debug(errorMessage);
 
   (*catalogContents)[String("sets")] =
       unsafeCast<Vector<Object>>(registeredSetsMetadata);
@@ -372,7 +372,7 @@ void PDBCatalog::loadsMetadataIntoMemory() {
                               errorMessage,
                               PDBCatalogMsgType::CatalogPDBDatabase))
 
-      this->logger->debug(errorMessage);
+    this->logger->debug(errorMessage);
 
   (*catalogContents)[String("dbs")] =
       unsafeCast<Vector<Object>>(registeredDatabasesMetadata);
@@ -417,7 +417,7 @@ void PDBCatalog::loadsMetadataIntoMemory() {
                << string((*registeredNodesMetadata)[i].getNodeIP())
                << endl;
 
-       registeredNodes.insert(
+      registeredNodes.insert(
           make_pair((*registeredNodesMetadata)[i].getItemKey().c_str(),
                     (*registeredNodesMetadata)[i]));
     }
@@ -453,9 +453,9 @@ void PDBCatalog::loadsMetadataIntoMemory() {
 
 void PDBCatalog::printsAllCatalogMetadata(std::string &outputString, std::string &errMsg) {
 
-    listNodesInCluster(outputString, errMsg);
-    listRegisteredDatabases(outputString, errMsg);
-    listUserDefinedTypes(outputString, errMsg);
+  listNodesInCluster(outputString, errMsg);
+  listRegisteredDatabases(outputString, errMsg);
+  listUserDefinedTypes(outputString, errMsg);
 
 }
 
@@ -463,9 +463,9 @@ void PDBCatalog::printsAllCatalogMetadata(std::string &outputString, std::string
 void PDBCatalog::listNodesInCluster(std::string &outputString,
                                     std::string &errMsg) {
 
-    outputString += "\nI. Nodes in Cluster ("
-                 +  std::to_string((int)(*registeredNodesMetadata).size())
-                 +  ")\n";
+  outputString += "\nI. Nodes in Cluster ("
+      + std::to_string((int) (*registeredNodesMetadata).size())
+      + ")\n";
 
   for (int i = 0; i < (*registeredNodesMetadata).size(); i++) {
     outputString += (*registeredNodesMetadata)[i].printShort() + "\n";
@@ -478,8 +478,8 @@ void PDBCatalog::listRegisteredDatabases(std::string &outputString,
                                          std::string &errMsg) {
 
   outputString += "\nII. Databases ("
-               +  std::to_string((int)(*registeredDatabasesMetadata).size())
-               +  ")\n";
+      + std::to_string((int) (*registeredDatabasesMetadata).size())
+      + ")\n";
 
   for (int i = 0; i < (*registeredDatabasesMetadata).size(); i++) {
     outputString += (*registeredDatabasesMetadata)[i].printShort() + "\n";
@@ -493,8 +493,8 @@ void PDBCatalog::listRegisteredSetsForADatabase(std::string databaseName,
                                                 std::string &errMsg) {
 
   outputString += "\nSets ("
-               +  std::to_string((int)(*registeredSetsMetadata).size())
-               +  ")\n";
+      + std::to_string((int) (*registeredSetsMetadata).size())
+      + ")\n";
 
   for (int i = 0; i < (*registeredSetsMetadata).size(); i++) {
     outputString += (*registeredSetsMetadata)[i].printShort() + "\n";
@@ -506,9 +506,9 @@ void PDBCatalog::listRegisteredSetsForADatabase(std::string databaseName,
 void PDBCatalog::listUserDefinedTypes(std::string &outputString,
                                       std::string &errMsg) {
 
-    outputString += "\nIII. User-defined types ("
-                 +  std::to_string((int)(*registeredUserDefinedTypesMetadata).size())
-                 +  ")\n";
+  outputString += "\nIII. User-defined types ("
+      + std::to_string((int) (*registeredUserDefinedTypesMetadata).size())
+      + ")\n";
 
   for (int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); i++) {
     outputString +=
@@ -517,7 +517,7 @@ void PDBCatalog::listUserDefinedTypes(std::string &outputString,
 
 }
 
-template <class CatalogMetadataType>
+template<class CatalogMetadataType>
 bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
                                         string key,
                                         Handle<pdb::Vector<CatalogMetadataType>> &returnedItems,
@@ -533,8 +533,7 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
   // item with the given key
   if (onlyModified) {
     queryString.append(" where timeStamp > ").append(key).append("");
-  }
-  else if (!key.empty()) {
+  } else if (!key.empty()) {
     queryString.append(" where itemID = '").append(key).append("'");
   }
 
@@ -551,10 +550,9 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
         // retrieves the serialized record
         int numBytes = sqlite3_column_bytes(statement, 1);
 
-        PDB_COUT << "entry " << sqlite3_column_text(statement, 0)
-                 << " timestamp " << sqlite3_column_int(statement, 2) << endl;
+        PDB_COUT << "entry " << sqlite3_column_text(statement, 0) << " timestamp " << sqlite3_column_int(statement, 2) << endl;
 
-        auto *recordBytes = (Record<CatalogMetadataType> *)malloc(numBytes);
+        auto *recordBytes = (Record<CatalogMetadataType> *) malloc(numBytes);
 
         memcpy(recordBytes, sqlite3_column_blob(statement, 1), numBytes);
 
@@ -566,7 +564,7 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
         returnedItems->push_back(*returnedObject);
         free(recordBytes);
 
-        if(metadataCategory == CatalogPDBRegisteredObject) {
+        if (metadataCategory == CatalogPDBRegisteredObject) {
 
           // cast the thing to the CatalogMetadataType
           Handle<CatalogUserTypeMetadata> typeMeta = unsafeCast<CatalogUserTypeMetadata, CatalogMetadataType>(returnedObject);
@@ -595,13 +593,12 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
     pthread_mutex_unlock(&(registerMetadataMutex));
 
     return true;
-  }
-  else {
+  } else {
 
     string error = sqlite3_errmsg(sqliteDBHandler);
 
     if (error != "not an error") {
-      this->logger->writeLn((string)queryString + " " + error);
+      this->logger->writeLn((string) queryString + " " + error);
     }
 
     sqlite3_finalize(statement);
@@ -611,14 +608,15 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
   }
 }
 
-
-bool PDBCatalog::getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetadata>> &returnedItems, string &errorMessage) {
+bool PDBCatalog::getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetadata>> &returnedItems,
+                                         string &errorMessage) {
 
   // lock the metadata mutex
   pthread_mutex_lock(&(registerMetadataMutex));
 
   // prepare the query string
-  string queryString = "SELECT itemID, typeID, timeStamp from " + mapsPDBArrayObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBRegisteredObject];
+  string queryString = "SELECT itemID, typeID, timeStamp from "
+      + mapsPDBArrayObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBRegisteredObject];
 
   // log the query
   this->logger->debug(queryString);
@@ -638,7 +636,7 @@ bool PDBCatalog::getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetad
         // create the type info object
         Handle<CatalogUserTypeMetadata> typeInfo = makeObject<CatalogUserTypeMetadata>();
 
-        std::string typeName = (char*) sqlite3_column_text(statement, 0);
+        std::string typeName = (char *) sqlite3_column_text(statement, 0);
         int typeCode = sqlite3_column_int(statement, 1);
 
         // grab the type code and
@@ -688,7 +686,7 @@ bool PDBCatalog::getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetad
   string error = sqlite3_errmsg(sqliteDBHandler);
 
   if (error != "not an error") {
-    this->logger->writeLn((string)queryString + " " + error);
+    this->logger->writeLn((string) queryString + " " + error);
   }
 
   sqlite3_finalize(statement);
@@ -703,8 +701,8 @@ bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
 
   sqlite3_stmt *statement = nullptr;
   string queryString = "SELECT name, className, size, offset, typeName, timeStamp from " +
-                       mapsPDBArrayObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute] +
-                       " WHERE className='" + className + "'";
+      mapsPDBArrayObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute] +
+      " WHERE className='" + className + "'";
 
   // prepare the query
   this->logger->debug(queryString);
@@ -719,10 +717,10 @@ bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
       if (res == SQLITE_ROW) {
 
         // grab the values
-        std::string attributeName = (char*) sqlite3_column_text(statement, 0);
-        int size =  sqlite3_column_int(statement, 2);
-        int offset =  sqlite3_column_int(statement, 3);
-        std::string typeName = (char*) sqlite3_column_text(statement, 4);
+        std::string attributeName = (char *) sqlite3_column_text(statement, 0);
+        int size = sqlite3_column_int(statement, 2);
+        int offset = sqlite3_column_int(statement, 3);
+        std::string typeName = (char *) sqlite3_column_text(statement, 4);
 
         // create the attribute
         AttributeInfo info;
@@ -742,13 +740,12 @@ bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
     sqlite3_finalize(statement);
 
     return true;
-  }
-  else {
+  } else {
 
     string error = sqlite3_errmsg(sqliteDBHandler);
 
     if (error != "not an error") {
-      this->logger->writeLn((string)queryString + " " + error);
+      this->logger->writeLn((string) queryString + " " + error);
     }
 
     sqlite3_finalize(statement);
@@ -777,7 +774,7 @@ bool PDBCatalog::getMethodParameters(int methodID, vector<AttributeType> &parame
       if (res == SQLITE_ROW) {
 
         // grab the values
-        std::string typeName = (char*) sqlite3_column_text(statement, 0);
+        std::string typeName = (char *) sqlite3_column_text(statement, 0);
         int typeSize = sqlite3_column_int(statement, 1);
 
         // create the attribute
@@ -798,13 +795,12 @@ bool PDBCatalog::getMethodParameters(int methodID, vector<AttributeType> &parame
     sqlite3_finalize(statement);
 
     return true;
-  }
-  else {
+  } else {
 
     string error = sqlite3_errmsg(sqliteDBHandler);
 
     if (error != "not an error") {
-      this->logger->writeLn((string)queryString + " " + error);
+      this->logger->writeLn((string) queryString + " " + error);
     }
 
     sqlite3_finalize(statement);
@@ -812,7 +808,6 @@ bool PDBCatalog::getMethodParameters(int methodID, vector<AttributeType> &parame
     return false;
   }
 }
-
 
 bool PDBCatalog::getClassMethods(string &className, ClassInfo &classInfo) {
 
@@ -835,9 +830,9 @@ bool PDBCatalog::getClassMethods(string &className, ClassInfo &classInfo) {
 
         // grab the values
         int itemID = sqlite3_column_int(statement, 0);
-        std::string methodName = (char*) sqlite3_column_text(statement, 1);
-        std::string symbol = (char*) sqlite3_column_text(statement, 2);
-        std::string retTypeName = (char*) sqlite3_column_text(statement, 3);
+        std::string methodName = (char *) sqlite3_column_text(statement, 1);
+        std::string symbol = (char *) sqlite3_column_text(statement, 2);
+        std::string retTypeName = (char *) sqlite3_column_text(statement, 3);
         int retTypeSize = sqlite3_column_int(statement, 4);
 
         // create the attribute
@@ -850,7 +845,7 @@ bool PDBCatalog::getClassMethods(string &className, ClassInfo &classInfo) {
         info.symbol = symbol;
 
         // init the parameters
-        getMethodParameters(itemID ,info.parameters);
+        getMethodParameters(itemID, info.parameters);
 
         classInfo.methods->push_back(info);
 
@@ -862,13 +857,12 @@ bool PDBCatalog::getClassMethods(string &className, ClassInfo &classInfo) {
     sqlite3_finalize(statement);
 
     return true;
-  }
-  else {
+  } else {
 
     string error = sqlite3_errmsg(sqliteDBHandler);
 
     if (error != "not an error") {
-      this->logger->writeLn((string)queryString + " " + error);
+      this->logger->writeLn((string) queryString + " " + error);
     }
 
     sqlite3_finalize(statement);
@@ -895,14 +889,14 @@ bool PDBCatalog::registerUserDefinedObject(int16_t typeCode,
 
   // long the stuff
   PDB_COUT << "inside registerUserDefinedObject\n";
-  PDB_COUT << "objectBytes "  << std::to_string(objectBytes.size()) << "\n";
+  PDB_COUT << "objectBytes " << std::to_string(objectBytes.size()) << "\n";
   PDB_COUT << "typeName " << typeName << endl;
   PDB_COUT << "fileName " << fileName << endl;
   PDB_COUT << "tableName " << tableName << endl;
 
   // prepare the insert query string
   string queryString = "INSERT INTO " + tableName + " (itemID, typeID, soBytes, timeStamp) "
-                       "VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
+                                                    "VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
   PDB_COUT << "QueryString = " << queryString << endl;
 
   //  prepare the statement
@@ -974,7 +968,7 @@ bool PDBCatalog::registerUserDefinedObject(int16_t typeCode,
       isSuccess = false;
       errorMessage = fileName + " is already registered in the catalog!" + "\n";
     } else {
-      errorMessage = "Query execution failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+      errorMessage = "Query execution failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     }
 
     // indicate failure
@@ -991,12 +985,12 @@ bool PDBCatalog::registerUserDefinedObject(int16_t typeCode,
   sqlite3_finalize(stmt);
 
   // store each attribute
-  for(auto &att : *info.attributes) {
+  for (auto &att : *info.attributes) {
     storeAttribute(typeName, att, errorMessage, isSuccess);
   }
 
   // store each method
-  for(auto &method : *info.methods) {
+  for (auto &method : *info.methods) {
     storeMethod(typeName, method, errorMessage, isSuccess);
   }
 
@@ -1005,7 +999,7 @@ bool PDBCatalog::registerUserDefinedObject(int16_t typeCode,
   objectToRegister->setMethods(info.methods);
 
   // check if we failed somewhere along the line
-  if(!isSuccess) {
+  if (!isSuccess) {
 
     // indicate failure
     isSuccess = false;
@@ -1034,8 +1028,9 @@ void PDBCatalog::storeMethod(const string &typeName, MethodInfo method, string &
 
   // create the insert query
   std::string tableName = mapsPDBObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectMethod];
-  string queryString = "INSERT INTO " + tableName + " (className, methodName, symbol, retTypeName, retTypeSize, timeStamp) "
-                       "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
+  string queryString =
+      "INSERT INTO " + tableName + " (className, methodName, symbol, retTypeName, retTypeSize, timeStamp) "
+                                   "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
   // prepare the statement
   sqlite3_stmt *stmt = nullptr;
@@ -1053,7 +1048,7 @@ void PDBCatalog::storeMethod(const string &typeName, MethodInfo method, string &
   rc = sqlite3_bind_text(stmt, 2, method.name.c_str(), -1, SQLITE_STATIC);
   rc = sqlite3_bind_text(stmt, 3, method.symbol.c_str(), -1, SQLITE_STATIC);
   rc = sqlite3_bind_text(stmt, 4, method.returnType.name.c_str(), -1, SQLITE_STATIC);
-  rc = sqlite3_bind_int (stmt, 5, (int) method.returnType.size);
+  rc = sqlite3_bind_int(stmt, 5, (int) method.returnType.size);
 
   // did we manage to bind it
   if (rc != SQLITE_OK) {
@@ -1079,7 +1074,7 @@ void PDBCatalog::storeMethod(const string &typeName, MethodInfo method, string &
 
   // store all the parameters
   int i = 0;
-  for(auto &p : method.parameters) {
+  for (auto &p : method.parameters) {
     storeParameter(methodID, p, i++, errorMessage, isSuccess);
   }
 }
@@ -1130,12 +1125,15 @@ void PDBCatalog::storeParameter(sqlite3_int64 methodID,
   sqlite3_finalize(stmt);
 }
 
-void PDBCatalog::storeAttribute(const string &typeName, AttributeInfo attribute, string &errorMessage, bool &isSuccess) {
+void PDBCatalog::storeAttribute(const string &typeName,
+                                AttributeInfo attribute,
+                                string &errorMessage,
+                                bool &isSuccess) {
 
   // create the insert query
   std::string tableName = mapsPDBObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute];
   string queryString = "INSERT INTO " + tableName + " (name, className, size, offset, typeName, timeStamp) "
-                       "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
+                                                    "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
   // prepare the statement
   sqlite3_stmt *stmt = nullptr;
@@ -1166,8 +1164,8 @@ void PDBCatalog::storeAttribute(const string &typeName, AttributeInfo attribute,
   // run the thing
   rc = sqlite3_step(stmt);
   if (rc != SQLITE_DONE) {
-      errorMessage = "Query execution failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
-      isSuccess = false;
+    errorMessage = "Query execution failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
+    isSuccess = false;
   }
 
   sqlite3_finalize(stmt);
@@ -1197,7 +1195,7 @@ bool PDBCatalog::retrievesDynamicLibrary(string itemId,
   PDB_COUT << "query: " << query << " " << itemId << endl;
   if (sqlite3_prepare_v2(sqliteDBHandler, query.c_str(), -1, &pStmt, nullptr) != SQLITE_OK) {
 
-    errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+    errorMessage = "Error query not well formed: " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
 
     sqlite3_reset(pStmt);
     PDB_COUT << errorMessage << endl;
@@ -1209,7 +1207,7 @@ bool PDBCatalog::retrievesDynamicLibrary(string itemId,
 
   if (sqlite3_step(pStmt) != SQLITE_ROW) {
     errorMessage = "Error item not found in database: " +
-                   (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+        (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     sqlite3_reset(pStmt);
     PDB_COUT << errorMessage << endl;
 
@@ -1220,7 +1218,7 @@ bool PDBCatalog::retrievesDynamicLibrary(string itemId,
   // create the type info object
   typeInfo = makeObject<CatalogUserTypeMetadata>();
 
-  std::string typeName = (char*) sqlite3_column_text(pStmt, 0);
+  std::string typeName = (char *) sqlite3_column_text(pStmt, 0);
   int typeCode = sqlite3_column_int(pStmt, 1);
 
   // grab the type code and
@@ -1271,7 +1269,7 @@ void PDBCatalog::deleteTempSoFiles(string filePath) {
   }
 }
 
-template <class CatalogMetadataType>
+template<class CatalogMetadataType>
 bool PDBCatalog::addMetadataToCatalog(
     pdb::Handle<CatalogMetadataType> &metadataValue,
     int &metadataCategory,
@@ -1279,16 +1277,15 @@ bool PDBCatalog::addMetadataToCatalog(
 
   pthread_mutex_lock(&(registerMetadataMutex));
 
-  Handle<CatalogMetadataType> metadataObject =
-      makeObject<CatalogMetadataType>();
+  Handle<CatalogMetadataType> metadataObject = makeObject<CatalogMetadataType>();
 
   bool isSuccess = false;
   sqlite3_stmt *stmt = nullptr;
 
   string sqlStatement = "INSERT INTO " +
-                        mapsPDBObject2SQLiteTable[metadataCategory] +
-                        " (itemID, itemInfo, timeStamp) VALUES (?, ?, "
-                        "strftime('%s', 'now', 'localtime'))";
+      mapsPDBObject2SQLiteTable[metadataCategory] +
+      " (itemID, itemInfo, timeStamp) VALUES (?, ?, "
+      "strftime('%s', 'now', 'localtime'))";
 
   // gets the size of the container for a given type of metadata and
   // uses it to assign the index of a metadata item in its container
@@ -1304,20 +1301,20 @@ bool PDBCatalog::addMetadataToCatalog(
   // Prepares statement
   if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1, &stmt, NULL)) != SQLITE_OK) {
 
-    errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler);
     this->logger->writeLn(errorMessage);
     isSuccess = false;
   }
 
   // Binds key for this piece of metadata
   if ((sqlite3_bind_text(stmt, 1, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK) {
-    errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     isSuccess = false;
   }
 
   // Binds value for this piece of metadata (as a pdb serialized set of bytes)
   if ((sqlite3_bind_blob(stmt, 2, metadataBytes, numberOfBytes, SQLITE_STATIC)) != SQLITE_OK) {
-    errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     isSuccess = false;
   }
 
@@ -1345,7 +1342,7 @@ bool PDBCatalog::addMetadataToCatalog(
   return isSuccess;
 }
 
-template <class CatalogMetadataType>
+template<class CatalogMetadataType>
 bool PDBCatalog::updateMetadataInCatalog(
     pdb::Handle<CatalogMetadataType> &metadataValue, int &metadataCategory,
     string &errorMessage) {
@@ -1361,8 +1358,8 @@ bool PDBCatalog::updateMetadataInCatalog(
   bool isSuccess = false;
   sqlite3_stmt *stmt = nullptr;
   string sqlStatement = "UPDATE " +
-                        mapsPDBObject2SQLiteTable[metadataCategory] +
-                        " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
+      mapsPDBObject2SQLiteTable[metadataCategory] +
+      " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
 
   this->logger->debug(sqlStatement + " id: " + metadataKey.c_str());
 
@@ -1372,20 +1369,20 @@ bool PDBCatalog::updateMetadataInCatalog(
 
   // Prepares statement
   if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1, &stmt, nullptr)) != SQLITE_OK) {
-    errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler);
     this->logger->writeLn(errorMessage);
     isSuccess = false;
   }
 
   // Binds value for this piece of metadata (as a pdb serialized set of bytes)
   if ((sqlite3_bind_blob(stmt, 1, metadataBytes, numberOfBytes, SQLITE_STATIC)) != SQLITE_OK) {
-    errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     isSuccess = false;
   }
 
   // Binds key for this piece of metadata
   if ((sqlite3_bind_text(stmt, 2, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK) {
-    errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+    errorMessage = "Bind operation failed. " + (string) sqlite3_errmsg(sqliteDBHandler) + "\n";
     isSuccess = false;
   }
 
@@ -1410,7 +1407,7 @@ bool PDBCatalog::updateMetadataInCatalog(
   return isSuccess;
 }
 
-template <class CatalogMetadataType>
+template<class CatalogMetadataType>
 bool PDBCatalog::deleteMetadataInCatalog(
     pdb::Handle<CatalogMetadataType> metadataValue, int &metadataCategory,
     string &errorMessage) {
@@ -1424,14 +1421,14 @@ bool PDBCatalog::deleteMetadataInCatalog(
   bool isSuccess = false;
   sqlite3_stmt *stmt = nullptr;
   string sqlStatement = "DELETE from " +
-                        mapsPDBObject2SQLiteTable[metadataCategory] +
-                        " where itemId = ?";
+      mapsPDBObject2SQLiteTable[metadataCategory] +
+      " where itemId = ?";
 
   PDB_COUT << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
   // Prepares statement
   if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1, &stmt, nullptr)) != SQLITE_OK) {
-    errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
+    errorMessage = "Prepared statement failed. " + (string) sqlite3_errmsg(sqliteDBHandler);
     PDB_COUT << errorMessage << endl;
     isSuccess = false;
   }
@@ -1475,20 +1472,20 @@ int PDBCatalog::getLastId(int &metadataCategory) {
   size_t lastId = 0;
   switch (metadataCategory) {
 
-  case PDBCatalogMsgType::CatalogPDBNode: {
-    lastId = registeredNodesMetadata->size();
-    break;
-  }
+    case PDBCatalogMsgType::CatalogPDBNode: {
+      lastId = registeredNodesMetadata->size();
+      break;
+    }
 
-  case PDBCatalogMsgType::CatalogPDBDatabase: {
-    lastId = registeredDatabasesMetadata->size();
-    break;
-  }
+    case PDBCatalogMsgType::CatalogPDBDatabase: {
+      lastId = registeredDatabasesMetadata->size();
+      break;
+    }
 
-  case PDBCatalogMsgType::CatalogPDBSet: {
-    lastId = registeredSetsMetadata->size();
-    break;
-  }
+    case PDBCatalogMsgType::CatalogPDBSet: {
+      lastId = registeredSetsMetadata->size();
+      break;
+    }
     default:break;
   }
 
@@ -1500,7 +1497,7 @@ std::ostream &operator<<(std::ostream &out, PDBCatalog &catalog) {
   out << "PDB Metadata Registered in the Catalog: " << endl;
 
   out << "\n   Number of cluster nodes registered: " +
-             std::to_string((int)catalog.registeredNodesMetadata->size())
+      std::to_string((int) catalog.registeredNodesMetadata->size())
       << endl;
   for (int i = 0; i < catalog.registeredNodesMetadata->size(); i++) {
     out << "      Id: "
@@ -1513,7 +1510,7 @@ std::ostream &operator<<(std::ostream &out, PDBCatalog &catalog) {
   }
 
   out << "\n   Number of databases registered: " +
-             std::to_string((int)catalog.registeredDatabasesMetadata->size())
+      std::to_string((int) catalog.registeredDatabasesMetadata->size())
       << endl;
   for (int i = 0; i < catalog.registeredDatabasesMetadata->size(); i++) {
     out << "      Id: "
@@ -1524,7 +1521,7 @@ std::ostream &operator<<(std::ostream &out, PDBCatalog &catalog) {
   }
 
   out << "\n   Number of sets registered: " +
-             std::to_string((int)catalog.registeredSetsMetadata->size())
+      std::to_string((int) catalog.registeredSetsMetadata->size())
       << endl;
   for (int i = 0; i < catalog.registeredSetsMetadata->size(); i++) {
     out << "      Id: "
@@ -1538,23 +1535,23 @@ std::ostream &operator<<(std::ostream &out, PDBCatalog &catalog) {
   }
 
   out << "\n   Number of users registered: " +
-             std::to_string((int)catalog.listUsersInCluster->size())
+      std::to_string((int) catalog.listUsersInCluster->size())
       << endl;
   for (int i = 0; i < catalog.listUsersInCluster->size(); i++) {
     out << (*catalog.listUsersInCluster)[i]->getItemName() << endl;
   }
 
   out << "\n   Number of user-defined types registered: " +
-             std::to_string(
-                 (int)catalog.registeredUserDefinedTypesMetadata->size())
+      std::to_string(
+          (int) catalog.registeredUserDefinedTypesMetadata->size())
       << endl;
   for (int i = 0; i < catalog.registeredUserDefinedTypesMetadata->size(); i++) {
     out << "      Id: "
         << (*catalog.registeredUserDefinedTypesMetadata)[i].getItemId().c_str()
         << " | Type Name: "
         << (*catalog.registeredUserDefinedTypesMetadata)[i]
-               .getItemName()
-               .c_str()
+            .getItemName()
+            .c_str()
         << endl;
   }
   out << "--------------------------" << endl;
@@ -1563,26 +1560,26 @@ std::ostream &operator<<(std::ostream &out, PDBCatalog &catalog) {
 
 string PDBCatalog::itemName2ItemId(int &metadataCategory, string &key) {
   switch (metadataCategory) {
-  case PDBCatalogMsgType::CatalogPDBNode: {
-    return registeredNodes[key].getItemKey().c_str();
-  }
+    case PDBCatalogMsgType::CatalogPDBNode: {
+      return registeredNodes[key].getItemKey().c_str();
+    }
 
-  case PDBCatalogMsgType::CatalogPDBDatabase: {
-    return registeredDatabases[key].getItemId().c_str();
-  }
+    case PDBCatalogMsgType::CatalogPDBDatabase: {
+      return registeredDatabases[key].getItemId().c_str();
+    }
 
-  case PDBCatalogMsgType::CatalogPDBSet: {
-    return registeredSets[key].getItemKey().c_str();
-  }
+    case PDBCatalogMsgType::CatalogPDBSet: {
+      return registeredSets[key].getItemKey().c_str();
+    }
 
-  case PDBCatalogMsgType::CatalogPDBRegisteredObject: {
-    // User-defined types are stored in a different type of map
-    return registeredUserDefinedTypes[key].getObjectID().c_str();
-  }
+    case PDBCatalogMsgType::CatalogPDBRegisteredObject: {
+      // User-defined types are stored in a different type of map
+      return registeredUserDefinedTypes[key].getObjectID().c_str();
+    }
 
-  default: {
-    return "Unknown request!";
-  }
+    default: {
+      return "Unknown request!";
+    }
   }
 }
 
@@ -1590,46 +1587,46 @@ bool PDBCatalog::keyIsFound(int &metadataCategory, string &key, string &value) {
   value = "";
 
   switch (metadataCategory) {
-  case PDBCatalogMsgType::CatalogPDBNode: {
-    auto p = registeredNodes.find(key);
-    if (p != registeredNodes.end()) {
-      value = p->second.getItemKey().c_str();
-      return true;
+    case PDBCatalogMsgType::CatalogPDBNode: {
+      auto p = registeredNodes.find(key);
+      if (p != registeredNodes.end()) {
+        value = p->second.getItemKey().c_str();
+        return true;
+      }
+      break;
     }
-    break;
-  }
 
-  case PDBCatalogMsgType::CatalogPDBDatabase: {
-    auto p = registeredDatabases.find(key);
-    if (p != registeredDatabases.end()) {
-      value = p->second.getItemKey().c_str();
-      return true;
+    case PDBCatalogMsgType::CatalogPDBDatabase: {
+      auto p = registeredDatabases.find(key);
+      if (p != registeredDatabases.end()) {
+        value = p->second.getItemKey().c_str();
+        return true;
+      }
+      break;
     }
-    break;
-  }
 
-  case PDBCatalogMsgType::CatalogPDBSet: {
-    auto p = registeredSets.find(key);
-    if (p != registeredSets.end()) {
-      value = p->second.getItemKey().c_str();
-      return true;
+    case PDBCatalogMsgType::CatalogPDBSet: {
+      auto p = registeredSets.find(key);
+      if (p != registeredSets.end()) {
+        value = p->second.getItemKey().c_str();
+        return true;
+      }
+      break;
     }
-    break;
-  }
 
-  case PDBCatalogMsgType::CatalogPDBRegisteredObject: {
-    auto p = registeredUserDefinedTypes.find(key);
-    if (p != registeredUserDefinedTypes.end()) {
-      value = p->second.getItemKey().c_str();
-      return true;
+    case PDBCatalogMsgType::CatalogPDBRegisteredObject: {
+      auto p = registeredUserDefinedTypes.find(key);
+      if (p != registeredUserDefinedTypes.end()) {
+        value = p->second.getItemKey().c_str();
+        return true;
+      }
+      break;
     }
-    break;
-  }
 
-  default: {
-    return false;
-    break;
-  }
+    default: {
+      return false;
+      break;
+    }
   }
 
   return false;
@@ -1648,7 +1645,7 @@ bool PDBCatalog::catalogSqlQuery(string queryString) {
   } else {
     string error = sqlite3_errmsg(sqliteDBHandler);
     if (error != "not an error") {
-      this->logger->writeLn((string)queryString + " " + error);
+      this->logger->writeLn((string) queryString + " " + error);
       return true;
     } else {
       return false;
@@ -1695,12 +1692,13 @@ void PDBCatalog::getListOfDatabases(
   }
 }
 
-void PDBCatalog::getListOfSets(
-    Handle<Vector<CatalogSetMetadata>> &setsInCatalog,
-    const string &keyToSearch) {
+void PDBCatalog::getListOfSets(Handle<Vector<CatalogSetMetadata>> &setsInCatalog, const string &keyToSearch) {
   String searchForKey(keyToSearch);
-  if (keyToSearch.empty())
-    setsInCatalog = registeredSetsMetadata;
+  if (keyToSearch.empty()) {
+    for(int i = 0; i < (*registeredSetsMetadata).size(); ++i) {
+      setsInCatalog->push_back((*registeredSetsMetadata)[i]);
+    }
+  }
   else {
     for (int i = 0; i < (*registeredSetsMetadata).size(); i++) {
       if (searchForKey == (*registeredSetsMetadata)[i].getItemKey()) {
@@ -1710,9 +1708,7 @@ void PDBCatalog::getListOfSets(
   }
 }
 
-void PDBCatalog::getListOfNodes(
-    Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog,
-    const string &keyToSearch) {
+void PDBCatalog::getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog, const string &keyToSearch) {
   String searchForKey(keyToSearch);
   if (keyToSearch.empty())
     nodesInCatalog = registeredNodesMetadata;
@@ -1735,7 +1731,7 @@ template bool PDBCatalog::addMetadataToCatalog(
 template bool
 PDBCatalog::addMetadataToCatalog(
     pdb::Handle<CatalogSetMetadata> &metadataValue,
-    int &catalogType, 
+    int &catalogType,
     string &errorMessage);
 
 /* Explicit instantiation for adding Database Metadata to the catalog */

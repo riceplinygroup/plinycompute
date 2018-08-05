@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <vector>
 #include <SymbolReader.h>
+#include <CatalogServer.h>
 
 #include "BuiltInObjectTypeIDs.h"
 #include "CatAddNodeToDatabaseRequest.h"
@@ -894,6 +895,11 @@ int16_t CatalogServer::getObjectType(std::string databaseName,
   return setTypes[make_pair(databaseName, setName)];
 }
 
+// returns the sets in the catalog
+void CatalogServer::getSets(pdb::Handle<Vector<CatalogSetMetadata>> sets) {
+  pdbCatalog->getListOfSets(sets, "");
+}
+
 // Adds metadata and bytes of a Shared Library in the catalog and returns its
 // typeId
 int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
@@ -1628,7 +1634,7 @@ bool CatalogServer::addDatabaseMetadata(
   string dbName = dbMetadata->getItemName().c_str();
 
   // don't add a database that is already registered
-  if (isDatabaseRegistered(dbName) == true) {
+  if (isDatabaseRegistered(dbName)) {
     errMsg = "Db name: " + dbName + " is already registered.\n";
     return false;
   }
@@ -1653,9 +1659,7 @@ bool CatalogServer::addDatabaseMetadata(
 
     for (auto &item : updateResults) {
       PDB_COUT << "Node IP: " << item.first
-               << ((item.second.first == true)
-                       ? " updated correctly!"
-                       : " couldn't be updated due to error: ")
+               << (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                << item.second.second << endl;
     }
   } else {
@@ -1733,8 +1737,7 @@ bool CatalogServer::addSetMetadata(Handle<CatalogSetMetadata> &setMetadata,
   *metadataObject = *setMetadata;
 
   PDB_COUT << "Adding set metadata for set " << setName << endl;
-  pdbCatalog->addMetadataToCatalog(metadataObject, 
-                                   metadataCategory, errMsg);
+  pdbCatalog->addMetadataToCatalog(metadataObject, metadataCategory, errMsg);
 
   // after it registered the Set metadata in the local catalog, if this is the
   // manager catalog iterate over all nodes in the cluster and broadcast the
@@ -2050,8 +2053,7 @@ bool CatalogServer::broadcastCatalogUpdate(
     if (string(item.second.getNodeType().c_str()).compare("manager") != 0) {
 
       // sends the request to a node in the cluster
-      res =
-          clusterCatalogClient.registerGenericMetadata(metadataToSend, errMsg);
+      res = clusterCatalogClient.registerGenericMetadata(metadataToSend, errMsg);
 
       // adds the result of the update
       broadcastResults.insert(make_pair(nodeIP, make_pair(res, errMsg)));

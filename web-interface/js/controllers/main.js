@@ -4,24 +4,6 @@ angular.module('app')
        .controller('MemoryPieCtrl', MemoryPieCtrl)
        .controller('CPUPieCtrl', CPUPieCtrl);
 
-(function (angular) {
-    'use strict';
-
-    angular.module('app.clusterInfo', [])
-        .factory('clusterInfo', ['$http', function ($http) {
-            return {
-                get: function () {
-                    return $http({
-                        method: 'GET',
-                        url: 'api/cluster-info'
-                    });
-                }
-            };
-        }]);
-
-}(angular));
-
-
 CPUPieCtrl.$inject = ['$scope', 'clusterInfo'];
 function CPUPieCtrl($scope, clusterInfo) {
     clusterInfo.get().then(

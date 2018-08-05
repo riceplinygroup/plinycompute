@@ -129,7 +129,7 @@ public:
       string &errorMessage);
 
   /**
-   * addMetadataToCatalog registers a Metadata item into the Catalog, basically
+     * addMetadataToCatalog registers a Metadata item into the Catalog, basically
    * saving it as serialized bytes in an Sqlite table, it then adds that
    * metadata item into memory.
    *

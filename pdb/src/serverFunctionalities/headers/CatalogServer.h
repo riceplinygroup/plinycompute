@@ -100,6 +100,9 @@ public:
   /* Returns the type of an object in the specified set, as a type name */
   int16_t getObjectType(string databaseName, string setName);
 
+  /* Returns the sets in the catalog */
+  void getSets(pdb::Handle<Vector<CatalogSetMetadata>> sets);
+
   /* Creates a new database... returns true on success */
   bool addDatabase(string databaseName, string &errMsg);
 

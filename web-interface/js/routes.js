@@ -59,7 +59,7 @@ angular
     templateUrl: 'views/main.html',
     //page title goes here
     ncyBreadcrumb: {
-      label: 'PlinyCompute Dashboard'
+      label: 'PlinyCompute Web Interface'
     },
     //page subtitle goes here
     params: { subtitle: 'Welcome to the PlinyCompute Dashboard' },
@@ -81,9 +81,41 @@ angular
       loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
         // you can lazy load controllers
         return $ocLazyLoad.load({
-          files: ['js/controllers/main.js']
+          files: ['js/controllers/main.js', 'js/services/cluster-info.js']
         });
       }]
     }
+  })
+  .state('app.catalog', {
+      url: '/catalog',
+      templateUrl: 'views/catalog.html',
+      //page title goes here
+      ncyBreadcrumb: {
+          label: 'PlinyCompute Catalog'
+      },
+      //page subtitle goes here
+      params: { subtitle: 'Explore the Catalog' },
+      resolve: {
+          loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {
+
+              // you can lazy load files for an existing module
+              return $ocLazyLoad.load([
+                  {
+                      serie: true,
+                      name: 'chart.js',
+                      files: [
+                          'node_modules/chart.js/dist/Chart.min.js',
+                          'node_modules/angular-chart.js/dist/angular-chart.min.js'
+                      ]
+                  }
+              ]);
+          }],
+          loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
+              // you can lazy load controllers
+              return $ocLazyLoad.load({
+                  files: ['js/controllers/catalog.js', 'js/services/sets.js']
+              });
+          }]
+      }
   })
 }]);

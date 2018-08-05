@@ -1,0 +1,112 @@
+<div class="animated fadeIn">
+
+    <div class="card">
+        <div class="card-header">
+            Sets &amp; Types
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-6" ng-controller="SetsDataCtrl">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="callout callout-info">
+                                <small class="text-muted">Number of Sets</small>
+                                <br>
+                                <strong class="h4">{{sets.length}}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="mt-0">
+                    <table class="table table-responsive-sm table-hover table-outline mb-0">
+                        <thead class="thead-light">
+                        <tr>
+                            <th class="text-center"><i class="icon-briefcase"></i></th>
+                            <th>Set Name</th>
+                            <th>Database Name</th>
+                            <th>Type Name</th>
+                            <th>Created</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="set in sets">
+                            <td class="text-center">
+                                <div class="avatar">
+                                    <img src="img/database.png" class="img-avatar" alt="admin@bootstrapmaster.com">
+                                    <span class="avatar-status badge-success"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{set['set-name']}}</div>
+                                <div class="small text-muted">
+                                    <span>Set ID</span> | {{set['set-id']}}
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{set['database-name']}}</div>
+                                <div class="small text-muted">
+                                    <span>Database ID</span> | {{set['database-id']}}
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{set['type-name']}}</div>
+                                <div class="small text-muted">
+                                    <span>Type ID</span> | {{set['type-id']}}
+                                </div>
+                            </td>
+                            <td>
+                                <strong>{{set['created'].toLocaleTimeString()}}</strong>
+                                <div class="small text-muted">{{set['created'].toDateString()}}</div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="callout callout-warning">
+                                <small class="text-muted">Number of Types</small>
+                                <br>
+                                <strong class="h4">78</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="mt-0">
+                    <table class="table table-responsive-sm table-hover table-outline mb-0">
+                        <thead class="thead-light">
+                        <tr>
+                            <th class="text-center"><i class="icon-briefcase"></i></th>
+                            <th>Type Name</th>
+                            <th>Registered</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="text-center">
+                                <div class="avatar">
+                                    <img src="img/type-icon.png" class="img-avatar" alt="admin@bootstrapmaster.com">
+                                    <span class="avatar-status badge-success"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>Type Name</div>
+                                <div class="small text-muted">
+                                    <span>Type ID</span> | typeID
+                                </div>
+                            </td>
+                            <td>
+                                <strong>11:59:48 AM</strong>
+                                <div class="small text-muted">Saturday, August 4, 2018</div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
