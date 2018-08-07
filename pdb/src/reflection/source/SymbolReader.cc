@@ -399,11 +399,13 @@ void SymbolReader::parseAttribute(Dwarf_Die cur_die, ClassInfo &ret) {
   Dwarf_Die typeDie;
 
   // grab the offset of the attribute
-  int gotOffset = !dwarf_attr(cur_die, DW_AT_data_member_location, &attr, &error) &&
-      !dwarf_formudata(attr, &offset, &error);
+  int gotOffset = !dwarf_attr(cur_die, DW_AT_data_member_location, &attr, &error) && !dwarf_formudata(attr, &offset, &error);
+
+  // check if this is maybe a static variable
+  bool isStatic = !dwarf_attr(cur_die, DW_AT_external, &attr, &error);
 
   // this has to hold
-  assert(gotOffset);
+  assert(gotOffset || isStatic);
 
   // check if this entry is the symbol of the class
   int gotName = !dwarf_attr(cur_die, DW_AT_name, &attr, &error) &&
@@ -433,6 +435,7 @@ void SymbolReader::parseAttribute(Dwarf_Die cur_die, ClassInfo &ret) {
   atInfo.size = type.size;
   atInfo.type.assign(type.name);
   atInfo.offset = offset;
+  atInfo.isStatic = isStatic;
 
   // add the attribute
   ret.attributes->push_back(atInfo);

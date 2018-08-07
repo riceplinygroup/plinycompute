@@ -26,8 +26,7 @@
 #include "PDBString.h"
 #include "Query.h"
 
-#include "Sampler.h"
-
+#include "headers/Sampler.h"
 #include "KMeansAggregate.h"
 #include "KMeansAggregateOutputType.h"
 #include "KMeansCentroid.h"

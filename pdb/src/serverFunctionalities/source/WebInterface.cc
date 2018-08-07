@@ -129,7 +129,7 @@ void pdb::WebInterface::registerHandlers(pdb::PDBServer &forMe) {
                                       "  \"type-id\" : {{type-id}},\n"
                                       "  \"methods\" : [ {{#methods}} { \"method-name\": \"{{method-name}}\", \"method-symbol\" : \"{{method-symbol}}\", \"return-type\" : \"{{return-type}}\", \"return-type-size\" : {{return-type-size}}, \n"
                                       "  \"parameters\" : [ {{#parameters}}{ \"name\" : \"{{name}}\", \"size\" : {{size}} }{{^is-last}}, {{/is-last}}{{/parameters}} ] }{{^is-last}}, {{/is-last}} {{/methods}}],\n"
-                                      "  \"attributes\" : [ {{#attributes}}{ \"type-name\" : \"{{type-name}}\", \"attribute-name\" : \"{{attribute-name}}\", \"size\" : {{size}}, \"offset\" : {{offset}} }{{^is-last}}, {{/is-last}} {{/attributes}}]\n"
+                                      "  \"attributes\" : [ {{#attributes}}{ \"type-name\" : \"{{type-name}}\", \"is-static\" : {{is-static}}, \"attribute-name\" : \"{{attribute-name}}\", \"size\" : {{size}}, \"offset\" : {{offset}} }{{^is-last}}, {{/is-last}} {{/attributes}}]\n"
                                       "}"};
 
     // grab the cluster info data

@@ -74,6 +74,11 @@ struct AttributeInfo {
    * The type of the attribute
    */
   std::string type;
+
+  /**
+   * True if this attribute is static
+   */
+  bool isStatic;
 };
 
 struct MethodInfo {

@@ -36,7 +36,7 @@
 #include "GmmDataCountAggregate.h"
 #include "GmmModel.h"
 #include "GmmSampleSelection.h"
-#include "Sampler.h"
+#include "headers/Sampler.h"
 
 #include "DataTypes.h"
 #include "DoubleVector.h"

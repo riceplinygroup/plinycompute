@@ -294,7 +294,7 @@ void PDBCatalog::open() {
     // this table contains info about the attributes of a particular data type
     catalogSqlQuery(
         "CREATE TABLE IF NOT EXISTS data_type_attributes (name TEXT, className TEXT, "
-        "size INTEGER, offset INTEGER, typeName TEXT, timeStamp INTEGER, "
+        "size INTEGER, offset INTEGER, isStatic INTEGER, typeName TEXT, timeStamp INTEGER, "
         "FOREIGN KEY(className) REFERENCES data_types(itemID), PRIMARY KEY (name, className));");
 
     // this table contains the info about methods of a particular type
@@ -700,7 +700,7 @@ bool PDBCatalog::getUserTypesFromCatalog(Handle<pdb::Vector<CatalogUserTypeMetad
 bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
 
   sqlite3_stmt *statement = nullptr;
-  string queryString = "SELECT name, className, size, offset, typeName, timeStamp from " +
+  string queryString = "SELECT name, className, size, offset, isStatic, typeName, timeStamp from " +
       mapsPDBArrayObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute] +
       " WHERE className='" + className + "'";
 
@@ -720,7 +720,8 @@ bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
         std::string attributeName = (char *) sqlite3_column_text(statement, 0);
         int size = sqlite3_column_int(statement, 2);
         int offset = sqlite3_column_int(statement, 3);
-        std::string typeName = (char *) sqlite3_column_text(statement, 4);
+        int isStatic = sqlite3_column_int(statement, 4);
+        std::string typeName = (char *) sqlite3_column_text(statement, 5);
 
         // create the attribute
         AttributeInfo info;
@@ -729,6 +730,7 @@ bool PDBCatalog::getClassAttributes(string &className, ClassInfo &classInfo) {
         info.name = attributeName;
         info.size = (size_t) size;
         info.offset = (size_t) offset;
+        info.isStatic = isStatic;
         info.type = typeName;
 
         classInfo.attributes->push_back(info);
@@ -1132,8 +1134,8 @@ void PDBCatalog::storeAttribute(const string &typeName,
 
   // create the insert query
   std::string tableName = mapsPDBObject2SQLiteTable[PDBCatalogMsgType::CatalogPDBObjectAttribute];
-  string queryString = "INSERT INTO " + tableName + " (name, className, size, offset, typeName, timeStamp) "
-                                                    "VALUES(?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
+  string queryString = "INSERT INTO " + tableName + " (name, className, size, offset, isStatic, typeName, timeStamp) "
+                                                    "VALUES(?, ?, ?, ?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
   // prepare the statement
   sqlite3_stmt *stmt = nullptr;
@@ -1151,7 +1153,8 @@ void PDBCatalog::storeAttribute(const string &typeName,
   rc = sqlite3_bind_text(stmt, 2, typeName.c_str(), -1, SQLITE_STATIC);
   rc = sqlite3_bind_int(stmt, 3, (int) attribute.size);
   rc = sqlite3_bind_int(stmt, 4, (int) attribute.offset);
-  rc = sqlite3_bind_text(stmt, 5, attribute.type.c_str(), -1, SQLITE_STATIC);
+  rc = sqlite3_bind_int(stmt, 5, (int) attribute.isStatic);
+  rc = sqlite3_bind_text(stmt, 6, attribute.type.c_str(), -1, SQLITE_STATIC);
 
   // did we manage to bind it
   if (rc != SQLITE_OK) {
@@ -1730,7 +1733,6 @@ void PDBCatalog::getListOfUserTypes(Handle<Vector<CatalogUserTypeMetadata>> &use
   }
   else {
     for (int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); i++) {
-      std::cout <<  (*registeredUserDefinedTypesMetadata)[i].getItemKey() << std::endl;
       if (searchForKey == (*registeredUserDefinedTypesMetadata)[i].getItemKey()) {
         userTypes->push_back((*registeredUserDefinedTypesMetadata)[i]);
       }

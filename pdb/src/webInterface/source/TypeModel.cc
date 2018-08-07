@@ -78,6 +78,7 @@ mustache::data TypeModel::getType(string &typeID) {
     attribute.set("attribute-name", it.name);
     attribute.set("size", std::to_string(it.size));
     attribute.set("offset", std::to_string(it.offset));
+    attribute.set("is-static", it.isStatic ? "true" : "false");
     attribute.set("is-last", n == ((*theType)[0].getAttributes()->size() - 1));
 
     attributes.push_back(attribute);

@@ -92,7 +92,7 @@
                                     <td>
                                         <strong>{{decode(method["return-type"])}}</strong>
                                         <div class="small text-muted">
-                                            <span>Size</span> | {{method["return-type-size"]}}
+                                            <span>Size</span> | {{method["return-type-size"]}} bytes
                                         </div>
                                     </td>
                                     <td>
@@ -113,6 +113,7 @@
                                     <th class="text-center">Attribute Name</th>
                                     <th class="text-center">Size</th>
                                     <th class="text-center">Offset</th>
+                                    <th class="text-center">Is Static</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -133,7 +134,11 @@
                                         <strong>{{attribute['size']}} bytes</strong>
                                     </td>
                                     <td class="text-center">
-                                        <strong>{{attribute['offset']}} bytes</strong>
+                                        <strong ng-if="!attribute['is-static']">{{attribute['offset']}} bytes</strong>
+                                        <strong ng-if="attribute['is-static']">None</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{attribute['is-static']}}</strong>
                                     </td>
                                 </tr>
                                 </tbody>
