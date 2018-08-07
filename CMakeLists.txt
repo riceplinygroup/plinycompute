@@ -83,7 +83,7 @@ include_directories("${PROJECT_SOURCE_DIR}/pdb/src/computations/headers/base")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/pipeline/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/reflection/headers")
 include_directories("${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/headers")
-include_directories("${PROJECT_SOURCE_DIR}/pdb/src/webserver/headers")
+include_directories("${PROJECT_SOURCE_DIR}/pdb/src/webInterface/headers")
 
 # add the third party libraries as includes
 include_directories("${PROJECT_SOURCE_DIR}/third-party/mustache/headers")
@@ -112,6 +112,7 @@ file(GLOB QUERY_PANNING_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/sour
                                "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/**/**/*.cc"
                                "${PROJECT_SOURCE_DIR}/pdb/src/queryPlanning/source/*.cc")
 file(GLOB REFLECTION_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/reflection/source/*.cc")
+file(GLOB WEBINTERFACE_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/webInterface/source/*.cc")
 file(GLOB STATISTICS_DB_SOURCE "${PROJECT_SOURCE_DIR}/pdb/src/statisticsDB/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/third-party/sqlite/source/sqlite3.c)
 
@@ -233,6 +234,7 @@ add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE})
 add_library(statisticsDB OBJECT ${STATISTICS_DB_SOURCE})
 add_library(reflection OBJECT ${REFLECTION_SOURCE})
+add_library(webInterface OBJECT ${WEBINTERFACE_SOURCE})
 
 # add the dependencies to the object type generationg
 add_dependencies(server-functionalities object-type-ids)
@@ -261,6 +263,7 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:work>
         $<TARGET_OBJECTS:reflection>
+        $<TARGET_OBJECTS:webInterface>
         $<TARGET_OBJECTS:statisticsDB>)
 
 # used to link the shared libraries that the shared librarires use
@@ -281,6 +284,7 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:work>
         $<TARGET_OBJECTS:reflection>
+        $<TARGET_OBJECTS:webInterface>
         $<TARGET_OBJECTS:statisticsDB>)
 
 # used to link the shared libraries that the test use
@@ -301,6 +305,7 @@ add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:work>
         $<TARGET_OBJECTS:reflection>
+        $<TARGET_OBJECTS:webInterface>
         $<TARGET_OBJECTS:statisticsDB>)
 
 # link the dependent libraries so that they are made of the public interface

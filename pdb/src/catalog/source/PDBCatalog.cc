@@ -1721,6 +1721,23 @@ void PDBCatalog::getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCata
   }
 }
 
+void PDBCatalog::getListOfUserTypes(Handle<Vector<CatalogUserTypeMetadata>> &userTypes, const string &key) {
+  String searchForKey(key);
+  if (key.empty()) {
+    for(int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); ++i) {
+      userTypes->push_back((*registeredUserDefinedTypesMetadata)[i]);
+    }
+  }
+  else {
+    for (int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); i++) {
+      std::cout <<  (*registeredUserDefinedTypesMetadata)[i].getItemKey() << std::endl;
+      if (searchForKey == (*registeredUserDefinedTypesMetadata)[i].getItemKey()) {
+        userTypes->push_back((*registeredUserDefinedTypesMetadata)[i]);
+      }
+    }
+  }
+}
+
 /* Explicit instantiation for adding Node Metadata to the catalog */
 template bool PDBCatalog::addMetadataToCatalog(
     pdb::Handle<CatalogNodeMetadata> &metadataValue,

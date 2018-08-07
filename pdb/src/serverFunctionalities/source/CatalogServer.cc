@@ -900,6 +900,20 @@ void CatalogServer::getSets(pdb::Handle<Vector<CatalogSetMetadata>> sets) {
   pdbCatalog->getListOfSets(sets, "");
 }
 
+void CatalogServer::getSet(pdb::Handle<Vector<CatalogSetMetadata>> sets, std::string searchKey){
+  pdbCatalog->getListOfSets(sets, searchKey);
+}
+
+// Returns the sets in the catalog
+void CatalogServer::getTypes(pdb::Handle<Vector<CatalogUserTypeMetadata>> types) {
+  auto empty = std::string();
+  pdbCatalog->getListOfUserTypes(types, "");
+}
+
+void CatalogServer::getType(pdb::Handle<Vector<CatalogUserTypeMetadata>> type, std::string searchKey){
+  pdbCatalog->getListOfUserTypes(type, searchKey);
+}
+
 // Adds metadata and bytes of a Shared Library in the catalog and returns its
 // typeId
 int16_t CatalogServer::addObjectType(int16_t typeIDFromManagerCatalog,
@@ -1525,9 +1539,7 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
       // populates information about types and sets for a given database
       PDB_COUT << "Adding type= " << _typeName << " db= " << _dbName
                << " _set=" << _setName << " typeId= "
-               << string(pdbCatalog->getUserDefinedTypesList()[_typeName]
-                             .getObjectID())
-               << endl;
+               << string(pdbCatalog->getUserDefinedTypesList()[_typeName].getObjectID()) << endl;
 
       setTypes[make_pair(_dbName, _setName)] =
           (int16_t)std::atoi(pdbCatalog->getUserDefinedTypesList()[_typeName]

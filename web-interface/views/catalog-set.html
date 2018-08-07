@@ -1,0 +1,117 @@
+<div class="animated fadeIn">
+    <div class="card">
+        <div class="card-header">
+            Type Information
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-6" ng-controller="SetDataCtrl">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="callout callout-info">
+                                <small class="text-muted">Set Name</small>
+                                <br>
+                                <strong class="h4">{{set["set-name"]}}</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="callout callout-danger">
+                                <small class="text-muted">Database Name</small>
+                                <br>
+                                <strong class="h4">{{set["db-name"]}}</strong>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <hr class="mt-0">
+                    <table class="table table-responsive-sm table-hover table-outline mb-0">
+                        <thead class="thead-light">
+                        <tr>
+                            <th class="text-center">
+                                <i class="icon-mouse"></i>
+                            </th>
+                            <th>Node Name</th>
+                            <th class="text-center">Number of Pages</th>
+                            <th class="text-center">Size (bytes)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="partition in set['partitions']">
+                            <td class="text-center">
+                                <div class="avatar">
+                                    <img src="img/server-icon.png" class="img-avatar">
+                                    <span class="avatar-status badge-success"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>Node {{partition["node-id"]}}</div>
+                                <div class="small text-muted">
+                                    <span>Address</span> | {{partition["node-address"]}}:{{partition["node-port"]}}
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{partition["num-pages"]}}</strong>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{partition["size"]}} bytes</strong>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="row" ng-controller="SetDataCtrl">
+                        <div class="col-sm-6">
+                            <div class="callout callout-warning">
+                                <small class="text-muted">Type Name</small>
+                                <br>
+                                <strong class="h4">{{set["type-name"]}}</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="callout callout-success">
+                                <small class="text-muted">Set Size</small>
+                                <br>
+                                <strong class="h4">{{set["set-size"]}} bytes</strong>
+                                <div class="chart-wrapper">
+                                    <canvas id="sparkline-chart-4" width="100" height="30"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="mt-0">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa fa-asterisk icon-bg"></i>
+                            Set Partitions
+                        </div>
+                        <div class="card-body ng-scope" ng-controller="SetPieCtrl">
+                            <div class="chartjs-size-monitor"
+                                 style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
+                                <div class="chartjs-size-monitor-expand"
+                                     style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                                    <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
+                                </div>
+                                <div class="chartjs-size-monitor-shrink"
+                                     style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                                    <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
+                                </div>
+                            </div>
+                            <canvas id="pie" class="chart chart-pie ng-isolate-scope chartjs-render-monitor"
+                                    chart-data="data" chart-labels="labels" width="341" height="170"
+                                    style="display: block; width: 341px; height: 170px;">
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

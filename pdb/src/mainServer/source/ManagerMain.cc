@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
        numNodes++;
     }
 
-    frontEnd.addFunctionality<pdb::WebInterface>("localhost", 9000, pseudoClusterMode);
+    frontEnd.addFunctionality<pdb::WebInterface>("localhost", 9000, pseudoClusterMode, myLogger);
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger, statisticsDB);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
 

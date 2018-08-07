@@ -9,10 +9,23 @@
 
 #include "WebInterface.h"
 
-pdb::WebInterface::WebInterface(const std::string &ip, int32_t port, bool pseudoClusterMode) : ip(ip), port(port), isPseudoCluster(pseudoClusterMode) {}
+pdb::WebInterface::WebInterface(const std::string &ip,
+                                int32_t port,
+                                bool pseudoClusterMode,
+                                PDBLoggerPtr &logger) : ip(ip), port(port), isPseudoCluster(pseudoClusterMode), logger(logger) {
+
+  // lock the mutex
+  pthread_mutex_init(&connection_mutex, nullptr);
+}
 
 void pdb::WebInterface::registerHandlers(pdb::PDBServer &forMe) {
 
+  // initialize the cluster model
+  clusterModel = std::make_shared<ClusterModel>(isPseudoCluster, &getFunctionality<pdb::ResourceManagerServer>());
+  setModel = std::make_shared<SetModel>(isPseudoCluster, &getFunctionality<pdb::CatalogServer>(), &getFunctionality<pdb::ResourceManagerServer>(), this);
+  typeModel = std::make_shared<TypeModel>(&getFunctionality<pdb::CatalogServer>());
+
+  // set the base directory for the html stuff
   server.set_base_dir("web-interface");
 
   server.Get(R"(/api/cluster-info)", [&](const httplib::Request& req, httplib::Response& res) {
@@ -26,26 +39,113 @@ void pdb::WebInterface::registerHandlers(pdb::PDBServer &forMe) {
                                       "  \"nodes\" : [{{#nodes}} { \"node-id\" : {{node-id}}, \"number-of-cores\": {{number-of-cores}}, \"memory-size\" : {{memory-size}}, \"address\" : \"{{address}}\", \"port\" : {{port}} }{{^is-last}}, {{/is-last}} {{/nodes}}]\n"
                                       "}"};
 
+    // grab the cluster info data
+    auto clusterInfo = this->clusterModel->getClusterInfo();
+
     // output the template
-    res.set_content(outputTemplate.render(getClusterInfo()), "text/plain");
+    res.set_content(outputTemplate.render(clusterInfo), "text/plain");
+    res.status = clusterInfo["success"].is_true() ? 200 : 400;
   });
 
   server.Get(R"(/api/sets)", [&](const httplib::Request& req, httplib::Response& res) {
 
     // the template for the output
     mustache::mustache outputTemplate{"[\n"
-                                      " {{#.}} { \n   \"set-name\" : \"{{set-name}}\",\n"
+                                      " {{#sets}} { \n   \"set-name\" : \"{{set-name}}\",\n"
                                       "   \"set-id\" : \"{{set-id}}\",\n"
                                       "   \"database-name\" : \"{{database-name}}\",\n"
                                       "   \"database-id\" : \"{{database-name}}\",\n"
                                       "   \"type-name\" : \"{{type-name}}\",\n"
                                       "   \"type-id\" : \"{{type-name}}\",\n"
                                       "   \"created\" : {{timestamp}}\n"
-                                      "  }{{^is-last}}, {{/is-last}}\n {{/.}}"
+                                      "  }{{^is-last}}, {{/is-last}}\n {{/sets}}"
                                       "]"};
 
+    // grab the sets data
+    auto sets = this->setModel->getSets();
+
     // output the template
-    res.set_content(outputTemplate.render(getSetInfo()), "text/plain");
+    res.set_content(outputTemplate.render(sets), "text/plain");
+    res.status = sets["success"].is_true() ? 200 : 400;
+  });
+
+  server.Get(R"(/api/set/([^\.]+)\.([^\.]+))", [&](const httplib::Request& req, httplib::Response& res) {
+
+    // grab the set id
+    std::string dbID = req.matches[1];
+    std::string setID = req.matches[2];
+
+    // the template for the output
+    mustache::mustache outputTemplate{"{\n"
+                                      " \"set-name\" : \"{{set-name}}\",\n"
+                                      " \"db-name\" : \"{{db-name}}\",\n"
+                                      " \"type-name\" : \"{{type-name}}\",\n"
+                                      " \"set-size\" : {{set-size}},\n"
+                                      " \"partitions\" : [{{#partitions}} { \"node-id\" : \"{{node-id}}\", \"node-port\" : {{node-port}}, \"node-address\" : \"{{node-address}}\", \n"
+                                      " \"num-pages\" : {{num-pages}}, \"size\" : {{size}} }{{^is-last}},{{/is-last}} {{/partitions}}]\n"
+                                      "}"};
+
+    // grab the cluster info data
+    auto clusterInfo = this->setModel->getSet(dbID, setID);
+
+
+    if(clusterInfo["success"].is_true()) {
+      // output the template
+      res.set_content(outputTemplate.render(clusterInfo), "text/plain");
+    }
+    else {
+
+      res.set_content(R"({ "error" : "Could not find the requested set"})", "text/plain");
+      res.status = 400;
+    }
+  });
+
+  server.Get(R"(/api/types)", [&](const httplib::Request& req, httplib::Response& res) {
+
+    // the template for the output
+    mustache::mustache outputTemplate{"[\n"
+                                      " {{#types}} { \n"
+                                      "   \"type-name\" : \"{{type-name}}\",\n"
+                                      "   \"type-id\" : \"{{type-id}}\",\n"
+                                      "   \"registered\" : {{registered}}\n"
+                                      "  }{{^is-last}}, {{/is-last}}\n{{/types}}"
+                                      "]"};
+
+    // grab the cluster info data
+    auto types = this->typeModel->getTypes();
+
+    // output the template
+    res.set_content(outputTemplate.render(types), "text/plain");
+    res.status = types["success"].is_true() ? 200 : 400;
+  });
+
+  server.Get(R"(/api/type/([^\.]+))", [&](const httplib::Request& req, httplib::Response& res) {
+
+    std::string typeID = req.matches[1];
+
+    // the template for the output
+    mustache::mustache outputTemplate{"{\n"
+                                      "  \"type-name\" : \"{{type-name}}\",\n"
+                                      "  \"type-id\" : {{type-id}},\n"
+                                      "  \"methods\" : [ {{#methods}} { \"method-name\": \"{{method-name}}\", \"method-symbol\" : \"{{method-symbol}}\", \"return-type\" : \"{{return-type}}\", \"return-type-size\" : {{return-type-size}}, \n"
+                                      "  \"parameters\" : [ {{#parameters}}{ \"name\" : \"{{name}}\", \"size\" : {{size}} }{{^is-last}}, {{/is-last}}{{/parameters}} ] }{{^is-last}}, {{/is-last}} {{/methods}}],\n"
+                                      "  \"attributes\" : [ {{#attributes}}{ \"type-name\" : \"{{type-name}}\", \"attribute-name\" : \"{{attribute-name}}\", \"size\" : {{size}}, \"offset\" : {{offset}} }{{^is-last}}, {{/is-last}} {{/attributes}}]\n"
+                                      "}"};
+
+    // grab the cluster info data
+    auto types = this->typeModel->getType(typeID);
+
+    // output the template if we succeeded
+    if(types["success"].is_true()) {
+      // output the template
+      res.set_content(outputTemplate.render(types), "text/plain");
+    }
+    else {
+
+      // output the error
+      res.set_content(R"({ "error" : "Could not find the requested set"})", "text/plain");
+      res.status = 400;
+    }
   });
 
   // grab a we worker
@@ -69,123 +169,30 @@ pdb::WebInterface::~WebInterface() {
   server.stop();
 }
 
-mustache::data pdb::WebInterface::getClusterInfo() {
+PDBCommunicatorPtr pdb::WebInterface::getCommunicatorToNode(int port, std::string &ip) {
 
-  // all the stuff we create will be stored here
-  const UseTemporaryAllocationBlock block(2 * 1024 * 1024);
+  // lock the connection mutex so no other thread tries to connect to a node
+  pthread_mutex_lock(&connection_mutex);
+  PDBCommunicatorPtr communicator = std::make_shared<PDBCommunicator>();
 
-  // the return data
-  mustache::data ret;
+  // log what we are doing
+  PDB_COUT << "Connecting to remote node connect to the remote node with address : " << ip  << ":" << port << std::endl;
 
-  // we put all the node data here
-  mustache::data nodesData = mustache::data::type::list;
+  // try to connect to the node
+  string errMsg;
+  bool failure = communicator->connectToInternetServer(logger, port, ip, errMsg);
 
-  // the total stats
-  size_t totalMemory = 0;
-  size_t totalCores = 0;
+  // we are don connecting somebody else can do it now
+  pthread_mutex_unlock(&connection_mutex);
 
-  if(isPseudoCluster) {
-
-    // grab the info about all the nodes in the pseudo cluster
-    auto nodeObjects = getFunctionality<ResourceManagerServer>().getAllNodes();
-
-    // set the number of nodes
-    ret.set("number-of-nodes", std::to_string(nodeObjects->size()));
-
-    // go through the nodes
-    for (int i = 0; i < nodeObjects->size(); i++) {
-
-      // the data of this node
-      mustache::data nodeData;
-
-      // set the data
-      nodeData.set("node-id", std::to_string((*(nodeObjects))[i]->getNodeId()));
-      nodeData.set("number-of-cores", std::to_string(DEFAULT_NUM_CORES / (nodeObjects->size())));
-      nodeData.set("memory-size", std::to_string(DEFAULT_MEM_SIZE / (nodeObjects->size())));
-      nodeData.set("address", (std::string)(*(nodeObjects))[i]->getAddress());
-      nodeData.set("port", std::to_string((*(nodeObjects))[i]->getPort()));
-      nodeData.set("is-last", i == nodeObjects->size() - 1);
-
-      // update the total stats
-      totalMemory += DEFAULT_MEM_SIZE / (nodeObjects->size());
-      totalCores += DEFAULT_NUM_CORES / (nodeObjects->size());
-
-      // add the node to the list
-      nodesData.push_back(nodeData);
-    }
-  }
-  else {
-
-    // grab all the resources
-    auto resourceObjects = getFunctionality<ResourceManagerServer>().getAllResources();
-
-    // set the number of nodes
-    ret.set("number-of-nodes", std::to_string(resourceObjects->size()));
-
-    // go through resources
-    for (int i = 0; i < resourceObjects->size(); i++) {
-
-      // the data of this node
-      mustache::data nodeData;
-
-      // set the data
-      nodeData.set("node-id", std::to_string((*(resourceObjects))[i]->getNodeId()));
-      nodeData.set("number-of-cores", std::to_string((*(resourceObjects))[i]->getNumCores()));
-      nodeData.set("memory-size", std::to_string((*(resourceObjects))[i]->getMemSize()));
-      nodeData.set("address", (std::string)(*(resourceObjects))[i]->getAddress());
-      nodeData.set("port", std::to_string((*(resourceObjects))[i]->getPort()));
-      nodeData.set("is-last", i == resourceObjects->size() - 1);
-
-      // update the total stats
-      totalMemory += (*(resourceObjects))[i]->getMemSize();
-      totalCores += (*(resourceObjects))[i]->getNumCores();
-
-      // add the node to the list
-      nodesData.push_back(nodeData);
-    }
+  // if we succeeded return the communicator
+  if (!failure) {
+    return communicator;
   }
 
-  // set the data
-  ret.set("nodes", nodesData);
-  ret.set("total-memory", std::to_string(totalMemory));
-  ret.set("total-cores", std::to_string(totalCores));
-  ret.set("is-pseudo-cluster", isPseudoCluster ? "true" : "false");
+  // otherwise log the error message
+  std::cout << errMsg << std::endl;
 
-  return ret;
-}
-
-mustache::data pdb::WebInterface::getSetInfo() {
-
-  // all the stuff we create will be stored here
-  const UseTemporaryAllocationBlock block(2 * 1024 * 1024);
-
-  // grab the sets
-  pdb::Handle<Vector<CatalogSetMetadata>> listOfSets = makeObject<Vector<CatalogSetMetadata>>();
-  getFunctionality<pdb::CatalogServer>().getSets(listOfSets);
-
-  // we put all the node data here
-  mustache::data setsData = mustache::data::type::list;
-
-  // go through each set
-  for(int i = 0; i < listOfSets->size(); ++i) {
-
-    // the data of this node
-    mustache::data setData;
-
-    // set the data
-    setData.set("set-name", (std::string)(*listOfSets)[i].getItemName());
-    setData.set("set-id", (std::string)(*listOfSets)[i].getItemId());
-    setData.set("database-name", (std::string)(*listOfSets)[i].getDBName());
-    setData.set("database-id", (std::string)(*listOfSets)[i].getDBId());
-    setData.set("type-name", (std::string)(*listOfSets)[i].getObjectTypeName());
-    setData.set("type-id", (std::string)(*listOfSets)[i].getObjectTypeId());
-    setData.set("is-last", i == listOfSets->size() - 1);
-
-    //TODO there is not timestamp for the set
-    setData.set("timestamp", std::to_string(1533453548));
-
-    setsData.push_back(setData);
-  }
-
-  return setsData;
+  // return a null pointer
+  return nullptr;
 }

@@ -103,6 +103,15 @@ public:
   /* Returns the sets in the catalog */
   void getSets(pdb::Handle<Vector<CatalogSetMetadata>> sets);
 
+  /* Returns the set in the catalog */
+  void getSet(pdb::Handle<Vector<CatalogSetMetadata>> sets, std::string searchKey);
+
+  /* Returns the sets in the catalog */
+  void getTypes(pdb::Handle<Vector<CatalogUserTypeMetadata>> types);
+
+  /* Returns a single set from the catalog */
+  void getType(pdb::Handle<Vector<CatalogUserTypeMetadata>> type, std::string searchKey);
+
   /* Creates a new database... returns true on success */
   bool addDatabase(string databaseName, string &errMsg);
 
@@ -152,9 +161,6 @@ public:
   /* Print the content of the catalog metadata that have changed since a given
    * timestamp */
   void printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint);
-
-  /* Print the contents of the catalog metadata */
-  bool printCatalog();
 
   /* Adds metadata about a new node in the cluster */
   bool addNodeMetadata(Handle<CatalogNodeMetadata> &nodeMetadata,

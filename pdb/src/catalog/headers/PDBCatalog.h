@@ -381,6 +381,17 @@ public:
   void getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog, const string &key);
 
   /**
+   * returns the metadata for all types registered in the catalog.
+   * The information is retrieved from memory rather than disk
+   * (SQLite).
+   *
+   * @param key to search for
+   * @return a Vector of items
+   */
+  void getListOfUserTypes(Handle<Vector<CatalogUserTypeMetadata>> &userTypes, const string &key);
+
+
+  /**
    * closes the SQLite DB handler once is no longer needed
    */
   void closeSQLiteHandler();

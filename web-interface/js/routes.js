@@ -113,7 +113,71 @@ angular
           loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
               // you can lazy load controllers
               return $ocLazyLoad.load({
-                  files: ['js/controllers/catalog.js', 'js/services/sets.js']
+                  files: ['js/controllers/catalog.js', 'js/services/sets.js', 'js/services/types.js']
+              });
+          }]
+      }
+  })
+  .state('app.set', {
+      url: '/set?dbName&setName',
+      templateUrl: 'views/catalog-set.html',
+      //page title goes here
+      ncyBreadcrumb: {
+          label: 'PlinyCompute Set'
+      },
+      //page subtitle goes here
+      params: { subtitle: 'Explore the Set' },
+      resolve: {
+          loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {
+
+              // you can lazy load files for an existing module
+              return $ocLazyLoad.load([
+                  {
+                      serie: true,
+                      name: 'chart.js',
+                      files: [
+                          'node_modules/chart.js/dist/Chart.min.js',
+                          'node_modules/angular-chart.js/dist/angular-chart.min.js'
+                      ]
+                  }
+              ]);
+          }],
+          loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
+              // you can lazy load controllers
+              return $ocLazyLoad.load({
+                  files: ['js/controllers/set.js', 'js/services/sets.js']
+              });
+          }]
+      }
+  })
+  .state('app.type', {
+      url: '/type?typeID',
+      templateUrl: 'views/catalog-type.html',
+      //page title goes here
+      ncyBreadcrumb: {
+          label: 'PlinyCompute Type'
+      },
+      //page subtitle goes here
+      params: { subtitle: 'Explore the Type' },
+      resolve: {
+          loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {
+
+              // you can lazy load files for an existing module
+              return $ocLazyLoad.load([
+                  {
+                      serie: true,
+                      name: 'chart.js',
+                      files: [
+                          'node_modules/chart.js/dist/Chart.min.js',
+                          'node_modules/angular-chart.js/dist/angular-chart.min.js'
+                      ]
+                  }
+              ]);
+          }],
+          loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
+              // you can lazy load controllers
+              return $ocLazyLoad.load({
+                  files: ['js/controllers/type.js', 'js/services/types.js']
               });
           }]
       }

@@ -1,14 +1,14 @@
-// define the service that grabs the sets
+// define the service that grabs the types
 (function (angular) {
     'use strict';
 
-    angular.module('app.setsAll', [])
-        .factory('setsAll', ['$http', function ($http) {
+    angular.module('app.typesAll', [])
+        .factory('typesAll', ['$http', function ($http) {
             return {
                 get: function () {
                     return $http({
                         method: 'GET',
-                        url: 'api/sets'
+                        url: 'api/types'
                     });
                 }
             };
@@ -16,17 +16,17 @@
 
 }(angular));
 
-// define the service that grabs a particular set
+// define the service that grabs a particular type
 (function (angular) {
     'use strict';
 
-    angular.module('app.set', [])
-        .factory('set', ['$http', function ($http) {
+    angular.module('app.type', [])
+        .factory('type', ['$http', function ($http) {
             return {
-                get: function (dbID, setID) {
+                get: function (typeID) {
                     return $http({
                         method: 'GET',
-                        url: ('api/set/' + dbID + "." + setID)
+                        url: ('api/type/' + typeID)
                     });
                 }
             };

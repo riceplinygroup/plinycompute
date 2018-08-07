@@ -31,10 +31,12 @@
                         <tbody>
                         <tr ng-repeat="set in sets">
                             <td class="text-center">
-                                <div class="avatar">
-                                    <img src="img/database.png" class="img-avatar" alt="admin@bootstrapmaster.com">
+                                <a class="nav-link" ui-sref-active="active" ui-sref="app.set({dbName: '{{set['database-name']}}', setName : '{{set['set-name']}}' })">
+                                    <div class="avatar">
+                                    <img  src="img/database.png" class="img-avatar"/>
                                     <span class="avatar-status badge-success"></span>
-                                </div>
+                                    </div>
+                                </a>
                             </td>
                             <td>
                                 <div>{{set['set-name']}}</div>
@@ -63,13 +65,13 @@
                     </table>
                 </div>
 
-                <div class="col-sm-6">
+                <div class="col-sm-6" ng-controller="TypesDataCtrl">
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="callout callout-warning">
                                 <small class="text-muted">Number of Types</small>
                                 <br>
-                                <strong class="h4">78</strong>
+                                <strong class="h4">{{types.length}}</strong>
                             </div>
                         </div>
                     </div>
@@ -84,22 +86,24 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
+                        <tr ng-repeat="type in types">
                             <td class="text-center">
-                                <div class="avatar">
-                                    <img src="img/type-icon.png" class="img-avatar" alt="admin@bootstrapmaster.com">
-                                    <span class="avatar-status badge-success"></span>
-                                </div>
+                                <a class="nav-link" ui-sref-active="active" ui-sref="app.type({typeID: '{{type['type-name']}}' })">
+                                    <div class="avatar">
+                                        <img  src="img/type-icon.png" class="img-avatar"/>
+                                        <span class="avatar-status badge-success"></span>
+                                    </div>
+                                </a>
                             </td>
                             <td>
-                                <div>Type Name</div>
+                                <div>{{type['type-name']}}</div>
                                 <div class="small text-muted">
-                                    <span>Type ID</span> | typeID
+                                    <span>Type ID</span> | {{type['type-id']}}
                                 </div>
                             </td>
                             <td>
-                                <strong>11:59:48 AM</strong>
-                                <div class="small text-muted">Saturday, August 4, 2018</div>
+                                <strong>{{type['registered'].toLocaleTimeString()}}</strong>
+                                <div class="small text-muted">{{type['registered'].toDateString()}}</div>
                             </td>
                         </tr>
                         </tbody>

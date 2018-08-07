@@ -8,6 +8,9 @@
 #include <ServerFunctionality.h>
 #include <httplib.h>
 #include <mustache.h>
+#include <ClusterModel.h>
+#include <SetModel.h>
+#include <TypeModel.h>
 
 namespace pdb {
 
@@ -21,7 +24,7 @@ public:
    * @param ip - the ip address to access the web server
    * @param port - the port to access the web interface
    */
-  WebInterface(const std::string &ip, int32_t port, bool pseudoClusterMode);
+  WebInterface(const std::string &ip, int32_t port, bool pseudoClusterMode, PDBLoggerPtr &logger);
 
   virtual ~WebInterface();
 
@@ -31,12 +34,15 @@ public:
    */
   void registerHandlers(PDBServer& forMe) override;
 
+  /**
+   * Returns a communicator to a particular node
+   * @param port - the port to which we are connecting to
+   * @param ip - the ip address
+   * @return - the communicator
+   */
+  PDBCommunicatorPtr getCommunicatorToNode(int port, std::string &ip);
+
 private:
-
-
-  mustache::data getClusterInfo();
-
-  mustache::data getSetInfo();
 
   /**
    * The http server
@@ -57,6 +63,33 @@ private:
    * Is pseudo cluster mode
    */
   bool isPseudoCluster;
+
+  /**
+   * The model to get the cluster info data
+   */
+  ClusterModelPtr clusterModel;
+
+  /**
+   * The model to get the info about the sets
+   */
+  SetModelPtr setModel;
+
+  /**
+   * The model to get the info about types
+   */
+  TypeModelPtr typeModel;
+
+  /**
+   * This is used to synchronize the communicator
+   * More specifically the part where we are creating them and connecting them to a remote node
+   * with the connectToInternetServer method
+   */
+  pthread_mutex_t connection_mutex;
+
+  /**
+   * An instance of the PDBLogger set in the constructor
+   */
+  PDBLoggerPtr logger;
 };
 
 }

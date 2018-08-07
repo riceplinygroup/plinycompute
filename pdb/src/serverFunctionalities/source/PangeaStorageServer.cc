@@ -57,6 +57,8 @@
 #include "SimpleRequestHandler.h"
 #include "Record.h"
 #include "InterfaceFunctions.h"
+#include "CollectSetStats.h"
+#include "CollectSetStatsResponse.h"
 #include "DeleteSet.h"
 #include "DefaultDatabase.h"
 #include "DataTypes.h"
@@ -1171,6 +1173,76 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
             response->setStats(stats);
             bool res = sendUsingMe->sendObject<StorageCollectStatsResponse>(response, errMsg);
             return make_pair(res, errMsg);
+        }));
+
+    // this handler collect statistics about a particular set
+    forMe.registerHandler(
+        CollectSetStats_TYPEID,
+        make_shared<SimpleRequestHandler<pdb::CollectSetStats>>([&](Handle<CollectSetStats> request, PDBCommunicatorPtr sendUsingMe) {
+
+          //  this is where we store the stuff
+          const UseTemporaryAllocationBlock myBlock{4 * 1024 * 1024};
+
+          // the error message
+          std::string errMsg;
+
+          // allocate a response object
+          Handle<CollectSetStatsResponse> response = makeObject<CollectSetStatsResponse>();
+
+          // grab the set pointer
+          SetPtr set = getSet(std::pair<std::string, std::string>(request->getDbName(), request->getSetName()));
+
+          if(set != nullptr) {
+
+            // grab the key
+            auto setKey = std::make_pair(set->getDbID(), set->getSetID());
+            if(this->userSets->find(setKey) != this->userSets->end()) {
+
+              // grab the set
+              auto set = this->userSets->find(setKey)->second;
+
+              // grab the name
+              std::string setName = set->getSetName();
+
+              // number of pages
+              int numPages = set->getNumPages();
+
+              // grab the database name
+              std::string dbName = this->getDatabase(setKey.first)->getDatabaseName();
+
+              // create a set identifier
+              Handle<SetIdentifier> setIdentifier = makeObject<SetIdentifier>(dbName, setName);
+
+              // set the number of pages and the pages size
+              setIdentifier->setNumPages(numPages);
+              setIdentifier->setPageSize(set->getPageSize());
+              setIdentifier->setDatabaseId(setKey.first);
+              setIdentifier->setSetId(setKey.second);
+              setIdentifier->setTypeId(set->getTypeID());
+
+              // set the stats
+              response->setStats(setIdentifier);
+              response->setError(errMsg);
+              response->setSuccess(true);
+
+              // send the stuff
+              bool res = sendUsingMe->sendObject<CollectSetStatsResponse>(response, errMsg);
+              return make_pair(res, errMsg);
+            }
+          }
+
+          // we did not find it and log that
+          errMsg = "Fatal Error: Could not find the set";
+          std::cout << "dbId = " << request->getDbName() << ", setId = " << request->getSetName() << std::endl << errMsg << std::endl;
+          logger->error(errMsg);
+
+          // set the error indicator
+          response->setError(errMsg);
+          response->setSuccess(false);
+
+          // send the response back with an error
+          bool res = sendUsingMe->sendObject<CollectSetStatsResponse>(response, errMsg);
+          return make_pair(false, errMsg);
         }));
 
     // this handler accepts a request to pin a page

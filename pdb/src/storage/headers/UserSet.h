@@ -218,14 +218,12 @@ public:
         return this->dbId;
     }
 
-
     /**
      * Return UserTypeID of the set instance
      */
     UserTypeID getTypeID() {
         return this->typeId;
     }
-
 
     /**
      * Return SetID of the set instance.

@@ -1,0 +1,147 @@
+<div class="animated fadeIn" ng-controller="TypeDataCtrl">
+    <div class="card">
+        <div class="card-header">
+            Type Information
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                    <div class="row">
+                        <div class="col">
+                            <div class="callout callout-info">
+                                <small class="text-muted">Type Name</small>
+                                <br>
+                                <strong class="h4">{{type['type-name']}}</strong>
+                                <div class="chart-wrapper">
+                                    <canvas id="sparkline-chart-1" width="100" height="30"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="callout callout-danger">
+                                <small class="text-muted">Type ID</small>
+                                <br>
+                                <strong class="h4">{{type['type-id']}}</strong>
+                                <div class="chart-wrapper">
+                                    <canvas id="sparkline-chart-2" width="100" height="30"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="callout callout-warning">
+                                <small class="text-muted">Number of Methods</small>
+                                <br>
+                                <strong class="h4">{{type['methods'].length}}</strong>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="callout callout-success">
+                                <small class="text-muted">Number of Attributes</small>
+                                <br>
+                                <strong class="h4">{{type['attributes'].length}}</strong>
+                                <div class="chart-wrapper">
+                                    <canvas id="sparkline-chart-4" width="100" height="30"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <hr class="mt-0">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a tab class="nav-link active" data-toggle="tab" href="#methods" role="tab">Methods</a>
+                        </li>
+                        <li class="nav-item">
+                            <a tab class="nav-link" data-toggle="tab" href="#attributes" role="tab">Attributes</a>
+                        </li>
+                    </ul>
+
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="methods" role="tabpanel">
+                            <table class="table table-responsive-sm table-hover table-outline mb-0">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center">
+                                        <i class="icon-energy"></i>
+                                    </th>
+                                    <th>Method Name</th>
+                                    <th>Return Value</th>
+                                    <th>Parameters</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="method in type['methods']">
+                                    <td class="text-center">
+                                        <div class="avatar">
+                                            <img src="img/method.png" class="img-avatar"
+                                                 alt="admin@bootstrapmaster.com">
+                                            <span class="avatar-status badge-success"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{method["method-name"]}}</strong>
+                                        <div class="small text-muted">
+                                            <span>Symbol</span> | {{method['method-symbol']}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{decode(method["return-type"])}}</strong>
+                                        <div class="small text-muted">
+                                            <span>Size</span> | {{method["return-type-size"]}}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong> ( <span ng-repeat="p in method['parameters']"> {{decode(p['name'])}}<span ng-if="!$last">, </span> </span>  )</strong>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane p-3" id="attributes" role="tabpanel">
+                            <table class="table table-responsive-sm table-hover table-outline mb-0">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center">
+                                        <i class="icon-energy"></i>
+                                    </th>
+                                    <th class="text-center">TypeName</th>
+                                    <th class="text-center">Attribute Name</th>
+                                    <th class="text-center">Size</th>
+                                    <th class="text-center">Offset</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="attribute in type['attributes']">
+                                    <td class="text-center">
+                                        <div class="avatar">
+                                            <img src="img/attribute.png" class="img-avatar" alt="admin@bootstrapmaster.com">
+                                            <span class="avatar-status badge-success"></span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{attribute['type-name']}}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{attribute['attribute-name']}}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{attribute['size']}} bytes</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{attribute['offset']}} bytes</strong>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
