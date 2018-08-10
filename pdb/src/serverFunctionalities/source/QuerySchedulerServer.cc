@@ -33,6 +33,7 @@
 #include <chrono>
 #include <SimplePhysicalOptimizer/SimplePhysicalNodeFactory.h>
 #include <AdvancedPhysicalOptimizer/AdvancedPhysicalNodeFactory.h>
+#include <JobTracker.h>
 
 namespace pdb {
 
@@ -644,6 +645,9 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
                                                                                                                errMsg);
     // we create a new jobID
     this->jobId = this->getNextJobId();
+    if(getFunctionality<JobTracker>().startJob(this->jobId)){
+      PDB_COUT << "Was not able to start tracking a job with id " << this->jobId << "\n";
+    }
 
     // use that jobID to create a database for the job
     DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
@@ -656,7 +660,6 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
     // initialize the standard resources from the resource manager
     PDB_COUT << "To get the resource object from the resource manager" << std::endl;
     getFunctionality<QuerySchedulerServer>().initialize();
-
 
     // create the shuffle info (just combine the standard resources with the partition to core ration) TODO ask Jia if this is really necessary
     this->shuffleInfo = std::make_shared<ShuffleInfo>(this->standardResources, this->partitionToCoreRatio);
@@ -673,10 +676,12 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
       AtomicComputationList computationGraph = logicalPlan->getComputations();
       auto sourcesComputations = computationGraph.getAllScanSets();
 
+      // log tcap
+      std::string tcap = request->getTCAPString();
+      getFunctionality<JobTracker>().setJobTCAP(this->jobId, tcap);
+
       // this is the tcap analyzer node factory we want to use create the graph for the physical analysis
-      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId,
-                                                                                                    computePlan,
-                                                                                                    conf);
+      AbstractPhysicalNodeFactoryPtr analyzerNodeFactory = make_shared<SimplePhysicalNodeFactory>(jobId, computePlan, conf);
 
       // generate the analysis graph (it is a list of source nodes for that graph)
       auto graph = analyzerNodeFactory->generateAnalyzerGraph(sourcesComputations);
@@ -727,6 +732,11 @@ pair<bool, basic_string<char>> QuerySchedulerServer::executeComputation(Handle<E
     // removes the rest of the intermediate sets
     PDB_COUT << "About to remove intermediate sets" << endl;
     removeIntermediateSets(dsmClient);
+
+    // finish the job
+    if(getFunctionality<JobTracker>().finishJob(this->jobId)){
+      PDB_COUT << "Was not able to finish tracking job with id " << this->jobId << "\n";
+    }
 
     // notify the client that we succeeded
     PDB_COUT << "About to send back response to client" << std::endl;

@@ -1,0 +1,117 @@
+<div class="animated fadeIn">
+
+    <div class="card">
+        <div class="card-header">
+            Submitted Jobs
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="callout callout-info">
+                                <small class="text-muted">Total Number of Jobs</small>
+                                <br>
+                                <strong class="h4" ng-controller="JobsDataCtrl">{{jobs.length}}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="mt-0">
+                    <table class="table table-responsive-sm table-hover table-outline mb-0">
+                        <thead class="thead-light">
+                        <tr>
+                            <th colspan="5" class="text-center">All Jobs</th>
+                        </tr>
+                        </thead>
+                        <thead class="thead-light">
+                        <tr>
+                            <th class="text-center"><i class="icon-notebook"></i></th>
+                            <th>Job ID</th>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>Ended</th>
+                        </tr>
+                        </thead>
+                        <tbody ng-controller="JobsDataCtrl">
+                        <tr ng-repeat="job in jobs">
+                            <td class="text-center">
+                                <a class="nav-link" ui-sref-active="active" ui-sref="app.job({jobID: '{{job.id}}'})">
+                                    <div class="avatar">
+                                        <img  src="img/job-finished.png" class="img-avatar"/>
+                                        <span class="avatar-status badge-success"></span>
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <div>{{job.id}}</div>
+                            </td>
+                            <td>
+                                <div>{{job.status}}</div>
+                            </td>
+                            <td>
+                                <strong>{{job['started'].toLocaleTimeString()}}</strong>
+                                <div class="small text-muted">{{job['started'].toDateString()}}</div>
+                            </td>
+                            <td>
+                                <strong ng-if="job['status'] == 'finished'">{{job['ended'].toLocaleTimeString()}}</strong>
+                                <div ng-if="job['status'] == 'finished'" class="small text-muted">{{job['ended'].toDateString()}}</div>
+                                <div ng-if="!(job['status'] == 'finished')">-</div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="callout callout-warning">
+                                <small class="text-muted">Number of Running Jobs</small>
+                                <br>
+                                <strong ng-controller="JobsDataCtrl" class="h4">{{(jobs | filter: { status:'running' }).length}}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="mt-0">
+                    <table class="table table-responsive-sm table-hover table-outline mb-0">
+                        <thead class="thead-light">
+                        <tr>
+                            <th colspan="5" class="text-center">Running Jobs</th>
+                        </tr>
+                        </thead>
+                        <thead class="thead-light">
+                        <tr>
+                            <th class="text-center"><i class="icon-notebook"></i></th>
+                            <th>Job ID</th>
+                            <th>Started</th>
+                        </tr>
+                        </thead>
+                        <tbody ng-controller="JobsDataCtrl">
+                        <tr ng-repeat="job in jobs | filter: { status:'running' }">
+                            <td class="text-center">
+                                <a class="nav-link">
+                                    <div class="avatar">
+                                        <img  src="img/job-waiting.png" class="img-avatar"/>
+                                        <span class="avatar-status badge-success"></span>
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <div>{{job.id}}</div>
+                            </td>
+                            <td>
+                                <strong ng-if="job['status'] == 'finished'">{{job['started'].toLocaleTimeString()}}</strong>
+                                <div ng-if="job['status'] == 'finished'" class="small text-muted">{{job['started'].toDateString()}}</div>
+                                <div ng-if="job['status'] != 'finished'">-</div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

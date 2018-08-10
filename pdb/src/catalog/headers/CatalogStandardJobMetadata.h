@@ -15,48 +15,64 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_CATALOGSTANDARDJOBMETADATA_H
+#define PDB_CATALOGSTANDARDJOBMETADATA_H
 
-#ifndef PDB_CLUSTERMODEL_H
-#define PDB_CLUSTERMODEL_H
-
-#include <ResourceManagerServer.h>
-#include <mustache.h>
+#include <string>
+#include <vector>
+#include <boost/shared_ptr.hpp>
+#include "CatalogStandardJobStageMetadata.h"
 
 namespace pdb {
 
-class ClusterModel;
-typedef std::shared_ptr<ClusterModel> ClusterModelPtr;
+/**
+ * The status of the job
+ */
+enum JobStatus {
+  RUNNING,
+  FINISHED
+};
 
-class ClusterModel {
-public:
+/**
+ * Just a typedef to the shared pointer for convenience
+ */
+struct CatalogStandardJobMetadata;
+typedef std::shared_ptr<CatalogStandardJobMetadata> CatalogStandardJobMetadataPtr;
 
-  /**
-   * The model for the cluster data
-   * @param isPseudoCluster - true if we are running the a pseudo cluster
-   * @param resourceManager - the resource manager server
-   */
-  ClusterModel(bool isPseudoCluster, ResourceManagerServer *resourceManager);
-
-  /**
-   * Returns the info about the clusters in the mutache data for
-   * @return - the data
-   */
-  mustache::data getClusterInfo();
-
-private:
+struct CatalogStandardJobMetadata {
 
   /**
-   * true if we are running the a pseudo cluster
+   * The job name
    */
-  bool isPseudoCluster;
+  std::string id;
 
   /**
-   * resource manager
+   * The tcap string of this job
    */
-  pdb::ResourceManagerServer *resourceManager;
+  std::string tcapString;
+
+  /**
+   * The status of the job
+   */
+  JobStatus status;
+
+  /**
+   * The timestamp when the job started
+   */
+  int64_t started;
+
+  /**
+   * The timestamp when the job ended
+   */
+  int64_t ended;
+
+  /**
+   * The job stages of this job
+   */
+  std::vector<CatalogStandardJobStageMetadata> jobStages;
+
 };
 
 }
 
-
-#endif //PDB_CLUSTERMODEL_H
+#endif //PDB_CATALOGSTANDARDJOBMETADATA_H

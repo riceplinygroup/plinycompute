@@ -24,6 +24,7 @@ void pdb::WebInterface::registerHandlers(pdb::PDBServer &forMe) {
   clusterModel = std::make_shared<ClusterModel>(isPseudoCluster, &getFunctionality<pdb::ResourceManagerServer>());
   setModel = std::make_shared<SetModel>(isPseudoCluster, &getFunctionality<pdb::CatalogServer>(), &getFunctionality<pdb::ResourceManagerServer>(), this);
   typeModel = std::make_shared<TypeModel>(&getFunctionality<pdb::CatalogServer>());
+  jobModel = std::make_shared<JobModel>(&getFunctionality<pdb::JobTracker>());
 
   // set the base directory for the html stuff
   server.set_base_dir("web-interface");
@@ -147,6 +148,48 @@ void pdb::WebInterface::registerHandlers(pdb::PDBServer &forMe) {
       res.status = 400;
     }
   });
+
+  server.Get(R"(/api/jobs)", [&](const httplib::Request& req, httplib::Response& res) {
+
+    // the template for the output
+    mustache::mustache outputTemplate{"[\n"
+                                      "{{#jobs}} { \"id\" : \"{{id}}\", \"status\" : \"{{status}}\", \"started\" : {{started}}, "
+                                      "\"ended\" : {{ended}} }{{^is-last}}, {{/is-last}}{{/jobs}}\n"
+                                      "]"};
+
+    // grab the cluster info data
+    auto jobs = this->jobModel->getJobs();
+
+    // output the template
+    res.set_content(outputTemplate.render(jobs), "text/plain");
+    res.status = jobs["success"].is_true() ? 200 : 400;
+  });
+
+  server.Get(R"(/api/job/([^\.]+))", [&](const httplib::Request& req, httplib::Response& res) {
+
+    std::string typeID = req.matches[1];
+
+    // the template for the output
+    mustache::mustache outputTemplate{"{ \"id\" : \"{{job.id}}\", \"status\" : \"{{job.status}}\", "
+                                      "\"started\" : {{job.started}}, \"ended\" : {{job.ended}}, "
+                                      "\"tcap-string\" : \"{{job.tcap-string}}\" }"};
+
+    // grab the cluster info data
+    auto job = this->jobModel->getJob(typeID);
+
+    // output the template if we succeeded
+    if(job["success"].is_true()) {
+      // output the template
+      res.set_content(outputTemplate.render(job), "text/plain");
+    }
+    else {
+
+      // output the error
+      res.set_content(R"({ "error" : "Could not find the requested set"})", "text/plain");
+      res.status = 400;
+    }
+  });
+
 
   // grab a we worker
   auto webWorker = getWorker();

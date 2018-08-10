@@ -16,47 +16,43 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_CLUSTERMODEL_H
-#define PDB_CLUSTERMODEL_H
+#ifndef PDB_JOBMODEL_H
+#define PDB_JOBMODEL_H
 
-#include <ResourceManagerServer.h>
-#include <mustache.h>
+#include <memory>
+#include <JobTracker.h>
 
 namespace pdb {
 
-class ClusterModel;
-typedef std::shared_ptr<ClusterModel> ClusterModelPtr;
+class JobModel;
+typedef std::shared_ptr<JobModel> JobModelPtr;
 
-class ClusterModel {
+class JobModel {
 public:
 
-  /**
-   * The model for the cluster data
-   * @param isPseudoCluster - true if we are running the a pseudo cluster
-   * @param resourceManager - the resource manager server
-   */
-  ClusterModel(bool isPseudoCluster, ResourceManagerServer *resourceManager);
+  JobModel(JobTracker *jobTracker);
 
   /**
-   * Returns the info about the clusters in the mutache data for
+   * Returns the info about the jobs in the mutache data form
    * @return - the data
    */
-  mustache::data getClusterInfo();
+  mustache::data getJobs();
+
+  /**
+   * Returns the info about the jobs in the mutache data form
+   * @return - the data
+   */
+  mustache::data getJob(std::string jobID);
 
 private:
 
   /**
-   * true if we are running the a pseudo cluster
+   * job tracker
    */
-  bool isPseudoCluster;
+  pdb::JobTracker *jobTracker;
 
-  /**
-   * resource manager
-   */
-  pdb::ResourceManagerServer *resourceManager;
 };
 
 }
 
-
-#endif //PDB_CLUSTERMODEL_H
+#endif //PDB_JOBMODEL_H

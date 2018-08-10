@@ -182,4 +182,68 @@ angular
           }]
       }
   })
+  .state('app.jobs', {
+      url: '/jobs',
+      templateUrl: 'views/jobs.html',
+      //page title goes here
+      ncyBreadcrumb: {
+          label: 'PlinyCompute Jobs'
+      },
+      //page subtitle goes here
+      params: { subtitle: 'Explore the Jobs' },
+      resolve: {
+          loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {
+
+              // you can lazy load files for an existing module
+              return $ocLazyLoad.load([
+                  {
+                      serie: true,
+                      name: 'chart.js',
+                      files: [
+                          'node_modules/chart.js/dist/Chart.min.js',
+                          'node_modules/angular-chart.js/dist/angular-chart.min.js'
+                      ]
+                  }
+              ]);
+          }],
+          loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
+              // you can lazy load controllers
+              return $ocLazyLoad.load({
+                  files: ['js/controllers/jobs.js', 'js/services/jobs.js']
+              });
+          }]
+      }
+  })
+  .state('app.job', {
+      url: '/job?jobID',
+      templateUrl: 'views/jobs-job.html',
+      //page title goes here
+      ncyBreadcrumb: {
+          label: 'PlinyCompute Job'
+      },
+      //page subtitle goes here
+      params: { subtitle: 'Explore the Job' },
+      resolve: {
+          loadPlugin: ['$ocLazyLoad', function ($ocLazyLoad) {
+
+              // you can lazy load files for an existing module
+              return $ocLazyLoad.load([
+                  {
+                      serie: true,
+                      name: 'chart.js',
+                      files: [
+                          'node_modules/chart.js/dist/Chart.min.js',
+                          'node_modules/angular-chart.js/dist/angular-chart.min.js'
+                      ]
+                  }
+              ]);
+          }],
+          loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
+              // you can lazy load controllers
+              return $ocLazyLoad.load({
+                  files: ['js/controllers/job.js', 'js/services/jobs.js']
+              });
+          }]
+      }
+  })
 }]);

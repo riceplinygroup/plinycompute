@@ -11,6 +11,7 @@
 #include <ClusterModel.h>
 #include <SetModel.h>
 #include <TypeModel.h>
+#include <JobModel.h>
 
 namespace pdb {
 
@@ -78,6 +79,11 @@ private:
    * The model to get the info about types
    */
   TypeModelPtr typeModel;
+
+  /**
+   * The model to get the info about jobs
+   */
+  JobModelPtr jobModel;
 
   /**
    * This is used to synchronize the communicator
