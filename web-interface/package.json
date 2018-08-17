@@ -20,7 +20,9 @@
     "oclazyload": "^1.1.0",
     "popper.js": "1.12.9",
     "simple-line-icons": "^2.4.1",
-    "toastr": "^2.1.4"
+    "toastr": "^2.1.4",
+    "angular-visjs": "4.16.0",
+    "vis": "4.16.0"
   },
   "devDependencies": {
     "browser-sync": "2.23.6",

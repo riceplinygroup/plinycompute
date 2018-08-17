@@ -241,7 +241,7 @@ angular
           loadMyCtrl: ['$ocLazyLoad', function($ocLazyLoad) {
               // you can lazy load controllers
               return $ocLazyLoad.load({
-                  files: ['js/controllers/job.js', 'js/services/jobs.js']
+                  files: ['js/controllers/job.js', 'js/services/jobs.js', 'js/services/tcap-parser/tcap-parser.js', 'js/services/parser.js']
               });
           }]
       }
