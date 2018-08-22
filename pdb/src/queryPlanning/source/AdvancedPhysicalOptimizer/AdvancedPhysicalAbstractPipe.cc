@@ -93,7 +93,10 @@ bool AdvancedPhysicalAbstractPipe::isPipelinable(AdvancedPhysicalPipelineNodePtr
     assert(node->getType() == JOIN_SIDE);
 
     // for each side of the join that is not the one we are coming from we check if it is processed
-    for(auto &producer : producers) {
+    for(auto &tmp : producers) {
+
+      // convert the weak pointer to a shared pointer
+      AbstractPhysicalNodePtr producer(tmp);
 
       // if on of the producers is not a join side fail
       assert(std::dynamic_pointer_cast<AdvancedPhysicalAbstractPipe>(producer)->getType() == JOIN_SIDE);
@@ -278,10 +281,10 @@ AdvancedPhysicalAbstractAlgorithmPtr AdvancedPhysicalAbstractPipe::propose(std::
   if(isJoining()) {
 
     // get the lhs
-    auto lhs = producers.front()->to<AdvancedPhysicalAbstractPipe>();
+    auto lhs = producers.front().lock()->to<AdvancedPhysicalAbstractPipe>();
 
     // grab the rhs
-    auto rhs = producers.back()->to<AdvancedPhysicalAbstractPipe>();
+    auto rhs = producers.back().lock()->to<AdvancedPhysicalAbstractPipe>();
 
     // if we have executed the right side or the left side with a broadcast join a we are here something is wrong
     assert(!(lhs->isExecuted() && lhs->getSelectedAlgorithm()->getType() == JOIN_BROADCASTED_HASHSET_ALGORITHM));
@@ -350,13 +353,13 @@ std::unordered_map<std::string, std::string> AdvancedPhysicalAbstractPipe::getPr
   for(const auto &p : producers) {
 
     // grab the join side
-    auto joinSide = p->to<AdvancedPhysicalJoinSidePipe>();
+    auto joinSide = p.lock()->to<AdvancedPhysicalJoinSidePipe>();
 
     // if this is executed and it has a hash set
     if(joinSide->isExecuted() && joinSide->hasHashSet()) {
 
       // add the hash set
-      ret[this->getPipelineComputationAt(0)->getOutputName()] = (p->to<AdvancedPhysicalJoinSidePipe>()->getGeneratedHashSet());
+      ret[this->getPipelineComputationAt(0)->getOutputName()] = (joinSide->getGeneratedHashSet());
     }
   }
 

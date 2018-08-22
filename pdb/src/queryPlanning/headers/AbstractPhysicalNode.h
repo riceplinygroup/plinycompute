@@ -37,7 +37,7 @@ class AbstractPhysicalNode;
 
 typedef std::shared_ptr<PhysicalOptimizerResult> PhysicalOptimizerResultPtr;
 typedef std::shared_ptr<AbstractPhysicalNode> AbstractPhysicalNodePtr;
-typedef std::shared_ptr<AbstractPhysicalNode> AbstractPhysicalNodeWeakPtr;
+typedef std::weak_ptr<AbstractPhysicalNode> AbstractPhysicalNodeWeakPtr;
 
 /**
  * This structure is used to give back the result of a TCAPAnalysis.
@@ -130,7 +130,8 @@ public:
    */
   virtual void removeConsumer(const AbstractPhysicalNodePtr &consumer) {
     consumers.remove(consumer);
-    consumer->producers.remove(getHandle());
+    consumer->producers.erase(remove_if(consumer->producers.begin(), consumer->producers.end(),
+                                        [ this ](auto w) { return w.lock() == this->getHandle(); }), consumer->producers.end());
   }
 
   /**

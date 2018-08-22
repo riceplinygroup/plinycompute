@@ -29,8 +29,7 @@ AbstractPhysicalNode::AbstractPhysicalNode(string &jobId,
                                            ConfigurationPtr &conf) : jobId(jobId),
                                                                      computePlan(computePlan),
                                                                      logicalPlan(logicalPlan),
-                                                                     conf(conf),
-                                                                     handle(nullptr) {}
+                                                                     conf(conf) {}
 
 Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Handle<Computation> computation) {
 
@@ -93,11 +92,18 @@ Handle<SetIdentifier> AbstractPhysicalNode::getSetIdentifierFromComputation(Hand
 AbstractPhysicalNodePtr AbstractPhysicalNode::getHandle() {
 
   // if we do not have a handle to this node already
-  if(handle == nullptr) {
-    handle = std::shared_ptr<AbstractPhysicalNode> (this);
+  if(handle.expired()) {
+
+    // create a shared pointer
+    auto ptr = std::shared_ptr<AbstractPhysicalNode> (this);
+    handle = ptr;
+
+    // return the created shared pointer
+    return std::move(ptr);
   }
 
-  return handle;
+  // return a shared pointer
+  return handle.lock();
 }
 
 pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getConsumer(int idx) {
@@ -121,7 +127,7 @@ pdb::AbstractPhysicalNodePtr AbstractPhysicalNode::getProducer(int idx) {
   std::advance(it, idx);
 
   // return the consumer
-  return *it;
+  return it->lock();
 }
 
 size_t AbstractPhysicalNode::getNumProducers() {

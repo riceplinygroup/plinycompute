@@ -32,7 +32,6 @@ SimplePhysicalNode::SimplePhysicalNode(string jobId,
   if(node->getAtomicComputationTypeID() == ScanSetAtomicTypeID) {
 
     // grab the computation
-    std::cout << node->getOutputName() << std::endl;
     Handle<Computation> comp = logicalPlan->getNode(node->getComputationName()).getComputationHandle();
 
     // create a set identifier from it

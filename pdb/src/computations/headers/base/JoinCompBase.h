@@ -86,9 +86,7 @@ class JoinCompBase : public AbstractJoinComp {
  public:
 
   virtual ~JoinCompBase() {
-    if (multiInputsBase == nullptr) {
-      delete (multiInputsBase);
-    }
+    delete multiInputsBase;
     this->iterator = nullptr;
     this->proxy = nullptr;
   }
@@ -163,9 +161,7 @@ class JoinCompBase : public AbstractJoinComp {
   }
 
   void setMultiInputsBaseToNull() {
-    if (multiInputsBase == nullptr) {
-      delete (multiInputsBase);
-    }
+    delete multiInputsBase;
     multiInputsBase = nullptr;
   }
 
