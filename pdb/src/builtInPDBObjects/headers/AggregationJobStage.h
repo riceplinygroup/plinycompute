@@ -117,8 +117,8 @@ public:
         std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()
                   << ", setName=" << sinkContext->getSetName() << std::endl;
         std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std::endl;
-        std::cout << "[NUMPARTITIONS] numPartitions=" << numNodePartitions << std::endl;
-        std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std::endl;
+        std::cout << "[NUMPARTITIONS] numPartitions=" << this->numNodePartitions << std::endl;
+        std::cout << "[MEM] total memory=" << this->totalMemoryOnThisNode << std::endl;
         std::cout << "[MATERIALIZE] materialize=" << materializeOrNot << std::endl;
         std::cout << "[COMPUTATION] outputTupleSetName=" << (*aggComputation).getOutputTupleSetName() << std::endl;
     }

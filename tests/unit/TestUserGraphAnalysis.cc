@@ -190,58 +190,58 @@ int main(int argc, char *argv[]) {
 
   // generate the analysis graph (it is a list of source nodes for that graph)
   auto graph = analyzerNodeFactory->generateAnalyzerGraph(sourcesComputations);
-//
-//  // initialize the physicalAnalyzer - used to generate the pipelines and pipeline stages we need to execute
-//  PhysicalOptimizer physicalOptimizer(graph, logger);
-//
-//  std::vector<Handle<AbstractJobStage>> queryPlan;
-//  std::vector<Handle<SetIdentifier>> interGlobalSets;
-//  std::cout << "PARSE TCAP STRING..." << std::endl;
-//
-//  int jobStageId = 0;
-//
-//  // temp variables
-//  DataStatistics ds;
-//
-//
-//  // create the data statistics
-//  StatisticsPtr stats = make_shared<Statistics>();
-//  ds.numBytes = 1000;
-//  stats->addSet("LDA_db", "LDA_input_set", ds);
-//
-//  ds.numBytes = 10000;
-//  stats->addSet("LDA_db", "LDA_meta_data_set", ds);
-//
-//
-//  ds.numBytes = 1000000;
-//  stats->addSet("TestSelectionJob", "aggOutForClusterAggregationComp1_aggregationResult", ds);
-//
-//  while (physicalOptimizer.hasSources()) {
-//
-//    // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
-//    bool success = physicalOptimizer.getNextStagesOptimized(queryPlan,
-//                                                            interGlobalSets,
-//                                                            stats,
-//                                                            jobStageId);
-//
-//    if (success) {
-//      std::cout << "PRINT PHYSICAL PLAN..." << std::endl;
-//      for (int i = 0; i < queryPlan.size(); i++) {
-//        std::cout << "to print the " << i << "-th plan" << std::endl;
-//        queryPlan[i]->print();
-//      }
-//
-//      // remove them all
-//      queryPlan.clear();
-//    }
-//  }
-//
-//  int code = system("scripts/cleanupSoFiles.sh force");
-//  if (code < 0) {
-//      std::cout << "Can't cleanup so files" << std::endl;
-//  }
 
-  //graph.clear();
+  // initialize the physicalAnalyzer - used to generate the pipelines and pipeline stages we need to execute
+  PhysicalOptimizer physicalOptimizer(graph, logger);
+
+  std::vector<Handle<AbstractJobStage>> queryPlan;
+  std::vector<Handle<SetIdentifier>> interGlobalSets;
+  std::cout << "PARSE TCAP STRING..." << std::endl;
+
+  int jobStageId = 0;
+
+  // temp variables
+  DataStatistics ds;
+
+
+  // create the data statistics
+  StatisticsPtr stats = make_shared<Statistics>();
+  ds.numBytes = 1000;
+  stats->addSet("LDA_db", "LDA_input_set", ds);
+
+  ds.numBytes = 10000;
+  stats->addSet("LDA_db", "LDA_meta_data_set", ds);
+
+
+  ds.numBytes = 1000000;
+  stats->addSet("TestSelectionJob", "aggOutForClusterAggregationComp1_aggregationResult", ds);
+
+  while (physicalOptimizer.hasSources()) {
+
+    // get the next sequence of stages returns false if it selects the wrong source, and needs to retry it
+    bool success = physicalOptimizer.getNextStagesOptimized(queryPlan,
+                                                            interGlobalSets,
+                                                            stats,
+                                                            jobStageId);
+
+    if (success) {
+      std::cout << "PRINT PHYSICAL PLAN..." << std::endl;
+      for (int i = 0; i < queryPlan.size(); i++) {
+        std::cout << "to print the " << i << "-th plan" << std::endl;
+        queryPlan[i]->print();
+      }
+
+      // remove them all
+      queryPlan.clear();
+    }
+  }
+
+  int code = system("scripts/cleanupSoFiles.sh force");
+  if (code < 0) {
+      std::cout << "Can't cleanup so files" << std::endl;
+  }
+
+  graph.clear();
 
   getAllocator().cleanInactiveBlocks(36 * 1024 * 1024);
 
