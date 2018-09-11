@@ -139,43 +139,34 @@ int main(int argc, char* argv[]) {
                 shm, frontEnd.getWorkerQueue(), logger, conf, standalone);
             frontEnd.getFunctionality<pdb::PangeaStorageServer>().startFlushConsumerThreads();
             bool createSet = true;
-            if (standalone == false) {
+            if (!standalone) {
                 createSet = false;
             }
+
             frontEnd.addFunctionality<pdb::FrontendQueryTestServer>(standalone, createSet);
-            if (standalone == true) {
-                string nodeName = "standalone";
+
+            if (standalone) {
+
                 string nodeType = "manager";
 
-                pdb::UseTemporaryAllocationBlock tempBlock{1024 * 1024};
-                pdb::Handle<pdb::CatalogNodeMetadata> nodeData =
-                    pdb::makeObject<pdb::CatalogNodeMetadata>(
-                        String("localhost:" + std::to_string(localPort)),
-                        String("localhost"),
-                        localPort,
-                        String(nodeName),
-                        String(nodeType),
-                        1);
-                frontEnd.addFunctionality<pdb::CatalogServer>(
-                    "CatalogDir", true, "localhost", localPort);
+                frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, "localhost", localPort);
                 frontEnd.addFunctionality<pdb::CatalogClient>(localPort, "localhost", logger);
                 std::cout << "to register node metadata in catalog..." << std::endl;
-                if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData,
-                                                                                     errMsg)) {
+
+                if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:" + std::to_string(localPort),
+                                                                                                                                     "localhost",
+                                                                                                                                     localPort,
+                                                                                                                                     nodeType), errMsg)) {
                     std::cout << "Not able to register node metadata: " + errMsg << std::endl;
-                    std::cout
-                        << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."
-                        << std::endl;
+                    std::cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status." << std::endl;
                 } else {
                     std::cout << "Node metadata successfully added.\n";
                 }
 
             } else {
 
-                std::string catalogFile = std::string("CatalogDir_") + localIp + std::string("_") +
-                    std::to_string(localPort);
-                frontEnd.addFunctionality<pdb::CatalogServer>(
-                    catalogFile, false, managerIp, managerPort);
+                std::string catalogFile = std::string("CatalogDir_") + localIp + std::string("_") + std::to_string(localPort);
+                frontEnd.addFunctionality<pdb::CatalogServer>(catalogFile, false, managerIp, managerPort);
                 frontEnd.addFunctionality<pdb::CatalogClient>(localPort, "localhost", logger);
             }
 

@@ -71,7 +71,6 @@ public:
         listOfSets = pdbDatabaseToCopy.listOfSets;
         listOfTypes = pdbDatabaseToCopy.listOfTypes;
         setsInDB = pdbDatabaseToCopy.setsInDB;
-        nodesInDB = pdbDatabaseToCopy.nodesInDB;
     }
 
     CatalogDatabaseMetadata(const Handle<CatalogDatabaseMetadata>& pdbDatabaseToCopy) {
@@ -84,9 +83,7 @@ public:
         listOfSets = pdbDatabaseToCopy->listOfSets;
         listOfTypes = pdbDatabaseToCopy->listOfTypes;
         setsInDB = pdbDatabaseToCopy->setsInDB;
-        nodesInDB = pdbDatabaseToCopy->nodesInDB;
     }
-
 
     void setValues(String dbIdIn,
                    pdb::String dbNameIn,
@@ -121,11 +118,6 @@ public:
         (*setsInDB)[setName].push_back(nodeIP);
     }
 
-    void addNodeToMap(String& nodeIP, String& setName) {
-        PDB_COUT << "key: " << nodeIP.c_str() << " push_back set: " << setName.c_str();
-        (*nodesInDB)[nodeIP].push_back(setName);
-    }
-
     void addType(pdb::String& typeIn) {
         listOfTypes->push_back(typeIn);
     }
@@ -142,10 +134,6 @@ public:
         setsInDB = newMap;
     }
 
-    void replaceMapOfNodes(Handle<Map<String, Vector<String>>>& newMap) {
-        nodesInDB = newMap;
-    }
-
     /**
      * Deletes a set from the listOfSets, along with the set->nodes map and the nodes->set map
      * @param whichSet
@@ -153,12 +141,10 @@ public:
     void deleteSet(String setName) {
         deleteSetFromSetList(setName);
         deleteSetFromSetMap(setName);
-        deleteSetFromNodeMap(setName);
     }
 
     void removeNodeFromSet(String node, String set) {
         deleteNodeFromSingleSet(node, set);
-        deleteSetFromSingleNode(set, node);
     }
 
     void deleteNodeFromMap(String& nodeIP, String& setName) {
@@ -233,30 +219,14 @@ public:
         return setsInDB;
     }
 
-    Handle<Map<String, Vector<String>>> getNodesInDB() {
-        return nodesInDB;
-    }
-
     string printShort() {
         string output;
-        string spaces("");
+        string spaces;
         output = "   \nDB ";
         output.append(getItemId().c_str()).append(":").append(getItemKey().c_str());
 
+        output.append("\n has (").append(to_string((*setsInDB).size())).append(")sets: [ ");
         int i = 0;
-        output.append("\n is stored in (")
-            .append(to_string((*nodesInDB).size()))
-            .append(")nodes: [ ");
-        for (auto& item : (*nodesInDB)) {
-            if (i > 0)
-                output.append(", ").append(spaces).append(item.key.c_str());
-            else
-                output.append(item.key.c_str());
-            i++;
-        }
-
-        output.append(" ]\n and has (").append(to_string((*setsInDB).size())).append(")sets: [ ");
-        i = 0;
         for (auto& item : (*setsInDB)) {
             if (i > 0)
                 output.append(", ").append(spaces).append(item.key.c_str());
@@ -316,10 +286,6 @@ private:
     // all nodes where that set has information stored
     Handle<Map<String, Vector<String>>> setsInDB = makeObject<Map<String, Vector<String>>>();
 
-    // a map where the key is the IP of a node and the value is a vector with
-    // all sets in that node that contain data for this database
-    Handle<Map<String, Vector<String>>> nodesInDB = makeObject<Map<String, Vector<String>>>();
-
     // Contains information about nodes in the cluster with data for a given database
     pdb::Handle<pdb::Vector<String>> listOfNodes = makeObject<Vector<String>>();
 
@@ -374,39 +340,6 @@ private:
         replaceMapOfSets(tempSetsInDB);
     }
 
-    void deleteSetFromSingleNode(String& setName, String& node) {
-        Handle<Map<String, Vector<String>>> tempNodesInDB =
-            makeObject<Map<String, Vector<String>>>();
-        for (auto& a : *getNodesInDB()) {
-            if (a.key != node) {
-                (*tempNodesInDB)[a.key] = a.value;
-            } else {
-                auto sets = a.value;
-                auto newSets = (*tempNodesInDB)[a.key];
-                for (int i = 0; i < sets.size(); i++) {
-                    if (sets[i] != setName) {
-                        newSets.push_back(sets[i]);
-                    }
-                }
-            }
-        }
-    }
-
-    void deleteSetFromNodeMap(String& setName) {
-        Handle<Map<String, Vector<String>>> tempNodesInDB =
-            makeObject<Map<String, Vector<String>>>();
-        for (const auto& setsInNode : (*nodesInDB)) {
-            auto node = setsInNode.key;
-            auto sets = setsInNode.value;
-            auto newSetsInNode = (*tempNodesInDB)[node];
-            for (int i = 0; i < sets.size(); i++) {
-                if (sets[i] != setName) {
-                    newSetsInNode.push_back(sets[i]);
-                }
-            }
-        }
-        replaceMapOfNodes(tempNodesInDB);
-    }
 };
 
 } /* namespace pdb */

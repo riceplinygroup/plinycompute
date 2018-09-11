@@ -19,7 +19,6 @@
 #define CATALOG_CLIENT_H
 
 #include "CatSharedLibraryByNameRequest.h"
-#include "CatalogCloseSQLiteDBHandler.h"
 #include "CatalogDatabaseMetadata.h"
 #include "CatalogNodeMetadata.h"
 #include "CatalogPrintMetadata.h"
@@ -79,7 +78,6 @@ public:
    */
   bool getSharedLibraryByTypeName(int16_t identifier, std::string &typeName,
                                   std::string sharedLibraryFileName,
-                                  Handle<CatalogUserTypeMetadata> &typeMetadata,
                                   string &sharedLibraryBytes,
                                   std::string &errMsg);
 
@@ -155,13 +153,6 @@ public:
   bool addNodeToSet(std::string nodeIP, std::string databaseName,
                     std::string setName, std::string &errMsg);
 
-  /* Sends a request to the Catalog Server to add information about a node to a
-   * database;
-   * returns true on success, false on fail
-   */
-  bool addNodeToDB(std::string nodeIP, std::string databaseName,
-                   std::string &errMsg);
-
   /* Sends a request to the Catalog Server to remove information about a node
    * from a set, this is
    * invoked when storage
@@ -171,14 +162,6 @@ public:
   bool removeNodeFromSet(std::string nodeIP, std::string databaseName,
                          std::string setName, std::string &errMsg);
 
-  /* Sends a request to the Catalog Server to remove information about a node
-   * from a database,
-   * this is invoked when storage
-   * removes a database in a node in the cluster; returns true on success, false
-   * on fail
-   */
-  bool removeNodeFromDB(std::string nodeIP, std::string databaseName,
-                        std::string &errMsg);
 
   /* Sends a request to the Catalog Server to print the content of the metadata
    * stored in the
@@ -200,9 +183,6 @@ public:
 
   /* Sets to true if this Catalog Client points to the Manager Catalog Server */
   void setPointsToManagerCatalog(bool pointsToManager);
-
-  /* Sends a request to the Catalog Server to close the SQLite DB Handler */
-  bool closeCatalogSQLite(std::string &errMsg);
 
   /* Lists all metadata registered in the catalog. */
   string listAllRegisteredMetadata(std::string &errMsg);

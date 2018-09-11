@@ -83,30 +83,23 @@ int main(int argc, char* argv[]) {
 
     std::string errMsg = " ";
     int numNodes = 1;
-    string line = "";
-    string nodeName = "";
-    string hostName = "";
+    string line;
+    string nodeName;
+    string hostName;
     string serverListFile;
     int portValue = 8108;
 
-    if (pseudoClusterMode==true) serverListFile = "conf/serverlist.test";
-    else serverListFile = "conf/serverlist";
+    serverListFile = pseudoClusterMode ? "conf/serverlist.test" : "conf/serverlist";
 
-    frontEnd.addFunctionality<pdb::ResourceManagerServer>(
-        serverListFile, port, pseudoClusterMode, pemFile);
+    frontEnd.addFunctionality<pdb::ResourceManagerServer>(serverListFile, port, pseudoClusterMode, pemFile);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
 
     // registers metadata for manager node in the catalog
-    pdb::Handle<pdb::CatalogNodeMetadata> nodeData =
-        pdb::makeObject<pdb::CatalogNodeMetadata>(String("localhost:" + std::to_string(port)),
-                                                  String("localhost"),
-                                                  port,
-                                                  String("manager"),
-                                                  String("manager"),
-                                                  1);
-
-    if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
+    if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:" + std::to_string(port),
+                                                                                                                         "localhost",
+                                                                                                                         port,
+                                                                                                                         "manager"), errMsg)) {
         std::cout << "Metadata for manager node was not added because " + errMsg << std::endl;
     } else {
         std::cout << "Metadata for manager node successfully added to catalog." << std::endl;
@@ -116,23 +109,23 @@ int main(int argc, char* argv[]) {
     makeObjectAllocatorBlock(4 * 1024 * 1024, true);
 
     for (int i = 0; i < allNodes->size(); i++) {
+
        nodeName = "worker_" + std::to_string(numNodes);
        hostName = (*allNodes)[i]->getAddress().c_str();
        portValue = (*allNodes)[i]->getPort();
-       pdb::Handle<pdb::CatalogNodeMetadata> workerNode =
-       pdb::makeObject<pdb::CatalogNodeMetadata>(String(hostName + ":" + std::to_string(portValue)),
-                                                 String(hostName),
-                                                 portValue,
-                                                 String(nodeName),
-                                                 String("worker"),
-                                                 1);
-       if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(workerNode, errMsg)) {
+
+       // register the worker
+       if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>(hostName + ":" + std::to_string(port),
+                                                                                                                            hostName,
+                                                                                                                            portValue,
+                                                                                                                            "worker"), errMsg)) {
           std::cout << "Metadata for worker node was not added because " + errMsg << std::endl;
        } else {
           std::cout << "Metadata for worker node successfully added to catalog. "
                     << hostName << " | " << std::to_string(portValue) << " | " << nodeName << " | "
                     << std::endl;
        }
+
        numNodes++;
     }
 

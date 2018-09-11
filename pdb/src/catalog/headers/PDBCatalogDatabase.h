@@ -1,0 +1,60 @@
+//
+// Created by dimitrije on 9/4/18.
+//
+
+#ifndef PDB_PDBCATALOGDATABASE_H
+#define PDB_PDBCATALOGDATABASE_H
+
+#include <string>
+#include <sqlite_orm.h>
+
+namespace pdb {
+
+/**
+ * This is just a definition for the shared pointer on the type
+ */
+class PDBCatalogDatabase;
+typedef std::shared_ptr<PDBCatalogDatabase> PDBCatalogDatabasePtr;
+
+class PDBCatalogDatabase {
+
+public:
+
+  /**
+   * The default constructor needed by the orm
+   */
+  PDBCatalogDatabase() = default;
+
+  /**
+   * The initializer constructor
+   * @param name - the name of the database
+   */
+  PDBCatalogDatabase(const std::string &name) : name(name) {}
+
+  /**
+   * The name of the database
+   */
+  std::string name;
+
+  /**
+   * The timestamp this database is created on
+   */
+  long createdOn;
+
+  /**
+   * Return the schema of the database object
+   * @return the schema
+   */
+  static auto getSchema() {
+
+    // return the schema
+    return sqlite_orm::make_table("databases", sqlite_orm::make_column("databaseName", &PDBCatalogDatabase::name, sqlite_orm::primary_key()),
+                                               sqlite_orm::make_column("databaseCreatedOn", &PDBCatalogDatabase::createdOn));
+  }
+};
+
+}
+
+
+
+#endif //PDB_PDBCATALOGDATABASE_H

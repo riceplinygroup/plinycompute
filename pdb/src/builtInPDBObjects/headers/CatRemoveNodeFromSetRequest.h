@@ -35,6 +35,12 @@ public:
     CatRemoveNodeFromSetRequest(std::string dbName, std::string setName, std::string nodeIP)
         : dbName(dbName), setName(setName), nodeIP(nodeIP) {}
 
+    CatRemoveNodeFromSetRequest(const Handle<CatRemoveNodeFromSetRequest>& requestToCopy) {
+      dbName = requestToCopy->dbName;
+      setName = requestToCopy->setName;
+      nodeIP = requestToCopy->nodeIP;
+    }
+
     std::string nodeToRemove() {
         return nodeIP;
     }

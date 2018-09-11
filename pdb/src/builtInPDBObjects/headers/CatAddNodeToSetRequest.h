@@ -36,6 +36,12 @@ public:
     CatAddNodeToSetRequest(std::string dbName, std::string setName, std::string nodeIP)
         : dbName(dbName), setName(setName), nodeIP(nodeIP) {}
 
+    CatAddNodeToSetRequest(const Handle<CatAddNodeToSetRequest>& requestToCopy) {
+      dbName = requestToCopy->dbName;
+      setName = requestToCopy->setName;
+      nodeIP = requestToCopy->nodeIP;
+    }
+
     std::string nodeToAdd() {
         return nodeIP;
     }

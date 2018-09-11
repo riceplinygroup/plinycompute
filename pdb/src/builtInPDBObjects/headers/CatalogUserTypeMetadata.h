@@ -120,11 +120,15 @@ public:
         objectName = itemIdIn;
     }
 
+    void setItemType(pdb::String& itemTypeIn) {
+        objectType = itemTypeIn;
+    }
+
     void setLibraryBytes(pdb::String& bytesIn) {
         libraryBytes = bytesIn;
     }
 
-    void setLibraryBytes(std::string bytesIn) {
+    void setLibraryBytes(const char* bytesIn) {
         libraryBytes = bytesIn;
     }
 
@@ -145,7 +149,6 @@ public:
         return out;
     }
 
-private:
     // numeric index to indicate the position on the vector
     pdb::String itemId;
     // numeric unique ID for a user-defined object starts from 8192

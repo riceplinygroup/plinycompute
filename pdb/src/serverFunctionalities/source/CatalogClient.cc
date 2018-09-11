@@ -27,14 +27,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "CatAddNodeToDatabaseRequest.h"
 #include "CatAddNodeToSetRequest.h"
 #include "CatCreateDatabaseRequest.h"
 #include "CatCreateSetRequest.h"
 #include "CatDeleteDatabaseRequest.h"
 #include "CatDeleteSetRequest.h"
 #include "CatRegisterType.h"
-#include "CatRemoveNodeFromDatabaseRequest.h"
 #include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatSharedLibraryRequest.h"
@@ -206,11 +204,7 @@ int16_t CatalogClient::searchForObjectTypeName(std::string objectTypeName) {
 bool CatalogClient::getSharedLibrary(int16_t identifier,
                                      std::string sharedLibraryFileName) {
 
-  const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-  PDB_COUT << "CatalogClient: getSharedLibrary for id=" << identifier
-           << std::endl;
-  Handle<CatalogUserTypeMetadata> tempMetadataObject =
-      makeObject<CatalogUserTypeMetadata>();
+  PDB_COUT << "CatalogClient: getSharedLibrary for id=" << identifier << std::endl;
   string sharedLibraryBytes;
   string errMsg;
 
@@ -218,7 +212,7 @@ bool CatalogClient::getSharedLibrary(int16_t identifier,
   string typeNameToSearch = "";
 
   bool res = getSharedLibraryByTypeName(
-      identifier, typeNameToSearch, sharedLibraryFileName, tempMetadataObject,
+      identifier, typeNameToSearch, sharedLibraryFileName,
       sharedLibraryBytes, errMsg);
 
   PDB_COUT << "CatalogClient: deleted putResultHere" << std::endl;
@@ -228,8 +222,7 @@ bool CatalogClient::getSharedLibrary(int16_t identifier,
 // retrieves a Shared Library given it's typeName
 bool CatalogClient::getSharedLibraryByTypeName(
     int16_t identifier, std::string &typeNameToSearch,
-    std::string sharedLibraryFileName,
-    Handle<CatalogUserTypeMetadata> &typeMetadata, string &sharedLibraryBytes,
+    std::string sharedLibraryFileName, string &sharedLibraryBytes,
     std::string &errMsg) {
 
   PDB_COUT << "inside CatalogClient getSharedLibraryByTypeName for type="
@@ -439,29 +432,6 @@ bool CatalogClient::addNodeToSet(std::string nodeIP, std::string databaseName,
       databaseName, setName, nodeIP);
 }
 
-// sends a request to the Catalog Server to add Information about a Node to a
-// Database
-bool CatalogClient::addNodeToDB(std::string nodeIP, std::string databaseName,
-                                std::string &errMsg) {
-
-  return simpleRequest<CatAddNodeToDatabaseRequest, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error creating database: " + result->getRes().second;
-            myLogger->error("Error creating database: " +
-                            result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error getting type name: got nothing back from catalog";
-        return false;
-      },
-      databaseName, nodeIP);
-}
-
 // sends a request to the Catalog Server to remove Information about a Node from
 // a Set
 bool CatalogClient::removeNodeFromSet(std::string nodeIP,
@@ -484,31 +454,6 @@ bool CatalogClient::removeNodeFromSet(std::string nodeIP,
         return false;
       },
       databaseName, setName, nodeIP);
-}
-
-// sends a request to the Catalog Server to remove Information about a Node from
-// a Database
-bool CatalogClient::removeNodeFromDB(std::string nodeIP,
-                                     std::string databaseName,
-                                     std::string &errMsg) {
-
-  return simpleRequest<CatRemoveNodeFromDatabaseRequest, SimpleRequestResult,
-                       bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error deleting database: " + result->getRes().second;
-            myLogger->error("Error deleting database: " +
-                            result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error getting type name: got nothing back from catalog";
-        return false;
-      },
-      databaseName, nodeIP);
 }
 
 // sends a request to the Catalog Server to add metadata about a Database
@@ -632,26 +577,6 @@ string CatalogClient::listAllRegisteredMetadata(std::string &errMsg) {
   return printCatalogMetadata(category, errMsg);
 }
 
-// sends a request to the Catalog Serve to close the SQLite handler
-bool CatalogClient::closeCatalogSQLite(std::string &errMsg) {
-  return simpleRequest<CatalogCloseSQLiteDBHandler, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg =
-                "Error printing catalog metadata: " + result->getRes().second;
-            myLogger->error("Error printing catalog metadata: " +
-                            result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error printing catalog metadata.";
-        return false;
-      });
-}
-
 // templated method to send a request to the Catalog Server to register Metadata
 // about an Item in the Catalog
 template <class Type>
@@ -717,6 +642,16 @@ CatalogClient::registerGenericMetadata(
         Handle<CatalogSetMetadata> metadataItem,
         string &errMsg);
 
+template bool
+CatalogClient::registerGenericMetadata(
+    Handle<CatAddNodeToSetRequest> metadataItem,
+    string &errMsg);
+
+template bool
+CatalogClient::registerGenericMetadata(
+    Handle<CatRemoveNodeFromSetRequest> metadataItem,
+    string &errMsg);
+
 /* Explicit instantiation to delete various types of Metadata */
 template bool
 CatalogClient::deleteGenericMetadata(
@@ -727,5 +662,6 @@ template bool
 CatalogClient::deleteGenericMetadata(
         Handle<CatDeleteSetRequest> metadataItem,
         string &errMsg);
+
 }
 #endif
