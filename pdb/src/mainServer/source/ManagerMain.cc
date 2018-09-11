@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
        portValue = (*allNodes)[i]->getPort();
 
        // register the worker
-       if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>(hostName + ":" + std::to_string(port),
+       if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>(hostName + ":" + std::to_string(portValue),
                                                                                                                             hostName,
                                                                                                                             portValue,
                                                                                                                             "worker"), errMsg)) {
