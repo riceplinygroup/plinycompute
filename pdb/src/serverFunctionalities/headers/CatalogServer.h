@@ -99,6 +99,11 @@ private:
   std::string catalogDirectory;
 
   /**
+   * Path where we store the .so files
+   */
+  std::string tempPath;
+
+  /**
    * True if this is the Manager Catalog Server
    */
   bool isManagerCatalogServer;

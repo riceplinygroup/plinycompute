@@ -51,10 +51,6 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
                              const string &managerIPValue,
                              int managerPortValue) {
 
-  // creates instance of catalog
-  PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
-  this->pdbCatalog = make_shared<PDBCatalog>(catalogDirectory);
-
   // create a logger for the catalog server
   this->catServerLogger = make_shared<pdb::PDBLogger>("catalogServer.log");
 
@@ -63,6 +59,26 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
   this->managerPort = managerPortValue;
   this->catalogDirectory = catalogDirectoryIn;
   this->isManagerCatalogServer = isManagerCatalogServer;
+  this->tempPath = catalogDirectory + "/tmp_so_files";
+
+  // creates the parent folder for the catalog if location exists, only opens it.
+  if (mkdir(catalogDirectory.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+    PDB_COUT << "Parent catalog folder " << catalogDirectory << " was not created, it already exists.\n";
+  } else {
+    PDB_COUT << "Parent catalog folder " << catalogDirectory << "  was created/opened.\n";
+  }
+
+  // creates temp folder for extracting so_files (only if folder doesn't exist)
+  const int folder = mkdir(tempPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  if (folder == -1) {
+    PDB_COUT << "Folder " << tempPath << " was not created, it already exists.\n";
+  } else {
+    PDB_COUT << "Folder " << tempPath << " for temporary shared libraries was created/opened.\n";
+  }
+
+  // creates instance of catalog
+  PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
+  this->pdbCatalog = make_shared<PDBCatalog>(catalogDirectory + "/catalog.sqlite");
 
   PDB_COUT << "Catalog Server successfully initialized!" << endl;
 }
