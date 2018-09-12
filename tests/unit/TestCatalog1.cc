@@ -1,6 +1,7 @@
 #include <iostream>
 #include "PDBCatalog.h"
 #include <qunit.h>
+#include <boost/filesystem.hpp>
 
 class Tests {
 
@@ -11,6 +12,10 @@ class Tests {
    */
   void test() {
 
+    // remove the catalog if it exists from a previous run
+    boost::filesystem::remove("out.sqlite");
+
+    // create a catalog
     pdb::PDBCatalog catalog("out.sqlite");
 
     std::string error;
