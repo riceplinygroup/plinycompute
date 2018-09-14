@@ -469,7 +469,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 if (!res) {
                     errMsg = "Database already exists\n";
                 } else {
-                    res = getFunctionality<CatalogServer>().registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>(request->getDatabase()), errMsg);
+                    res = getFunctionality<CatalogServer>().registerDatabase(request->getDatabase(), errMsg);
                 }
 
             } else {
@@ -520,9 +520,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                             res = false;
                         } else {
                             PDB_COUT << "to add set in catalog" << std::endl;
-                            res = getFunctionality<CatalogServer>().registerSet(std::make_shared<pdb::PDBCatalogSet>(request->getSetName(),
-                                                                                                                                   request->getDatabase(),
-                                                                                                                                   request->getTypeName()), errMsg);
+                            res = getFunctionality<CatalogServer>().registerSet(request->getSetName(), request->getDatabase(), typeID, request->getTypeName(), errMsg);
                             if (res) {
                                 PDB_COUT << "success" << std::endl;
                             } else {

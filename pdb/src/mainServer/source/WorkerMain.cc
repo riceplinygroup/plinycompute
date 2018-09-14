@@ -26,6 +26,7 @@
 #include "PangeaStorageServer.h"
 #include "FrontendQueryTestServer.h"
 #include "HermesExecutionServer.h"
+#include "GenericWork.h"
 
 int main(int argc, char* argv[]) {
 
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
         sharedMemSize = (size_t)(atoi(argv[2])) * (size_t)1024 * (size_t)1024;
         standalone = false;
         string managerAccess(argv[3]);
-        size_t pos = managerAccess.find(":");
+        size_t pos = managerAccess.find(':');
         if (pos != string::npos) {
             managerPort = stoi(managerAccess.substr(pos + 1, managerAccess.size()));
 
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
             managerIp = managerAccess;
         }
         string workerAccess(argv[4]);
-        pos = workerAccess.find(":");
+        pos = workerAccess.find(':');
         if (pos != string::npos) {
             localPort = stoi(workerAccess.substr(pos + 1, workerAccess.size()));
             localIp = workerAccess.substr(0, pos);
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Thread number =" << numThreads << std::endl;
     std::cout << "Shared memory size =" << sharedMemSize << std::endl;
 
-    if (standalone == true) {
+    if (standalone) {
         std::cout << "We are now running in standalone mode" << std::endl;
     } else {
         std::cout << "We are now running in distribution mode" << std::endl;
@@ -153,10 +154,7 @@ int main(int argc, char* argv[]) {
                 frontEnd.addFunctionality<pdb::CatalogClient>(localPort, "localhost", logger);
                 std::cout << "to register node metadata in catalog..." << std::endl;
 
-                if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:" + std::to_string(localPort),
-                                                                                                                                     "localhost",
-                                                                                                                                     localPort,
-                                                                                                                                     nodeType), errMsg)) {
+                if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode("localhost", localPort, nodeType, errMsg)) {
                     std::cout << "Not able to register node metadata: " + errMsg << std::endl;
                     std::cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status." << std::endl;
                 } else {

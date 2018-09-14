@@ -96,10 +96,7 @@ int main(int argc, char* argv[]) {
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
 
     // registers metadata for manager node in the catalog
-    if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:" + std::to_string(port),
-                                                                                                                         "localhost",
-                                                                                                                         port,
-                                                                                                                         "manager"), errMsg)) {
+    if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode("localhost", port, "manager", errMsg)) {
         std::cout << "Metadata for manager node was not added because " + errMsg << std::endl;
     } else {
         std::cout << "Metadata for manager node successfully added to catalog." << std::endl;
@@ -115,10 +112,7 @@ int main(int argc, char* argv[]) {
        portValue = (*allNodes)[i]->getPort();
 
        // register the worker
-       if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode(std::make_shared<pdb::PDBCatalogNode>(hostName + ":" + std::to_string(portValue),
-                                                                                                                            hostName,
-                                                                                                                            portValue,
-                                                                                                                            "worker"), errMsg)) {
+       if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode(hostName, portValue, "worker", errMsg)) {
           std::cout << "Metadata for worker node was not added because " + errMsg << std::endl;
        } else {
           std::cout << "Metadata for worker node successfully added to catalog. "

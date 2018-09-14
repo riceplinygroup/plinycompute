@@ -503,7 +503,7 @@ bool pdb::PDBCatalog::removeSet(const std::string &dbName, const std::string &se
   // remove the set
   storage.remove_all<PDBCatalogSet>(where(c(&PDBCatalogSet::setIdentifier) == setIdentifier));
 
-  return false;
+  return true;
 }
 
 bool pdb::PDBCatalog::removeNodeFromSet(const std::string &nodeID, const std::string &dbName, const std::string &setName, std::string &error) {

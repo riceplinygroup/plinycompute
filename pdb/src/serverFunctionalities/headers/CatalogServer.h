@@ -84,11 +84,11 @@ public:
 
   bool setExists(const std::string &dbName, const std::string &setName);
 
-  bool registerNode(PDBCatalogNodePtr node, std::string &error);
+  bool registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error);
 
-  bool registerSet(PDBCatalogSetPtr set, std::string &error);
+  bool registerSet(const std::string &set, const std::string &database, int16_t typeID, const std::string &type, std::string &error);
 
-  bool registerDatabase(PDBCatalogDatabasePtr db, std::string &error);
+  bool registerDatabase(const std::string &name, std::string &error);
 
   bool removeDatabase(const std::string &dbName, std::string &error);
 
@@ -158,14 +158,6 @@ private:
    */
   void initBuiltInTypes();
 
-  bool broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error);
-
-  bool broadcastRegisterDatabase(Handle<CatCreateDatabaseRequest> &request, std::string &error);
-
-  bool broadcastDeleteSet(Handle<CatDeleteSetRequest> &request, std::string &error);
-
-  bool broadcastDeleteDatabase(Handle<CatDeleteDatabaseRequest> &request, std::string &error);
-
   /**
    * Adds a new object type... return -1 on failure, this is done on a worker node catalog
    * the typeID is given by the manager catalog
@@ -209,7 +201,6 @@ private:
     return true;
   }
 
-
   /**
    * Templated method to forward a request to the Catalog Server on another node
    * @tparam Type - is the type of the request we want to forward
@@ -222,6 +213,12 @@ private:
   template <class Type>
   bool forwardRequest(pdb::Handle<Type> &request, const std::string &address, int port, std::string &errMsg) {
 
+    // make an allocation block
+    const UseTemporaryAllocationBlock tempBlock{1024};
+
+    // copy the request we want to forward
+    Handle<Type> requestCopy = makeObject<Type>(request);
+
     return simpleRequest<Type, SimpleRequestResult, bool>(
         this->catServerLogger, port, address, false, 1024 * 1024,
         [&](Handle<SimpleRequestResult> result) {
@@ -233,9 +230,7 @@ private:
             if (!result->getRes().first) {
 
               // we failed set the error and return false
-              errMsg = "Error failed request of type : "; +  + " "  + result->getRes().second;
-              errMsg.append(typeid(Type).name());
-              errMsg.append(", with error : " + result->getRes().second);
+              errMsg = "Error failed request to node : " + address + ":" + std::to_string(port) + ". Error is :" + result->getRes().second;
 
               // log the error
               this->catServerLogger->error("Error registering node metadata: " + result->getRes().second);
@@ -255,8 +250,17 @@ private:
 
           return false;
         },
-        request);
+        requestCopy);
   }
+
+
+  bool broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error);
+
+  bool broadcastRegisterDatabase(Handle<CatCreateDatabaseRequest> &request, std::string &error);
+
+  bool broadcastDeleteSet(Handle<CatDeleteSetRequest> &request, std::string &error);
+
+  bool broadcastDeleteDatabase(Handle<CatDeleteDatabaseRequest> &request, std::string &error);
 
 };
 }
