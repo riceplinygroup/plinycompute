@@ -23,6 +23,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <vector>
+#include <CatalogServer.h>
 
 #include "BuiltInObjectTypeIDs.h"
 #include "CatCreateDatabaseRequest.h"
@@ -34,14 +35,14 @@
 #include "CatSetObjectTypeRequest.h"
 #include "CatSharedLibraryByNameRequest.h"
 #include "CatAddNodeToSetRequest.h"
-#include "CatSharedLibraryRequest.h"
 #include "CatTypeNameSearch.h"
 #include "CatTypeNameSearchResult.h"
 #include "CatTypeSearchResult.h"
-#include "CatalogDatabaseMetadata.h"
+#include "CatalogUserTypeMetadata.h"
 #include "CatalogPrintMetadata.h"
 #include "CatalogServer.h"
 #include "SimpleRequestHandler.h"
+#include "VTableMap.h"
 
 namespace pdb {
 
@@ -61,6 +62,21 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
   this->isManagerCatalogServer = isManagerCatalogServer;
   this->tempPath = catalogDirectory + "/tmp_so_files";
 
+  // create the directories for the catalog
+  initDirectories();
+
+  // creates instance of catalog
+  PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
+  this->pdbCatalog = make_shared<PDBCatalog>(catalogDirectory + "/catalog.sqlite");
+
+  // initialize the types
+  initBuiltInTypes();
+
+  PDB_COUT << "Catalog Server successfully initialized!" << endl;
+}
+
+void CatalogServer::initDirectories() const {
+
   // creates the parent folder for the catalog if location exists, only opens it.
   if (mkdir(catalogDirectory.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
     PDB_COUT << "Parent catalog folder " << catalogDirectory << " was not created, it already exists.\n";
@@ -75,15 +91,173 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
   } else {
     PDB_COUT << "Folder " << tempPath << " for temporary shared libraries was created/opened.\n";
   }
-
-  // creates instance of catalog
-  PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
-  this->pdbCatalog = make_shared<PDBCatalog>(catalogDirectory + "/catalog.sqlite");
-
-  PDB_COUT << "Catalog Server successfully initialized!" << endl;
 }
 
-PDBCatalogPtr CatalogServer::getCatalog() { return pdbCatalog; }
+void CatalogServer::initBuiltInTypes() {
+
+  // go through each built in type
+  for (const auto &type : VTableMap::getBuiltInTypes()) {
+
+    // check if the type does not exist
+    if(!pdbCatalog->typeExists(type.first)) {
+
+      // register the type
+      std::string error;
+      if(!pdbCatalog->registerType(std::make_shared<pdb::PDBCatalogType>(type.second, "built-in", type.first, std::vector<char>()), error)) {
+
+        // we failed log what happened
+        PDB_COUT << error;
+      }
+    }
+  }
+}
+
+bool CatalogServer::broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error) {
+
+  // grab the info about the set
+  auto dbName = request->whichSet().first;
+  auto setName = request->whichSet().second;
+  auto type = request->whichTypeName();
+
+  // register the set with the catalog
+  std::string errMsg;
+  bool res = pdbCatalog->registerSet(std::make_shared<pdb::PDBCatalogSet>(setName, dbName, type), errMsg);
+
+  // after we added the set to the local catalog, if this is the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
+  // request to the distributed copies of the catalog
+  if (isManagerCatalogServer) {
+
+    // get the results of each broadcast
+    map<string, pair<bool, string>> updateResults;
+
+    // broadcast the update
+    broadcastRequest(request, updateResults, errMsg);
+
+    for (auto &item : updateResults) {
+
+      // if we failed res would be set to false
+      res = res || item.second.first;
+
+      // log what is happening
+      PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
+    }
+
+  } else {
+
+    // log what happened
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
+  }
+
+  return res;
+}
+
+bool CatalogServer::broadcastRegisterDatabase(Handle<CatCreateDatabaseRequest> &request, std::string &error) {
+
+  // store it locally
+  bool res = pdbCatalog->registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>(request->dbToCreate()), error);
+
+  // after we added the set to the local catalog, if this is the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
+  // request to the distributed copies of the catalog
+  if (isManagerCatalogServer) {
+
+    // get the results of each broadcast
+    map<string, pair<bool, string>> updateResults;
+
+    // broadcast the update
+    broadcastRequest(request, updateResults, error);
+
+    for (auto &item : updateResults) {
+
+      // if we failed res would be set to false
+      res = res || item.second.first;
+
+      // log what is happening
+      PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
+    }
+
+  } else {
+
+    // log what happened
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
+  }
+
+  return res;
+}
+
+bool CatalogServer::broadcastDeleteSet(Handle<CatDeleteSetRequest> &request, std::string &error) {
+
+  // grab the set
+  auto set = request->whichSet();
+
+  // invokes deleting Set metadata from catalog
+  std::string errMsg;
+  bool res = pdbCatalog->removeSet(set.first, set.second, errMsg);
+
+  // after we deleted the set in the local catalog, if this is the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
+  // delete to the distributed copies of the catalog
+  if (isManagerCatalogServer) {
+
+    // get the results of each broadcast
+    map<string, pair<bool, string>> updateResults;
+
+    // broadcast the update
+    broadcastRequest(request, updateResults, errMsg);
+
+    for (auto &item : updateResults) {
+
+      // if we failed res would be set to false
+      res = res || item.second.first;
+
+      // log what is happening
+      PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
+    }
+
+  } else {
+
+    // log what happened
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
+  }
+
+  return res;
+}
+
+bool CatalogServer::broadcastDeleteDatabase(Handle<CatDeleteDatabaseRequest> &request, std::string &error) {
+
+  // invokes deleting database metadata from catalog
+  std::string errMsg;
+  bool res = pdbCatalog->removeDatabase(request->dbToDelete(), errMsg);
+
+  // after it deleted the database in the local catalog, if this is the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
+  // delete to the distributed copies of the catalog
+  if (isManagerCatalogServer) {
+
+    // get the results of each broadcast
+    map<string, pair<bool, string>> updateResults;
+
+    // broadcast the update
+    broadcastRequest(request, updateResults, errMsg);
+
+    for (auto &item : updateResults) {
+
+      // if we failed res would be set to false
+      res = res || item.second.first;
+
+      // log what is happening
+      PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
+    }
+
+  } else {
+
+    // log what happened
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
+  }
+
+  return res;
+}
 
 // register handlers for processing requests to the Catalog Server
 void CatalogServer::registerHandlers(PDBServer &forMe) {
@@ -112,113 +286,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         bool res = pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeID, address, port, type) , errMsg);
 
         // make an allocation block
-        const UseTemporaryAllocationBlock tempBlock{1024};
-        Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
-
-        // sends result to requester
-        res = sendUsingMe->sendObject(response, errMsg);
-        return make_pair(res, errMsg);
-      }));
-
-  // handles a request to register or update metadata for a Database in the catalog
-  forMe.registerHandler(
-      CatalogDatabaseMetadata_TYPEID,
-      make_shared<SimpleRequestHandler<CatalogDatabaseMetadata>>(
-          [&](Handle<CatalogDatabaseMetadata> request, PDBCommunicatorPtr sendUsingMe) {
-
-            // lock the catalog server
-            std::lock_guard<std::mutex> guard(serverMutex);
-
-            // log what is happening
-            PDB_COUT << "CatalogServer handler CatalogDatabaseMetadata_TYPEID \n";
-
-            // grab the database name
-            std::string dbName = request->getItemName();
-
-            // if database doesn't exist inserts metadata, otherwise only updates it
-            std::string errMsg;
-            bool res = pdbCatalog->registerDatabase(std::make_shared<PDBCatalogDatabase>(dbName), errMsg);
-
-            // after it registered the Database metadata in the local catalog, if this is
-            // the manager catalog iterate over all nodes in the cluster and broadcast the
-            // insert to the distributed copies of the catalog
-            if (isManagerCatalogServer) {
-
-              // need these to get the result back
-              map<string, pair<bool, string>> updateResults;
-              broadcastCatalogUpdate(request, updateResults, errMsg);
-
-              // check all the responses
-              for (auto &item : updateResults) {
-
-                // if we failed res would be set to false
-                res = res || item.second.first;
-
-                // log what is happening
-                PDB_COUT << "Node IP: " << item.first << (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
-              }
-
-            } else {
-              PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally! \n";
-            }
-
-            // create a response
-            const UseTemporaryAllocationBlock tempBlock{1024};
-            Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
-
-            // sends result to requester
-            res = sendUsingMe->sendObject(response, errMsg);
-            return make_pair(res, errMsg);
-          }));
-
-  // handles a request to register or update metadata of a Set in the catalog
-  forMe.registerHandler(
-      CatalogSetMetadata_TYPEID,
-      make_shared<SimpleRequestHandler<CatalogSetMetadata>>([&](Handle<CatalogSetMetadata> request,
-                                                                PDBCommunicatorPtr sendUsingMe) {
-
-        // lock the catalog server
-        std::lock_guard<std::mutex> guard(serverMutex);
-
-        // log what is happening
-        PDB_COUT << "CatalogServer handler CatalogSetMetadata_TYPEID \n";
-
-        // grab the info about the set
-        std::string setName = request->getItemName();
-        std::string dbName = request->getDBName();
-        int type = std::stoi(request->getObjectTypeId());
-
-        // register the set locally
-        std::string errMsg;
-        bool res = pdbCatalog->registerSet(std::make_shared<pdb::PDBCatalogSet>(setName, dbName, type), errMsg);
-
-        // after it registered the Set metadata in the local catalog, if this is the
-        // manager catalog iterate over all nodes in the cluster and broadcast the
-        // insert to the distributed copies of the catalog
-        if (isManagerCatalogServer) {
-
-          // get the results of each broadcast
-          map<string, pair<bool, string>> updateResults;
-
-          // broadcast the update
-          broadcastCatalogUpdate(request, updateResults, errMsg);
-
-          for (auto &item : updateResults) {
-
-            // if we failed res would be set to false
-            res = res || item.second.first;
-
-            // log what is happening
-            PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
-          }
-
-        } else {
-
-          // log what happened
-          PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
-        }
-
-        // make the response object
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
@@ -304,67 +371,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         bool res = sendUsingMe->sendObject(response, errMsg);
 
         // return result
-        return make_pair(res, errMsg);
-      }));
-
-  // handles a request to retrieve an .so library given a Type Id
-  forMe.registerHandler(
-      CatSharedLibraryRequest_TYPEID,
-      make_shared<SimpleRequestHandler<CatSharedLibraryRequest>>([&](Handle<CatSharedLibraryRequest> request,
-                                                                     PDBCommunicatorPtr sendUsingMe) {
-
-        // lock the catalog server
-        std::lock_guard<std::mutex> guard(serverMutex);
-
-        // grab the type id
-        int16_t typeID = request->getTypeID();
-
-        // log what is happening
-        PDB_COUT << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" << std::to_string(typeID) << endl;
-
-        // this is the error
-        std::string errMsg;
-
-        // the result of the sending
-        bool res;
-
-        // first, make sure we have this identifier
-        if(!pdbCatalog->typeExists(typeID)){
-
-          // set the error
-          errMsg = "CatalogServer Error: Could not find the identifier it received";
-
-          // create a response
-          const UseTemporaryAllocationBlock tempBlock{1024};
-          Handle<Vector<char>> response = makeObject<Vector<char>>();
-
-          // sends the response in case of failure
-          res = sendUsingMe->sendObject(response, errMsg);
-
-          // log what happened
-          PDB_COUT << errMsg << endl;
-
-          // return the result
-          return make_pair(res, errMsg);
-        }
-
-        // grab the type and extract the vector from it
-        auto type = pdbCatalog->getType(typeID);
-
-        // log what happened
-        PDB_COUT << "The .so file is of size " + std::to_string(type->soBytes.size()) << "\n";
-
-        // allocates memory for the .so library bytes
-        const UseTemporaryAllocationBlock temp{ 1024 + type->soBytes.size() };
-        Handle<Vector<char>> response = makeObject<Vector<char>>(type->soBytes.size(), type->soBytes.size());
-
-        // copy the memory
-        memmove(response->c_ptr(), type->soBytes.data(), type->soBytes.size());
-
-        // sends result to requester
-        res = sendUsingMe->sendObject(response, errMsg);
-
-        // return the result
         return make_pair(res, errMsg);
       }));
 
@@ -517,7 +523,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         return make_pair(res, errMsg);
       }));
 
-  // handles a request to retrieve the TypeId of a Type, if it's not registered returns -1
+  // handles a request to retrieve the name of a Type, if it's not registered returns -1
   forMe.registerHandler(
       CatSetObjectTypeRequest_TYPEID,
       make_shared<SimpleRequestHandler<CatSetObjectTypeRequest>>(
@@ -529,21 +535,20 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // grab the type if it exists
             auto set = pdbCatalog->getSet(request->getDatabaseName(), request->getSetName());
 
-            // ask the catalog server for the type ID and then the name of the type
-            auto typeID = set != nullptr ? *set->type : -1;
-
-            // log what is happening
-            PDB_COUT << "Type ID for set with dbName=" << request->getDatabaseName() << " and setName=" << request->getSetName() << " is " << std::to_string(typeID) << "\n";
-
             // create an allocation block for the response
             const UseTemporaryAllocationBlock tempBlock{1024};
 
             // allocate the response
             Handle<CatTypeNameSearchResult> response;
 
-            // if the set has a type we grab the typename from the catalog and create a respnse
-            if (typeID >= 0) {
-              response = makeObject<CatTypeNameSearchResult>(pdbCatalog->getTypeWithoutLibrary(typeID)->name, true, "success");
+            // if the set has a type we grab the typename from the catalog and create a response
+            if (set != nullptr && set->type != nullptr) {
+
+              // log what is happening
+              PDB_COUT << "Type for set with dbName=" << request->getDatabaseName() << " and setName=" << request->getSetName() << " is " << *set->type << "\n";
+
+              // return the name
+              response = makeObject<CatTypeNameSearchResult>(*set->type, true, "success");
             }
             else {
 
@@ -570,7 +575,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
             // register the database in the catalog
             std::string errMsg;
-            bool res = pdbCatalog->registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>(request->dbToCreate()), errMsg);
+            bool res = broadcastRegisterDatabase(request, errMsg);
 
             // create an allocation block to hold the response
             const UseTemporaryAllocationBlock tempBlock{1024};
@@ -591,14 +596,9 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         // lock the catalog server
         std::lock_guard<std::mutex> guard(serverMutex);
 
-        // grab the info about the set
-        auto dbName = request->whichSet().first;
-        auto setName = request->whichSet().second;
-        auto type = request->whichType();
-
         // register the set with the catalog
         std::string errMsg;
-        bool res =  pdbCatalog->registerSet(std::make_shared<pdb::PDBCatalogSet>(setName, dbName, type), errMsg);
+        bool res =  broadcastRegisterSet(request, errMsg);
 
         // create an allocation block to hold the response
         const UseTemporaryAllocationBlock tempBlock{1024};
@@ -622,33 +622,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
             // invokes deleting database metadata from catalog
             std::string errMsg;
-            bool res = pdbCatalog->removeDatabase(request->dbToDelete(), errMsg);
-
-            // after it deleted the database in the local catalog, if this is the
-            // manager catalog iterate over all nodes in the cluster and broadcast the
-            // delete to the distributed copies of the catalog
-            if (isManagerCatalogServer) {
-
-              // get the results of each broadcast
-              map<string, pair<bool, string>> updateResults;
-
-              // broadcast the update
-              broadcastCatalogDelete(request, updateResults, errMsg);
-
-              for (auto &item : updateResults) {
-
-                // if we failed res would be set to false
-                res = res || item.second.first;
-
-                // log what is happening
-                PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
-              }
-
-            } else {
-
-              // log what happened
-              PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
-            }
+            bool res = broadcastDeleteDatabase(request, errMsg);
 
             // allocate a block for the response
             const UseTemporaryAllocationBlock tempBlock{1024};
@@ -667,41 +641,9 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
       make_shared<SimpleRequestHandler<CatDeleteSetRequest>>([&](Handle<CatDeleteSetRequest> request,
                                                                  PDBCommunicatorPtr sendUsingMe) {
 
-        // lock the catalog server
-        std::lock_guard<std::mutex> guard(serverMutex);
-
-        // grab the set
-        auto set = request->whichSet();
-
         // invokes deleting Set metadata from catalog
         std::string errMsg;
-        bool res = pdbCatalog->removeSet(set.first, set.second, errMsg);
-
-        // after it has deleted the Set metadata in the local catalog, if this is the
-        // manager catalog iterate over all nodes in the cluster and broadcast the
-        // delete to the distributed copies of the catalog
-        if (isManagerCatalogServer) {
-
-          // get the results of each broadcast
-          map<string, pair<bool, string>> updateResults;
-
-          // broadcast the update
-          broadcastCatalogDelete(request, updateResults, errMsg);
-
-          for (auto &item : updateResults) {
-
-            // if we failed res would be set to false
-            res = res || item.second.first;
-
-            // log what is happening
-            PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
-          }
-
-        } else {
-
-          // log what happened
-          PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
-        }
+        bool res = broadcastDeleteSet(request, errMsg);
 
         // create an allocation block for the response
         const UseTemporaryAllocationBlock tempBlock{1024};
@@ -740,7 +682,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               map<string, pair<bool, string>> updateResults;
 
               // broadcast the update
-              broadcastCatalogUpdate<CatAddNodeToSetRequest>(request, updateResults, errMsg);
+              broadcastRequest<CatAddNodeToSetRequest>(request, updateResults, errMsg);
 
               for (auto &item : updateResults) {
 
@@ -792,7 +734,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               map<string, pair<bool, string>> updateResults;
 
               // broadcast the update
-              broadcastCatalogUpdate(request, updateResults, errMsg);
+              broadcastRequest(request, updateResults, errMsg);
 
               for (auto &item : updateResults) {
 
@@ -868,6 +810,113 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             res = sendUsingMe->sendObject(response, errMsg);
             return make_pair(res, errMsg);
           }));
+}
+
+bool CatalogServer::databaseExists(const std::string &name) {
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // query the catalog
+  return this->pdbCatalog->databaseExists(name);
+}
+
+bool CatalogServer::setExists(const std::string &dbName, const std::string &setName){
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // query the catalog
+  return this->pdbCatalog->setExists(dbName, setName);
+}
+
+bool CatalogServer::registerNode(PDBCatalogNodePtr node, std::string &error) {
+
+
+  return false;
+}
+
+bool CatalogServer::registerSet(PDBCatalogSetPtr set, std::string &error) {
+
+  // create an allocation block to hold the response
+  //const UseTemporaryAllocationBlock tempBlock{1024};
+  //Handle<CatCreateSetRequest> response = makeObject<CatCreateSetRequest>(res, errMsg);
+
+
+  return false;
+}
+
+bool CatalogServer::registerDatabase(PDBCatalogDatabasePtr db, std::string &error) {
+
+  // create an allocation block to hold the response
+  //const UseTemporaryAllocationBlock tempBlock{1024};
+  //Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
+
+
+  return false;
+}
+
+bool CatalogServer::removeDatabase(const std::string &dbName, std::string &error) {
+
+  // create an allocation block to hold the response
+  //const UseTemporaryAllocationBlock tempBlock{1024};
+  //Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
+
+  return false;
+}
+
+bool CatalogServer::removeSet(const std::string &dbName, const std::string &setName, std::string &error) {
+
+  // create an allocation block to hold the response
+  //const UseTemporaryAllocationBlock tempBlock{1024};
+  //Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
+
+  return false;
+}
+
+PDBCatalogSetPtr CatalogServer::getSet(const std::string &dbName, const std::string &setName) {
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // return the set
+  return pdbCatalog->getSet(dbName, setName);
+}
+
+PDBCatalogDatabasePtr CatalogServer::getDatabase(const std::string &dbName) {
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // return the set
+  return pdbCatalog->getDatabase(dbName);
+}
+
+PDBCatalogTypePtr CatalogServer::getTypeWithoutLibrary(const std::string &name) {
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // return the set
+  return pdbCatalog->getTypeWithoutLibrary(name);
+}
+
+std::vector<PDBCatalogNode> CatalogServer::getNodesWithSet(const std::string &dbName, const std::string &setName) {
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // return the set
+  return pdbCatalog->getNodesWithSet(dbName, setName);
+}
+
+std::vector<PDBCatalogNode> CatalogServer::getNodesWithDatabase(const std::string &dbName) {
+
+  // lock the catalog server
+  std::lock_guard<std::mutex> guard(serverMutex);
+
+  // return the set
+  return pdbCatalog->getNodesWithDatabase(dbName);
 }
 
 // adds metadata and bytes of a shared library in the catalog and returns its typeId
@@ -987,86 +1036,5 @@ int16_t CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, con
     return (int16_t) pdbCatalog->getTypeWithoutLibrary(typeName)->id;
   }
 }
-
-// templated method for broadcasting a Catalog Update to nodes in the cluster
-template <class Type>
-bool CatalogServer::broadcastCatalogUpdate(Handle<Type> metadataToSend, map<string, pair<bool, string>> &broadcastResults, string &errMsg) {
-
-  PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("distCatalogLogger");
-
-  for (auto &node : pdbCatalog->getNodes()) {
-
-    string nodeIP = node.address;
-    int nodePort = node.port;
-
-    bool res = false;
-    CatalogClient clusterCatalogClient = CatalogClient(nodePort, nodeIP, catalogLogger);
-
-    // if this node is not a manager forward the message to it
-    if (node.nodeType != "manager") {
-
-      // sends the request to a node in the cluster
-      res = clusterCatalogClient.registerGenericMetadata(metadataToSend, errMsg);
-
-      // adds the result of the update
-      broadcastResults.insert(make_pair(nodeIP, make_pair(res, errMsg)));
-    }
-  }
-
-  return true;
-}
-
-// templated method for broadcasting a Catalog Deletion to nodes in the cluster
-template <class Type>
-bool CatalogServer::broadcastCatalogDelete(Handle<Type> metadataToSend,
-                                           map<string, pair<bool, string>> &broadcastResults,
-                                           string &errMsg) {
-
-  // grab a logger
-  PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("distCatalogLogger");
-
-  // go through each node
-  for (auto &node : pdbCatalog->getNodes()) {
-
-    // grab the address and the port of the node
-    string nodeIP = node.address;
-    int nodePort = node.port;
-
-    // grab a catalog client to broadcast the change
-    CatalogClient clusterCatalogClient = CatalogClient(nodePort, nodeIP, catalogLogger);
-
-    // is this node the manager if so skip it
-    if (node.nodeType != "manager") {
-
-      // sends the request to a node in the cluster
-      bool res = clusterCatalogClient.deleteGenericMetadata(metadataToSend, errMsg);
-
-      // adds the result of the update
-      broadcastResults.insert(make_pair(nodeIP, make_pair(res, errMsg)));
-    }
-  }
-
-  return true;
-}
-
-/* Explicit instantiation to broadcast Catalog Updates for a Database, needed for linking */
-template bool CatalogServer::broadcastCatalogUpdate(Handle<CatalogDatabaseMetadata> metadataToSend,
-                                                    map<string, pair<bool, string>> &broadcastResults,
-                                                    string &errMsg);
-
-/* Explicit instantiation to broadcast Catalog Updates for a Set, needed for linking */
-template bool CatalogServer::broadcastCatalogUpdate(Handle<CatalogSetMetadata> metadataToSend,
-                                                    map<string, pair<bool, string>> &broadcastResults,
-                                                    string &errMsg);
-
-/* Explicit instantiation to broadcast Catalog Updates for a Adding Node to Set, needed for linking */
-template bool CatalogServer::broadcastCatalogUpdate(Handle<CatAddNodeToSetRequest> metadataToSend,
-                                                    map<string, pair<bool, string>> &broadcastResults,
-                                                    string &errMsg);
-
-/* Explicit instantiation to broadcast Catalog Updates for a Removing a Node from Set, needed for linking */
-template bool CatalogServer::broadcastCatalogUpdate(Handle<CatRemoveNodeFromSetRequest> metadataToSend,
-                                                    map<string, pair<bool, string>> &broadcastResults,
-                                                    string &errMsg);
 
 } // namespace

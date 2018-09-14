@@ -19,10 +19,8 @@
 #define CATALOG_CLIENT_H
 
 #include "CatSharedLibraryByNameRequest.h"
-#include "CatalogDatabaseMetadata.h"
 #include "CatalogNodeMetadata.h"
 #include "CatalogPrintMetadata.h"
-#include "CatalogSetMetadata.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
 #include "ServerFunctionality.h"
@@ -130,8 +128,8 @@ public:
                  std::string &errMsg);
 
   /* same as above, but here we use the type code */
-  bool createSet(int16_t identifier, std::string databaseName,
-                 std::string setName, std::string &errMsg);
+  bool createSet(int16_t typeId, const std::string &typeName, const std::string &databaseName,
+                 const std::string &setName, std::string &errMsg);
 
   /* Sends a request to the Catalog Server to delete a database; returns true on
    * success, false on

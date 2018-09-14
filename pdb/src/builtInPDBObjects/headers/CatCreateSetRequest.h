@@ -30,27 +30,43 @@ namespace pdb {
 // encapsulates a request to create a set
 class CatCreateSetRequest : public Object {
 
-public:
-    ~CatCreateSetRequest() {}
-    CatCreateSetRequest() {}
-    CatCreateSetRequest(std::string dbName, std::string setName, int16_t typeID)
-        : dbName(dbName), setName(setName), typeID(typeID) {}
+ public:
+  ~CatCreateSetRequest() {}
+  CatCreateSetRequest() {}
+  CatCreateSetRequest(const std::string &dbName,
+                      const std::string &setName,
+                      int16_t typeID,
+                      const std::string &typeName)
+      : dbName(dbName), setName(setName), typeID(typeID), typeName(typeName) {}
 
-    std::pair<std::string, std::string> whichSet() {
-        return std::make_pair<std::string, std::string>(dbName, setName);
-    }
+  CatCreateSetRequest(const Handle<CatCreateSetRequest> &requestToCopy) {
+    dbName = requestToCopy->dbName;
+    setName = requestToCopy->setName;
+    typeID = requestToCopy->typeID;
+    typeName = requestToCopy->typeName;
+  }
 
-    int16_t whichType() {
-        return typeID;
-    }
+  std::pair<std::string, std::string> whichSet() {
+    return std::make_pair<std::string, std::string>(dbName, setName);
+  }
 
-    ENABLE_DEEP_COPY
+  int16_t whichTypeID() {
+    return typeID;
+  }
 
-private:
-    String dbName;
-    String setName;
-    int16_t typeID;
+  std::string whichTypeName() {
+    return typeName;
+  }
+
+  ENABLE_DEEP_COPY
+
+ private:
+  String dbName;
+  String setName;
+  int16_t typeID;
+  String typeName;
 };
+
 }
 
 #endif

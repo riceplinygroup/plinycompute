@@ -49,7 +49,7 @@ bool pdb::PDBCatalog::registerSet(pdb::PDBCatalogSetPtr set, std::string &error)
   } catch(std::system_error &e){
 
     // set the error we failed
-    error = "Could not register the set with the identifier : " + set->setIdentifier + "! The SQL error is : "  + std::string(e.what());
+    error = "Could not register the set with the identifier : " + set->setIdentifier + " and type " + *set->type + "! The SQL error is : "  + std::string(e.what());
 
     // we failed
     return false;
@@ -94,7 +94,7 @@ bool pdb::PDBCatalog::registerType(pdb::PDBCatalogTypePtr type, std::string &err
   try {
 
     // if the type exists don't create it
-    if(typeExists(type->id)) {
+    if(typeExists(type->name)) {
 
       // set the error
       error = "The type is already registered\n";
@@ -204,9 +204,9 @@ bool pdb::PDBCatalog::setExists(const std::string &dbName, const std::string &se
   return set != nullptr;
 }
 
-bool pdb::PDBCatalog::typeExists(long id) {
+bool pdb::PDBCatalog::typeExists(const std::string &name) {
   // try to find the database
-  auto type = storage.get_no_throw<PDBCatalogType>(id);
+  auto type = storage.get_no_throw<PDBCatalogType>(name);
 
   // did we find it?
   return type != nullptr;
@@ -233,14 +233,10 @@ pdb::PDBCatalogNodePtr pdb::PDBCatalog::getNode(const std::string &nodeID) {
 }
 
 pdb::PDBCatalogTypePtr pdb::PDBCatalog::getType(long id) {
-  return storage.get_no_throw<PDBCatalogType>(id);
-}
-
-pdb::PDBCatalogTypePtr pdb::PDBCatalog::getType(const std::string &name) {
 
   // select all the nodes we need
   auto rows = storage.select(columns(&PDBCatalogType::id, &PDBCatalogType::typeCategory, &PDBCatalogType::name, &PDBCatalogType::soBytes),
-                             where(c(&PDBCatalogType::name) == name));
+                             where(c(&PDBCatalogType::id) == id));
 
   // did we find the type
   if(rows.empty()){
@@ -258,6 +254,11 @@ pdb::PDBCatalogTypePtr pdb::PDBCatalog::getType(const std::string &name) {
 
   // return the value
   return ret;
+
+}
+
+pdb::PDBCatalogTypePtr pdb::PDBCatalog::getType(const std::string &name) {
+  return storage.get_no_throw<PDBCatalogType>(name);
 }
 
 pdb::PDBCatalogTypePtr pdb::PDBCatalog::getTypeWithoutLibrary(long id) {
@@ -417,7 +418,7 @@ std::string pdb::PDBCatalog::listRegisteredDatabases() {
 
     // go through each set of this database
     for(const auto &set : getSetForDatabase(db.name)){
-      ret.append("Name " + set.name + ", Database " +  set.database + ", Type : " + std::to_string(*set.type) + "\n");
+      ret.append("Name " + set.name + ", Database " +  set.database + ", Type : " + *set.type + "\n");
     }
   }
 
@@ -431,7 +432,7 @@ std::string pdb::PDBCatalog::listRegisteredSetsForDatabase(const std::string &db
 
   // go through each set of this database
   for(const auto &set : getSetForDatabase(dbName)){
-    ret.append("Name " + set.name + ", Database " +  set.database + ", Type : " + std::to_string(*set.type) + "\n");
+    ret.append("Name " + set.name + ", Database " +  set.database + ", Type : " + *set.type + "\n");
   }
 
   // move the return value

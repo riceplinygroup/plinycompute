@@ -464,17 +464,17 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
             PDB_COUT << "received StorageAddDatabase" << std::endl;
             std::string errMsg;
             bool res = true;
-            if (standalone == true) {
+            if (standalone) {
                 res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
-                if (res == false) {
+                if (!res) {
                     errMsg = "Database already exists\n";
                 } else {
-                    res = getFunctionality<CatalogServer>().getCatalog()->registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>(request->getDatabase()), errMsg);
+                    res = getFunctionality<CatalogServer>().registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>(request->getDatabase()), errMsg);
                 }
 
             } else {
-                if ((res = getFunctionality<PangeaStorageServer>().addDatabase(
-                         request->getDatabase())) == false) {
+                if (!(res = getFunctionality<PangeaStorageServer>().addDatabase(
+                                         request->getDatabase()))) {
                     errMsg = "Database already exists\n";
                 }
             }
@@ -520,9 +520,9 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                             res = false;
                         } else {
                             PDB_COUT << "to add set in catalog" << std::endl;
-                            res = getFunctionality<CatalogServer>().getCatalog()->registerSet(std::make_shared<pdb::PDBCatalogSet>(request->getSetName(),
+                            res = getFunctionality<CatalogServer>().registerSet(std::make_shared<pdb::PDBCatalogSet>(request->getSetName(),
                                                                                                                                    request->getDatabase(),
-                                                                                                                                   typeID), errMsg);
+                                                                                                                                   request->getTypeName()), errMsg);
                             if (res) {
                                 PDB_COUT << "success" << std::endl;
                             } else {
@@ -605,7 +605,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 if (!res) {
                     errMsg = "Failed to delete database\n";
                 } else {
-                    res = getFunctionality<CatalogServer>().getCatalog()->removeDatabase(databaseName, errMsg);
+                    res = getFunctionality<CatalogServer>().removeDatabase(databaseName, errMsg);
                 }
             } else {
                 res = getFunctionality<PangeaStorageServer>().removeDatabase(databaseName);
@@ -651,7 +651,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 }
 
                 // deletes set in catalog
-                res = getFunctionality<CatalogServer>().getCatalog()->removeSet(request->getDatabase(), request->getSetName(), errMsg);
+                res = getFunctionality<CatalogServer>().removeSet(request->getDatabase(), request->getSetName(), errMsg);
 
             } else {
                 if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName,

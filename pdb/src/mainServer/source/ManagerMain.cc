@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
 
     // registers metadata for manager node in the catalog
-    if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:" + std::to_string(port),
+    if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:" + std::to_string(port),
                                                                                                                          "localhost",
                                                                                                                          port,
                                                                                                                          "manager"), errMsg)) {
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
        portValue = (*allNodes)[i]->getPort();
 
        // register the worker
-       if(!frontEnd.getFunctionality<pdb::CatalogServer>().getCatalog()->registerNode(std::make_shared<pdb::PDBCatalogNode>(hostName + ":" + std::to_string(portValue),
+       if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode(std::make_shared<pdb::PDBCatalogNode>(hostName + ":" + std::to_string(portValue),
                                                                                                                             hostName,
                                                                                                                             portValue,
                                                                                                                             "worker"), errMsg)) {

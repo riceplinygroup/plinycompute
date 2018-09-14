@@ -68,7 +68,7 @@ class PDBCatalogType {
                                   sqlite_orm::make_column("typeCategory", &PDBCatalogType::typeCategory),
                                   sqlite_orm::make_column("typeName", &PDBCatalogType::name),
                                   sqlite_orm::make_column("typeSoBytes", &PDBCatalogType::soBytes),
-                                  sqlite_orm::primary_key(&PDBCatalogType::id));
+                                  sqlite_orm::primary_key(&PDBCatalogType::name));
   }
 
 };

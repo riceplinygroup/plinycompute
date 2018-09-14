@@ -81,7 +81,7 @@ class PDBCatalog {
 
   bool setExists(const std::string &dbName, const std::string &setName);
 
-  bool typeExists(long id);
+  bool typeExists(const std::string &name);
 
   bool nodeExists(const std::string &nodeID);
 

@@ -23,8 +23,6 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "CatAddNodeToSetRequest.h"
@@ -35,16 +33,13 @@
 #include "CatRegisterType.h"
 #include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
-#include "CatSharedLibraryRequest.h"
 #include "CatTypeNameSearch.h"
 #include "CatTypeNameSearchResult.h"
 #include "CatTypeSearchResult.h"
 #include "CatalogClient.h"
-#include "PDBDebug.h"
 #include "ShutDown.h"
-#include "SimpleRequest.h"
-#include "SimpleRequestResult.h"
 #include "SimpleSendDataRequest.h"
+#include "CatalogUserTypeMetadata.h"
 
 namespace pdb {
 
@@ -318,8 +313,8 @@ std::string CatalogClient::getObjectType(std::string databaseName,
 }
 
 // sends a request to the Catalog Server to create Metadata for a new Set
-bool CatalogClient::createSet(int16_t typeID, std::string databaseName,
-                              std::string setName, std::string &errMsg) {
+bool CatalogClient::createSet(int16_t typeId, const std::string &typeName, const std::string &databaseName,
+                              const std::string &setName, std::string &errMsg) {
   PDB_COUT << "CatalogClient: to create set..." << std::endl;
   return simpleRequest<CatCreateSetRequest, SimpleRequestResult, bool>(
       myLogger, port, address, false, 1024,
@@ -340,7 +335,7 @@ bool CatalogClient::createSet(int16_t typeID, std::string databaseName,
         std::cout << errMsg << std::endl;
         return false;
       },
-      databaseName, setName, typeID);
+      databaseName, setName, typeId, typeName);
 }
 
 // sends a request to the Catalog Server to create Metadata for a new Database
@@ -456,29 +451,6 @@ bool CatalogClient::removeNodeFromSet(std::string nodeIP,
       databaseName, setName, nodeIP);
 }
 
-// sends a request to the Catalog Server to add metadata about a Database
-bool CatalogClient::registerDatabaseMetadata(std::string itemToSearch,
-                                             std::string &errMsg) {
-  PDB_COUT << "inside registerDatabaseMetadata" << endl;
-
-  return simpleRequest<CatalogDatabaseMetadata, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error registering database metadata: " +
-                     result->getRes().second;
-            myLogger->error("Error registering database metadata: " +
-                            result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error getting type name: got nothing back from catalog";
-        return false;
-      });
-}
-
 // sends a request to the Catalog Server to add metadata about a Node
 bool CatalogClient::registerNodeMetadata(
     pdb::Handle<pdb::CatalogNodeMetadata> nodeData, std::string &errMsg) {
@@ -576,92 +548,6 @@ string CatalogClient::listAllRegisteredMetadata(std::string &errMsg) {
   string category = "all";
   return printCatalogMetadata(category, errMsg);
 }
-
-// templated method to send a request to the Catalog Server to register Metadata
-// about an Item in the Catalog
-template <class Type>
-bool CatalogClient::registerGenericMetadata(pdb::Handle<Type> metadataItem,
-                                            std::string &errMsg) {
-
-  return simpleRequest<Type, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024 * 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg =
-                "Error registering node metadata: " + result->getRes().second;
-            myLogger->error("Error registering node metadata: " +
-                            result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error registering node metadata in the catalog";
-        return false;
-      },
-      metadataItem);
-}
-
-// templated method to send a request to the Catalog Server to delete Metadata
-// about an Item in the Catalog
-template <class Type>
-bool CatalogClient::deleteGenericMetadata(pdb::Handle<Type> metadataItem,
-                                          std::string &errMsg) {
-
-  return simpleRequest<Type, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024 * 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error removing node metadata: " + result->getRes().second;
-            myLogger->error("Error removing node metadata: " +
-                            result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error removing node metadata in the catalog";
-        return false;
-      },
-      metadataItem);
-}
-
-/* Explicit instantiation to register various types of Metadata */
-template bool
-CatalogClient::registerGenericMetadata(
-        Handle<CatalogNodeMetadata> metadataItem,
-        string &errMsg);
-
-template bool
-CatalogClient::registerGenericMetadata(
-        Handle<CatalogDatabaseMetadata> metadataItem,
-        string &errMsg);
-
-template bool
-CatalogClient::registerGenericMetadata(
-        Handle<CatalogSetMetadata> metadataItem,
-        string &errMsg);
-
-template bool
-CatalogClient::registerGenericMetadata(
-    Handle<CatAddNodeToSetRequest> metadataItem,
-    string &errMsg);
-
-template bool
-CatalogClient::registerGenericMetadata(
-    Handle<CatRemoveNodeFromSetRequest> metadataItem,
-    string &errMsg);
-
-/* Explicit instantiation to delete various types of Metadata */
-template bool
-CatalogClient::deleteGenericMetadata(
-        Handle<CatDeleteDatabaseRequest> metadataItem,
-        string &errMsg);
-
-template bool
-CatalogClient::deleteGenericMetadata(
-        Handle<CatDeleteSetRequest> metadataItem,
-        string &errMsg);
 
 }
 #endif

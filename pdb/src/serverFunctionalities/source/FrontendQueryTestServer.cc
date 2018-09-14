@@ -719,7 +719,7 @@ void FrontendQueryTestServer::registerHandlers(PDBServer &forMe) {
         const UseTemporaryAllocationBlock tempBlock{1024 * 128};
         {
           std::string errMsg;
-          if  ((!getFunctionality<CatalogServer>().getCatalog()->removeSet(request->whichDatabase(), request->whichSet(), errMsg)) ||
+          if  ((!getFunctionality<CatalogServer>().removeSet(request->whichDatabase(), request->whichSet(), errMsg)) ||
                (!getFunctionality<PangeaStorageServer>().removeSet(request->whichDatabase(), request->whichSet()))) {
 
             Handle<SimpleRequestResult> result = makeObject<SimpleRequestResult>(false, std::string("error attempting to delete set: " + errMsg));

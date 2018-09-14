@@ -19,11 +19,14 @@
 #define CATALOG_SERVER_H
 
 #include <mutex>
+#include <CatDeleteDatabaseRequest.h>
 
 #include "CatalogClient.h"
 #include "PDBCatalog.h"
 #include "PDBDebug.h"
 #include "PDBServer.h"
+#include "CatCreateDatabaseRequest.h"
+#include "CatDeleteSetRequest.h"
 #include "ServerFunctionality.h"
 
 /**
@@ -77,12 +80,29 @@ public:
    */
   void registerHandlers(PDBServer &forMe) override;
 
-  /**
-   * Returns a reference to the underlying class that manages catalog metadata
-   * the metadata is stored in a SQLite database
-   * @return
-   */
-  PDBCatalogPtr getCatalog();
+  bool databaseExists(const std::string &name);
+
+  bool setExists(const std::string &dbName, const std::string &setName);
+
+  bool registerNode(PDBCatalogNodePtr node, std::string &error);
+
+  bool registerSet(PDBCatalogSetPtr set, std::string &error);
+
+  bool registerDatabase(PDBCatalogDatabasePtr db, std::string &error);
+
+  bool removeDatabase(const std::string &dbName, std::string &error);
+
+  bool removeSet(const std::string &dbName, const std::string &setName, std::string &error);
+
+  PDBCatalogSetPtr getSet(const std::string &dbName, const std::string &setName);
+
+  PDBCatalogDatabasePtr getDatabase(const std::string &dbName);
+
+  PDBCatalogTypePtr getTypeWithoutLibrary(const std::string &name);
+
+  std::vector<PDBCatalogNode> getNodesWithSet(const std::string &dbName, const std::string &setName);
+
+  std::vector<PDBCatalogNode> getNodesWithDatabase(const std::string &dbName);
 
 private:
 
@@ -129,6 +149,24 @@ private:
   std::mutex serverMutex;
 
   /**
+   * Makes the directories of the catalog if needed
+   */
+  void initDirectories() const;
+
+  /**
+   * Initializes the catalog with the built in types if needed
+   */
+  void initBuiltInTypes();
+
+  bool broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error);
+
+  bool broadcastRegisterDatabase(Handle<CatCreateDatabaseRequest> &request, std::string &error);
+
+  bool broadcastDeleteSet(Handle<CatDeleteSetRequest> &request, std::string &error);
+
+  bool broadcastDeleteDatabase(Handle<CatDeleteDatabaseRequest> &request, std::string &error);
+
+  /**
    * Adds a new object type... return -1 on failure, this is done on a worker node catalog
    * the typeID is given by the manager catalog
    * @param typeID
@@ -139,28 +177,87 @@ private:
   int16_t loadAndRegisterType(int16_t typeID, const char* &soFile, size_t soFileSize, string &errMsg);
 
   /**
-   * Broadcasts a metadata item to all available nodes in a cluster, when an update has occurred
+   * Broadcasts a request to all available nodes in a cluster, when an update has occurred
    * returns a map with the results from updating each node in the cluster
-   * @tparam Type
-   * @param metadataToSend
-   * @param broadcastResults
-   * @param errMsg
-   * @return
+   * @tparam Type - The type of the request we are broadcasting
+   * @param request - the request we are broadcasting
+   * @param broadcastResults - the results of the broadcast
+   * @param errMsg - the error message generated if any
+   * @return - true if we succeed false otherwise
    */
   template <class Type>
-  bool broadcastCatalogUpdate(Handle<Type> metadataToSend, map<string, pair<bool, string>> &broadcastResults, string &errMsg);
+  bool broadcastRequest(Handle<Type> &request, map<string, pair<bool, string>> &broadcastResults, string &errMsg){
+
+    // go through each node
+    for (auto &node : pdbCatalog->getNodes()) {
+
+      // grab the address and the port of the node
+      std::string nodeIP = node.address;
+      int nodePort = node.port;
+
+      // is this node the manager if so skip it
+      if (node.nodeType != "manager") {
+
+        // sends the request to a node in the cluster
+        bool res = forwardRequest(request, nodeIP, nodePort, errMsg);
+
+        // adds the result of the update
+        broadcastResults.insert(make_pair(nodeIP, make_pair(res, errMsg)));
+      }
+    }
+
+    return true;
+  }
+
 
   /**
-   * Broadcasts a metadata item to all available nodes in a cluster, when an delete has occurred returns a map with
-   * the results from updating each node in the cluster
-   * @tparam Type
-   * @param metadataToSend
-   * @param broadcastResults
-   * @param errMsg
-   * @return
+   * Templated method to forward a request to the Catalog Server on another node
+   * @tparam Type - is the type of the request we want to forward
+   * @param request - is the request we want to forward
+   * @param address - is the address of the node with the catalog server
+   * @param port - is the port of the node with the catalog server
+   * @param errMsg - the generated error message if any
+   * @return - true if we succeed, false otherwise
    */
   template <class Type>
-  bool broadcastCatalogDelete(Handle<Type> metadataToSend, map<string, pair<bool, string>> &broadcastResults, string &errMsg);
+  bool forwardRequest(pdb::Handle<Type> &request, const std::string &address, int port, std::string &errMsg) {
+
+    return simpleRequest<Type, SimpleRequestResult, bool>(
+        this->catServerLogger, port, address, false, 1024 * 1024,
+        [&](Handle<SimpleRequestResult> result) {
+
+          // if the result is something else null we got a response
+          if (result != nullptr) {
+
+            // check if we failed
+            if (!result->getRes().first) {
+
+              // we failed set the error and return false
+              errMsg = "Error failed request of type : "; +  + " "  + result->getRes().second;
+              errMsg.append(typeid(Type).name());
+              errMsg.append(", with error : " + result->getRes().second);
+
+              // log the error
+              this->catServerLogger->error("Error registering node metadata: " + result->getRes().second);
+
+              // return false
+              return false;
+            }
+
+            // we are good return true
+            return true;
+          }
+
+          // set an error and return false
+          errMsg = "Error failed request of type : "; +  + " "  + result->getRes().second;
+          errMsg.append(typeid(Type).name());
+          errMsg.append(", with error : " + result->getRes().second);
+
+          return false;
+        },
+        request);
+  }
+
 };
 }
 

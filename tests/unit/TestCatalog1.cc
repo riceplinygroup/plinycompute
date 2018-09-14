@@ -24,14 +24,20 @@ class Tests {
     QUNIT_IS_TRUE(catalog.registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>("db1"), error));
     QUNIT_IS_TRUE(catalog.registerDatabase(std::make_shared<pdb::PDBCatalogDatabase>("db2"), error));
 
+    // store the number of registred types
+    auto numBefore = catalog.numRegisteredTypes();
+
     // create a type
-    QUNIT_IS_TRUE(catalog.registerType(std::make_shared<pdb::PDBCatalogType>(8341, "built-in", "Type1", std::vector<char>()), error));
+    QUNIT_IS_TRUE(catalog.registerType(std::make_shared<pdb::PDBCatalogType>(8341, "built-in", "Type1", std::vector<char>()), error))
     QUNIT_IS_TRUE(catalog.registerType(std::make_shared<pdb::PDBCatalogType>(8342, "built-in", "Type2", std::vector<char>()), error));
 
+    // check if we added two new types
+    QUNIT_IS_EQUAL(catalog.numRegisteredTypes() - numBefore, 2);
+
     // create the set
-    QUNIT_IS_TRUE(catalog.registerSet(std::make_shared<pdb::PDBCatalogSet>("set1", "db1", 8341), error));
-    QUNIT_IS_TRUE(catalog.registerSet(std::make_shared<pdb::PDBCatalogSet>("set2", "db1", 8341), error));
-    QUNIT_IS_TRUE(catalog.registerSet(std::make_shared<pdb::PDBCatalogSet>("set3", "db2", 8342), error));
+    QUNIT_IS_TRUE(catalog.registerSet(std::make_shared<pdb::PDBCatalogSet>("set1", "db1", "Type1"), error));
+    QUNIT_IS_TRUE(catalog.registerSet(std::make_shared<pdb::PDBCatalogSet>("set2", "db1", "Type1"), error));
+    QUNIT_IS_TRUE(catalog.registerSet(std::make_shared<pdb::PDBCatalogSet>("set3", "db2", "Type2"), error));
 
     // create the nodes
     QUNIT_IS_TRUE(catalog.registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:8080", "localhost", 8080, "master"), error));
@@ -57,8 +63,8 @@ class Tests {
     QUNIT_IS_FALSE(catalog.setExists("db2", "set2"));
 
     // check if the types exist
-    QUNIT_IS_TRUE(catalog.typeExists(8341));
-    QUNIT_IS_TRUE(catalog.typeExists(8342));
+    QUNIT_IS_TRUE(catalog.typeExists("Type1"));
+    QUNIT_IS_TRUE(catalog.typeExists("Type2"));
 
     // check if the node exist
     QUNIT_IS_TRUE(catalog.nodeExists("localhost:8080"));
@@ -82,7 +88,7 @@ class Tests {
     QUNIT_IS_EQUAL(set->name, "set1")
     QUNIT_IS_EQUAL(set->setIdentifier, "db1:set1")
     QUNIT_IS_EQUAL(set->database, "db1")
-    QUNIT_IS_EQUAL(*set->type, 8341)
+    QUNIT_IS_EQUAL(*set->type, "Type1")
 
 
     set = catalog.getSet("db1", "set2");
@@ -90,14 +96,14 @@ class Tests {
     QUNIT_IS_EQUAL(set->name, "set2")
     QUNIT_IS_EQUAL(set->setIdentifier, "db1:set2")
     QUNIT_IS_EQUAL(set->database, "db1")
-    QUNIT_IS_EQUAL(*set->type, 8341)
+    QUNIT_IS_EQUAL(*set->type, "Type1")
 
     set = catalog.getSet("db2", "set3");
 
     QUNIT_IS_EQUAL(set->name, "set3")
     QUNIT_IS_EQUAL(set->setIdentifier, "db2:set3")
     QUNIT_IS_EQUAL(set->database, "db2")
-    QUNIT_IS_EQUAL(*set->type, 8342)
+    QUNIT_IS_EQUAL(*set->type, "Type2")
 
     set = catalog.getSet("db1", "set3");
     QUNIT_IS_TRUE(set == nullptr);
@@ -148,9 +154,6 @@ class Tests {
     std::cout << catalog.listNodesInCluster() << std::endl;
     std::cout << catalog.listRegisteredDatabases() << std::endl;
     std::cout << catalog.listUserDefinedTypes() << std::endl;
-
-    // check if we are good.
-    QUNIT_IS_EQUAL(catalog.numRegisteredTypes(), 2);
 
     // remove the database
     catalog.removeDatabase("db1", error);

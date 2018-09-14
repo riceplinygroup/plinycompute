@@ -264,6 +264,22 @@ inline void* VTableMap::getVTablePtr(int16_t objectTypeID) {
     }
 }
 
+inline std::vector<std::pair<std::string, int16_t>> pdb::VTableMap::getBuiltInTypes() {
+
+  // make are return value
+  std::vector<std::pair<std::string, int16_t>> ret;
+
+  // got through each type and filter out the built in ones
+  for (const auto &type : theVTable->objectTypeNamesList) {
+    if (type.second >= 0 && type.second <= TYPE_NOT_RECOGNIZED) {
+      ret.emplace_back(type);
+    }
+  }
+
+  // i like to move it move it!
+  return std::move(ret);
+}
+
 } /* namespace pdb */
 
 #endif

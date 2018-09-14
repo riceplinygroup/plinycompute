@@ -38,7 +38,7 @@ class PDBCatalogSet {
    */
   PDBCatalogSet(const std::string &name,
                 const std::string &database,
-                const long type) : setIdentifier(database + ":" + name), name(name), database(database), type(std::make_shared<int>(type)) {}
+                const std::string &type) : setIdentifier(database + ":" + name), name(name), database(database), type(std::make_shared<std::string>(type)) {}
 
 
   /**
@@ -59,7 +59,7 @@ class PDBCatalogSet {
   /**
    * The type of the set
    */
-  std::shared_ptr<int> type;
+  std::shared_ptr<std::string> type;
 
   /**
    * Return the schema of the database object
@@ -73,7 +73,7 @@ class PDBCatalogSet {
                                            sqlite_orm::make_column("setDatabase", &PDBCatalogSet::database),
                                            sqlite_orm::make_column("setType", &PDBCatalogSet::type),
                                            sqlite_orm::foreign_key(&PDBCatalogSet::database).references(&PDBCatalogDatabase::name),
-                                           sqlite_orm::foreign_key(&PDBCatalogSet::type).references(&PDBCatalogType::id),
+                                           sqlite_orm::foreign_key(&PDBCatalogSet::type).references(&PDBCatalogType::name),
                                            sqlite_orm::primary_key(&PDBCatalogSet::setIdentifier));
   }
 

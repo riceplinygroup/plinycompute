@@ -84,6 +84,9 @@ public:
     // returns the number of built-in objects
     static int totalBuiltInObjects();
 
+    // returns all the built-in types
+    static std::vector<std::pair<std::string, int16_t>> getBuiltInTypes();
+
     // sets the catalog client for the vtable
     static void setCatalogClient(CatalogClient* catalog);
 
