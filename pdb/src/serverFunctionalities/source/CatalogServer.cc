@@ -237,34 +237,26 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         // lock the catalog server
         std::lock_guard<std::mutex> guard(serverMutex);
 
-        // grab the name of the library
-        string typeName = request->getTypeLibraryName();
+        // grab the type
+        auto type = pdbCatalog->getType(request->getTypeLibraryId());
 
         // log what is happening
-        PDB_COUT << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << "\n";
-
-        // grab the type
-        auto type = pdbCatalog->getType(typeName);
+        PDB_COUT << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeID=" << request->getTypeLibraryId() << "\n";
 
         // check if the type is in the local catalog!
         if(type != nullptr) {
 
-          // create an allocation block that can fit .so library and allocate a response
+          // create an allocation block that can fit .so library and allocate a response and init the response data
           const UseTemporaryAllocationBlock tempBlock{ type->soBytes.size() + 1024 * 1024 };
-          Handle<CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
+          Handle<CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>(type->id,
+                                                                                         type->name,
+                                                                                         type->typeCategory,
+                                                                                         type->soBytes.data(),
+                                                                                         type->soBytes.size());
 
           // low what is happening
           PDB_COUT << "Found the type with typeName " << type->name << " for typeId=" + std::to_string(type->id) << "\n";
           PDB_COUT << "The size of the .so library is : " + std::to_string(type->soBytes.size()) << "\n";
-
-          // set the response data
-          response->itemId = std::to_string(type->id);
-          response->objectID = std::to_string(type->id);
-          response->objectType = type->typeCategory;
-          response->objectName = type->name;
-
-          // copies the bytes of the Shared Library to the object to be sent back to the caller
-          response->setLibraryBytes(type->soBytes.data());
 
           // sends result to requester
           std::string errMsg;
@@ -291,10 +283,11 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           // create
           std::string errMsg;
           string bytes;
+          string outTypeName;
 
           // retrieves from remote catalog the Shared Library bytes in "returnedBytes" and metadata in the "response" object
           auto client = CatalogClient(managerPort, managerIP, make_shared<pdb::PDBLogger>("clientCatalogToServerLog"));
-          bool res = client.getSharedLibraryByTypeName(typeId, typeName, dummyObjectFile, bytes, errMsg);
+          bool res = client.getSharedLibraryByTypeName(typeId, outTypeName, dummyObjectFile, bytes, errMsg);
 
           PDB_COUT << "Bytes returned from manager: "  << std::to_string(bytes.size()) << "\n";
 
@@ -318,8 +311,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // create a not found response
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle<CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
-            String newItemID("-1");
-            notFoundResponse->setObjectId(newItemID);
 
             // send it
             res = sendUsingMe->sendObject(notFoundResponse, errMsg);
@@ -327,7 +318,12 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // finish this
             return make_pair(res, errMsg);
 
-          } else {
+          }
+
+          // now grab the type and it better be there
+          type = this->pdbCatalog->getTypeWithoutLibrary(typeId);
+
+          if (type != nullptr) {
 
             // if retrieval was successful prepare and send object to caller
             PDB_COUT << "Fixed the vtable successfully, sending the response !!!!" << endl;
@@ -336,16 +332,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             const UseTemporaryAllocationBlock tempBlock{1024 * 1024 + bytes.size()};
 
             // prepares Object to be sent to caller
-            Handle<CatalogUserTypeMetadata> objectToBeSent = makeObject<CatalogUserTypeMetadata>();
-
-            // set the response parameters
-            auto objectIDString = std::to_string(typeId);
-            String newItemID(objectIDString);
-            objectToBeSent->setObjectId(newItemID);
-            objectToBeSent->setLibraryBytes(bytes.data());
-            String newTypeName(typeName);
-            objectToBeSent->setItemName(newTypeName);
-            objectToBeSent->setItemKey(newTypeName);
+            Handle<CatalogUserTypeMetadata> objectToBeSent = makeObject<CatalogUserTypeMetadata>(type->id, type->name, type->typeCategory, bytes.data(), bytes.size());
 
             // sends result to requester
             res = sendUsingMe->sendObject(objectToBeSent, errMsg);
@@ -360,15 +347,13 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         const UseTemporaryAllocationBlock tempBlock{1024};
 
         // set the error
-        std::string errMsg = "CatSharedLibraryByNameRequest Handler Could not find the type with the name" + typeName + "\n";
+        std::string errMsg = "CatSharedLibraryByNameRequest Handler Could not find the type with the name" + type->name + "\n";
 
         // log what is happening
         PDB_COUT << errMsg;
 
         // Creates an empty Object just to send the response to caller
         Handle<CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
-        notFoundResponse->objectID = "-1";
-        notFoundResponse->itemId = "-1";
 
         // send the object
         bool res = sendUsingMe->sendObject(notFoundResponse, errMsg);
@@ -625,34 +610,9 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             // lock the catalog server
             std::lock_guard<std::mutex> guard(serverMutex);
 
-            // log what is happening
-            PDB_COUT << "Got a CatRegisterType request" << std::endl;
-
-            // get the next object... this holds the shared library file... it could be big, so be careful!!
-            size_t objectSize = sendUsingMe->getSizeOfNextObject();
-
-            // log what is happening
-            PDB_COUT << "Got objectSize=" << objectSize << "\n";
-
-            // allocate the buffer where we will put the .so file
-            void *memory = malloc(objectSize + 2048);
-
-            bool res;
+            // register the type
             std::string errMsg;
-            Handle<Vector<char>> myFile = sendUsingMe->getNextObject<Vector<char>>(memory, res, errMsg);
-
-            // if we succeeded in receiving the data load the library
-            if (res) {
-
-              // grab the bytes
-              const char* bytesPointer = myFile->c_ptr();
-
-              // register the type
-              res = (loadAndRegisterType(-1, bytesPointer, objectSize, errMsg) >= 0);
-            }
-
-            // free the memory we just used
-            free(memory);
+            bool res = broadcastTypeRegister(request, errMsg);
 
             // allocate a block for the response
             const UseTemporaryAllocationBlock tempBlock{1024};
@@ -793,7 +753,7 @@ std::vector<PDBCatalogNode> CatalogServer::getNodesWithDatabase(const std::strin
 }
 
 // adds metadata and bytes of a shared library in the catalog and returns its typeId
-int16_t CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, const char* &soFile, size_t soFileSize, string &errMsg) {
+bool CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, const char *&soFile, size_t soFileSize, string &errMsg) {
 
   // open a temporary file with the right permissions
   string tempFile = catalogDirectory + "/tmp_so_files/temp.so";
@@ -826,7 +786,7 @@ int16_t CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, con
 
     // close the damn thing
     dlclose(so_handle);
-    return -1;
+    return false;
   }
 
   // grab the function from the file
@@ -847,7 +807,7 @@ int16_t CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, con
 
     PDB_COUT << errMsg << endl;
 
-    return -1;
+    return false;
   }
 
   // log what is happening
@@ -867,7 +827,7 @@ int16_t CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, con
     PDB_COUT << "Successfully renaming file " << newName << endl;
   } else {
     PDB_COUT << "Renaming temp file failed " << newName << endl;
-    return -1;
+    return false;
   }
 
   // add the new type name, if we don't already have it
@@ -901,13 +861,50 @@ int16_t CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, con
     pdbCatalog->registerType(std::make_shared<pdb::PDBCatalogType>(typeCode, "user-defined", typeName, std::move(soFileVector)), error);
 
     // return the new type code
-    return typeCode;
+    return true;
 
   } else {
 
     // otherwise return the already existing type code
-    return (int16_t) pdbCatalog->getTypeWithoutLibrary(typeName)->id;
+    return true;
   }
+}
+
+bool CatalogServer::broadcastTypeRegister(Handle<CatRegisterType> &request, string &error) {
+
+  // grab the library bytes
+  const char *bytes = request->getLibraryBytes();
+
+  // store it locally
+  bool res = loadAndRegisterType(-1, bytes, request->getLibrarySize(), error);
+
+  // after we added the set to the local catalog, if this is the
+  // manager catalog iterate over all nodes in the cluster and broadcast the
+  // request to the distributed copies of the catalog
+  if (isManagerCatalogServer) {
+
+    // get the results of each broadcast
+    map<string, pair<bool, string>> updateResults;
+
+    // broadcast the update
+    broadcastRequest(request, updateResults, error);
+
+    for (auto &item : updateResults) {
+
+      // if we failed res would be set to false
+      res = res && item.second.first;
+
+      // log what is happening
+      PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
+    }
+
+  } else {
+
+    // log what happened
+    PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
+  }
+
+  return res;
 }
 
 bool CatalogServer::broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error) {

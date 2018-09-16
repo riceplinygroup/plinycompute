@@ -27,6 +27,7 @@
 #include "PDBServer.h"
 #include "CatCreateDatabaseRequest.h"
 #include "CatDeleteSetRequest.h"
+#include "CatRegisterType.h"
 #include "ServerFunctionality.h"
 
 /**
@@ -166,7 +167,7 @@ private:
    * @param errMsg
    * @return
    */
-  int16_t loadAndRegisterType(int16_t typeID, const char* &soFile, size_t soFileSize, string &errMsg);
+  bool loadAndRegisterType(int16_t typeID, const char *&soFile, size_t soFileSize, string &errMsg);
 
   /**
    * Broadcasts a request to all available nodes in a cluster, when an update has occurred
@@ -244,15 +245,60 @@ private:
           }
 
           // set an error and return false
-          errMsg = "Error failed request of type : "; +  + " "  + result->getRes().second;
-          errMsg.append(typeid(Type).name());
-          errMsg.append(", with error : " + result->getRes().second);
+          errMsg = "Error failed request to node : " + address + ":" + std::to_string(port) + ". Error is :" + result->getRes().second;
 
           return false;
         },
         requestCopy);
   }
 
+  /**
+   * Method to forward a request of CatRegisterType to the Catalog Server on another node
+   * @tparam Type - is the type of the request we want to forward
+   * @param request - is the request we want to forward
+   * @param address - is the address of the node with the catalog server
+   * @param port - is the port of the node with the catalog server
+   * @param errMsg - the generated error message if any
+   * @return - true if we succeed, false otherwise
+   */
+  bool forwardRequest(pdb::Handle<CatRegisterType> &request, const std::string &address, int port, std::string &errMsg) {
+
+    char* libraryBytes = request->getLibraryBytes();
+    size_t librarySize = request->getLibrarySize();
+
+    return simpleRequest<CatRegisterType, SimpleRequestResult, bool>(
+        this->catServerLogger, port, address, false, 1024 * 1024 + request->getLibrarySize(),
+        [&](Handle<SimpleRequestResult> result) {
+
+          // if the result is something else null we got a response
+          if (result != nullptr) {
+
+            // check if we failed
+            if (!result->getRes().first) {
+
+              // we failed set the error and return false
+              errMsg = "Error failed request to node : " + address + ":" + std::to_string(port) + ". Error is :" + result->getRes().second;
+
+              // log the error
+              this->catServerLogger->error("Error registering node metadata: " + result->getRes().second);
+
+              // return false
+              return false;
+            }
+
+            // we are good return true
+            return true;
+          }
+
+          // we failed set the error and return false
+          errMsg = "Error failed request to node : " + address + ":" + std::to_string(port) + ". Error is :" + result->getRes().second;
+
+          return false;
+        },
+        libraryBytes, librarySize);
+  }
+
+  bool broadcastTypeRegister(Handle<CatRegisterType> &request, std::string &error);
 
   bool broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error);
 

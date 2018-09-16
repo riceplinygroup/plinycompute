@@ -55,8 +55,7 @@ void* VTableMap::getVTablePtrUsingCatalog(int16_t objectTypeID) {
     sharedLibraryFile += to_string(getpid()) + "." + to_string(objectTypeID) + ".so";
     PDB_COUT << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std::endl;
     if (theVTable->logger != nullptr) {
-        theVTable->logger->debug(std::string("VTableMap:: to get sharedLibraryFile =") +
-                                 sharedLibraryFile);
+        theVTable->logger->debug(std::string("VTableMap:: to get sharedLibraryFile =") + sharedLibraryFile);
     }
     unlink(sharedLibraryFile.c_str());
     PDB_COUT << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std::endl;
