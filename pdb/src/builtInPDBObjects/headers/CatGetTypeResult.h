@@ -15,15 +15,48 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * CatalogStandardPermissionsMetadata.cc
- *
+
+#ifndef CAT_TYPE_SEARCH_RES_H
+#define CAT_TYPE_SEARCH_RES_H
+
+#include "Object.h"
+#include "Handle.h"
+
+// PRELOAD %CatGetTypeResult%
+
+namespace pdb {
+
+/**
+ * Stores the result of searching for a type
  */
+class CatGetTypeResult : public Object {
 
-#include "CatalogStandardPermissionsMetadata.h"
+ public:
 
-CatalogStandardPermissionsMetadata::CatalogStandardPermissionsMetadata() {
+  CatGetTypeResult() = default;
+  ~CatGetTypeResult() = default;
+
+  CatGetTypeResult(int16_t searchRes, const std::string &typeName, const std::string &typeCategory) : typeID(searchRes),
+                                                                                                      typeName(typeName),
+                                                                                                      typeCategory(typeCategory) {}
+  ENABLE_DEEP_COPY
+
+  /**
+   * The type id of the type
+   */
+  int16_t typeID = -1;
+
+  /**
+   * The name of the type
+   */
+  pdb::String typeName;
+
+  /**
+   * The category of the type
+   */
+  pdb::String typeCategory;
+
+};
 }
 
-CatalogStandardPermissionsMetadata::~CatalogStandardPermissionsMetadata() {
-}
+#endif

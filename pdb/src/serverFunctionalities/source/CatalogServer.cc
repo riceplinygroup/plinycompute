@@ -35,9 +35,9 @@
 #include "CatSetObjectTypeRequest.h"
 #include "CatSharedLibraryByNameRequest.h"
 #include "CatAddNodeToSetRequest.h"
-#include "CatTypeNameSearch.h"
+#include "CatGetType.h"
 #include "CatTypeNameSearchResult.h"
-#include "CatTypeSearchResult.h"
+#include "CatGetTypeResult.h"
 #include "CatalogUserTypeMetadata.h"
 #include "CatalogPrintMetadata.h"
 #include "CatalogServer.h"
@@ -53,7 +53,7 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
                              int managerPortValue) {
 
   // create a logger for the catalog server
-  this->catServerLogger = make_shared<pdb::PDBLogger>("catalogServer.log");
+  this->logger = make_shared<pdb::PDBLogger>("catalogServer.log");
 
   // set the ip address and port
   this->managerIP = managerIPValue;
@@ -72,7 +72,7 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
   // initialize the types
   initBuiltInTypes();
 
-  PDB_COUT << "Catalog Server successfully initialized!" << endl;
+  PDB_COUT << "Catalog Server successfully initialized!\n";
 }
 
 void CatalogServer::initDirectories() const {
@@ -199,26 +199,37 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
   // handles a request to return the typeID of a Type given its name [DONE]
   forMe.registerHandler(
-      CatTypeNameSearch_TYPEID,
-      make_shared<SimpleRequestHandler<CatTypeNameSearch>>([&](Handle<CatTypeNameSearch> request,
+      CatGetType_TYPEID,
+      make_shared<SimpleRequestHandler<CatGetType>>([&](Handle<CatGetType> request,
                                                                PDBCommunicatorPtr sendUsingMe) {
 
         // lock the catalog server
         std::lock_guard<std::mutex> guard(serverMutex);
 
         // log what is happening
-        PDB_COUT << "Received CatTypeNameSearch message \n";
+        PDB_COUT << "Received CatGetType message \n";
 
         // ask the catalog server for the type ID given the type name
-        auto type = this->pdbCatalog->getTypeWithoutLibrary(request->getObjectTypeName());
-        auto typeID = (type != nullptr ? this->pdbCatalog->getTypeWithoutLibrary(request->getObjectTypeName())->id : -1);
+        auto type = this->pdbCatalog->getTypeWithoutLibrary(request->typeName);
 
-        // log what is happening
-        PDB_COUT << "Searched for object type name " + request->getObjectTypeName() + " got " + std::to_string(typeID) << "\n";
-
-        // make a response object
+        // make an allocation block for the response
         const UseTemporaryAllocationBlock tempBlock{1024};
-        Handle<CatTypeSearchResult> response = makeObject<CatTypeSearchResult>((int16_t) typeID);
+        Handle<CatGetTypeResult> response;
+
+        // did we find the type
+        if(type != nullptr) {
+
+          // log what is happening
+          PDB_COUT << "Searched for object type name " + (std::string) request->typeName + " got " + std::to_string(type->id) << "\n";
+
+          // make a response object
+          response = makeObject<CatGetTypeResult>((int16_t) type->id, type->name, type->typeCategory);
+        }
+        else {
+
+          // create an empty response since we haven't found it
+          response = makeObject<CatGetTypeResult>();
+        }
 
         // sends result to requester
         std::string errMsg;

@@ -139,8 +139,7 @@ int main(int argc, char* argv[]) {
 
     // now we create the output set
     pdbClient.removeSet("topK_db", "topKOutput_set");
-    pdbClient.createSet<TopKQueue<double, Handle<EmpWithVector>>>(
-            "topK_db", "topKOutput_set");
+    pdbClient.createSet<TopKQueue<double, Handle<EmpWithVector>>>("topK_db", "topKOutput_set");
 
     // for building the query
     pdb::makeObjectAllocatorBlock(1024 * 1024, true);

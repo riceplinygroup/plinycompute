@@ -142,7 +142,7 @@ private:
   /**
    * Logger to capture debug information for the Catalog Server
    */
-  PDBLoggerPtr catServerLogger;
+  PDBLoggerPtr logger;
 
   /**
    * To ensure serialized access
@@ -221,7 +221,7 @@ private:
     Handle<Type> requestCopy = makeObject<Type>(request);
 
     return simpleRequest<Type, SimpleRequestResult, bool>(
-        this->catServerLogger, port, address, false, 1024 * 1024,
+        this->logger, port, address, false, 1024 * 1024,
         [&](Handle<SimpleRequestResult> result) {
 
           // if the result is something else null we got a response
@@ -234,7 +234,7 @@ private:
               errMsg = "Error failed request to node : " + address + ":" + std::to_string(port) + ". Error is :" + result->getRes().second;
 
               // log the error
-              this->catServerLogger->error("Error registering node metadata: " + result->getRes().second);
+              this->logger->error("Error registering node metadata: " + result->getRes().second);
 
               // return false
               return false;
@@ -267,7 +267,7 @@ private:
     size_t librarySize = request->getLibrarySize();
 
     return simpleRequest<CatRegisterType, SimpleRequestResult, bool>(
-        this->catServerLogger, port, address, false, 1024 * 1024 + request->getLibrarySize(),
+        this->logger, port, address, false, 1024 * 1024 + request->getLibrarySize(),
         [&](Handle<SimpleRequestResult> result) {
 
           // if the result is something else null we got a response
@@ -280,7 +280,7 @@ private:
               errMsg = "Error failed request to node : " + address + ":" + std::to_string(port) + ". Error is :" + result->getRes().second;
 
               // log the error
-              this->catServerLogger->error("Error registering node metadata: " + result->getRes().second);
+              this->logger->error("Error registering node metadata: " + result->getRes().second);
 
               // return false
               return false;

@@ -16,32 +16,39 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CAT_TYPE_SEARCH_RES_H
-#define CAT_TYPE_SEARCH_RES_H
+#ifndef CATTYPENAMESEARCH_H
+#define CATTYPENAMESEARCH_H
 
 #include "Object.h"
 #include "Handle.h"
+#include "PDBString.h"
 
-// PRELOAD %CatTypeSearchResult%
+// PRELOAD %CatGetType%
 
 namespace pdb {
 
-// stores the result of searching for a type
-class CatTypeSearchResult : public Object {
+/**
+ * Encapsulates a request to search for a type in the catalog
+ */
+class CatGetType : public Object {
 
-public:
-    CatTypeSearchResult(){};
-    ~CatTypeSearchResult(){};
-    CatTypeSearchResult(int16_t searchRes) : findMe(searchRes) {}
+ public:
 
-    int16_t getTypeID() {
-        return findMe;
-    }
+  CatGetType() = default;
+  ~CatGetType() = default;
 
-    ENABLE_DEEP_COPY
+  /**
+   * Creates a request to get type info via typeName
+   * @param searchForMe
+   */
+  explicit CatGetType(const std::string &searchForMe) : typeName(searchForMe) {}
 
-private:
-    int16_t findMe;
+  ENABLE_DEEP_COPY
+
+  /**
+   * The name of the type
+   */
+  String typeName;
 };
 }
 

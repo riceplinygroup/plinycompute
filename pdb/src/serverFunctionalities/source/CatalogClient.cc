@@ -33,9 +33,9 @@
 #include "CatRegisterType.h"
 #include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
-#include "CatTypeNameSearch.h"
+#include "CatGetType.h"
 #include "CatTypeNameSearchResult.h"
-#include "CatTypeSearchResult.h"
+#include "CatGetTypeResult.h"
 #include "CatalogClient.h"
 #include "ShutDown.h"
 #include "SimpleSendDataRequest.h"
@@ -169,16 +169,14 @@ void CatalogClient::setPointsToManagerCatalog(bool pointsToManager) {
 // searches for a User-Defined Type give its name and returns it's TypeID
 int16_t CatalogClient::searchForObjectTypeName(std::string objectTypeName) {
   PDB_COUT << "searchForObjectTypeName for " << objectTypeName << std::endl;
-  return simpleRequest<CatTypeNameSearch, CatTypeSearchResult, int16_t>(
+  return simpleRequest<CatGetType, CatGetTypeResult, int16_t>(
       myLogger, port, address, -1, 1024 * 1024,
-      [&](Handle<CatTypeSearchResult> result) {
+      [&](Handle<CatGetTypeResult> result) {
         if (result != nullptr) {
-          PDB_COUT << "searchForObjectTypeName: getTypeId="
-                   << result->getTypeID() << std::endl;
-          return result->getTypeID();
+          PDB_COUT << "searchForObjectTypeName: getTypeId=" << result->typeID << "\n";
+          return result->typeID;
         } else {
-          PDB_COUT << "searchForObjectTypeName: error in getting typeId"
-                   << std::endl;
+          PDB_COUT << "searchForObjectTypeName: error in getting typeId\n";
           return (int16_t)-1;
         }
       },
