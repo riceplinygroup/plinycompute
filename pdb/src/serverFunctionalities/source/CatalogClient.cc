@@ -34,6 +34,7 @@
 #include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatGetType.h"
+#include "CatPrintCatalogResult.h"
 #include "CatTypeNameSearchResult.h"
 #include "CatGetTypeResult.h"
 #include "CatalogClient.h"
@@ -293,7 +294,7 @@ std::string CatalogClient::getObjectType(std::string databaseName,
 }
 
 // sends a request to the Catalog Server to create Metadata for a new Set
-bool CatalogClient::createSet(int16_t typeId, const std::string &typeName, const std::string &databaseName,
+bool CatalogClient::createSet(const std::string &typeName, int16_t typeID, const std::string &databaseName,
                               const std::string &setName, std::string &errMsg) {
   PDB_COUT << "CatalogClient: to create set..." << std::endl;
   return simpleRequest<CatCreateSetRequest, SimpleRequestResult, bool>(
@@ -315,7 +316,7 @@ bool CatalogClient::createSet(int16_t typeId, const std::string &typeName, const
         PDB_COUT << errMsg << std::endl;
         return false;
       },
-      databaseName, setName, typeId, typeName);
+      databaseName, setName, typeName, typeID);
 }
 
 // sends a request to the Catalog Server to create Metadata for a new Database
@@ -458,17 +459,16 @@ bool CatalogClient::registerNodeMetadata(
 
 // sends a request to the Catalog Server to print all metadata newer than a
 // given timestamp
-string CatalogClient::printCatalogMetadata(
-    pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch, std::string &errMsg) {
+string CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatPrintCatalogRequest> itemToSearch,
+                                           std::string &errMsg) {
 
-  PDB_COUT << "itemToSearch " << itemToSearch->getItemName().c_str() << endl;
-  PDB_COUT << "from TimeStamp " << itemToSearch->getTimeStamp().c_str() << endl;
+  PDB_COUT << "Category to print" << itemToSearch->category.c_str() << "\n";
 
-  return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, string>(
+  return simpleRequest<pdb::CatPrintCatalogRequest, CatPrintCatalogResult, string>(
       myLogger, port, address, "", 1024,
-      [&](Handle<CatalogPrintMetadata> result) {
+      [&](Handle<CatPrintCatalogResult> result) {
         if (result != nullptr) {
-          string res = result->getMetadataToPrint();
+          string res = result->output;
           return res;
         }
         errMsg = "Error printing catalog metadata.";
@@ -477,19 +477,15 @@ string CatalogClient::printCatalogMetadata(
       itemToSearch);
 }
 
-// sends a request to the Catalog Server to print all metadata for a given
-// category
-string CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
-                                           std::string &errMsg) {
+// sends a request to the Catalog Server to print all metadata for a given category
+string CatalogClient::printCatalogMetadata(std::string &categoryToPrint, std::string &errMsg) {
 
-  pdb::Handle<pdb::CatalogPrintMetadata> itemToPrint =
-      pdb::makeObject<CatalogPrintMetadata>("", "0", categoryToPrint);
+  pdb::Handle<pdb::CatPrintCatalogRequest> itemToPrint = pdb::makeObject<CatPrintCatalogRequest>("", categoryToPrint);
 
-  return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, string>(
-      myLogger, port, address, "", 1024,
-      [&](Handle<CatalogPrintMetadata> result) {
+  return simpleRequest<pdb::CatPrintCatalogRequest, CatPrintCatalogResult, string>(myLogger, port, address, "", 1024,
+      [&](Handle<CatPrintCatalogResult> result) {
         if (result != nullptr) {
-          string resultToPrint = result->getMetadataToPrint();
+          string resultToPrint = result->output;
           return resultToPrint;
         }
         errMsg = "Error printing catalog metadata.";

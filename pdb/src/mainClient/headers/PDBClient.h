@@ -168,7 +168,7 @@ namespace pdb {
 
       /* Prints the content of the catalog. */
       void
-      printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch);
+      printCatalogMetadata(pdb::Handle<pdb::CatPrintCatalogRequest> itemToSearch);
 
       /* Lists all metadata registered in the catalog. */
       void listAllRegisteredMetadata();

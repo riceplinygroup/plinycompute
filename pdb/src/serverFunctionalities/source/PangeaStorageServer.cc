@@ -513,14 +513,15 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                         errMsg = "Set " + request->getDatabase() + ":" + request->getSetName() +
                             ":" + request->getTypeName() + " already exists\n";
                     } else {
-                        int16_t typeID = VTableMap::getIDByName(request->getTypeName(), false);
+                        std::string internalTypeName = VTableMap::getInternalTypeName(request->getTypeName());
+                        int16_t typeID = VTableMap::getIDByName(internalTypeName, false);
                         PDB_COUT << "TypeID =" << typeID << std::endl;
                         if (typeID == -1) {
                             errMsg = "Could not find type " + request->getTypeName();
                             res = false;
                         } else {
                             PDB_COUT << "to add set in catalog" << std::endl;
-                            res = getFunctionality<CatalogServer>().registerSet(request->getSetName(), request->getDatabase(), typeID, request->getTypeName(), errMsg);
+                            res = getFunctionality<CatalogServer>().registerSet(request->getSetName(), request->getDatabase(), request->getTypeName(), typeID, errMsg);
                             if (res) {
                                 PDB_COUT << "success" << std::endl;
                             } else {
@@ -1100,7 +1101,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                     res = sendUsingMe->sendObject(response, errMsg);
                 }
                 if (getFunctionality<PangeaStorageServer>().isStandalone() == true) {
-                    int16_t typeID = VTableMap::getIDByName(request->getType(), false);
+                    int16_t typeID = VTableMap::getIDByName(VTableMap::getInternalTypeName(request->getType()), false);
                     PDB_COUT << "TypeID =" << typeID << std::endl;
                     if (typeID == -1) {
                         errMsg = "Could not find type " + request->getType();
@@ -1810,7 +1811,7 @@ bool PangeaStorageServer::addSet(
         if (this->typename2id->count(typeName) == 0) {
             // type doesn't exist
             // now we fetch the type id through catalog
-            int typeId = VTableMap::getIDByName(typeName, false);
+            int typeId = VTableMap::getIDByName(VTableMap::getInternalTypeName(typeName), false);
             if ((typeId <= 0) || (typeId == 8191)) {
                 PDB_COUT << "type doesn't  exist for name=" << typeName
                          << ", and we store it as default type" << std::endl;

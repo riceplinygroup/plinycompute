@@ -31,40 +31,42 @@ namespace pdb {
 class CatCreateSetRequest : public Object {
 
  public:
-  ~CatCreateSetRequest() {}
-  CatCreateSetRequest() {}
+  ~CatCreateSetRequest() = default;
+  CatCreateSetRequest() = default;
+
   CatCreateSetRequest(const std::string &dbName,
                       const std::string &setName,
-                      int16_t typeID,
-                      const std::string &typeName)
-      : dbName(dbName), setName(setName), typeID(typeID), typeName(typeName) {}
+                      const std::string &typeName,
+                      int16_t typeID) : dbName(dbName), setName(setName), typeName(typeName), typeID(typeID) {}
 
   CatCreateSetRequest(const Handle<CatCreateSetRequest> &requestToCopy) {
     dbName = requestToCopy->dbName;
     setName = requestToCopy->setName;
-    typeID = requestToCopy->typeID;
     typeName = requestToCopy->typeName;
-  }
-
-  std::pair<std::string, std::string> whichSet() {
-    return std::make_pair<std::string, std::string>(dbName, setName);
-  }
-
-  int16_t whichTypeID() {
-    return typeID;
-  }
-
-  std::string whichTypeName() {
-    return typeName;
+    typeID = requestToCopy->typeID;
   }
 
   ENABLE_DEEP_COPY
 
- private:
+  /**
+   * The name of the database
+   */
   String dbName;
+
+  /**
+   * The name of the set
+   */
   String setName;
-  int16_t typeID;
+
+  /**
+   * The name of the type
+   */
   String typeName;
+
+  /**
+   * The type id
+   */
+  int16_t typeID = -1;
 };
 
 }

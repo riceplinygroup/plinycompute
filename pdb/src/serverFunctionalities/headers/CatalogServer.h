@@ -87,7 +87,7 @@ public:
 
   bool registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error);
 
-  bool registerSet(const std::string &set, const std::string &database, int16_t typeID, const std::string &type, std::string &error);
+  bool registerSet(const std::string &set, const std::string &database, const std::string &type, int16_t typeID, std::string &error);
 
   bool registerDatabase(const std::string &name, std::string &error);
 

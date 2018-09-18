@@ -20,7 +20,7 @@
 
 #include "CatSharedLibraryByNameRequest.h"
 #include "CatalogNodeMetadata.h"
-#include "CatalogPrintMetadata.h"
+#include "CatPrintCatalogRequest.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
 #include "ServerFunctionality.h"
@@ -99,24 +99,11 @@ public:
    */
   bool createDatabase(std::string databaseName, std::string &errMsg);
 
-  /* Sends a request to the Catalog Server to register metadata about a database
-   */
-  bool registerDatabaseMetadata(std::string databaseName, std::string &errMsg);
 
   /* Sends a request to the Catalog Server to register metadata about a node in
    * the cluster */
   bool registerNodeMetadata(pdb::Handle<pdb::CatalogNodeMetadata> nodeData,
                             std::string &errMsg);
-
-  /* Templated method for registering a piece of metadata in the catalog */
-  template <class Type>
-  bool registerGenericMetadata(pdb::Handle<Type> metadataItem,
-                               std::string &errMsg);
-
-  /* Templated method for removing a piece of metadata from the catalog */
-  template <class Type>
-  bool deleteGenericMetadata(pdb::Handle<Type> metadataItem,
-                             std::string &errMsg);
 
   /* Sends a request to the Catalog Server to Creates a new set for a given
    * DataType in a
@@ -124,11 +111,10 @@ public:
    * returns true on success, false on fail
    */
   template <class DataType>
-  bool createSet(std::string databaseName, std::string setName,
-                 std::string &errMsg);
+  bool createSet(std::string databaseName, std::string setName, std::string &errMsg);
 
   /* same as above, but here we use the type code */
-  bool createSet(int16_t typeId, const std::string &typeName, const std::string &databaseName,
+  bool createSet(const std::string &typeName, int16_t typeID, const std::string &databaseName,
                  const std::string &setName, std::string &errMsg);
 
   /* Sends a request to the Catalog Server to delete a database; returns true on
@@ -165,7 +151,7 @@ public:
    * stored in the
    * catalog */
   string
-  printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
+  printCatalogMetadata(pdb::Handle<pdb::CatPrintCatalogRequest> itemToSearch,
                        std::string &errMsg);
 
   /* Sends a request to the Catalog Server to print a category of metadata

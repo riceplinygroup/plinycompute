@@ -325,14 +325,16 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 // int16_t typeId =
                 // getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
                 std::string typeName = request->getTypeName();
-                int16_t typeId = VTableMap::getIDByName(typeName, false);
+
+                // might need to remove this
+                int16_t typeId = VTableMap::getIDByName(VTableMap::getInternalTypeName(typeName), false);
                 if (typeId == 0) {
                     return make_pair(false, "Could not identify type=" + request->getTypeName());
                 }
 
                 beforeCreateSet = std::chrono::high_resolution_clock::now();
 
-                if (!getFunctionality<CatalogClient>().createSet(typeId, typeName, database, set, errMsg)) {
+                if (!getFunctionality<CatalogClient>().createSet(typeName, typeId, database, set, errMsg)) {
                     std::cout << "Could not register set, because: " << errMsg << std::endl;
                     Handle<SimpleRequestResult> response =
                         makeObject<SimpleRequestResult>(false, errMsg);
@@ -397,7 +399,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
             }
             long id = -1;
-            int typeId = VTableMap::getIDByName(request->getTypeName());
+            int typeId = VTableMap::getIDByName(VTableMap::getInternalTypeName(request->getTypeName()));
             this->statisticsDB->createData(request->getDatabase(), 
                                            request->getSetName(),
                                            "UNKNOWN", 

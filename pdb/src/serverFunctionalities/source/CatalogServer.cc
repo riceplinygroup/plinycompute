@@ -39,7 +39,8 @@
 #include "CatTypeNameSearchResult.h"
 #include "CatGetTypeResult.h"
 #include "CatalogUserTypeMetadata.h"
-#include "CatalogPrintMetadata.h"
+#include "CatPrintCatalogRequest.h"
+#include "CatPrintCatalogResult.h"
 #include "CatalogServer.h"
 #include "SimpleRequestHandler.h"
 #include "VTableMap.h"
@@ -148,12 +149,12 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
       }));
 
   // handles a request to display the contents of the Catalog that have changed since a given timestamp
-  forMe.registerHandler(CatalogPrintMetadata_TYPEID,
-      make_shared<SimpleRequestHandler<CatalogPrintMetadata>>([&](Handle<CatalogPrintMetadata> request,
+  forMe.registerHandler(CatPrintCatalogRequest_TYPEID,
+      make_shared<SimpleRequestHandler<CatPrintCatalogRequest>>([&](Handle<CatPrintCatalogRequest> request,
                                                                   PDBCommunicatorPtr sendUsingMe) {
 
         // print the catalog
-        string categoryToPrint = request->getCategoryToPrint().c_str();
+        string categoryToPrint = request->category.c_str();
         string resultToPrint;
 
         if (categoryToPrint == "all") {
@@ -169,7 +170,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           }
 
           if (categoryToPrint == "sets"){
-            string dbName = request->getItemName();
+            string dbName = request->itemName;
             resultToPrint.append(pdbCatalog->listRegisteredSetsForDatabase(dbName));
           }
 
@@ -189,8 +190,8 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 + resultToPrint.size()};
 
         // copy the request we want to forward and set the text
-        Handle<CatalogPrintMetadata> response = makeObject<CatalogPrintMetadata>(request);
-        response->setMetadataToPrint(resultToPrint);
+        Handle<CatPrintCatalogResult> response = makeObject<CatPrintCatalogResult>(resultToPrint);
+        response->output = resultToPrint;
 
         // sends result to requester
         bool res = sendUsingMe->sendObject(response, errMsg);
@@ -667,14 +668,14 @@ bool CatalogServer::registerNode(const std::string &address, int port, const std
   return this->pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeIdentifier,  address, port, nodeType), error);
 }
 
-bool CatalogServer::registerSet(const std::string &set, const std::string &database, int16_t typeID, const std::string &type, std::string &error) {
+bool CatalogServer::registerSet(const std::string &set, const std::string &database, const std::string &type, int16_t typeID, std::string &error) {
 
   // lock the catalog server
   std::lock_guard<std::mutex> guard(serverMutex);
 
   // create an allocation block to hold the response
   const UseTemporaryAllocationBlock tempBlock{1024};
-  Handle<CatCreateSetRequest> request = makeObject<CatCreateSetRequest>(database, set, typeID, type);
+  Handle<CatCreateSetRequest> request = makeObject<CatCreateSetRequest>(database, set, type, typeID);
 
   // broadcast the set registration
   return broadcastRegisterSet(request, error);
@@ -921,10 +922,11 @@ bool CatalogServer::broadcastTypeRegister(Handle<CatRegisterType> &request, stri
 bool CatalogServer::broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error) {
 
   // grab the info about the set
-  auto dbName = request->whichSet().first;
-  auto setName = request->whichSet().second;
-  auto type = request->whichTypeName();
-  auto typeID = request->whichTypeID();
+  auto dbName = request->dbName;
+  auto setName = request->setName;
+  auto typeID = request->typeID;
+  auto type = request->typeName;
+  auto internalTypeName = VTableMap::getInternalTypeName(type);
 
   // if something fails we set this to false
   bool res = true;
@@ -937,7 +939,7 @@ bool CatalogServer::broadcastRegisterSet(Handle<CatCreateSetRequest> &request, s
 
   // register the set with the catalog
   std::string errMsg;
-  res = res && pdbCatalog->registerSet(std::make_shared<pdb::PDBCatalogSet>(setName, dbName, type), errMsg);
+  res = res && pdbCatalog->registerSet(std::make_shared<pdb::PDBCatalogSet>(setName, dbName, internalTypeName), errMsg);
 
   // after we added the set to the local catalog, if this is the
   // manager catalog iterate over all nodes in the cluster and broadcast the

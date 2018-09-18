@@ -267,7 +267,7 @@ namespace pdb {
     }
 
     void PDBClient::printCatalogMetadata(
-        pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch) {
+        pdb::Handle<pdb::CatPrintCatalogRequest> itemToSearch) {
       cout << catalogClient->printCatalogMetadata (
           itemToSearch,
           returnedMsg) ;

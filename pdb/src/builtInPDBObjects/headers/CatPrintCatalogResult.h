@@ -15,43 +15,51 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+/*
+ * CatPrintCatalogRequest.h
+ *
+ */
 
-#ifndef CAT_CLIENT_TEMPL_CC
-#define CAT_CLIENT_TEMPL_CC
+#ifndef CATALOG_PRINT_CATALOG_RESULT_H_
+#define CATALOG_PRINT_CATALOG_RESULT_H_
 
-#include "CatalogClient.h"
-#include "CatCreateSetRequest.h"
-#include "SimpleRequest.h"
-#include "SimpleRequestResult.h"
+#include <iostream>
+#include "Object.h"
+#include "PDBString.h"
+#include "PDBVector.h"
+
+//  PRELOAD %CatPrintCatalogResult%
+
+using namespace std;
 
 namespace pdb {
 
-template <class DataType>
-bool CatalogClient::createSet(std::string databaseName, std::string setName,
-                              std::string &errMsg) {
+/**
+ * This class serves to return the output of a CatPrintCatalogRequest
+ */
+class CatPrintCatalogResult : public Object {
+ public:
 
-  int16_t typeID = VTableMap::getIDByName(VTableMap::getInternalTypeName(getTypeName<DataType>()), false);
-  if (typeID == -1) {
-    errMsg = "Could not find type " + getTypeName<DataType>();
-    return -1;
+  CatPrintCatalogResult() = default;
+
+  explicit CatPrintCatalogResult(const std::string &output) : output(output) {}
+
+  // Copy constructor
+  CatPrintCatalogResult(const CatPrintCatalogResult &pdbItemToCopy) {
+    output = pdbItemToCopy.output;
   }
 
-  return simpleRequest<CatCreateSetRequest, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error creating set: " + result->getRes().second;
-            myLogger->error("Error creating set: " + result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error getting type name: got nothing back from catalog";
-        return false;
-      },
-      databaseName, setName, typeID);
-}
-}
+  // Copy constructor
+  explicit CatPrintCatalogResult(const Handle<CatPrintCatalogResult> &pdbItemToCopy) {
+    output = pdbItemToCopy->output;
+  }
 
-#endif
+  ENABLE_DEEP_COPY
+
+  // the output
+  String output;
+};
+
+} /* namespace pdb */
+
+#endif /* CATALOG_PRINT_METADATA_H_ */
