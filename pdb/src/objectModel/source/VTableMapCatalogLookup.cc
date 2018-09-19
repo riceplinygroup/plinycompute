@@ -136,8 +136,21 @@ void* VTableMap::getVTablePtrUsingCatalog(int16_t objectTypeID) {
 }
 
 int16_t VTableMap::lookupTypeNameInCatalog(std::string objectTypeName) {
+
     PDB_COUT << "invoke lookupTypeNameInCatalog for objectTypeName=" << objectTypeName << std::endl;
-    return theVTable->catalog->searchForObjectTypeName(objectTypeName);
+
+    std::string error;
+    auto type = theVTable->catalog->getType(objectTypeName, error);
+
+    // if we find the type return -1 as the identifier
+    if(type == nullptr) {
+        // log the error
+        PDB_COUT << error;
+        return -1;
+    }
+
+    // return the id
+    return (int16_t) type->id;
 }
 
 

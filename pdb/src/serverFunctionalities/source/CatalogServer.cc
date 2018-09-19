@@ -789,15 +789,6 @@ bool CatalogServer::registerNode(const std::string &address, int port, const std
   return this->pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeIdentifier,  address, port, nodeType), error);
 }
 
-PDBCatalogTypePtr CatalogServer::getTypeWithoutLibrary(const std::string &name) {
-
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
-
-  // return the set
-  return pdbCatalog->getTypeWithoutLibrary(name);
-}
-
 // adds metadata and bytes of a shared library in the catalog and returns its typeId
 bool CatalogServer::loadAndRegisterType(int16_t typeIDFromManagerCatalog, const char *&soFile, size_t soFileSize, string &errMsg) {
 

@@ -566,7 +566,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             assert(set->type != nullptr);
 
             // grab the type associated with the set
-            auto type = getFunctionality<CatalogServer>().getTypeWithoutLibrary(*set->type);
+            auto type = getFunctionality<CatalogClient>().getType(*set->type, errMsg);
 
             // check if the type exists
             if(type == nullptr) {

@@ -158,33 +158,22 @@ bool CatalogClient::shutDownServer(std::string &errMsg) {
       });
 }
 
-// returns true if this Catalog Client points to the Manager Catalog (false
-// otherwise)
-bool CatalogClient::getPointsToManagerCatalog() {
-  return pointsToCatalogManager;
-}
-
-// sets if this Catalog Client points to the Manager Catalog (true), or not
-// (false)
-void CatalogClient::setPointsToManagerCatalog(bool pointsToManager) {
-  pointsToCatalogManager = pointsToManager;
-}
-
 // searches for a User-Defined Type give its name and returns it's TypeID
-int16_t CatalogClient::searchForObjectTypeName(std::string objectTypeName) {
-  PDB_COUT << "searchForObjectTypeName for " << objectTypeName << std::endl;
-  return simpleRequest<CatGetType, CatGetTypeResult, int16_t>(
-      myLogger, port, address, -1, 1024 * 1024,
+PDBCatalogTypePtr CatalogClient::getType(const std::string &typeName, std::string &error) {
+
+  PDB_COUT << "Searching for type with the name : " << typeName << "\n";
+  return simpleRequest<CatGetType, CatGetTypeResult, PDBCatalogTypePtr>(
+      myLogger, port, address, nullptr, 1024 * 1024,
       [&](Handle<CatGetTypeResult> result) {
         if (result != nullptr) {
-          PDB_COUT << "searchForObjectTypeName: getTypeId=" << result->typeID << "\n";
-          return result->typeID;
+          PDB_COUT << "Got a type with the type id :" << result->typeID << "\n";
+          return std::make_shared<PDBCatalogType>(result->typeID, (std::string) result->typeCategory, result->typeName, std::vector<char>());
         } else {
           PDB_COUT << "searchForObjectTypeName: error in getting typeId\n";
-          return (int16_t)-1;
+          return (PDBCatalogTypePtr) nullptr;
         }
       },
-      objectTypeName);
+      typeName);
 }
 
 // retrieves the content of a Shared Library given it's Type Id

@@ -83,8 +83,6 @@ public:
 
   bool registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error);
 
-  PDBCatalogTypePtr getTypeWithoutLibrary(const std::string &name);
-
 private:
 
   /**

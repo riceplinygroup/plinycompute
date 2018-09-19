@@ -58,11 +58,11 @@ public:
                 bool pointsToCatalogManagerIn);
 
   /* Registers event handlers associated with this server functionality */
-  virtual void registerHandlers(PDBServer &forMe) override;
+  void registerHandlers(PDBServer &forMe) override;
 
   /* Uses the name of the object type to find its corresponding typeId, returns -1 if not found
    */
-  int16_t searchForObjectTypeName(std::string objectTypeName);
+  PDBCatalogTypePtr getType(const std::string &typeName, std::string &error);
 
   /* Retrieves the content of a Shared Library given it's Type Id */
   bool getSharedLibrary(int16_t identifier, std::string sharedLibraryFileName);
@@ -135,24 +135,6 @@ public:
 
   pdb::PDBCatalogDatabasePtr getDatabase(const std::string &dbName, std::string &errMsg);
 
-  /* Sends a request to the Catalog Server to add information about a node to a
-   * set for a given
-   * database;
-   * returns true on success, false on fail
-   */
-  bool addNodeToSet(std::string nodeIP, std::string databaseName,
-                    std::string setName, std::string &errMsg);
-
-  /* Sends a request to the Catalog Server to remove information about a node
-   * from a set, this is
-   * invoked when storage
-   * removes a set for a database in a node in the cluster; returns true on
-   * success, false on fail
-   */
-  bool removeNodeFromSet(std::string nodeIP, std::string databaseName,
-                         std::string setName, std::string &errMsg);
-
-
   /* Sends a request to the Catalog Server to print the content of the metadata
    * stored in the
    * catalog */
@@ -165,14 +147,6 @@ public:
    * catalog */
   string printCatalogMetadata(std::string &categoryToPrint,
                               std::string &errMsg);
-
-  /* Returns true if this Catalog Client points to a remote
-   * Manager Catalog Server
-   */
-  bool getPointsToManagerCatalog();
-
-  /* Sets to true if this Catalog Client points to the Manager Catalog Server */
-  void setPointsToManagerCatalog(bool pointsToManager);
 
   /* Lists all metadata registered in the catalog. */
   string listAllRegisteredMetadata(std::string &errMsg);
