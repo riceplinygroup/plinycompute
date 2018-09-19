@@ -75,8 +75,6 @@ class PDBCatalog {
 
   bool registerNode(PDBCatalogNodePtr node, std::string &error);
 
-  bool addNodeToSet(const std::string &nodeID, const std::string &dbName, const std::string &setName, std::string &error);
-
   bool databaseExists(const std::string &name);
 
   bool setExists(const std::string &dbName, const std::string &setName);
@@ -101,10 +99,6 @@ class PDBCatalog {
 
   int32_t numRegisteredTypes();
 
-  std::vector<PDBCatalogNode> getNodesWithSet(const std::string &dbName, const std::string &setName);
-
-  std::vector<PDBCatalogNode> getNodesWithDatabase(const std::string &dbName);
-
   std::vector<PDBCatalogSet> getSetForDatabase(const std::string &dbName);
 
   std::vector<PDBCatalogNode> getNodes();
@@ -124,8 +118,6 @@ class PDBCatalog {
   bool removeDatabase(const std::string &dbName, std::string &error);
 
   bool removeSet(const std::string &dbName, const std::string &setName, std::string &error);
-
-  bool removeNodeFromSet(const std::string &nodeID, const std::string &dbName, const std::string &setName, std::string &error);
 
  private:
 

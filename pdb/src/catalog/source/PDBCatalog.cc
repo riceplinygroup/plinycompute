@@ -149,44 +149,6 @@ bool pdb::PDBCatalog::registerNode(pdb::PDBCatalogNodePtr node, std::string &err
   }
 }
 
-bool pdb::PDBCatalog::addNodeToSet(const std::string &nodeID, const std::string &dbName, const std::string &setName, std::string &error) {
-
-  try {
-
-    // check if the set exists
-    if(!setExists(dbName, setName)) {
-
-      // log the error
-      error = "The set with the identifier : " + dbName + ":" + setName + " we are supposed to add to the node does not exist\n";
-      return false;
-    }
-
-    if(!nodeExists(nodeID)) {
-
-      // log the error
-      error = "The node with the id : " + nodeID +" does not exist\n";
-      return false;
-    }
-
-    // create the object that maps the set to the node
-    PDBCatalogSetOnNodes setToNode(dbName + ":" + setName, nodeID);
-
-    // insert the the set
-    storage.insert(setToNode);
-
-    // return true
-    return true;
-
-  } catch(std::system_error &e){
-
-    // set the error we failed
-    error = "Could add the set : " + dbName  + ":" + setName + " to the node with the address : " + nodeID +  "! The SQL error is : "  + std::string(e.what());
-
-    // we failed
-    return false;
-  }
-}
-
 bool pdb::PDBCatalog::databaseExists(const std::string &name) {
 
   // try to find the database
@@ -303,47 +265,6 @@ int32_t pdb::PDBCatalog::numRegisteredTypes() {
 
   // return the number of types in the catalog
   return storage.count<PDBCatalogType>();
-}
-
-std::vector<pdb::PDBCatalogNode> pdb::PDBCatalog::getNodesWithSet(const std::string &dbName, const std::string &setName) {
-
-  // select all the nodes we need
-  auto rows = storage.select(columns(&PDBCatalogSetOnNodes::node, &PDBCatalogNode::address, &PDBCatalogNode::port, &PDBCatalogNode::nodeType),
-                             where(c(&PDBCatalogSetOnNodes::setIdentifier) == (dbName + ":" + setName) and c(&PDBCatalogSetOnNodes::node) == &PDBCatalogNode::nodeID));
-
-  // create the return value
-  std::vector<pdb::PDBCatalogNode> ret;
-
-  // preallocate
-  ret.reserve(rows.size());
-
-  // store them
-  for(auto &r : rows) {
-    ret.emplace_back(PDBCatalogNode(std::get<0>(r), std::get<1>(r), std::get<2>(r), std::get<3>(r)));
-  }
-
-  return std::move(ret);
-}
-
-std::vector<pdb::PDBCatalogNode> pdb::PDBCatalog::getNodesWithDatabase(const std::string &dbName) {
-  // select all the nodes we need
-  auto rows = storage.select(columns(&PDBCatalogSetOnNodes::node, &PDBCatalogNode::address, &PDBCatalogNode::port, &PDBCatalogNode::nodeType, &PDBCatalogSet::setIdentifier),
-                             where(c(&PDBCatalogSetOnNodes::setIdentifier) == &PDBCatalogSet::setIdentifier and
-                                 c(&PDBCatalogSetOnNodes::node) == &PDBCatalogNode::nodeID and
-                                 c(&PDBCatalogSet::database) == dbName));
-
-  // create the return value
-  std::vector<pdb::PDBCatalogNode> ret;
-
-  // preallocate
-  ret.reserve(rows.size());
-
-  // store them
-  for(auto &r : rows) {
-    ret.emplace_back(PDBCatalogNode(std::get<0>(r), std::get<1>(r), std::get<2>(r), std::get<3>(r)));
-  }
-
-  return std::move(ret);
 }
 
 std::vector<pdb::PDBCatalogSet> pdb::PDBCatalog::getSetForDatabase(const std::string &dbName) {
@@ -469,11 +390,6 @@ bool pdb::PDBCatalog::removeDatabase(const std::string &dbName, std::string &err
   // remove each set from every node
   auto setIdentifiers = storage.select(columns(&PDBCatalogSet::setIdentifier), where(c(&PDBCatalogSet::database) == dbName));
 
-  // go through each set and clean up the PDBCatalogSetOnNodes
-  for(const auto &setIdentifier : setIdentifiers) {
-    storage.remove_all<PDBCatalogSetOnNodes>(where(c(&PDBCatalogSetOnNodes::setIdentifier) == std::get<0>(setIdentifier)));
-  }
-
   // remove all the sets
   storage.remove_all<PDBCatalogSet>(where(c(&PDBCatalogSet::database) == dbName));
 
@@ -497,44 +413,8 @@ bool pdb::PDBCatalog::removeSet(const std::string &dbName, const std::string &se
     return false;
   }
 
-  // remove the node associations
-  storage.remove_all<PDBCatalogSetOnNodes>(where(c(&PDBCatalogSetOnNodes::setIdentifier) == setIdentifier));
-
   // remove the set
   storage.remove_all<PDBCatalogSet>(where(c(&PDBCatalogSet::setIdentifier) == setIdentifier));
 
   return true;
 }
-
-bool pdb::PDBCatalog::removeNodeFromSet(const std::string &nodeID, const std::string &dbName, const std::string &setName, std::string &error) {
-
-  // check if the node actually exists
-  if(!nodeExists(nodeID)) {
-
-    // set the error
-    error = "Could not find the node with the identifier : " + nodeID + "\n";
-
-    // indicate an error
-    return false;
-  }
-
-  // check if the set exists
-  if(!setExists(dbName, setName)) {
-
-    // set the error
-    error = "Could not find the set with the identifier : " + dbName + ":" + setName;
-
-    // indicate an error
-    return false;
-  }
-
-  // create the set identifier
-  std::string setIdentifier = dbName + ":" + setName;
-
-  // remove the node associations
-  storage.remove_all<PDBCatalogSetOnNodes>(where(c(&PDBCatalogSetOnNodes::setIdentifier) == setIdentifier and
-      c(&PDBCatalogSetOnNodes::node) == nodeID));
-
-  return true;
-}
-

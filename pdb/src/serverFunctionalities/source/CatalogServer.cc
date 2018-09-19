@@ -31,10 +31,8 @@
 #include "CatDeleteDatabaseRequest.h"
 #include "CatDeleteSetRequest.h"
 #include "CatRegisterType.h"
-#include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatSharedLibraryByNameRequest.h"
-#include "CatAddNodeToSetRequest.h"
 #include "CatGetType.h"
 #include "CatTypeNameSearchResult.h"
 #include "CatGetTypeResult.h"
@@ -640,110 +638,6 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         return make_pair(res, errMsg);
       }));
 
-  // handle a request to add information of a set to an existing Database
-  // this is invoked when the Distributed Storage Manager creates a set
-  // in a given node for an existing Database
-  forMe.registerHandler(
-      CatAddNodeToSetRequest_TYPEID,
-      make_shared<SimpleRequestHandler<CatAddNodeToSetRequest>>(
-          [&](Handle<CatAddNodeToSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
-
-            // lock the catalog server
-            std::lock_guard<std::mutex> guard(serverMutex);
-
-            // invokes add Node information to a Set in a given Database
-            std::string errMsg;
-            bool res = pdbCatalog->addNodeToSet(request->nodeToAdd(), request->whichDB(), request->whichSet(), errMsg);
-
-            // after it has added the node to the Set in the local catalog, if this is the
-            // manager catalog iterate over all nodes in the cluster and broadcast the
-            // request to the distributed copies of the catalog
-            if (isManagerCatalogServer) {
-
-              // get the results of each broadcast
-              map<string, pair<bool, string>> updateResults;
-
-              // broadcast the update
-              broadcastRequest<CatAddNodeToSetRequest>(request, updateResults, errMsg);
-
-              for (auto &item : updateResults) {
-
-                // if we failed res would be set to false
-                res = item.second.first && res;
-
-                // log what is happening
-                PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
-              }
-
-            } else {
-
-              // log what happened
-              PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
-            }
-
-            // create the allocation block
-            const UseTemporaryAllocationBlock tempBlock{1024};
-
-            // create the response
-            Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
-
-            // sends result to requester
-            res = sendUsingMe->sendObject(response, errMsg);
-            return make_pair(res, errMsg);
-          }));
-
-  // handle a request to remove information of a set to an existing Database
-  // this is invoked when the Distributed Storage Manager deletes a set
-  // in a given node for an existing Database
-  forMe.registerHandler(
-      CatRemoveNodeFromSetRequest_TYPEID,
-      make_shared<SimpleRequestHandler<CatRemoveNodeFromSetRequest>>(
-          [&](Handle<CatRemoveNodeFromSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
-
-            // lock the catalog server
-            std::lock_guard<std::mutex> guard(serverMutex);
-
-            // invokes remove node information from a Set in an existing database
-            std::string errMsg;
-            bool res = pdbCatalog->removeNodeFromSet(request->nodeToRemove(), request->whichDB(), request->whichSet(), errMsg);
-
-            // after it registered the Set metadata in the local catalog, if this is the
-            // manager catalog iterate over all nodes in the cluster and broadcast the
-            // insert to the distributed copies of the catalog
-            if (isManagerCatalogServer) {
-
-              // get the results of each broadcast
-              map<string, pair<bool, string>> updateResults;
-
-              // broadcast the update
-              broadcastRequest(request, updateResults, errMsg);
-
-              for (auto &item : updateResults) {
-
-                // if we failed res would be set to false
-                res = item.second.first && res;
-
-                // log what is happening
-                PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
-              }
-
-            } else {
-
-              // log what happened
-              PDB_COUT << "This is not Manager Catalog Node, thus metadata was only registered locally!\n";
-            }
-
-            // create the allocation block
-            const UseTemporaryAllocationBlock tempBlock{1024};
-
-            // create a response
-            Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
-
-            // sends result to requester
-            res = sendUsingMe->sendObject(response, errMsg);
-            return make_pair(res, errMsg);
-          }));
-
   // handles a request to register a shared library
   forMe.registerHandler(
       CatRegisterType_TYPEID,
@@ -902,24 +796,6 @@ PDBCatalogTypePtr CatalogServer::getTypeWithoutLibrary(const std::string &name) 
 
   // return the set
   return pdbCatalog->getTypeWithoutLibrary(name);
-}
-
-std::vector<PDBCatalogNode> CatalogServer::getNodesWithSet(const std::string &dbName, const std::string &setName) {
-
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
-
-  // return the set
-  return pdbCatalog->getNodesWithSet(dbName, setName);
-}
-
-std::vector<PDBCatalogNode> CatalogServer::getNodesWithDatabase(const std::string &dbName) {
-
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
-
-  // return the set
-  return pdbCatalog->getNodesWithDatabase(dbName);
 }
 
 // adds metadata and bytes of a shared library in the catalog and returns its typeId

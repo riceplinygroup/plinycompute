@@ -85,10 +85,6 @@ public:
 
   PDBCatalogTypePtr getTypeWithoutLibrary(const std::string &name);
 
-  std::vector<PDBCatalogNode> getNodesWithSet(const std::string &dbName, const std::string &setName);
-
-  std::vector<PDBCatalogNode> getNodesWithDatabase(const std::string &dbName);
-
 private:
 
   /**

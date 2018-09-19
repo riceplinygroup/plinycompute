@@ -26,8 +26,7 @@ namespace pdb {
     return sqlite_orm::make_storage(*location, PDBCatalogDatabase::getSchema(),
                                                PDBCatalogSet::getSchema(),
                                                PDBCatalogNode::getSchema(),
-                                               PDBCatalogType::getSchema(),
-                                               PDBCatalogSetOnNodes::getSchema());
+                                               PDBCatalogType::getSchema());
   }
 
   /**

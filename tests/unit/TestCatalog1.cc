@@ -44,11 +44,6 @@ class Tests {
     QUNIT_IS_TRUE(catalog.registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:8081", "localhost", 8081, "worker"), error));
     QUNIT_IS_TRUE(catalog.registerNode(std::make_shared<pdb::PDBCatalogNode>("localhost:8082", "localhost", 8082, "worker"), error));
 
-    // assign the nodes to sets
-    QUNIT_IS_TRUE(catalog.addNodeToSet("localhost:8081", "db1", "set1", error));
-    QUNIT_IS_TRUE(catalog.addNodeToSet("localhost:8082", "db1", "set1", error));
-    QUNIT_IS_TRUE(catalog.addNodeToSet("localhost:8082", "db2", "set3", error));
-
     // check the exists functions for databases
     QUNIT_IS_TRUE(catalog.databaseExists("db1"));
     QUNIT_IS_TRUE(catalog.databaseExists("db2"));
@@ -130,19 +125,6 @@ class Tests {
     QUNIT_IS_EQUAL(node->address, "localhost");
     QUNIT_IS_EQUAL(node->port, 8082);
 
-    // test if the sets are properly assigned to nodes
-    auto nodes = catalog.getNodesWithSet("db1", "set1");
-    QUNIT_IS_EQUAL(nodes.size(), 2);
-
-    nodes = catalog.getNodesWithSet("db2", "set3");
-    QUNIT_IS_EQUAL(nodes.size(), 1);
-
-    nodes = catalog.getNodesWithDatabase("db1");
-    QUNIT_IS_EQUAL(nodes.size(), 2);
-
-    nodes = catalog.getNodesWithDatabase("db1");
-    QUNIT_IS_EQUAL(nodes.size(), 2);
-
     auto t1 = catalog.getTypeWithoutLibrary(8341);
     auto t2 = catalog.getTypeWithoutLibrary("Type1");
 
@@ -161,12 +143,6 @@ class Tests {
     // check the get method for the sets
     QUNIT_IS_TRUE(!catalog.setExists("db1", "set1"));
     QUNIT_IS_TRUE(!catalog.setExists("db1", "set2"));
-
-    // remove the node from the set
-    QUNIT_IS_EQUAL(catalog.getNodesWithSet("db2", "set3").size(), 1);
-    QUNIT_IS_TRUE(catalog.removeNodeFromSet("localhost:8082", "db2", "set3", error));
-    QUNIT_IS_EQUAL(catalog.getNodesWithSet("db2", "set3").size(), 0);
-
   }
 
  public:

@@ -25,13 +25,11 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "CatAddNodeToSetRequest.h"
 #include "CatCreateDatabaseRequest.h"
 #include "CatCreateSetRequest.h"
 #include "CatDeleteDatabaseRequest.h"
 #include "CatDeleteSetRequest.h"
 #include "CatRegisterType.h"
-#include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatGetType.h"
 #include "CatGetSetRequest.h"
@@ -444,52 +442,6 @@ bool CatalogClient::deleteDatabase(const std::string &databaseName, std::string 
         return false;
       },
       databaseName);
-}
-
-// sends a request to the Catalog Server to add Information about a Node to a
-// Set
-bool CatalogClient::addNodeToSet(std::string nodeIP, std::string databaseName,
-                                 std::string setName, std::string &errMsg) {
-
-  return simpleRequest<CatAddNodeToSetRequest, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error creating set: " + result->getRes().second;
-            myLogger->error("Error creating set: " + result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error getting type name: got nothing back from catalog";
-        return false;
-      },
-      databaseName, setName, nodeIP);
-}
-
-// sends a request to the Catalog Server to remove Information about a Node from
-// a Set
-bool CatalogClient::removeNodeFromSet(std::string nodeIP,
-                                      std::string databaseName,
-                                      std::string setName,
-                                      std::string &errMsg) {
-
-  return simpleRequest<CatRemoveNodeFromSetRequest, SimpleRequestResult, bool>(
-      myLogger, port, address, false, 1024,
-      [&](Handle<SimpleRequestResult> result) {
-        if (result != nullptr) {
-          if (!result->getRes().first) {
-            errMsg = "Error deleting set: " + result->getRes().second;
-            myLogger->error("Error deleting set: " + result->getRes().second);
-            return false;
-          }
-          return true;
-        }
-        errMsg = "Error getting type name: got nothing back from catalog";
-        return false;
-      },
-      databaseName, setName, nodeIP);
 }
 
 // sends a request to the Catalog Server to add metadata about a Node

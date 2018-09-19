@@ -79,56 +79,6 @@ class PDBCatalogSet {
 
 };
 
-/**
- * This is just a definition for the shared pointer on the type
- */
-class PDBCatalogSetOnNodes;
-typedef std::shared_ptr<PDBCatalogSetOnNodes> PDBCatalogSetOnNodesPtr;
-
-/**
- * This marks that a particular node has data of a particular set
- * This class is intended to be used inside the class
- */
-class PDBCatalogSetOnNodes {
-public:
-
-  /**
-   * The default constructor needed by the orm
-   */
-  PDBCatalogSetOnNodes() = default;
-
-  /**
-   * The initialization constructor
-   * @param setIdentifier - the set identifier is a string in the form of "dbName:setName"
-   * @param node - the node is the node identifier setring in the form of the "ip:port"
-   */
-  PDBCatalogSetOnNodes(const std::string &setIdentifier, const std::string &node) : setIdentifier(setIdentifier),
-                                                                                    node(node) {}
-  /**
-   * The identifier of the set
-   */
-  std::string setIdentifier;
-
-  /**
-   * The id of the node that contains the set
-   */
-  std::string node;
-
-  /**
-   * Return the schema of the database object
-   * @return the schema
-   */
-  static auto getSchema() {
-
-    // return the schema
-    return sqlite_orm::make_table("setOnNodes", sqlite_orm::make_column("setOnNode", &PDBCatalogSetOnNodes::setIdentifier),
-                                                sqlite_orm::make_column("nodeWithSet", &PDBCatalogSetOnNodes::node),
-                                                sqlite_orm::foreign_key(&PDBCatalogSetOnNodes::node).references(&PDBCatalogNode::nodeID),
-                                                sqlite_orm::foreign_key(&PDBCatalogSetOnNodes::setIdentifier).references(&PDBCatalogSet::setIdentifier));
-  }
-
-};
-
 }
 
 #endif //PDB_PDBCATALOGSET_H
