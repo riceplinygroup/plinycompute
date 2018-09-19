@@ -94,7 +94,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 std::string database = request->getDatabase();
                 std::string value;
 
-                if (getFunctionality<CatalogServer>().databaseExists(database)) {
+                if (getFunctionality<CatalogClient>().databaseExists(database)) {
                     PDB_COUT << "Database " << database << " already exists " << std::endl;
                 } else {
                     PDB_COUT << "Database " << database << " does not exist" << std::endl;
@@ -172,7 +172,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 std::string database = request->getDatabase();
                 std::string set = request->getSetName();
 
-                if (getFunctionality<CatalogServer>().setExists(database, set)) {
+                if (getFunctionality<CatalogClient>().setExists(database, set)) {
                     std::cout << "Set " << set << ":" << database << " already exists " << std::endl;
 // to remove set
 #ifndef USING_ALL_NODES
@@ -315,7 +315,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
 
             std::string database = request->getDatabase();
             std::string set = request->getSetName();
-            if (getFunctionality<CatalogServer>().setExists(database, set)) {
+            if (getFunctionality<CatalogClient>().setExists(database, set)) {
                 std::cout << "Set " << database << " : " << set << " already exists " << std::endl;
             } else {
                 PDB_COUT << "Set " << database << " : " << set << " does not exist" << std::endl;
@@ -453,7 +453,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             std::string value;
             int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
-            if (!getFunctionality<CatalogServer>().databaseExists(database)) {
+            if (!getFunctionality<CatalogClient>().databaseExists(database)) {
                 errMsg = "Cannot delete database, database " + database + " does not exist\n";
                 Handle<SimpleRequestResult> response =
                     makeObject<SimpleRequestResult>(false, errMsg);
@@ -603,7 +603,8 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             std::string fullSetName = databaseName + "." + setName;
             std::string typeName;
 
-            auto set = getFunctionality<CatalogServer>().getSet(databaseName, setName);
+            std::string error;
+            auto set = getFunctionality<CatalogClient>().getSet(databaseName, setName, error);
 
             // check if the set exists
             if (set == nullptr) {
@@ -1079,7 +1080,7 @@ bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::str
     PDB_COUT << "findNodesContainingDatabase:" << std::endl;
 
     // check if the database exists
-    if (!getFunctionality<CatalogServer>().getDatabase(databaseName)) {
+    if (!getFunctionality<CatalogClient>().getDatabase(databaseName, errMsg)) {
         errMsg = "Could not find metadata for database: " + databaseName;
         std::cout << errMsg;
         return false;
@@ -1127,7 +1128,7 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
                                                              std::string& errMsg) {
 
     // check if the set exists
-    if (!getFunctionality<CatalogServer>().setExists(databaseName, setName)) {
+    if (!getFunctionality<CatalogClient>().setExists(databaseName, setName)) {
         errMsg = "Could not find metadata for the set: " + databaseName;
         return false;
     }

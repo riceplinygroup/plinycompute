@@ -38,6 +38,10 @@
 #include "CatGetType.h"
 #include "CatTypeNameSearchResult.h"
 #include "CatGetTypeResult.h"
+#include "CatGetDatabaseRequest.h"
+#include "CatGetDatabaseResult.h"
+#include "CatGetSetRequest.h"
+#include "CatGetSetResult.h"
 #include "CatalogUserTypeMetadata.h"
 #include "CatPrintCatalogRequest.h"
 #include "CatPrintCatalogResult.h"
@@ -312,7 +316,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             auto bytesPointer = bytes.data();
 
             // do the vtable fix and update res
-            res = res && loadAndRegisterType(typeId, bytesPointer, bytes.size(), errMsg);
+            res = loadAndRegisterType(typeId, bytesPointer, bytes.size(), errMsg) && res;
           }
 
           if (!res) {
@@ -444,7 +448,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               for (auto &item : updateResults) {
 
                 // if we failed res would be set to false
-                res = res && item.second.first;
+                res = item.second.first && res;
 
                 // log what is happening
                 PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -463,7 +467,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
             // sends result to requester
-            res = res && sendUsingMe->sendObject(response, errMsg);
+            res = sendUsingMe->sendObject(response, errMsg) && res;
             return make_pair(res, errMsg);
           }));
 
@@ -495,7 +499,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         }
 
         // register the set with the catalog
-        res = res && pdbCatalog->registerSet(make_shared<PDBCatalogSet>(setName, dbName, internalTypeName), errMsg);
+        res = pdbCatalog->registerSet(make_shared<PDBCatalogSet>(setName, dbName, internalTypeName), errMsg) && res;
 
         // after we added the set to the local catalog, if this is the
         // manager catalog iterate over all nodes in the cluster and broadcast the
@@ -511,7 +515,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           for (auto &item : updateResults) {
 
             // if we failed res would be set to false
-            res = res && item.second.first;
+            res = item.second.first && res;
 
             // log what is happening
             PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -528,7 +532,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
         // sends result to requester
-        res = res && sendUsingMe->sendObject(response, errMsg);
+        res = sendUsingMe->sendObject(response, errMsg) && res;
 
         // return from handler
         return make_pair(res, errMsg);
@@ -561,7 +565,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               for (auto &item : updateResults) {
 
                 // if we failed res would be set to false
-                res = res && item.second.first;
+                res = item.second.first && res;
 
                 // log what is happening
                 PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -580,7 +584,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
             // sends result to requester
-            res = res && sendUsingMe->sendObject(response, errMsg);
+            res = sendUsingMe->sendObject(response, errMsg) && res;
             return make_pair(res, errMsg);
           }));
 
@@ -611,7 +615,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
           for (auto &item : updateResults) {
 
             // if we failed res would be set to false
-            res = res && item.second.first;
+            res = item.second.first && res;
 
             // log what is happening
             PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -630,7 +634,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
         // sends result to requester
-        res =  res && sendUsingMe->sendObject(response, errMsg);
+        res =  sendUsingMe->sendObject(response, errMsg) && res;
 
         // return
         return make_pair(res, errMsg);
@@ -665,7 +669,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               for (auto &item : updateResults) {
 
                 // if we failed res would be set to false
-                res = res && item.second.first;
+                res = item.second.first && res;
 
                 // log what is happening
                 PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -717,7 +721,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               for (auto &item : updateResults) {
 
                 // if we failed res would be set to false
-                res = res && item.second.first;
+                res = item.second.first && res;
 
                 // log what is happening
                 PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -772,7 +776,7 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
               for (auto &item : updateResults) {
 
                 // if we failed res would be set to false
-                res = res && item.second.first;
+                res = item.second.first && res;
 
                 // log what is happening
                 PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
@@ -791,27 +795,92 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
             // sends result to requester
-            res = res && sendUsingMe->sendObject(response, errMsg);
+            res = sendUsingMe->sendObject(response, errMsg) && res;
             return make_pair(res, errMsg);
           }));
-}
 
-bool CatalogServer::databaseExists(const std::string &name) {
+  // handles a request to register a shared library
+  forMe.registerHandler(
+      CatGetDatabaseRequest_TYPEID,
+      make_shared<SimpleRequestHandler<CatGetDatabaseRequest>>(
+          [&](Handle<CatGetDatabaseRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
+            // lock the catalog server
+            std::lock_guard<std::mutex> guard(serverMutex);
 
-  // query the catalog
-  return this->pdbCatalog->databaseExists(name);
-}
+            // grab the database
+            auto db = pdbCatalog->getDatabase(request->databaseName);
 
-bool CatalogServer::setExists(const std::string &dbName, const std::string &setName){
+            // check if the thing exists
+            bool res = db != nullptr;
 
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
+            // this is where we put the error
+            std::string errMsg;
 
-  // query the catalog
-  return this->pdbCatalog->setExists(dbName, setName);
+            // allocate a block for the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle<CatGetDatabaseResult> response;
+
+            if(res) {
+
+              // create the response object
+              response = makeObject<CatGetDatabaseResult>((std::string) db->name,  db->createdOn);
+
+            } else {
+
+              // set the error
+              errMsg = "Could not find the database with the name " + (std::string) request->databaseName;
+
+              // create the response object in case of an error
+              response = makeObject<CatGetDatabaseResult>("", -1);
+            }
+
+            // sends result to requester
+            res = sendUsingMe->sendObject(response, errMsg) && res;
+            return make_pair(res, errMsg);
+
+          }));
+
+  // handles a request to register a shared library
+  forMe.registerHandler(
+      CatGetSetRequest_TYPEID,
+      make_shared<SimpleRequestHandler<CatGetSetRequest>>(
+          [&](Handle<CatGetSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
+
+            // lock the catalog server
+            std::lock_guard<std::mutex> guard(serverMutex);
+
+            // grab the database
+            auto set = pdbCatalog->getSet(request->databaseName, request->setName);
+
+            // check if the thing exists
+            bool res = set != nullptr;
+
+            // this is where we put the error
+            std::string errMsg;
+
+            // allocate a block for the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle<CatGetSetResult> response;
+
+            if(res) {
+
+              // create the response object
+              response = makeObject<CatGetSetResult>(set->database, set->name, *set->type, *set->type);
+
+            } else {
+
+              // set the error
+              errMsg = "Could not find the set with the name " + (std::string) request->databaseName + " and " + (std::string) request->setName;
+
+              // create the response object in case of an error
+              response = makeObject<CatGetSetResult>();
+            }
+
+            // sends result to requester
+            res = sendUsingMe->sendObject(response, errMsg) && res;
+            return make_pair(res, errMsg);
+          }));
 }
 
 bool CatalogServer::registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error) {
@@ -824,24 +893,6 @@ bool CatalogServer::registerNode(const std::string &address, int port, const std
 
   // register the node
   return this->pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeIdentifier,  address, port, nodeType), error);
-}
-
-PDBCatalogSetPtr CatalogServer::getSet(const std::string &dbName, const std::string &setName) {
-
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
-
-  // return the set
-  return pdbCatalog->getSet(dbName, setName);
-}
-
-PDBCatalogDatabasePtr CatalogServer::getDatabase(const std::string &dbName) {
-
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
-
-  // return the set
-  return pdbCatalog->getDatabase(dbName);
 }
 
 PDBCatalogTypePtr CatalogServer::getTypeWithoutLibrary(const std::string &name) {

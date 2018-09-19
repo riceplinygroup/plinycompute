@@ -34,8 +34,13 @@
 #include "CatRemoveNodeFromSetRequest.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatGetType.h"
+#include "CatGetSetRequest.h"
+#include "CatGetSetResult.h"
+#include "CatGetDatabaseRequest.h"
+#include "CatGetDatabaseResult.h"
 #include "CatPrintCatalogResult.h"
 #include "CatTypeNameSearchResult.h"
+#include "CatGetTypeResult.h"
 #include "CatGetTypeResult.h"
 #include "CatalogClient.h"
 #include "ShutDown.h"
@@ -343,8 +348,7 @@ bool CatalogClient::createDatabase(std::string databaseName,
 
 // sends a request to the Catalog Server to remove Metadata for a Set that is
 // deleted
-bool CatalogClient::deleteSet(std::string databaseName, std::string setName,
-                              std::string &errMsg) {
+bool CatalogClient::deleteSet(const std::string &databaseName, const std::string &setName, std::string &errMsg) {
 
   return simpleRequest<CatDeleteSetRequest, SimpleRequestResult, bool>(
       myLogger, port, address, false, 1024,
@@ -363,10 +367,66 @@ bool CatalogClient::deleteSet(std::string databaseName, std::string setName,
       databaseName, setName);
 }
 
+bool CatalogClient::setExists(const std::string &dbName, const std::string &setName) {
+
+  return simpleRequest<CatGetSetRequest, CatGetSetResult, bool>(
+      myLogger, port, address, false, 1024 * 1024,
+      [&](Handle<CatGetSetResult> result) {
+        return result != nullptr && result->databaseName == dbName && result->setName == setName;
+      },
+      dbName, setName);
+}
+
+bool CatalogClient::databaseExists(const std::string &dbName) {
+
+  // make a request and return the value
+  return simpleRequest<CatGetDatabaseRequest, CatGetDatabaseResult, bool>(
+      myLogger, port, address, false, 1024 * 1024,
+      [&](Handle<CatGetDatabaseResult> result) {
+        return result != nullptr && result->database == dbName;
+      },
+      dbName);
+}
+
+pdb::PDBCatalogSetPtr CatalogClient::getSet(const std::string &dbName, const std::string &setName, std::string &errMsg) {
+
+  // make a request and return the value
+  return simpleRequest<CatGetSetRequest, CatGetSetResult, pdb::PDBCatalogSetPtr>(
+              myLogger, port, address, (pdb::PDBCatalogSetPtr) nullptr, 1024,
+              [&](Handle<CatGetSetResult> result) {
+
+                // do we have the thing
+                if(result != nullptr && result->databaseName == dbName && result->setName == setName) {
+                  return std::make_shared<pdb::PDBCatalogSet>(result->databaseName, result->setName, result->type);
+                }
+
+                // return a null pointer otherwise
+                return (pdb::PDBCatalogSetPtr) nullptr;
+              },
+              dbName, setName);
+}
+
+pdb::PDBCatalogDatabasePtr CatalogClient::getDatabase(const std::string &dbName, std::string &errMsg) {
+
+  // make a request and return the value
+  return simpleRequest<CatGetDatabaseRequest, CatGetDatabaseResult, pdb::PDBCatalogDatabasePtr>(
+      myLogger, port, address, (pdb::PDBCatalogDatabasePtr) nullptr, 1024,
+      [&](Handle<CatGetDatabaseResult> result) {
+
+        // do we have the thing
+        if(result != nullptr && result->database == dbName) {
+          return std::make_shared<pdb::PDBCatalogDatabase>(result->database, result->createdOn);
+        }
+
+        // return a null pointer otherwise
+        return (pdb::PDBCatalogDatabasePtr) nullptr;
+      },
+      dbName);
+}
+
 // sends a request to the Catalog Server to remove Metadata for a Database that
 // has been deleted
-bool CatalogClient::deleteDatabase(std::string databaseName,
-                                   std::string &errMsg) {
+bool CatalogClient::deleteDatabase(const std::string &databaseName, std::string &errMsg) {
 
   return simpleRequest<CatDeleteDatabaseRequest, SimpleRequestResult, bool>(
       myLogger, port, address, false, 1024,

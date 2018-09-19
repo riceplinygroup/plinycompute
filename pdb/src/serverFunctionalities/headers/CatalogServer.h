@@ -81,15 +81,7 @@ public:
    */
   void registerHandlers(PDBServer &forMe) override;
 
-  bool databaseExists(const std::string &name);
-
-  bool setExists(const std::string &dbName, const std::string &setName);
-
   bool registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error);
-
-  PDBCatalogSetPtr getSet(const std::string &dbName, const std::string &setName);
-
-  PDBCatalogDatabasePtr getDatabase(const std::string &dbName);
 
   PDBCatalogTypePtr getTypeWithoutLibrary(const std::string &name);
 

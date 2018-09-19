@@ -29,7 +29,14 @@ public:
    * The initializer constructor
    * @param name - the name of the database
    */
-  PDBCatalogDatabase(const std::string &name) : name(name) {}
+  explicit PDBCatalogDatabase(std::string name) : name(std::move(name)) {}
+
+  /**
+   * The initializer constructor
+   * @param name - the name of the database
+   * @param createdOn - the time the set was created on
+   */
+  PDBCatalogDatabase(std::string name, long createdOn) : name(std::move(name)), createdOn(createdOn) {}
 
   /**
    * The name of the database

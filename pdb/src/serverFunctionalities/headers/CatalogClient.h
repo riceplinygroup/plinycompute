@@ -18,6 +18,7 @@
 #ifndef CATALOG_CLIENT_H
 #define CATALOG_CLIENT_H
 
+#include <PDBCatalogSet.h>
 #include "CatSharedLibraryByNameRequest.h"
 #include "CatalogNodeMetadata.h"
 #include "CatPrintCatalogRequest.h"
@@ -59,9 +60,7 @@ public:
   /* Registers event handlers associated with this server functionality */
   virtual void registerHandlers(PDBServer &forMe) override;
 
-  /* Uses the name of the object type to find its corresponding typeId, returns
-   * -1
-   * if not found
+  /* Uses the name of the object type to find its corresponding typeId, returns -1 if not found
    */
   int16_t searchForObjectTypeName(std::string objectTypeName);
 
@@ -121,13 +120,20 @@ public:
    * success, false on
    * fail
    */
-  bool deleteDatabase(std::string databaseName, std::string &errMsg);
+  bool deleteDatabase(const std::string &databaseName, std::string &errMsg);
 
   /* Sends a request to the Catalog Server to delete a set returns true on
    * success, false on fail
    */
-  bool deleteSet(std::string databaseName, std::string setName,
-                 std::string &errMsg);
+  bool deleteSet(const std::string &databaseName, const std::string &setName, std::string &errMsg);
+
+  bool setExists(const std::string &dbName, const std::string &setName);
+
+  bool databaseExists(const std::string &dbName);
+
+  pdb::PDBCatalogSetPtr getSet(const std::string &dbName, const std::string &setName, std::string &errMsg);
+
+  pdb::PDBCatalogDatabasePtr getDatabase(const std::string &dbName, std::string &errMsg);
 
   /* Sends a request to the Catalog Server to add information about a node to a
    * set for a given
