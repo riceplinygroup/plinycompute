@@ -87,14 +87,6 @@ public:
 
   bool registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error);
 
-  bool registerSet(const std::string &set, const std::string &database, const std::string &type, int16_t typeID, std::string &error);
-
-  bool registerDatabase(const std::string &name, std::string &error);
-
-  bool removeDatabase(const std::string &dbName, std::string &error);
-
-  bool removeSet(const std::string &dbName, const std::string &setName, std::string &error);
-
   PDBCatalogSetPtr getSet(const std::string &dbName, const std::string &setName);
 
   PDBCatalogDatabasePtr getDatabase(const std::string &dbName);
@@ -297,16 +289,6 @@ private:
         },
         libraryBytes, librarySize);
   }
-
-  bool broadcastTypeRegister(Handle<CatRegisterType> &request, std::string &error);
-
-  bool broadcastRegisterSet(Handle<CatCreateSetRequest> &request, std::string &error);
-
-  bool broadcastRegisterDatabase(Handle<CatCreateDatabaseRequest> &request, std::string &error);
-
-  bool broadcastDeleteSet(Handle<CatDeleteSetRequest> &request, std::string &error);
-
-  bool broadcastDeleteDatabase(Handle<CatDeleteDatabaseRequest> &request, std::string &error);
 
 };
 }
