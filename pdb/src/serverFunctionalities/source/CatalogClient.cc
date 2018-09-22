@@ -434,12 +434,11 @@ bool CatalogClient::deleteDatabase(const std::string &databaseName, std::string 
 }
 
 // sends a request to the Catalog Server to add metadata about a Node
-bool CatalogClient::registerNodeMetadata(
-    pdb::Handle<pdb::CatalogNodeMetadata> nodeData, std::string &errMsg) {
+bool CatalogClient::registerNodeMetadata(pdb::Handle<pdb::CatSyncRequest> nodeData, std::string &errMsg) {
 
   PDB_COUT << "registerNodeMetadata for item: " << (*nodeData) << endl;
 
-  return simpleRequest<CatalogNodeMetadata, SimpleRequestResult, bool>(
+  return simpleRequest<CatSyncRequest, SimpleRequestResult, bool>(
       myLogger, port, address, false, 1024,
       [&](Handle<SimpleRequestResult> result) {
         if (result != nullptr) {

@@ -67,6 +67,8 @@ class PDBCatalog {
    */
   ~PDBCatalog() = default;
 
+  std::vector<unsigned char> serializeToBytes();
+
   bool registerSet(PDBCatalogSetPtr set, std::string &error);
 
   bool registerDatabase(PDBCatalogDatabasePtr db, std::string &error);
@@ -123,10 +125,6 @@ class PDBCatalog {
 
   PDBCatalogStorage storage;
 
-  /**
-   * To ensure serialized access
-   */
-  std::mutex serverMutex;
 };
 
 }

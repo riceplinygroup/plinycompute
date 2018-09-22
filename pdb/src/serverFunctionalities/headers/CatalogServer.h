@@ -67,8 +67,12 @@ public:
    * @param managerIP : the IP address of the Manager Catalog
    * @param managerPort : the port number of the Manager Catalog
    */
-  CatalogServer(const string &catalogDirectory, bool isManagerCatalogServer,
-                const string &managerIP, int managerPort);
+  CatalogServer(const string &catalogDirectory,
+                bool isManagerCatalogServer,
+                const string &managerIP,
+                int managerPort,
+                const string &nodeIPValue,
+                int nodePortValue);
 
   /**
    * Default destructor
@@ -118,6 +122,16 @@ private:
   int managerPort;
 
   /**
+ * The ip address of the node this catalog server is running
+ */
+  string nodeIP;
+
+  /**
+   * Default port of the node this catalog server is running
+   */
+  int nodePort;
+
+  /**
    * Logger to capture debug information for the Catalog Server
    */
   PDBLoggerPtr logger;
@@ -136,6 +150,17 @@ private:
    * Initializes the catalog with the built in types if needed
    */
   void initBuiltInTypes();
+
+  /**
+   * register the manager node in this catalog
+   * If we are the manager we simply add ourselves into the catalog
+   */
+  void registerManager();
+
+  /**
+   * sync the worker catalog with the manager.
+   */
+  void syncWithManager();
 
   /**
    * Adds a new object type... return -1 on failure, this is done on a worker node catalog
@@ -163,17 +188,17 @@ private:
     for (auto &node : pdbCatalog->getNodes()) {
 
       // grab the address and the port of the node
-      std::string nodeIP = node.address;
-      int nodePort = node.port;
+      std::string ip = node.address;
+      int port = node.port;
 
       // is this node the manager if so skip it
       if (node.nodeType != "manager") {
 
         // sends the request to a node in the cluster
-        bool res = forwardRequest(request, nodeIP, nodePort, errMsg);
+        bool res = forwardRequest(request, ip, port, errMsg);
 
         // adds the result of the update
-        broadcastResults.insert(make_pair(nodeIP, make_pair(res, errMsg)));
+        broadcastResults.insert(make_pair(ip, make_pair(res, errMsg)));
       }
     }
 
@@ -275,7 +300,6 @@ private:
         },
         libraryBytes, librarySize);
   }
-
 };
 }
 

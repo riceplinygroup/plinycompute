@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     ConfigurationPtr conf = make_shared<Configuration>();
 
-    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, managerIp, port);
+    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, managerIp, port, managerIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
 
     //initialize StatisticsDB
@@ -93,41 +93,12 @@ int main(int argc, char* argv[]) {
 
     frontEnd.addFunctionality<pdb::ResourceManagerServer>(serverListFile, port, pseudoClusterMode, pemFile);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger, statisticsDB);
+
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
-
-    // registers metadata for manager node in the catalog
-    if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode("localhost", port, "manager", errMsg)) {
-        std::cout << "Metadata for manager node was not added because " + errMsg << std::endl;
-    } else {
-        std::cout << "Metadata for manager node successfully added to catalog." << std::endl;
-    }
- 
-    // registers metadata for worker nodes in the catalog
-    makeObjectAllocatorBlock(4 * 1024 * 1024, true);
-
-    for (int i = 0; i < allNodes->size(); i++) {
-
-       nodeName = "worker_" + std::to_string(numNodes);
-       hostName = (*allNodes)[i]->getAddress().c_str();
-       portValue = (*allNodes)[i]->getPort();
-
-       // register the worker
-       if(!frontEnd.getFunctionality<pdb::CatalogServer>().registerNode(hostName, portValue, "worker", errMsg)) {
-          std::cout << "Metadata for worker node was not added because " + errMsg << std::endl;
-       } else {
-          std::cout << "Metadata for worker node successfully added to catalog. "
-                    << hostName << " | " << std::to_string(portValue) << " | " << nodeName << " | "
-                    << std::endl;
-       }
-
-       numNodes++;
-    }
 
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger, statisticsDB);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
-
-    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(
-        port, myLogger, conf, statisticsDB, pseudoClusterMode, partitionToCoreRatio);
+    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(port, myLogger, conf, statisticsDB, pseudoClusterMode, partitionToCoreRatio);
     frontEnd.startServer(nullptr);
 }
 

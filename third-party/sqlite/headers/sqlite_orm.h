@@ -8013,6 +8013,38 @@ namespace sqlite_orm {
                     throw std::system_error(std::error_code(sqlite3_errcode(connection->get_db()), get_sqlite_error_category()));
                 }
             }
+
+            std::vector<unsigned char> dump_database() {
+
+              // grab the connection of the database
+              auto connection = this->get_or_create_connection();
+
+              // do the dumping
+              sqlite3_int64 bytesSize = 0;
+              auto dump_ptr = sqlite3_serialize(connection->get_db(), nullptr, &bytesSize, 0);
+
+              // allocate the memory for the return
+              std::vector<unsigned char> out;
+              out.reserve((size_t) bytesSize);
+
+              // copy the stuff
+              out.assign(dump_ptr, dump_ptr + bytesSize);
+
+              // return the dump
+              return std::move(out);
+            }
+
+            void load_from_dump(unsigned char *bytes, size_t size) {
+
+              // grab the connection of the database
+              auto connection = this->get_or_create_connection();
+
+              // allocate the database buffer
+              auto buffer = (unsigned char *) sqlite3_malloc(size * 2);
+
+              // deserialize
+              sqlite3_deserialize(connection->get_db(), 0, bytes, size, size, SQLITE_DESERIALIZE_RESIZEABLE);
+            }
             
             /**
              *  Insert routine. Inserts object with all non primary key fields in passed object. Id of passed

@@ -20,7 +20,7 @@
 
 #include <PDBCatalogSet.h>
 #include "CatSharedLibraryByNameRequest.h"
-#include "CatalogNodeMetadata.h"
+#include "CatSyncRequest.h"
 #include "CatPrintCatalogRequest.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
@@ -101,7 +101,7 @@ public:
 
   /* Sends a request to the Catalog Server to register metadata about a node in
    * the cluster */
-  bool registerNodeMetadata(pdb::Handle<pdb::CatalogNodeMetadata> nodeData,
+  bool registerNodeMetadata(pdb::Handle<pdb::CatSyncRequest> nodeData,
                             std::string &errMsg);
 
   /* Sends a request to the Catalog Server to Creates a new set for a given

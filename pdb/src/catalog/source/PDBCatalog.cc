@@ -16,6 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <PDBCatalog.h>
+
 #include "PDBCatalog.h"
 
 using namespace sqlite_orm;
@@ -24,6 +26,10 @@ pdb::PDBCatalog::PDBCatalog(std::string location) : storage(makeStorage(&locatio
 
   // sync the schema
   storage.sync_schema();
+}
+
+std::vector<unsigned char> pdb::PDBCatalog::serializeToBytes() {
+  return std::move(storage.dump_database());
 }
 
 bool pdb::PDBCatalog::registerSet(pdb::PDBCatalogSetPtr set, std::string &error) {
@@ -328,7 +334,6 @@ std::string pdb::PDBCatalog::listNodesInCluster() {
   // move the return value
   return std::move(ret);
 }
-
 std::string pdb::PDBCatalog::listRegisteredDatabases() {
 
   // create the output string
@@ -346,6 +351,7 @@ std::string pdb::PDBCatalog::listRegisteredDatabases() {
   // move the return value
   return std::move(ret);
 }
+
 std::string pdb::PDBCatalog::listRegisteredSetsForDatabase(const std::string &dbName) {
 
   // create the output string
@@ -398,7 +404,6 @@ bool pdb::PDBCatalog::removeDatabase(const std::string &dbName, std::string &err
 
   return true;
 }
-
 bool pdb::PDBCatalog::removeSet(const std::string &dbName, const std::string &setName, std::string &error) {
 
   // get the set

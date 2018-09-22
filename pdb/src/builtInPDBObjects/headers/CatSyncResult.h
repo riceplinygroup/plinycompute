@@ -15,39 +15,63 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+/*
+ * CatSyncRequest.h
+ *
+ */
 
-#ifndef SIMPLE_REQ_RES_H
-#define SIMPLE_REQ_RES_H
+#ifndef CATALOG_SYNC_RESULT_H_
+#define CATALOG_SYNC_RESULT_H_
 
+#include <iostream>
+#include <vector>
+#include <memory>
 #include "Object.h"
-#include "Handle.h"
 #include "PDBString.h"
-#include <utility>
+#include "PDBVector.h"
 
-// PRELOAD %SimpleRequestResult%
+
+//  PRELOAD %CatSyncResult%
+
+using namespace std;
 
 namespace pdb {
 
-// encapsulates a request to obtain a shared library from the catalog
-class SimpleRequestResult : public Object {
-
+/**
+ * This class is used to sync a worker node with the manager
+ */
+class CatSyncResult : public Object {
 public:
-    SimpleRequestResult() {}
-    ~SimpleRequestResult() {}
 
-    // generally res should be true on success
-    SimpleRequestResult(bool res, const std::string &errMsg) : res(res), errMsg(errMsg) {}
+  CatSyncResult() = default;
 
-    ENABLE_DEEP_COPY
+  explicit CatSyncResult(const std::vector<unsigned char> &bytes) {
 
-    std::pair<bool, std::string> getRes() {
-        return std::make_pair(res, errMsg);
-    }
+    // init the fields
+    this->bytes = pdb::makeObject<pdb::Vector<unsigned char>>(bytes.size(), bytes.size());
 
-private:
-    bool res;
-    String errMsg;
+    // copy the bytes
+    memcpy(this->bytes->c_ptr(), bytes.data(), bytes.size());
+  }
+
+  CatSyncResult(const Handle<CatSyncResult> &requestToCopy)  {
+    // init the fields
+    this->bytes = pdb::makeObject<pdb::Vector<unsigned char>>(requestToCopy->bytes->size(), requestToCopy->bytes->size());
+
+    // copy the bytes
+    memcpy(bytes->c_ptr(), requestToCopy->bytes->c_ptr(), bytes->size());
+  }
+
+  ~CatSyncResult() = default;
+
+  ENABLE_DEEP_COPY
+
+  /**
+   * The bytes we want to send
+   */
+  pdb::Handle<Vector<unsigned char>> bytes;
 };
-}
 
-#endif
+} /* namespace pdb */
+
+#endif /* CATALOG_NODE_METADATA_H_ */

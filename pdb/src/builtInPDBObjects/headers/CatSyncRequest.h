@@ -15,39 +15,67 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+/*
+ * CatSyncRequest.h
+ *
+ */
 
-#ifndef SIMPLE_REQ_RES_H
-#define SIMPLE_REQ_RES_H
+#ifndef CATALOG_NODE_METADATA_H_
+#define CATALOG_NODE_METADATA_H_
 
+#include <iostream>
 #include "Object.h"
-#include "Handle.h"
 #include "PDBString.h"
-#include <utility>
+#include "PDBVector.h"
 
-// PRELOAD %SimpleRequestResult%
+//  PRELOAD %CatSyncRequest%
+
+using namespace std;
 
 namespace pdb {
 
-// encapsulates a request to obtain a shared library from the catalog
-class SimpleRequestResult : public Object {
+/**
+ * This class is used to sync a worker node with the manager
+ */
+class CatSyncRequest : public Object {
+ public:
 
-public:
-    SimpleRequestResult() {}
-    ~SimpleRequestResult() {}
+  CatSyncRequest() = default;
 
-    // generally res should be true on success
-    SimpleRequestResult(bool res, const std::string &errMsg) : res(res), errMsg(errMsg) {}
+  CatSyncRequest(const std::string &nodeIP, int port, const std::string &nodeType) {
 
-    ENABLE_DEEP_COPY
+    // init the fields
+    this->nodeIP = nodeIP;
+    this->nodePort = port;
+    this->nodeType = nodeType;
+  }
 
-    std::pair<bool, std::string> getRes() {
-        return std::make_pair(res, errMsg);
-    }
+  explicit CatSyncRequest(const Handle<CatSyncRequest> &requestToCopy) {
+    nodeIP = requestToCopy->nodeIP;
+    nodePort = requestToCopy->nodePort;
+    nodeType = requestToCopy->nodeType;
+  }
 
-private:
-    bool res;
-    String errMsg;
+  ~CatSyncRequest() = default;
+
+  ENABLE_DEEP_COPY
+
+  /**
+   * IP address of the node
+   */
+  pdb::String nodeIP;
+
+  /**
+   * The port of the node
+   */
+  int nodePort = -1;
+
+  /**
+   * The type of the node "worker" or "manager"
+   */
+  pdb::String nodeType;
 };
-}
 
-#endif
+} /* namespace pdb */
+
+#endif /* CATALOG_NODE_METADATA_H_ */

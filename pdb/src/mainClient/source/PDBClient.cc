@@ -236,15 +236,10 @@ namespace pdb {
                                  string &nodeType, int nodeStatus) {
 
       makeObjectAllocatorBlock(1024 * 1024 * 1, true);
-
-      pdb::Handle<pdb::CatalogNodeMetadata> nodeInfo =
-          pdb::makeObject<pdb::CatalogNodeMetadata>(
-              String(localIP + ":" + std::to_string(localPort)), String(localIP),
-              localPort, String(nodeName), String(nodeType), 1);
-
+      pdb::Handle<pdb::CatSyncRequest> nodeInfo = pdb::makeObject<pdb::CatSyncRequest>(localIP, localPort, nodeType);
 
       bool result = catalogClient->registerNodeMetadata(nodeInfo, returnedMsg);
-      if (result==false) {
+      if (!result) {
           errorMsg = "Not able to register node: " + returnedMsg;
           exit(-1);
       } else {

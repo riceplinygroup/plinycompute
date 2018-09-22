@@ -26,6 +26,8 @@
 #include <CatalogServer.h>
 
 #include "BuiltInObjectTypeIDs.h"
+#include "CatSyncResult.h"
+#include "CatSyncRequest.h"
 #include "CatCreateDatabaseRequest.h"
 #include "CatCreateSetRequest.h"
 #include "CatDeleteDatabaseRequest.h"
@@ -52,15 +54,19 @@ namespace pdb {
 // constructor
 CatalogServer::CatalogServer(const string &catalogDirectoryIn,
                              bool isManagerCatalogServer,
-                             const string &managerIPValue,
-                             int managerPortValue) {
+                             const string &managerIP,
+                             int managerPort,
+                             const string &nodeIP,
+                             int nodePort) {
 
   // create a logger for the catalog server
   this->logger = make_shared<pdb::PDBLogger>("catalogServer.log");
 
   // set the ip address and port
-  this->managerIP = managerIPValue;
-  this->managerPort = managerPortValue;
+  this->managerIP = managerIP;
+  this->managerPort = managerPort;
+  this->nodeIP = nodeIP;
+  this->nodePort = nodePort;
   this->catalogDirectory = catalogDirectoryIn;
   this->isManagerCatalogServer = isManagerCatalogServer;
   this->tempPath = catalogDirectory + "/tmp_so_files";
@@ -68,12 +74,22 @@ CatalogServer::CatalogServer(const string &catalogDirectoryIn,
   // create the directories for the catalog
   initDirectories();
 
+  // if I am a worker than I need to sync with the manager catalog.
+  if(!isManagerCatalogServer) {
+    syncWithManager();
+  }
+
   // creates instance of catalog
   PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
   this->pdbCatalog = make_shared<PDBCatalog>(catalogDirectory + "/catalog.sqlite");
 
   // initialize the types
   initBuiltInTypes();
+
+  // if am a manager register me
+  if(isManagerCatalogServer) {
+    registerManager();
+  }
 
   PDB_COUT << "Catalog Server successfully initialized!\n";
 }
@@ -121,29 +137,31 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
   // handles a request to register metadata of a new cluster Node in the catalog
   forMe.registerHandler(
-      CatalogNodeMetadata_TYPEID,
-      make_shared<SimpleRequestHandler<CatalogNodeMetadata>>([&](Handle<CatalogNodeMetadata> request,
-                                                                 PDBCommunicatorPtr sendUsingMe) {
+      CatSyncRequest_TYPEID,
+      make_shared<SimpleRequestHandler<CatSyncRequest>>([&](Handle<CatSyncRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
         // lock the catalog server
         std::lock_guard<std::mutex> guard(serverMutex);
 
         // grab the relevant node attributes
-        auto nodeID = (std::string) request->getNodeIP() + ":" + std::to_string(request->getNodePort());
-        auto address = (std::string) request->getNodeIP();
-        auto port = request->getNodePort();
-        auto type = (std::string) request->getNodeType();
+        auto nodeID = (std::string) request->nodeIP+ ":" + std::to_string(request->nodePort);
+        auto address = (std::string) request->nodeIP;
+        auto port = request->nodePort;
+        auto type = (std::string) request->nodeType;
 
         // log what is happening
         PDB_COUT << "CatalogServer handler CatalogNodeMetadata_TYPEID adding the node with the address " << nodeID << "\n";
 
-        // adds the node metadata
+        // adds the node to the catalog
         std::string errMsg;
-        bool res = pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeID, address, port, type) , errMsg);
+        bool res = pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeID, address, port, type), errMsg);
+
+        // grab the catalog bytes
+        auto catalogDump = pdbCatalog->serializeToBytes();
 
         // make an allocation block
-        const UseTemporaryAllocationBlock tempBlock{1024};
-        Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
+        const UseTemporaryAllocationBlock tempBlock{catalogDump.size() + 1024};
+        Handle<CatSyncResult> response = makeObject<CatSyncResult>(catalogDump);
 
         // sends result to requester
         res = sendUsingMe->sendObject(response, errMsg);
@@ -775,6 +793,62 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
             res = sendUsingMe->sendObject(response, errMsg) && res;
             return make_pair(res, errMsg);
           }));
+}
+
+void CatalogServer::registerManager() {
+
+  // register the node
+  std::string error;
+  registerNode(managerIP, managerPort, "manager",  error);
+
+  // log the error
+  PDB_COUT << error << "\n";
+}
+
+void CatalogServer::syncWithManager() {
+
+  // allocate a block for the response
+  const UseTemporaryAllocationBlock tempBlock{1024};
+  Handle<CatSyncRequest> request = makeObject<CatSyncRequest>(nodeIP, nodePort, "worker");
+
+  // sends the request to a node in the cluster
+  auto ret = simpleRequest<CatSyncRequest, CatSyncResult, std::shared_ptr<std::vector<unsigned char>> >(
+      this->logger, managerPort, managerIP, nullptr, 1024,
+      [&](Handle<CatSyncResult> result) {
+
+        // if the result is something else null we got a response
+        if (result != nullptr) {
+
+          // create the result vector
+          auto out = std::make_shared<std::vector<unsigned char>>();
+
+          // copy the result to the return value
+          out->reserve(result->bytes->size());
+          out->assign(result->bytes->c_ptr(), result->bytes->c_ptr() + result->bytes->size());
+
+          return out;
+        }
+
+        return (std::shared_ptr<std::vector<unsigned char>>) nullptr;
+      }, nodeIP, nodePort, "worker");
+
+  ofstream file (catalogDirectory + "/catalog.sqlite", ios::trunc | ios::binary);
+
+  // check if the file is open
+  if(!file.is_open()) {
+
+    // log what happened
+    PDB_COUT << "Could not open out the catalog\n";
+
+    // just end
+    return;
+  }
+
+  // write out the received catalog
+  file.write((char*) ret->data(), ret->size());
+
+  // close the file
+  file.close();
 }
 
 bool CatalogServer::registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error) {
