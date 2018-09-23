@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    std::cout << "Starting up a distributed storage manager server\n";
+    std::cout << "Starting up a distributed storage manager server...\n";
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
     pdb::PDBServer frontEnd(port, 100, myLogger);
 
@@ -99,7 +99,14 @@ int main(int argc, char* argv[]) {
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger, statisticsDB);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
     frontEnd.addFunctionality<pdb::QuerySchedulerServer>(port, myLogger, conf, statisticsDB, pseudoClusterMode, partitionToCoreRatio);
-    frontEnd.startServer(nullptr);
+    frontEnd.startServer(make_shared<GenericWork>([&](PDBBuzzerPtr callerBuzzer) {
+
+      // log that the server has started
+      std::cout << "Distributed storage manager server started!\n";
+
+      // buzz that we are done
+      callerBuzzer->buzz(PDBAlarm::WorkAllDone);
+    }));
 }
 
 #endif

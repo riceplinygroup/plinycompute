@@ -8030,6 +8030,9 @@ namespace sqlite_orm {
               // copy the stuff
               out.assign(dump_ptr, dump_ptr + bytesSize);
 
+              // free the dump
+              sqlite3_free(dump_ptr);
+
               // return the dump
               return std::move(out);
             }

@@ -153,8 +153,41 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
         PDB_COUT << "CatalogServer handler CatalogNodeMetadata_TYPEID adding the node with the address " << nodeID << "\n";
 
         // adds the node to the catalog
+        bool res = true;
         std::string errMsg;
-        bool res = pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeID, address, port, type), errMsg);
+
+        // if we are a worker not we simply register the node and that is it.
+        if (!isManagerCatalogServer) {
+
+          // add the guy that made the request as a registered node
+          res = pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeID, address, port, type), errMsg);
+
+          // create an allocation block to hold the response
+          const UseTemporaryAllocationBlock tempBlock{1024};
+          Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
+
+          // sends result to requester
+          res = sendUsingMe->sendObject(response, errMsg) && res;
+          return make_pair(res, errMsg);
+        }
+
+        // to get the results of each broadcast
+        map<string, pair<bool, string>> updateResults;
+
+        // broadcast the update
+        broadcastRequest(request, updateResults, errMsg);
+
+        for (auto &item : updateResults) {
+
+          // if we failed res would be set to false
+          res = item.second.first && res;
+
+          // log what is happening
+          PDB_COUT << "Node IP: " << item.first + (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ") << item.second.second << "\n";
+        }
+
+        // add the guy that made the request as a registered node
+        res = pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeID, address, port, type), errMsg);
 
         // grab the catalog bytes
         auto catalogDump = pdbCatalog->serializeToBytes();
