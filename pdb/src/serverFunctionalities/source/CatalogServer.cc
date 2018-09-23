@@ -830,9 +830,15 @@ void CatalogServer::registerHandlers(PDBServer &forMe) {
 
 void CatalogServer::registerManager() {
 
+  // lock the catalog server
+  lock_guard<mutex> guard(serverMutex);
+
+  // make the node identifier
+  string nodeIdentifier = managerIP + ":" + to_string(managerPort);
+
   // register the node
   std::string error;
-  registerNode(managerIP, managerPort, "manager",  error);
+  pdbCatalog->registerNode(make_shared<PDBCatalogNode>(nodeIdentifier, managerIP, managerPort, "manager"), error);
 
   // log the error
   PDB_COUT << error << "\n";
@@ -882,18 +888,6 @@ void CatalogServer::syncWithManager() {
 
   // close the file
   file.close();
-}
-
-bool CatalogServer::registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error) {
-
-  // lock the catalog server
-  std::lock_guard<std::mutex> guard(serverMutex);
-
-  // make the node identifier
-  std::string nodeIdentifier = address + ":" + std::to_string(port);
-
-  // register the node
-  return this->pdbCatalog->registerNode(std::make_shared<pdb::PDBCatalogNode>(nodeIdentifier,  address, port, nodeType), error);
 }
 
 // adds metadata and bytes of a shared library in the catalog and returns its typeId

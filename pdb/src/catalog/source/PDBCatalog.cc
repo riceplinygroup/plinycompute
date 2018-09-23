@@ -273,7 +273,7 @@ int32_t pdb::PDBCatalog::numRegisteredTypes() {
   return storage.count<PDBCatalogType>();
 }
 
-std::vector<pdb::PDBCatalogSet> pdb::PDBCatalog::getSetForDatabase(const std::string &dbName) {
+std::vector<pdb::PDBCatalogSet> pdb::PDBCatalog::getSetsInDatabase(const std::string &dbName) {
 
   // select all the sets
   auto rows = storage.select(columns(&PDBCatalogSet::name, &PDBCatalogSet::database, &PDBCatalogSet::type),
@@ -343,7 +343,7 @@ std::string pdb::PDBCatalog::listRegisteredDatabases() {
   for(const auto &db : getDatabases()) {
 
     // go through each set of this database
-    for(const auto &set : getSetForDatabase(db.name)){
+    for(const auto &set : getSetsInDatabase(db.name)){
       ret.append("Name " + set.name + ", Database " +  set.database + ", Type : " + *set.type + "\n");
     }
   }
@@ -358,7 +358,7 @@ std::string pdb::PDBCatalog::listRegisteredSetsForDatabase(const std::string &db
   std::string ret = "SETS: \n";
 
   // go through each set of this database
-  for(const auto &set : getSetForDatabase(dbName)){
+  for(const auto &set : getSetsInDatabase(dbName)){
     ret.append("Name " + set.name + ", Database " +  set.database + ", Type : " + *set.type + "\n");
   }
 

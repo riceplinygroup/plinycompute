@@ -85,9 +85,7 @@ public:
    */
   void registerHandlers(PDBServer &forMe) override;
 
-  bool registerNode(const std::string &address, int port, const std::string &nodeType, std::string &error);
-
-private:
+ private:
 
   /**
    * Interface to a persistent catalog storage for storing and retrieving PDB
