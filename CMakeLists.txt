@@ -218,7 +218,6 @@ add_library(query-planning OBJECT ${QUERY_PANNING_SOURCE})
 add_library(work OBJECT ${WORK_SOURCE})
 add_library(memory OBJECT ${MEMORY_SOURCE})
 add_library(storage OBJECT ${STORAGE_SOURCE})
-add_library(distribution-manager OBJECT ${DISTRIBUTION_MANAGER_SOURCE})
 add_library(lambdas OBJECT ${LAMBDAS_SOURCE})
 add_library(logical-plan OBJECT ${LOGICAL_PLAN_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
@@ -232,12 +231,10 @@ add_dependencies(object-model object-type-ids)
 add_dependencies(pdb-client object-type-ids)
 add_dependencies(logical-plan object-type-ids)
 add_dependencies(lib-pdb-server object-type-ids)
-add_dependencies(distribution-manager object-type-ids)
 
 # used to build the pdb-manager and pdb-worker
 add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:dispatcher>
-        $<TARGET_OBJECTS:distribution-manager>
         $<TARGET_OBJECTS:communication>
         $<TARGET_OBJECTS:lambdas>
         $<TARGET_OBJECTS:logical-plan>
@@ -256,7 +253,6 @@ add_library(pdb-server-common $<TARGET_OBJECTS:catalog>
 # used to link the shared libraries that the shared librarires use
 add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:dispatcher>
-        $<TARGET_OBJECTS:distribution-manager>
         $<TARGET_OBJECTS:communication>
         $<TARGET_OBJECTS:lambdas>
         $<TARGET_OBJECTS:logical-plan>
@@ -275,7 +271,6 @@ add_library(pdb-shared-common $<TARGET_OBJECTS:catalog>
 # used to link the shared libraries that the test use
 add_library(pdb-tests-common $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:dispatcher>
-        $<TARGET_OBJECTS:distribution-manager>
         $<TARGET_OBJECTS:communication>
         $<TARGET_OBJECTS:lambdas>
         $<TARGET_OBJECTS:logical-plan>

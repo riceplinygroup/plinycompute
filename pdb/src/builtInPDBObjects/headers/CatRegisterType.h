@@ -27,15 +27,63 @@
 
 namespace pdb {
 
-// encapsulates a request to regster a type in the catalog
+/**
+ * Encapsulates a request to register a type in the catalog
+ */
 class CatRegisterType : public Object {
 
 public:
-    CatRegisterType() {}
-    ~CatRegisterType() {}
 
-    ENABLE_DEEP_COPY
+  /**
+   * The default constructor
+   */
+  CatRegisterType() = default;
+
+  /**
+   * Initializes this request with the bytes of the .so library
+   * @param bytes - the bytes of the .so library
+   * @param fileLength - the size of the .so library
+   */
+  CatRegisterType(char* bytes, size_t fileLength) {
+
+    // allocate the vector
+    libraryBytes = makeObject<Vector<char>>(fileLength, fileLength);
+
+    // copy the bytes
+    memcpy(libraryBytes->c_ptr(), bytes, fileLength);
+  }
+
+  /**
+   * Default destructor
+   */
+  ~CatRegisterType() = default;
+
+  /**
+   * Returns the bytes of the .so library
+   * @return the bytes
+   */
+  char *getLibraryBytes() {
+    return libraryBytes->c_ptr();
+  }
+
+  /**
+   * Returns the .so library size
+   * @return the size
+   */
+  size_t getLibrarySize() {
+    return libraryBytes->size();
+  }
+
+  ENABLE_DEEP_COPY
+
+private:
+
+  /**
+   * Contains the bytes of the library
+   */
+  Handle<Vector<char>> libraryBytes;
 };
+
 }
 
 #endif

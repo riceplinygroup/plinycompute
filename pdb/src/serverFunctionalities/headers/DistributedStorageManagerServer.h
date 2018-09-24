@@ -59,26 +59,9 @@ private:
 
     std::shared_ptr<StatisticsDB> statisticsDB;
 
-    bool findNodesForDatabase(const std::string& databaseName,
-                              std::vector<std::string>& nodesForDatabase,
-                              std::string& errMsg);
-
-    bool findNodesContainingDatabase(const std::string& databaseName,
-                                     std::vector<std::string>& nodesContainingDatabase,
-                                     std::string& errMsg);
-
-    bool findNodesForSet(const std::string& databaseName,
-                         const std::string& setName,
-                         std::vector<std::string>& nodesContainingSet,
-                         std::string& errMsg);
-
-    bool findNodesContainingSet(const std::string& databaseName,
-                                const std::string& setName,
-                                std::vector<std::string>& nodesContainingSet,
-                                std::string& errMsg);
-
-    std::function<void(Handle<SimpleRequestResult>, std::string)> generateAckHandler(
-        std::vector<std::string>& success, std::vector<std::string>& failures, mutex& lock);
+    std::function<void(Handle<SimpleRequestResult>, std::string)> generateAckHandler(std::vector<std::string>& success,
+                                                                                     std::vector<std::string>& failures,
+                                                                                     mutex& lock);
 };
 }
 

@@ -464,18 +464,17 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
             PDB_COUT << "received StorageAddDatabase" << std::endl;
             std::string errMsg;
             bool res = true;
-            if (standalone == true) {
+            if (standalone) {
                 res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
-                if (res == false) {
+                if (!res) {
                     errMsg = "Database already exists\n";
                 } else {
-                    res = getFunctionality<CatalogServer>().addDatabase(request->getDatabase(),
-                                                                        errMsg);
+                    res = getFunctionality<CatalogClient>().createDatabase(request->getDatabase(), errMsg);
                 }
 
             } else {
-                if ((res = getFunctionality<PangeaStorageServer>().addDatabase(
-                         request->getDatabase())) == false) {
+                if (!(res = getFunctionality<PangeaStorageServer>().addDatabase(
+                                         request->getDatabase()))) {
                     errMsg = "Database already exists\n";
                 }
             }
@@ -514,16 +513,20 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                         errMsg = "Set " + request->getDatabase() + ":" + request->getSetName() +
                             ":" + request->getTypeName() + " already exists\n";
                     } else {
-                        int16_t typeID = VTableMap::getIDByName(request->getTypeName(), false);
+                        std::string internalTypeName = VTableMap::getInternalTypeName(request->getTypeName());
+                        int16_t typeID = VTableMap::getIDByName(internalTypeName, false);
                         PDB_COUT << "TypeID =" << typeID << std::endl;
                         if (typeID == -1) {
                             errMsg = "Could not find type " + request->getTypeName();
                             res = false;
                         } else {
                             PDB_COUT << "to add set in catalog" << std::endl;
-                            res = getFunctionality<CatalogServer>().addSet(
-                                typeID, request->getDatabase(), request->getSetName(), errMsg);
-                            if (res == true) {
+                            res = getFunctionality<CatalogClient>().getFunctionality<CatalogClient>().createSet(request->getTypeName(),
+                                                                                                                typeID,
+                                                                                                                request->getDatabase(),
+                                                                                                                request->getSetName(),
+                                                                                                                errMsg);
+                            if (res) {
                                 PDB_COUT << "success" << std::endl;
                             } else {
                                 PDB_COUT << "failed" << std::endl;
@@ -600,16 +603,16 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
             std::string databaseName = request->getDatabase();
             bool res;
             PDB_COUT << "Deleting database " << databaseName << std::endl;
-            if (standalone == true) {
+            if (standalone) {
                 res = getFunctionality<PangeaStorageServer>().removeDatabase(databaseName);
-                if (res == false) {
+                if (!res) {
                     errMsg = "Failed to delete database\n";
                 } else {
-                    res = getFunctionality<CatalogServer>().deleteDatabase(databaseName, errMsg);
+                    res = getFunctionality<CatalogClient>().deleteDatabase(databaseName, errMsg);
                 }
             } else {
                 res = getFunctionality<PangeaStorageServer>().removeDatabase(databaseName);
-                if (res == false) {
+                if (!res) {
                     errMsg = "Failed to delete database\n";
                 }
             }
@@ -643,17 +646,15 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 res = sendUsingMe->sendObject(response, errMsg);
                 return make_pair(res, errMsg);
             }
-            if (standalone == true) {
+            if (standalone) {
                 res = getFunctionality<PangeaStorageServer>().removeSet(
                     databaseName, typeName, setName);
-                if (res == false) {
+                if (!res) {
                     errMsg = "Set doesn't exist\n";
                 }
 
                 // deletes set in catalog
-                res = getFunctionality<CatalogServer>().deleteSet(
-                    request->getDatabase(), request->getSetName(), errMsg);
-
+                res = getFunctionality<CatalogClient>().deleteSet(request->getDatabase(), request->getSetName(), errMsg);
 
             } else {
                 if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName,
@@ -1104,7 +1105,7 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                     res = sendUsingMe->sendObject(response, errMsg);
                 }
                 if (getFunctionality<PangeaStorageServer>().isStandalone() == true) {
-                    int16_t typeID = VTableMap::getIDByName(request->getType(), false);
+                    int16_t typeID = VTableMap::getIDByName(VTableMap::getInternalTypeName(request->getType()), false);
                     PDB_COUT << "TypeID =" << typeID << std::endl;
                     if (typeID == -1) {
                         errMsg = "Could not find type " + request->getType();
@@ -1814,7 +1815,7 @@ bool PangeaStorageServer::addSet(
         if (this->typename2id->count(typeName) == 0) {
             // type doesn't exist
             // now we fetch the type id through catalog
-            int typeId = VTableMap::getIDByName(typeName, false);
+            int typeId = VTableMap::getIDByName(VTableMap::getInternalTypeName(typeName), false);
             if ((typeId <= 0) || (typeId == 8191)) {
                 PDB_COUT << "type doesn't  exist for name=" << typeName
                          << ", and we store it as default type" << std::endl;

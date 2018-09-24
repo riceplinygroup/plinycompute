@@ -30,19 +30,23 @@ namespace pdb {
 // encapsulates a request to search for a type in the catalog
 class CatCreateDatabaseRequest : public Object {
 
-public:
-    ~CatCreateDatabaseRequest() {}
-    CatCreateDatabaseRequest() {}
-    CatCreateDatabaseRequest(std::string dbName) : dbName(dbName) {}
+ public:
+  ~CatCreateDatabaseRequest() {}
+  CatCreateDatabaseRequest() {}
+  CatCreateDatabaseRequest(std::string dbName) : dbName(dbName) {}
 
-    std::string dbToCreate() {
-        return dbName;
-    }
+  CatCreateDatabaseRequest(const Handle<CatCreateDatabaseRequest> &requestToCopy) {
+    dbName = requestToCopy->dbName;
+  }
 
-    ENABLE_DEEP_COPY
+  std::string dbToCreate() {
+    return dbName;
+  }
 
-private:
-    String dbName;
+  ENABLE_DEEP_COPY
+
+ private:
+  String dbName;
 };
 }
 

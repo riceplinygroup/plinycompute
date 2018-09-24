@@ -25,8 +25,6 @@
 #include "ResourceManagerServer.h"
 #include "DispatcherServer.h"
 #include "PDBCatalogMsgType.h"
-#include "CatalogDatabaseMetadata.h"
-#include "CatalogSetMetadata.h"
 #include "SimpleRequestHandler.h"
 
 #include "DistributedStorageAddDatabase.h"
@@ -95,10 +93,8 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 std::string errMsg;
                 std::string database = request->getDatabase();
                 std::string value;
-                int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
-                if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(
-                        catalogType, database, value)) {
+                if (getFunctionality<CatalogClient>().databaseExists(database)) {
                     PDB_COUT << "Database " << database << " already exists " << std::endl;
                 } else {
                     PDB_COUT << "Database " << database << " does not exist" << std::endl;
@@ -116,17 +112,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 auto failureNodes = std::vector<std::string>();
                 auto nodesToBroadcastTo = std::vector<std::string>();
 
-#ifndef USING_ALL_NODES
-                if (!getFunctionality<DistributedStorageManagerServer>().findNodesForDatabase(
-                        database, nodesToBroadcastTo, errMsg)) {
-                    PDB_COUT << "Could not find nodes to broadcast database to: " << errMsg
-                             << std::endl;
-                    Handle<SimpleRequestResult> response =
-                        makeObject<SimpleRequestResult>(false, errMsg);
-                    bool res = sendUsingMe->sendObject(response, errMsg);
-                    return make_pair(res, errMsg);
-                }
-#else
                 std::vector<std::string> allNodes;
                 const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
                 for (int i = 0; i < nodes->size(); i++) {
@@ -135,7 +120,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                     allNodes.push_back(address + ":" + port);
                 }
                 nodesToBroadcastTo = allNodes;
-#endif
 
                 Handle<StorageAddDatabase> storageCmd =
                     makeObject<StorageAddDatabase>(request->getDatabase());
@@ -154,19 +138,11 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                         });
 
                 bool res = true;
-                for (auto node : successfulNodes) {
-                    if (!getFunctionality<CatalogClient>().addNodeToDB(
-                            node, request->getDatabase(), errMsg)) {
-                        // TODO: Handle error
-                        std::cout << "Failed to register node " << node << " for database "
-                                  << request->getDatabase() << " in Catalog" << std::endl;
-                    }
-                }
-
                 Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
                 res = sendUsingMe->sendObject(response, errMsg);
                 return make_pair(res, errMsg);
             }));
+
     forMe.registerHandler(
         DistributedStorageClearSet_TYPEID,
         make_shared<SimpleRequestHandler<DistributedStorageClearSet>>(
@@ -183,26 +159,10 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
 
                 std::string database = request->getDatabase();
                 std::string set = request->getSetName();
-                std::string fullSetName = database + "." + set;
-                PDB_COUT << "set to clear is " << fullSetName << std::endl;
-                std::string value;
-                int catalogType = PDBCatalogMsgType::CatalogPDBSet;
 
-                if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(
-                        catalogType, fullSetName, value)) {
-                    std::cout << "Set " << fullSetName << " already exists " << std::endl;
-// to remove set
-#ifndef USING_ALL_NODES
-                    if (!getFunctionality<DistributedStorageManagerServer>().findNodesForSet(
-                            database, set, nodesToBroadcast, errMsg)) {
-                        std::cout << "Could not find nodes to broadcast set to: " << errMsg
-                                  << std::endl;
-                        Handle<SimpleRequestResult> response =
-                            makeObject<SimpleRequestResult>(false, errMsg);
-                        bool res = sendUsingMe->sendObject(response, errMsg);
-                        return make_pair(res, errMsg);
-                    }
-#else
+                if (getFunctionality<CatalogClient>().setExists(database, set)) {
+                    std::cout << "Set " << set << ":" << database << " already exists " << std::endl;
+
                     std::vector<std::string> allNodes;
                     const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
                     for (int i = 0; i < nodes->size(); i++) {
@@ -211,7 +171,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                         allNodes.push_back(address + ":" + port);
                     }
                     nodesToBroadcast = allNodes;
-#endif
                     Handle<StorageClearSet> storageCmd = makeObject<StorageClearSet>(
                         request->getDatabase(), request->getSetName(), request->getTypeName());
 
@@ -224,10 +183,9 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                             generateAckHandler(successfulNodes, failureNodes, lock));
                     res = true;
                 } else {
-                    PDB_COUT << "Set " << fullSetName << " does not exist" << std::endl;
+                    PDB_COUT << "Set " << database << ":" << set << " does not exist" << std::endl;
                     res = false;
-                    errMsg = std::string("Set to clear with name=") + fullSetName +
-                        std::string(" doesn't exist");
+                    errMsg = std::string("Set to clear with name=") + database + ":" + set + std::string(" doesn't exist");
                 }
 
                 // update stats
@@ -333,29 +291,26 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
 
             std::string database = request->getDatabase();
             std::string set = request->getSetName();
-            std::string fullSetName = database + "." + set;
-            PDB_COUT << "set to create is " << fullSetName << std::endl;
-            std::string value;
-            int catalogType = PDBCatalogMsgType::CatalogPDBSet;
-
-            if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(
-                    catalogType, fullSetName, value)) {
-                std::cout << "Set " << fullSetName << " already exists " << std::endl;
+            if (getFunctionality<CatalogClient>().setExists(database, set)) {
+                std::cout << "Set " << database << " : " << set << " already exists " << std::endl;
             } else {
-                PDB_COUT << "Set " << fullSetName << " does not exist" << std::endl;
+                PDB_COUT << "Set " << database << " : " << set << " does not exist" << std::endl;
 
                 // JiaNote: comment out below line because searchForObjectTypeName doesn't work for
                 // complex type like Vector<Handle<Foo>>
                 // int16_t typeId =
                 // getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
-                int16_t typeId = VTableMap::getIDByName(request->getTypeName(), false);
+                std::string typeName = request->getTypeName();
+
+                // might need to remove this
+                int16_t typeId = VTableMap::getIDByName(VTableMap::getInternalTypeName(typeName), false);
                 if (typeId == 0) {
                     return make_pair(false, "Could not identify type=" + request->getTypeName());
                 }
 
                 beforeCreateSet = std::chrono::high_resolution_clock::now();
 
-                if (!getFunctionality<CatalogClient>().createSet(typeId, database, set, errMsg)) {
+                if (!getFunctionality<CatalogClient>().createSet(typeName, typeId, database, set, errMsg)) {
                     std::cout << "Could not register set, because: " << errMsg << std::endl;
                     Handle<SimpleRequestResult> response =
                         makeObject<SimpleRequestResult>(false, errMsg);
@@ -364,16 +319,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 }
                 afterCreateSet = std::chrono::high_resolution_clock::now();
             }
-#ifndef USING_ALL_NODES
-            if (!getFunctionality<DistributedStorageManagerServer>().findNodesForSet(
-                    database, set, nodesToBroadcast, errMsg)) {
-                std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
-                Handle<SimpleRequestResult> response =
-                    makeObject<SimpleRequestResult>(false, errMsg);
-                bool res = sendUsingMe->sendObject(response, errMsg);
-                return make_pair(res, errMsg);
-            }
-#else
+
             std::vector<std::string> allNodes;
             const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
             for (int i = 0; i < nodes->size(); i++) {
@@ -382,7 +328,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 allNodes.push_back(address + ":" + port);
             }
             nodesToBroadcast = allNodes;
-#endif
             auto catalogGetNodesEnd = std::chrono::high_resolution_clock::now();
 
             Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
@@ -400,13 +345,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
 
             auto storageAddSetEnd = std::chrono::high_resolution_clock::now();
 
-
-            for (auto node : successfulNodes) {
-                if (!getFunctionality<CatalogClient>().addNodeToSet(node, database, set, errMsg)) {
-                    std::cout << "Failed to register node " << node << " for set " << fullSetName
-                              << " in Catalog" << std::endl;
-                }
-            }
             bool res = true;
             if (failureNodes.size() > 0) {
                 res = false;
@@ -421,7 +359,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
             }
             long id = -1;
-            int typeId = VTableMap::getIDByName(request->getTypeName());
+            int typeId = VTableMap::getIDByName(VTableMap::getInternalTypeName(request->getTypeName()));
             this->statisticsDB->createData(request->getDatabase(), 
                                            request->getSetName(),
                                            "UNKNOWN", 
@@ -475,8 +413,7 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             std::string value;
             int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
-            if (!getFunctionality<CatalogServer>().getCatalog()->keyIsFound(
-                    catalogType, database, value)) {
+            if (!getFunctionality<CatalogClient>().databaseExists(database)) {
                 errMsg = "Cannot delete database, database " + database + " does not exist\n";
                 Handle<SimpleRequestResult> response =
                     makeObject<SimpleRequestResult>(false, errMsg);
@@ -486,17 +423,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
 
             auto nodesToBroadcastTo = std::vector<std::string>();
 
-#ifndef USING_ALL_NODES
-            if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingDatabase(
-                    database, nodesToBroadcastTo, errMsg)) {
-                std::cout << "Could not find nodes to broadcast database delete to " << errMsg
-                          << std::endl;
-                Handle<SimpleRequestResult> response =
-                    makeObject<SimpleRequestResult>(false, errMsg);
-                bool res = sendUsingMe->sendObject(response, errMsg);
-                return make_pair(res, errMsg);
-            }
-#else
             std::vector<std::string> allNodes;
             const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
             for (int i = 0; i < nodes->size(); i++) {
@@ -505,7 +431,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 allNodes.push_back(address + ":" + port);
             }
             nodesToBroadcastTo = allNodes;
-#endif
             Handle<StorageRemoveDatabase> storageCmd = makeObject<StorageRemoveDatabase>(database);
             getFunctionality<DistributedStorageManagerServer>()
                 .broadcast<StorageRemoveDatabase, Object, SimpleRequestResult>(
@@ -621,39 +546,39 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             auto failureNodes = std::vector<std::string>();
             auto nodesToBroadcast = std::vector<std::string>();
 
-            std::string database = request->getDatabase();
-            std::string set = request->getSetName();
-            std::string fullSetName = database + "." + set;
-
-            Handle<pdb::Vector<CatalogSetMetadata>> returnValues =
-                makeObject<pdb::Vector<CatalogSetMetadata>>();
-
+            std::string databaseName = request->getDatabase();
+            std::string setName = request->getSetName();
+            std::string fullSetName = databaseName + "." + setName;
             std::string typeName;
 
-            getFunctionality<CatalogServer>().getCatalog()->getListOfSets(returnValues,
-                                                                          fullSetName);
+            std::string error;
+            auto set = getFunctionality<CatalogClient>().getSet(databaseName, setName, error);
 
-            if (returnValues->size() == 0) {
-                std::cout << "Cannot remove set, Set " << fullSetName << " does not exist "
-                          << std::endl;
-                Handle<SimpleRequestResult> response =
-                    makeObject<SimpleRequestResult>(false, errMsg);
-                bool res = sendUsingMe->sendObject(response, errMsg);
-                return make_pair(res, errMsg);
-            } else {
-                typeName = (*returnValues)[0].getObjectTypeName();
-                // std :: cout << "typeName=" << typeName << std :: endl;
-            }
-#ifndef USING_ALL_NODES
-            if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(
-                    database, set, nodesToBroadcast, errMsg)) {
-                std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
-                Handle<SimpleRequestResult> response =
-                    makeObject<SimpleRequestResult>(false, errMsg);
+            // check if the set exists
+            if (set == nullptr) {
+                std::cout << "Cannot remove set, Set " << fullSetName << " does not exist \n";
+                Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
                 bool res = sendUsingMe->sendObject(response, errMsg);
                 return make_pair(res, errMsg);
             }
-#else
+
+            // this should basically never happen
+            assert(set->type != nullptr);
+
+            // grab the type associated with the set
+            auto type = getFunctionality<CatalogClient>().getType(*set->type, errMsg);
+
+            // check if the type exists
+            if(type == nullptr) {
+              std::cout << "Remove set, can not find the type with the id : " << *set->type << "\n";
+              Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
+              bool res = sendUsingMe->sendObject(response, errMsg);
+              return make_pair(res, errMsg);
+            }
+
+            // set the type name
+            typeName = type->name;
+
             std::vector<std::string> allNodes;
             const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
             for (int i = 0; i < nodes->size(); i++) {
@@ -662,7 +587,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                 allNodes.push_back(address + ":" + port);
             }
             nodesToBroadcast = allNodes;
-#endif
 
             auto catalogGetNodesEnd = std::chrono::high_resolution_clock::now();
             PDB_COUT << "to broadcast StorageRemoveUserSet" << std::endl;
@@ -698,13 +622,13 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             }
             stats->removeSet(request->getDatabase(), request->getSetName());
 
-            if (failureNodes.size() == 0) {
+            if (failureNodes.empty()) {
                 // If all the nodes succeeded in removing the set then we can simply delete the set
                 // from the
                 // catalog
                 PDB_COUT << "Succeeded in deleting set " << fullSetName << " on all nodes"
                          << std::endl;
-                if (!getFunctionality<CatalogClient>().deleteSet(database, set, errMsg)) {
+                if (!getFunctionality<CatalogClient>().deleteSet(databaseName, setName, errMsg)) {
                     std::cout << "Could not delete set, because: " << errMsg << std::endl;
                     Handle<SimpleRequestResult> response =
                         makeObject<SimpleRequestResult>(false, errMsg);
@@ -712,18 +636,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
                     return make_pair(res, errMsg);
                 }
             } else {
-                // If some nodes failed in removing the set remove these nodes from the set maps in
-                // the catalog
-                // so that future calls to this function will only attempt to affect the unmodified
-                // storage nodes
-                errMsg = "Nodes failed to remove set " + fullSetName + ": ";
-                for (auto node : successfulNodes) {
-                    if (!getFunctionality<CatalogClient>().removeNodeFromSet(
-                            node, database, set, errMsg)) {
-                        errMsg += node + ", ";
-                        std::cout << errMsg << std::endl;
-                    }
-                }
 
                 bool res = false;
                 Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
@@ -889,14 +801,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             */
             // to get all nodes having data for this set
             std::vector<std::string> nodesToBroadcast;
-#ifndef USING_ALL_NODES
-            if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(
-                    dbName, setName, nodesToBroadcast, errMsg)) {
-                errMsg = "Error in handling SetScan message: Could not find nodes for this set";
-                std::cout << errMsg << std::endl;
-                return make_pair(false, errMsg);
-            }
-#else
             std::vector<std::string> allNodes;
             const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
             for (int i = 0; i < nodes->size(); i++) {
@@ -906,7 +810,6 @@ void DistributedStorageManagerServer::registerHandlers(PDBServer& forMe) {
             }
             nodesToBroadcast = allNodes;
 
-#endif
             PDB_COUT << "num nodes for this set" << nodesToBroadcast.size() << std::endl;
 
             // to send SetScan message to slave servers iteratively
@@ -1057,139 +960,8 @@ DistributedStorageManagerServer::generateAckHandler(std::vector<std::string>& su
     };
 }
 
-bool DistributedStorageManagerServer::findNodesForDatabase(
-    const std::string& databaseName,
-    std::vector<std::string>& nodesForDatabase,
-    std::string& errMsg) {
 
-    auto takenNodes = std::vector<std::string>();
-    if (!findNodesContainingDatabase(databaseName, takenNodes, errMsg)) {
-        return false;
-    }
 
-    std::vector<std::string> allNodes = std::vector<std::string>();
-    const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
-
-    PDB_COUT << "findNodesForDatabase considering " << nodes->size() << " nodes" << std::endl;
-
-    for (int i = 0; i < nodes->size(); i++) {
-        std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
-        std::string port = std::to_string((*nodes)[i]->getPort());
-        allNodes.push_back(address + ":" + port);
-    }
-
-    for (auto node : allNodes) {
-        if (std::find(takenNodes.begin(), takenNodes.end(), node) == takenNodes.end()) {
-            nodesForDatabase.push_back(node);
-        }
-    }
-    return true;
-}
-
-bool DistributedStorageManagerServer::findNodesContainingDatabase(
-    const std::string& databaseName,
-    std::vector<std::string>& nodesForDatabase,
-    std::string& errMsg) {
-    const UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
-    PDB_COUT << "findNodesContainingDatabase:" << std::endl;
-    Handle<Vector<CatalogDatabaseMetadata>> returnValues =
-        makeObject<Vector<CatalogDatabaseMetadata>>();
-
-    getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, databaseName);
-
-    if (returnValues->size() != 1) {
-        errMsg = "Could not find metadata for database: " + databaseName;
-        std::cout << errMsg;
-        return false;
-    } else {
-        auto nodesInDB = (*returnValues)[0].getNodesInDB();
-        for (auto const& node : (*(*returnValues)[0].getNodesInDB())) {
-            PDB_COUT << "node: " << node.key << std::endl;
-            nodesForDatabase.push_back(node.key);
-        }
-        return true;
-    }
-    return false;
-}
-
-bool DistributedStorageManagerServer::findNodesForSet(const std::string& databaseName,
-                                                      const std::string& setName,
-                                                      std::vector<std::string>& nodesForSet,
-                                                      std::string& errMsg) {
-    PDB_COUT << "findNodesForSet:" << std::endl;
-    auto nodesInDatabase = std::vector<std::string>();
-    if (!findNodesContainingDatabase(databaseName, nodesInDatabase, errMsg)) {
-        return false;
-    }
-
-    auto nodesContainingSet = std::vector<std::string>();
-    if (!findNodesContainingSet(databaseName, setName, nodesContainingSet, errMsg)) {
-        return false;
-    }
-
-    for (auto node : nodesInDatabase) {
-        if (std::find(nodesContainingSet.begin(), nodesContainingSet.end(), node) ==
-            nodesContainingSet.end()) {
-            PDB_COUT << "node: " << node << std::endl;
-            nodesForSet.push_back(node);
-        }
-    }
-    PDB_COUT << "findNodesForSet return nodes size:" << nodesForSet.size() << std::endl;
-    return true;
-}
-
-bool DistributedStorageManagerServer::findNodesContainingSet(
-    const std::string& databaseName,
-    const std::string& setName,
-    std::vector<std::string>& nodesContainingSet,
-    std::string& errMsg) {
-    const UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
-    std::string fullSetName = databaseName + "." + setName;
-    Handle<Vector<CatalogDatabaseMetadata>> returnValues =
-        makeObject<Vector<CatalogDatabaseMetadata>>();
-
-    getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, databaseName);
-
-    if (returnValues->size() != 1) {
-        errMsg = "Could not find metadata for database: " + databaseName;
-        return false;
-    } else {
-        bool setFound = false;
-        auto listOfSets = (*returnValues)[0].getListOfSets();
-        for (int i = 0; i < listOfSets->size(); i++) {
-            if ((*listOfSets)[i] == setName) {
-                setFound = true;
-                break;
-            }
-        }
-        if (!setFound) {
-            errMsg = "Set " + fullSetName + " does not exist in database " + databaseName;
-            return false;
-        }
-        auto setsInDB = (*returnValues)[0].getSetsInDB();
-        for (auto& kv : (*setsInDB)) {
-            std::cout << kv.key << std::endl;
-        }
-        String pdbSetName = String(setName);
-        PDB_COUT << "pdbSetName=" << pdbSetName << std::endl;
-        if (setsInDB->count(pdbSetName) == 0) {
-            // The set is currently contained in no nodes
-            PDB_COUT << "set is not in map" << std::endl;
-            return true;
-        }
-        PDB_COUT << "set is in map" << std::endl;
-        auto nodes = (*setsInDB)[pdbSetName];
-        for (int i = 0; i < nodes.size(); i++) {
-            PDB_COUT << i << ":" << nodes[i] << std::endl;
-            nodesContainingSet.push_back(nodes[i]);
-        }
-        PDB_COUT << "findNodesContainingSet return nodes size:" << nodesContainingSet.size()
-                 << std::endl;
-        return true;
-    }
-    errMsg = "Database not found " + databaseName;
-    return false;
-}
 }
 
 #endif

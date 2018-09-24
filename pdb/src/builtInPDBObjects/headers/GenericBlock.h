@@ -41,10 +41,11 @@ private:
 public:
     ENABLE_DEEP_COPY
 
-    ~GenericBlock() {}
+    ~GenericBlock() = default;
+    GenericBlock() = default;
 
-    GenericBlock() {}
     GenericBlock(size_t batchSize) : block(batchSize) {}
+
     Vector<Handle<Object>>& getBlock() {
         return block;
     }

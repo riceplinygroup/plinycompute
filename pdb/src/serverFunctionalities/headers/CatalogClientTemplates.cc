@@ -30,7 +30,7 @@ template <class DataType>
 bool CatalogClient::createSet(std::string databaseName, std::string setName,
                               std::string &errMsg) {
 
-  int16_t typeID = VTableMap::getIDByName(getTypeName<DataType>(), false);
+  int16_t typeID = VTableMap::getIDByName(VTableMap::getInternalTypeName(getTypeName<DataType>()), false);
   if (typeID == -1) {
     errMsg = "Could not find type " + getTypeName<DataType>();
     return -1;

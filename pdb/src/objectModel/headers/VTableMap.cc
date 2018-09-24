@@ -87,7 +87,8 @@ inline void VTableMap::listVtableLabels() {
     }
 }
 
-inline int16_t VTableMap::getIDByName(std::string objectTypeName, bool withLock) {
+inline std::string VTableMap::getInternalTypeName(const std::string &realName) {
+
     // PDB_COUT << "getIDByName for " << objectTypeName << std :: endl;
     // one important issue is that we might need to lookup soething nasty like:
     //
@@ -102,30 +103,37 @@ inline int16_t VTableMap::getIDByName(std::string objectTypeName, bool withLock)
     // Any time that we see a "," at depth 1, it means we've hit an additional template arguement,
     // and so we add
     // a "<pdb::Nothing>" to the replacement string
-    std::string replacementString("");
-    std::string prefix("");
+
+    std::string replacementString;
+    std::string prefix;
     bool isTemplate = false;
     int depth = 0;
-    int length = objectTypeName.size();
+    auto length = realName.size();
     for (unsigned int loc = 0; loc < length; loc++) {
-        if (objectTypeName[loc] == '<') {
+        if (realName[loc] == '<') {
             depth++;
             if (depth == 1) {
                 isTemplate = true;
-                prefix = objectTypeName.substr(0, loc);
+                prefix = realName.substr(0, loc);
                 replacementString = std::string("pdb::Nothing");
             }
-        } else if (objectTypeName[loc] == '>') {
+        } else if (realName[loc] == '>') {
             depth--;
-        } else if (objectTypeName[loc] == ',' && depth == 1) {
+        } else if (realName[loc] == ',' && depth == 1) {
             std::string nextReplacement(",pdb::Nothing");
             replacementString += nextReplacement;
         }
     }
 
     // if this was a template, do the normalization
-    if (isTemplate)
-        objectTypeName = prefix + std::string("<") + replacementString + std::string(">");
+    if (isTemplate) {
+        return std::move(prefix + std::string("<") + replacementString + std::string(">"));
+    }
+
+    return realName;
+}
+
+inline int16_t VTableMap::getIDByName(std::string objectTypeName, bool withLock) {
 
     // now, check to make sure that we have seen the given object type before
     // PDB_COUT << "objectTypeName=" << objectTypeName << std :: endl;
@@ -134,7 +142,7 @@ inline int16_t VTableMap::getIDByName(std::string objectTypeName, bool withLock)
 
         // make sure no one is modifying the map
         int16_t identifier;
-        if (withLock == true) {
+        if (withLock) {
             const LockGuard guard{theVTable->myLock};
             // in this case, we do not have this object type, and we have never looked for it before
             // so, go to the catalog and ask for it...
@@ -262,6 +270,22 @@ inline void* VTableMap::getVTablePtr(int16_t objectTypeID) {
         // std :: cout << "to release lock at " << ss.str() << " in getVTablePtr" << std :: endl;
         return returnVal;
     }
+}
+
+inline std::vector<std::pair<std::string, int16_t>> pdb::VTableMap::getBuiltInTypes() {
+
+  // make are return value
+  std::vector<std::pair<std::string, int16_t>> ret;
+
+  // got through each type and filter out the built in ones
+  for (const auto &type : theVTable->objectTypeNamesList) {
+    if (type.second >= 0 && type.second <= TYPE_NOT_RECOGNIZED) {
+      ret.emplace_back(type);
+    }
+  }
+
+  // i like to move it move it!
+  return std::move(ret);
 }
 
 } /* namespace pdb */
